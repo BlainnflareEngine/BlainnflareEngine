@@ -1,0 +1,36 @@
+@echo off
+setlocal enabledelayedexpansion
+
+REM List of repositories to clone
+set REPOS=^
+https://github.com/electronicarts/EASTL.git ^
+https://github.com/microsoft/DirectXTK12.git ^
+https://github.com/jrouwe/JoltPhysics.git ^
+https://github.com/hlavacs/ViennaGameJobSystem.git ^
+https://github.com/guillaumeblanc/ozz-animation.git ^
+https://github.com/assimp/assimp.git ^
+https://github.com/open-source-parsers/jsoncpp.git
+REM TODO: fmod, qt, lua, ai lib?
+
+REM Change to the directory containing this script
+cd /d "%~dp0"
+
+REM Clone each repository if not already present
+for %%R in (%REPOS%) do (
+    set "REPO_URL=%%R"
+    REM Extract repo name (last part after '/')
+    for %%A in ("!REPO_URL!") do (
+        set "REPO_NAME=%%~nxA"
+    )
+    REM Remove .git extension if present
+    set "REPO_NAME=!REPO_NAME:.git=!"
+    
+    if not exist "!REPO_NAME!\" (
+        echo Cloning !REPO_URL! into !REPO_NAME!...
+        git clone "!REPO_URL!" "!REPO_NAME!"
+    ) else (
+        echo !REPO_NAME! already exists, skipping.
+    )
+)
+
+endlocal
