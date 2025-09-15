@@ -1,8 +1,26 @@
 cmake_minimum_required(VERSION 3.1...4.1.1)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 cmake_policy(SET CMP0074 OLD)
 cmake_policy(SET CMP0169 OLD)
+
+set(CMAKE_CONFIGURATION_TYPES
+    Debug
+    Release
+    RelWithDebInfo
+    Development
+    Shipping
+    Dist
+    CACHE STRING "" FORCE)
+
+# These definitions apply to all the projects
+set (NON_DIST_DEFS TRACY_ENABLE)
+add_compile_definitions(
+        $<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:${NON_DIST_DEFS}>
+)
 
 set(PROJECT_NAME
         BlainnflareEngine)
@@ -21,6 +39,8 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE BLAINN_INCLUDE_EDITOR)
+
 # include directories
 
 set(LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
@@ -28,6 +48,7 @@ set(ENGINE_DIR ${PROJECT_SOURCE_DIR}/engine)
 set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
 set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
 add_subdirectory(${ENGINE_DIR})
+add_subdirectory(${EDITOR_DIR})
 
 
 # fetch content
@@ -180,13 +201,8 @@ FetchContent_Declare(
 )
 FetchContent_GetProperties(vgjs)
 if (NOT ${vgjs_POPULATED})
-    message(WARNING "NOT POPULATED!!!!!")
+    message("Vienna Game Job System was not found, fetching")
     FetchContent_Populate(vgjs)
-
-    FetchContent_GetProperties(vgjs)
-    if (NOT ${vgjs_POPULATED})
-        message(WARNING "NOT POPULATED!!!!!")
-    endif ()
 endif ()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -194,6 +210,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         spdlog
         TracyClient
         ENGINE
+        EDITOR
         DirectXTK12
         Jolt
         ozz_animation
@@ -201,7 +218,44 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         sol2)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-        ${ENGINE_DIR} ${EDITOR_DIR} ${LIBS_DIR} ${JobSystem_DIR}/include)
+        ${ENGINE_DIR}
+        ${EDITOR_DIR}
+        ${LIBS_DIR}
+        ${JobSystem_DIR}/include
+        ${TracyClient}/public
+)
+
+
+# QT files deploy
+
+if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(DEBUG_SUFFIX)
+    if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
+        set(DEBUG_SUFFIX "d")
+    endif ()
+    set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
+    if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
+        set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
+        if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
+            set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
+        endif ()
+    endif ()
+    if (EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+    endif ()
+    foreach (QT_LIB Core Gui Widgets)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endforeach (QT_LIB)
+endif ()
 
 # =========================================
 # debug info
