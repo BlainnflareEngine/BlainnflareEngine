@@ -49,5 +49,4 @@ libs/
 !libs/*.bat
 .idea/
 CMakeFiles/
-!libs/JobSystem/
-!libs/JobSystem/**
+!libs/JobSystem/*
