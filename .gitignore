@@ -47,6 +47,6 @@ build/
 *.sln
 libs/*
 !libs/JobSystem/
-!libs/JobSystem/**
+!libs/JobSystem/*
 .idea/
 CMakeFiles/
