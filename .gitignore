@@ -45,8 +45,8 @@ build/
 .vscode/
 .vs/
 *.sln
-libs/
-!libs/*.bat
+libs/*
+!libs/JobSystem/
+!libs/JobSystem/**
 .idea/
 CMakeFiles/
-!libs/JobSystem/*
