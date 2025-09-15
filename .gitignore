@@ -45,3 +45,5 @@ build/
 .vscode/
 .vs/
 *.sln
+libs/
+!libs/*.bat
