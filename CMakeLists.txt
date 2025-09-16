@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.21...4.0.1)
+cmake_minimum_required(VERSION 3.1...4.0.1)
+cmake_policy(SET CMP0074 OLD)
 
 set(PROJECT_NAME
         BlainnflareEngine)
