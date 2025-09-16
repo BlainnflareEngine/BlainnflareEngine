@@ -11,6 +11,7 @@ public:
     // TODO: virtual ~RenderSubsystem() override = default;
     virtual void Init() override;
     virtual void Destroy() override;
+    virtual void ExecuteTask() override;
     // TODO: Additional rendering-specific methods can be added here
 };
 } // namespace Blainn

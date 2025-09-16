@@ -5,6 +5,7 @@ project(ENGINE
         LANGUAGES CXX)
 
 set(ENGINE_SOURCES
+        src/Engine.cc
         src/subsystems/RenderSubsystem.cc
 )
 

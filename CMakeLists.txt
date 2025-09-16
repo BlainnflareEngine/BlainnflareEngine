@@ -47,7 +47,7 @@ else ()
 endif ()
 
 find_package(spdlog QUIET)
-if (NOT $spdlog_FOUND)
+if (NOT ${spdlog_FOUND})
     message(STATUS "spdlog not found. Fetching from git (https://github.com/gabime/spdlog.git)...")
     FetchContent_Declare(
             spdlog
@@ -63,7 +63,7 @@ endif ()
 #target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/libs/spdlog)
 
 find_package(tracy QUIET)
-if (NOT $tracy_FOUND)
+if (NOT ${tracy_FOUND})
     message(STATUS "tracy not found. Fetching from git (https://github.com/wolfpld/tracy.git)...")
     FetchContent_Declare(
             tracy
@@ -142,7 +142,7 @@ else ()
 endif ()
 
 find_package(Gainput QUIET)
-if (NOT $Gainput_FOUND)
+if (NOT ${Gainput_FOUND})
     message(STATUS "GAInput not found. Fetching from git (https://github.com/jkuhlmann/gainput.git)...")
     FetchContent_Declare(
             Gainput

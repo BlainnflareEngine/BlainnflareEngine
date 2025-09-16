@@ -50,3 +50,4 @@ libs/*
 !libs/JobSystem/**
 .idea/
 CMakeFiles/
+/out

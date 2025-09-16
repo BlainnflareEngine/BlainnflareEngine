@@ -13,3 +13,7 @@ void Blainn::RenderSubsystem::Init()
 void Blainn::RenderSubsystem::Destroy()
 {
 }
+
+void Blainn::RenderSubsystem::ExecuteTask()
+{
+}
