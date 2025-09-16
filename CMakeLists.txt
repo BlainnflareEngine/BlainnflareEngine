@@ -1,5 +1,6 @@
-cmake_minimum_required(VERSION 3.1...4.0.1)
-cmake_policy(SET CMP0074 OLD)
+cmake_minimum_required(VERSION 3.1...4.1.1)
+
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 set(PROJECT_NAME
         BlainnflareEngine)
@@ -24,7 +25,7 @@ set(LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
 set(ENGINE_DIR ${PROJECT_SOURCE_DIR}/engine)
 set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
 set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/JobSystem)
-add_subdirectory(engine)
+add_subdirectory(${ENGINE_DIR})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${ENGINE_DIR} ${EDITOR_DIR} ${LIBS_DIR} ${JobSystem_DIR})
 
@@ -44,6 +45,37 @@ else ()
     message(STATUS "EASTL found.")
 endif ()
 
+find_package(spdlog QUIET)
+if (NOT $spdlog_FOUND)
+    message(STATUS "spdlog not found. Fetching from git (https://github.com/gabime/spdlog.git)...")
+    FetchContent_Declare(
+            spdlog
+            GIT_REPOSITORY https://github.com/gabime/spdlog.git
+            GIT_TAG v1.15.3
+            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/spdlog
+    )
+
+    FetchContent_MakeAvailable(spdlog)
+else ()
+    message(STATUS "spdlog found.")
+endif ()
+#target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/libs/spdlog)
+
+find_package(tracy QUIET)
+if (NOT $tracy_FOUND)
+    message(STATUS "tracy not found. Fetching from git (https://github.com/wolfpld/tracy.git)...")
+    FetchContent_Declare(
+            tracy
+            GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+            GIT_TAG v0.12.2
+            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/tracy
+    )
+
+    FetchContent_MakeAvailable(tracy)
+else ()
+    message(STATUS "tracy found.")
+endif ()
+
 find_package(DirectXTK12 QUIET)
 if (NOT DirectXTK12_FOUND)
     message(STATUS "DirectXTK12 not found. Fetching from git (https://github.com/microsoft/DirectXTK12.git)...")
@@ -59,6 +91,7 @@ else ()
     message(STATUS "DirectXTK12 found.")
 endif ()
 
+set(USE_STATIC_MSVC_RUNTIME_LIBRARY OFF CACHE BOOL "" FORCE)
 find_package(JoltPhysics QUIET)
 if (NOT JoltPhysics_FOUND)
     message(STATUS "JoltPhysics not found. Fetching from git (https://github.com/jrouwe/JoltPhysics.git)...")
@@ -107,14 +140,31 @@ else ()
     message(STATUS "Assimp found.")
 endif ()
 
+find_package(Gainput QUIET)
+if (NOT $Gainput_FOUND)
+    message(STATUS "GAInput not found. Fetching from git (https://github.com/jkuhlmann/gainput.git)...")
+    FetchContent_Declare(
+            Gainput
+            GIT_REPOSITORY https://github.com/jkuhlmann/gainput.git
+            GIT_TAG v1.0.0
+            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/Gainput
+    )
+
+    FetchContent_MakeAvailable(Gainput)
+else ()
+    message(STATUS "Gainput found.")
+endif ()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
         EASTL
+        spdlog
+        TracyClient
         ENGINE
         DirectXTK12
         Jolt
         ozz_animation
-        assimp)
+        assimp
+        gainputstatic)
 
 
 # =========================================
