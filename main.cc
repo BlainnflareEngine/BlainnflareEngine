@@ -4,7 +4,6 @@
 
 #include "engine/include/subsystems/RenderSubsystem.h"
 
-
 #include <iostream>
 int main(int argc, char** argv) {
 	// TODO:

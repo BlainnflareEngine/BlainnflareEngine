@@ -10,7 +10,7 @@ set(ENGINE_SOURCES
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include ${JobSystem_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include ${JobSystem_DIR}/include)
 
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

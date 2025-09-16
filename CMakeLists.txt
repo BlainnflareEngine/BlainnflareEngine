@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.1...4.1.1)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+cmake_policy(SET CMP0074 OLD)
+cmake_policy(SET CMP0169 OLD)
 
 set(PROJECT_NAME
         BlainnflareEngine)
@@ -24,14 +26,13 @@ add_executable(${PROJECT_NAME} main.cc)
 set(LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
 set(ENGINE_DIR ${PROJECT_SOURCE_DIR}/engine)
 set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
-set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/JobSystem)
+set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
 add_subdirectory(${ENGINE_DIR})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${ENGINE_DIR} ${EDITOR_DIR} ${LIBS_DIR} ${JobSystem_DIR})
 
 # fetch content
 find_package(EASTL QUIET)
-if (NOT EASTL_FOUND)
+if (NOT ${EASTL_FOUND})
     message(STATUS "EASTL not found. Fetching from git (https://github.com/electronicarts/EASTL.git)...")
     FetchContent_Declare(
             EASTL
@@ -77,7 +78,7 @@ else ()
 endif ()
 
 find_package(DirectXTK12 QUIET)
-if (NOT DirectXTK12_FOUND)
+if (NOT ${DirectXTK12_FOUND})
     message(STATUS "DirectXTK12 not found. Fetching from git (https://github.com/microsoft/DirectXTK12.git)...")
     FetchContent_Declare(
             DirectXTK12
@@ -93,7 +94,7 @@ endif ()
 
 set(USE_STATIC_MSVC_RUNTIME_LIBRARY OFF CACHE BOOL "" FORCE)
 find_package(JoltPhysics QUIET)
-if (NOT JoltPhysics_FOUND)
+if (NOT ${JoltPhysics_FOUND})
     message(STATUS "JoltPhysics not found. Fetching from git (https://github.com/jrouwe/JoltPhysics.git)...")
     FetchContent_Declare(
             JoltPhysics
@@ -110,7 +111,7 @@ else ()
 endif ()
 
 find_package(OzzAnimation QUIET)
-if (NOT OzzAnimation_FOUND)
+if (NOT ${OzzAnimation_FOUND})
     message(STATUS "OzzAnimation not found. Fetching from git (https://github.com/guillaumeblanc/ozz-animation.git)...")
     FetchContent_Declare(
             OzzAnimation
@@ -126,7 +127,7 @@ endif ()
 
 
 find_package(assimp QUIET)
-if (NOT assimp_FOUND)
+if (NOT ${assimp_FOUND})
     message(STATUS "Assimp not found. Fetching from git (https://github.com/assimp/assimp.git)...")
     FetchContent_Declare(
             assimp
@@ -155,6 +156,24 @@ else ()
     message(STATUS "Gainput found.")
 endif ()
 
+file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
+
+FetchContent_Declare(
+        vgjs
+        GIT_REPOSITORY https://github.com/hlavacs/ViennaGameJobSystem.git
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/ViennaGameJobSystem
+)
+FetchContent_GetProperties(vgjs)
+if (NOT ${vgjs_POPULATED})
+    message(WARNING "NOT POPULATED!!!!!")
+    FetchContent_Populate(vgjs)
+
+    FetchContent_GetProperties(vgjs)
+    if (NOT ${vgjs_POPULATED})
+        message(WARNING "NOT POPULATED!!!!!")
+    endif ()
+endif ()
+
 target_link_libraries(${PROJECT_NAME} PUBLIC
         EASTL
         spdlog
@@ -166,6 +185,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         assimp
         gainputstatic)
 
+target_include_directories(${PROJECT_NAME} PUBLIC
+        ${ENGINE_DIR} ${EDITOR_DIR} ${LIBS_DIR} ${JobSystem_DIR}/include)
 
 # =========================================
 # debug info
