@@ -9,5 +9,5 @@ namespace Blainn {
 		void Init() override;
 		void Destroy() override;
 		// get window handle (to use in rendering and editor window)
-	}
+	};
 }
