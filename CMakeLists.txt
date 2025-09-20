@@ -156,6 +156,36 @@ else ()
     message(STATUS "Gainput found.")
 endif ()
 
+find_package(sol2 QUIET)
+if (NOT ${sol2_FOUND})
+    message(STATUS "sol2 not found. Fetching from git (https://github.com/ThePhD/sol2.git)...")
+    FetchContent_Declare(
+            sol2
+            GIT_REPOSITORY https://github.com/ThePhD/sol2.git
+            GIT_TAG v3.3.0
+            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/sol2
+    )
+
+    FetchContent_MakeAvailable(sol2)
+else ()
+    message(STATUS "sol2 found.")
+endif ()
+
+find_package(uuid_v4 QUIET)
+if (NOT ${uuid_v4_FOUND})
+    message(STATUS "uuid_v4 not found. Fetching from git (https://github.com/crashoz/uuid_v4.git)...")
+    FetchContent_Declare(
+            uuid_v4
+            GIT_REPOSITORY https://github.com/crashoz/uuid_v4.git
+            GIT_TAG v1.0.0
+            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/uuid_v4
+    )
+
+    FetchContent_MakeAvailable(uuid_v4)
+else ()
+    message(STATUS "uuid_v4 found.")
+endif ()
+
 file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
 
 FetchContent_Declare(
@@ -183,7 +213,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         Jolt
         ozz_animation
         assimp
-        gainputstatic)
+        gainputstatic
+        sol2)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         ${ENGINE_DIR} ${EDITOR_DIR} ${LIBS_DIR} ${JobSystem_DIR}/include)
