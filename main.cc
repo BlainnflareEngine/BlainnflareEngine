@@ -9,11 +9,11 @@
 int main(int argc, char** argv) {
 	// TODO:
 	
-	Engine::Initialize();
+	Blainn::Engine::Init();
 #if defined(BLAINN_INCLUDE_EDITOR)
 	// init editor
 #endif
-	Engine::Run();
+	Blainn::Engine::Run();
 
 	return 0;
 }

@@ -6,7 +6,9 @@ project(ENGINE
 
 set(ENGINE_SOURCES
         src/Engine.cc
-        src/subsystems/RenderSubsystem.cc
+        src/subsystems/Freya.cc
+        src/subsystems/Jord.cc
+        src/subsystems/Bifrost.cc
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})

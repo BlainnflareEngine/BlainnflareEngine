@@ -2,7 +2,9 @@
 
 #include "VGJS.h"
 
-#include "subsystems/RenderSubsystem.h"
+#include "subsystems/Freya.h"
+
+using namespace Blainn;
 
 void Engine::Init() {
 	//TODO: Initialize engine subsystems here
@@ -10,8 +12,7 @@ void Engine::Init() {
     vgjs::JobSystem::init(8);
     
     //   just to check that cmake is working
-    Blainn::RenderSubsystem subsystem;
-    subsystem.Init();
+    Blainn::Freya::Init();
 }
 
 void Engine::Shutdown()
@@ -20,7 +21,14 @@ void Engine::Shutdown()
 
 void Engine::Run()
 {
-    // lets assume we have a render subsystem for now
-    Blainn::RenderSubsystem subsystem;
-    vgjs::schedule(std::bind(&RenderSubsystem::ExecuteTask, &subsystem));
+    bool isRunning = true;
+    while (isRunning)
+    {
+
+
+        // lets assume we have a render subsystem for now
+        Blainn::Freya subsystem;
+        vgjs::schedule(std::bind(&Freya::Render, &subsystem));
+    }
+
 }
