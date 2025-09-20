@@ -19,7 +19,7 @@ include(FetchContent)
 # cpp options
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(${PROJECT_NAME} main.cc)
+add_executable(${PROJECT_NAME} main.cpp)
 
 # include directories
 

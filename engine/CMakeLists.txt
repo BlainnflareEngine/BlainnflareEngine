@@ -5,10 +5,10 @@ project(ENGINE
         LANGUAGES CXX)
 
 set(ENGINE_SOURCES
-        src/Engine.cc
-        src/subsystems/Freya.cc
-        src/subsystems/Jord.cc
-        src/subsystems/Bifrost.cc
+        src/Engine.cpp
+        src/subsystems/Freya.cpp
+        src/subsystems/Jord.cpp
+        src/subsystems/Bifrost.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
