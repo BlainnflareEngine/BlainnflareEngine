@@ -1,21 +1,19 @@
 #pragma once
-#include "Subsystem.h"
 
 namespace Blainn
 {
 	// RenderSubsystem
-    class Freya : public Subsystem
+    class Freya
     {
     public:
-        static Freya& GetInstance();
         // TODO: virtual ~RenderSubsystem() override = default;
-        virtual void Init() override;
-        virtual void Destroy() override;
+        static void Init();
+        static void Destroy();
 
-        void Render();
+        static void Render();
         // TODO: Additional rendering-specific methods can be added here    
     private:
-        Freya(); 
+        Freya() = delete; 
         Freya(const Freya&) = delete;
         Freya& operator=(const Freya&) = delete; 
 		Freya(const Freya&&) = delete;

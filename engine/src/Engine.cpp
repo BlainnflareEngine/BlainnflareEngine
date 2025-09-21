@@ -6,10 +6,13 @@
 
 using namespace Blainn;
 
+std::shared_ptr<vgjs::JobSystem> Engine::m_jobSystemPtr = nullptr;
+
 void Engine::Init() {
 	//TODO: Initialize engine subsystems here
 
-    vgjs::JobSystem::init(8);
+    vgjs::thread_count_t jobSystemThreadCount{8};
+    m_jobSystemPtr = std::make_shared<vgjs::JobSystem>(vgjs::JobSystem(jobSystemThreadCount));
     
     //   just to check that cmake is working
     Blainn::Freya::Init();
@@ -24,11 +27,8 @@ void Engine::Run()
     bool isRunning = true;
     while (isRunning)
     {
-
-
-        // lets assume we have a render subsystem for now
-        Blainn::Freya subsystem;
-        vgjs::schedule(std::bind(&Freya::Render, &subsystem));
+        
+        vgjs::schedule(&Freya::Render);
     }
 
 }

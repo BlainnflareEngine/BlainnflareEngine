@@ -5,18 +5,7 @@
 
 using namespace Blainn;
 
-Freya::Freya()
-{
-    
-}
-
-
-Freya& Freya::GetInstance()
-{
-    assert(m_isInitialized && "Freya subsystem not initialized");
-    static Freya instance;
-    return instance;
-}
+bool Freya::m_isInitialized = false;
 
 void Blainn::Freya::Init() 
 {
@@ -31,4 +20,5 @@ void Freya::Destroy()
 
 void Freya::Render()
 {
+    assert(m_isInitialized && "Freya subsystem not initialized");
 }

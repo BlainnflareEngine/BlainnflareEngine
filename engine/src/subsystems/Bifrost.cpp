@@ -4,15 +4,7 @@
 
 using namespace Blainn;
 
-Bifrost::Bifrost() {
-    
-}
-
-Bifrost& Bifrost::GetInstance() {
-    assert(m_isInitialized && "Bifrost subsystem not initialized");
-    static Bifrost instance;
-    return instance;
-}
+bool Bifrost::m_isInitialized = false;
 
 void Bifrost::Init() {
     m_isInitialized = true;
