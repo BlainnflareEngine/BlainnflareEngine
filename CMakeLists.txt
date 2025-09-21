@@ -141,21 +141,6 @@ else ()
     message(STATUS "Assimp found.")
 endif ()
 
-find_package(Gainput QUIET)
-if (NOT ${Gainput_FOUND})
-    message(STATUS "GAInput not found. Fetching from git (https://github.com/jkuhlmann/gainput.git)...")
-    FetchContent_Declare(
-            Gainput
-            GIT_REPOSITORY https://github.com/jkuhlmann/gainput.git
-            GIT_TAG v1.0.0
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/Gainput
-    )
-
-    FetchContent_MakeAvailable(Gainput)
-else ()
-    message(STATUS "Gainput found.")
-endif ()
-
 find_package(sol2 QUIET)
 if (NOT ${sol2_FOUND})
     message(STATUS "sol2 not found. Fetching from git (https://github.com/ThePhD/sol2.git)...")
@@ -213,7 +198,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         Jolt
         ozz_animation
         assimp
-        gainputstatic
         sol2)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
