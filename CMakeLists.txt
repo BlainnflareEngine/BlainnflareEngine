@@ -210,6 +210,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         spdlog
         TracyClient
         ENGINE
+        EDITOR
         DirectXTK12
         Jolt
         ozz_animation
@@ -221,7 +222,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         ${EDITOR_DIR}
         ${LIBS_DIR}
         ${JobSystem_DIR}/include
-        ${TracyClient}/public
+        ${TracyClient_DIR}/public
 )
 
 

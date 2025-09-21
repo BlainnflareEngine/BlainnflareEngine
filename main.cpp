@@ -2,7 +2,7 @@
 
 // TODO: move to launcher(application) class?
 
-#include "Editor.h"
+#include "editor/include/Editor.h"
 #include "engine/include/Engine.h"
 
 #include <iostream>

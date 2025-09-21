@@ -17,7 +17,7 @@ add_library(ENGINE STATIC ${ENGINE_SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${JobSystem_DIR}/include
-        ${TracyClient}/public)
+        ${TracyClient_DIR}/public)
 
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
