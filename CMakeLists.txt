@@ -60,11 +60,10 @@ target_link_libraries(pch INTERFACE
 target_precompile_headers(pch INTERFACE common/pch.h)
 
 
+
 target_compile_definitions(${PROJECT_NAME} PRIVATE BLAINN_INCLUDE_EDITOR)
 
-
 #target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_HAS_CONSOLE)
-
 
 
 add_subdirectory(${ENGINE_DIR})
