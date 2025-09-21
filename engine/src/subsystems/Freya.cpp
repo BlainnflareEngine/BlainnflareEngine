@@ -22,7 +22,7 @@ void Freya::Destroy()
 
 void Freya::Render()
 {
-    BLAINN_PROFILE_THREAD("Render thread");
+    //BLAINN_PROFILE_THREAD("Render thread");
     assert(m_isInitialized && "Freya subsystem not initialized");
 
     BLAINN_PROFILE_SCOPE_DYNAMIC("Render function");
