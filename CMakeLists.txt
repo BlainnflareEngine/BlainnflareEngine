@@ -210,7 +210,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         spdlog
         TracyClient
         ENGINE
-        EDITOR
         DirectXTK12
         Jolt
         ozz_animation
