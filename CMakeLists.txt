@@ -34,56 +34,6 @@ project(${PROJECT_NAME}
 include(FetchContent)
 
 
-set(FETCHCONTENT_SOURCE_DIR_EASTL
-        "${CMAKE_SOURCE_DIR}/libs/EASTL"
-        CACHE PATH "CACHE PATH EASTL source dir"
-)
-
-set(FETCHCONTENT_SOURCE_DIR_SPDLOG
-        "${CMAKE_SOURCE_DIR}/libs/spdlog"
-        CACHE PATH "CACHE PATH SPDLOG source dir"
-)
-
-set(FETCHCONTENT_SOURCE_DIR_TRACY
-        "${CMAKE_SOURCE_DIR}/libs/tracy"
-        CACHE PATH "CACHE PATH tracy source dir"
-)
-
-set(FETCHCONTENT_SOURCE_DIR_DIRECTXTK12
-        "${CMAKE_SOURCE_DIR}/libs/DirectXTK"
-        CACHE PATH "CACHE PATH DirectXTK source dir"
-)
-
-set(FETCHCONTENT_SOURCE_DIR_JOLTPHYSICS
-        "${CMAKE_SOURCE_DIR}/libs/JoltPhysics"
-        CACHE PATH "CACHE PATH JoltPhysics source dir"
-)
-
-set(FETCHCONTENT_SOURCE_DIR_OZZANIMATION
-        "${CMAKE_SOURCE_DIR}/libs/OzzAnimation"
-        CACHE PATH "CACHE PATH OzzAnimation source dir"
-)
-
-set(FETCHCONTENT_SOURCE_DIR_ASSIMP
-        "${CMAKE_SOURCE_DIR}/libs/assimp"
-        CACHE PATH "CACHE PATH assimp source dir"
-)
-
-set(FETCHCONTENT_SOURCE_DIR_SOL2
-        "${CMAKE_SOURCE_DIR}/libs/sol2"
-        CACHE PATH "CACHE PATH sol2 source dir"
-)
-
-set(FETCHCONTENT_SOURCE_DIR_UUID_V4
-        "${CMAKE_SOURCE_DIR}/libs/uuid_v4"
-        CACHE PATH "CACHE PATH uuid_v4 source dir"
-)
-
-set(FETCHCONTENT_SOURCE_DIR_VGJS
-        "${CMAKE_SOURCE_DIR}/libs/ViennaGameJobSystem"
-        CACHE PATH "CACHE PATH vgjs source dir"
-)
-
 # cpp options
 set(CMAKE_CXX_STANDARD 20)
 
@@ -222,6 +172,56 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         ${LIBS_DIR}
         ${JobSystem_DIR}/include
         ${TracyClient_DIR}/public
+)
+
+set(FETCHCONTENT_SOURCE_DIR_EASTL
+        "${CMAKE_SOURCE_DIR}/libs/EASTL"
+        CACHE PATH "CACHE PATH EASTL source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_SPDLOG
+        "${CMAKE_SOURCE_DIR}/libs/spdlog"
+        CACHE PATH "CACHE PATH SPDLOG source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_TRACY
+        "${CMAKE_SOURCE_DIR}/libs/tracy"
+        CACHE PATH "CACHE PATH tracy source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_DIRECTXTK12
+        "${CMAKE_SOURCE_DIR}/libs/DirectXTK"
+        CACHE PATH "CACHE PATH DirectXTK source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_JOLTPHYSICS
+        "${CMAKE_SOURCE_DIR}/libs/JoltPhysics"
+        CACHE PATH "CACHE PATH JoltPhysics source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_OZZANIMATION
+        "${CMAKE_SOURCE_DIR}/libs/OzzAnimation"
+        CACHE PATH "CACHE PATH OzzAnimation source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_ASSIMP
+        "${CMAKE_SOURCE_DIR}/libs/assimp"
+        CACHE PATH "CACHE PATH assimp source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_SOL2
+        "${CMAKE_SOURCE_DIR}/libs/sol2"
+        CACHE PATH "CACHE PATH sol2 source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_UUID_V4
+        "${CMAKE_SOURCE_DIR}/libs/uuid_v4"
+        CACHE PATH "CACHE PATH uuid_v4 source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_VGJS
+        "${CMAKE_SOURCE_DIR}/libs/ViennaGameJobSystem"
+        CACHE PATH "CACHE PATH vgjs source dir"
 )
 
 
