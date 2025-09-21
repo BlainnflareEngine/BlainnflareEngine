@@ -84,6 +84,7 @@ target_include_directories(pch INTERFACE
 target_precompile_headers(pch INTERFACE common/pch.h)
 
 
+
 target_compile_definitions(${PROJECT_NAME} PRIVATE BLAINN_INCLUDE_EDITOR)
 
 #target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_HAS_CONSOLE)

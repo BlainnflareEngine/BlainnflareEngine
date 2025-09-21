@@ -12,6 +12,10 @@ set(ENGINE_SOURCES
         src/subsystems/Log.cpp
         include/tools/Profiler.h
         include/subsystems/Log.h
+        src/runtime/physics/BodyBuilder.cpp
+        src/runtime/physics/ContactListenerImpl.cpp
+        src/runtime/physics/PhysicsComponent.cpp
+        src/runtime/physics/ShapeFactory.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
