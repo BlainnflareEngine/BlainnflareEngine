@@ -2,13 +2,15 @@
 
 // TODO: move to launcher(application) class?
 
-#include "Editor.h"
+#include "editor/include/Editor.h"
 #include "engine/include/Engine.h"
+#include "engine/include/subsystems/Freya.h"
 
 #include <iostream>
 int main(int argc, char** argv) {
 	// TODO:
 
+    Blainn::Freya::Init();
 #if defined(BLAINN_INCLUDE_EDITOR)
 	// init editor
     Blainn::Editor editor(argc, argv);

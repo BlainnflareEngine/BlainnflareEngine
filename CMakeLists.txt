@@ -7,6 +7,21 @@ set(CMAKE_AUTOUIC ON)
 cmake_policy(SET CMP0074 OLD)
 cmake_policy(SET CMP0169 OLD)
 
+set(CMAKE_CONFIGURATION_TYPES
+        Debug
+        Release
+        RelWithDebInfo
+        Development
+        Shipping
+        Dist
+        CACHE STRING "" FORCE)
+
+# These definitions apply to all the projects
+set(NON_DIST_DEFS TRACY_ENABLE)
+add_compile_definitions(
+        $<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:${NON_DIST_DEFS}>
+)
+
 set(PROJECT_NAME
         BlainnflareEngine)
 
@@ -17,7 +32,6 @@ project(${PROJECT_NAME}
 
 # common options
 include(FetchContent)
-
 
 
 # cpp options
@@ -36,148 +50,97 @@ set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
 add_subdirectory(${ENGINE_DIR})
 add_subdirectory(${EDITOR_DIR})
 
-
 # fetch content
+FetchContent_Declare(
+        EASTL
+        GIT_REPOSITORY https://github.com/electronicarts/EASTL.git
+        GIT_TAG 3.21.23
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/EASTL
+)
 
-find_package(EASTL QUIET)
-if (NOT ${EASTL_FOUND})
-    message(STATUS "EASTL not found. Fetching from git (https://github.com/electronicarts/EASTL.git)...")
-    FetchContent_Declare(
-            EASTL
-            GIT_REPOSITORY https://github.com/electronicarts/EASTL.git
-            GIT_TAG 3.21.23
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/EASTL
-    )
+FetchContent_MakeAvailable(EASTL)
 
-    FetchContent_MakeAvailable(EASTL)
-else ()
-    message(STATUS "EASTL found.")
-endif ()
+FetchContent_Declare(
+        spdlog
+        GIT_REPOSITORY https://github.com/gabime/spdlog.git
+        GIT_TAG v1.15.3
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/spdlog
+)
 
-find_package(spdlog QUIET)
-if (NOT ${spdlog_FOUND})
-    message(STATUS "spdlog not found. Fetching from git (https://github.com/gabime/spdlog.git)...")
-    FetchContent_Declare(
-            spdlog
-            GIT_REPOSITORY https://github.com/gabime/spdlog.git
-            GIT_TAG v1.15.3
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/spdlog
-    )
+FetchContent_MakeAvailable(spdlog)
 
-    FetchContent_MakeAvailable(spdlog)
-else ()
-    message(STATUS "spdlog found.")
-endif ()
-#target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/libs/spdlog)
 
-find_package(tracy QUIET)
-if (NOT ${tracy_FOUND})
-    message(STATUS "tracy not found. Fetching from git (https://github.com/wolfpld/tracy.git)...")
-    FetchContent_Declare(
-            tracy
-            GIT_REPOSITORY https://github.com/wolfpld/tracy.git
-            GIT_TAG v0.12.2
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/tracy
-    )
+FetchContent_Declare(
+        tracy
+        GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+        GIT_TAG v0.12.2
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/tracy
+)
 
-    FetchContent_MakeAvailable(tracy)
-else ()
-    message(STATUS "tracy found.")
-endif ()
+FetchContent_MakeAvailable(tracy)
 
-find_package(DirectXTK12 QUIET)
-if (NOT ${DirectXTK12_FOUND})
-    message(STATUS "DirectXTK12 not found. Fetching from git (https://github.com/microsoft/DirectXTK12.git)...")
-    FetchContent_Declare(
-            DirectXTK12
-            GIT_REPOSITORY https://github.com/microsoft/DirectXTK12.git
-            GIT_TAG jul2025
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/DirectXTK
-    )
 
-    FetchContent_MakeAvailable(DirectXTK12)
-else ()
-    message(STATUS "DirectXTK12 found.")
-endif ()
+FetchContent_Declare(
+        DirectXTK12
+        GIT_REPOSITORY https://github.com/microsoft/DirectXTK12.git
+        GIT_TAG jul2025
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/DirectXTK
+)
+
+FetchContent_MakeAvailable(DirectXTK12)
+
 
 set(USE_STATIC_MSVC_RUNTIME_LIBRARY OFF CACHE BOOL "" FORCE)
-find_package(JoltPhysics QUIET)
-if (NOT ${JoltPhysics_FOUND})
-    message(STATUS "JoltPhysics not found. Fetching from git (https://github.com/jrouwe/JoltPhysics.git)...")
-    FetchContent_Declare(
-            JoltPhysics
-            GIT_REPOSITORY https://github.com/jrouwe/JoltPhysics.git
-            GIT_TAG v5.3.0
-            SOURCE_SUBDIR "Build"
-            UPDATE_DISCONNECTED TRUE
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/JoltPhysics
-    )
+FetchContent_Declare(
+        JoltPhysics
+        GIT_REPOSITORY https://github.com/jrouwe/JoltPhysics.git
+        GIT_TAG v5.3.0
+        SOURCE_SUBDIR "Build"
+        UPDATE_DISCONNECTED TRUE
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/JoltPhysics
+)
 
-    FetchContent_MakeAvailable(JoltPhysics)
-else ()
-    message(STATUS "JoltPhysics found.")
-endif ()
+FetchContent_MakeAvailable(JoltPhysics)
 
-find_package(OzzAnimation QUIET)
-if (NOT ${OzzAnimation_FOUND})
-    message(STATUS "OzzAnimation not found. Fetching from git (https://github.com/guillaumeblanc/ozz-animation.git)...")
-    FetchContent_Declare(
-            OzzAnimation
-            GIT_REPOSITORY https://github.com/guillaumeblanc/ozz-animation.git
-            GIT_TAG 0.16.0
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/OzzAnimation
-    )
+FetchContent_Declare(
+        OzzAnimation
+        GIT_REPOSITORY https://github.com/guillaumeblanc/ozz-animation.git
+        GIT_TAG 0.16.0
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/OzzAnimation
+)
 
-    FetchContent_MakeAvailable(OzzAnimation)
-else ()
-    message(STATUS "OzzAnimation found.")
-endif ()
+FetchContent_MakeAvailable(OzzAnimation)
 
 
-find_package(assimp QUIET)
-if (NOT ${assimp_FOUND})
-    message(STATUS "Assimp not found. Fetching from git (https://github.com/assimp/assimp.git)...")
-    FetchContent_Declare(
-            assimp
-            GIT_REPOSITORY https://github.com/assimp/assimp.git
-            GIT_TAG v6.0.2
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/assimp
-    )
+FetchContent_Declare(
+        assimp
+        GIT_REPOSITORY https://github.com/assimp/assimp.git
+        GIT_TAG v6.0.2
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/assimp
+)
 
-    FetchContent_MakeAvailable(assimp)
-else ()
-    message(STATUS "Assimp found.")
-endif ()
+FetchContent_MakeAvailable(assimp)
 
-find_package(sol2 QUIET)
-if (NOT ${sol2_FOUND})
-    message(STATUS "sol2 not found. Fetching from git (https://github.com/ThePhD/sol2.git)...")
-    FetchContent_Declare(
-            sol2
-            GIT_REPOSITORY https://github.com/ThePhD/sol2.git
-            GIT_TAG v3.3.0
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/sol2
-    )
 
-    FetchContent_MakeAvailable(sol2)
-else ()
-    message(STATUS "sol2 found.")
-endif ()
+FetchContent_Declare(
+        sol2
+        GIT_REPOSITORY https://github.com/ThePhD/sol2.git
+        GIT_TAG v3.3.0
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/sol2
+)
 
-find_package(uuid_v4 QUIET)
-if (NOT ${uuid_v4_FOUND})
-    message(STATUS "uuid_v4 not found. Fetching from git (https://github.com/crashoz/uuid_v4.git)...")
-    FetchContent_Declare(
-            uuid_v4
-            GIT_REPOSITORY https://github.com/crashoz/uuid_v4.git
-            GIT_TAG v1.0.0
-            SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/uuid_v4
-    )
+FetchContent_MakeAvailable(sol2)
 
-    FetchContent_MakeAvailable(uuid_v4)
-else ()
-    message(STATUS "uuid_v4 found.")
-endif ()
+
+FetchContent_Declare(
+        uuid_v4
+        GIT_REPOSITORY https://github.com/crashoz/uuid_v4.git
+        GIT_TAG v1.0.0
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/uuid_v4
+)
+
+FetchContent_MakeAvailable(uuid_v4)
+
 
 file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
 
@@ -188,13 +151,7 @@ FetchContent_Declare(
 )
 FetchContent_GetProperties(vgjs)
 if (NOT ${vgjs_POPULATED})
-    message(WARNING "NOT POPULATED!!!!!")
     FetchContent_Populate(vgjs)
-
-    FetchContent_GetProperties(vgjs)
-    if (NOT ${vgjs_POPULATED})
-        message(WARNING "NOT POPULATED!!!!!")
-    endif ()
 endif ()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -210,7 +167,62 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         sol2)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-        ${ENGINE_DIR} ${EDITOR_DIR} ${EDITOR_DIR} ${LIBS_DIR} ${JobSystem_DIR}/include)
+        ${ENGINE_DIR}
+        ${EDITOR_DIR}
+        ${LIBS_DIR}
+        ${JobSystem_DIR}/include
+        ${TracyClient_DIR}/public
+)
+
+set(FETCHCONTENT_SOURCE_DIR_EASTL
+        "${CMAKE_SOURCE_DIR}/libs/EASTL"
+        CACHE PATH "CACHE PATH EASTL source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_SPDLOG
+        "${CMAKE_SOURCE_DIR}/libs/spdlog"
+        CACHE PATH "CACHE PATH SPDLOG source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_TRACY
+        "${CMAKE_SOURCE_DIR}/libs/tracy"
+        CACHE PATH "CACHE PATH tracy source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_DIRECTXTK12
+        "${CMAKE_SOURCE_DIR}/libs/DirectXTK"
+        CACHE PATH "CACHE PATH DirectXTK source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_JOLTPHYSICS
+        "${CMAKE_SOURCE_DIR}/libs/JoltPhysics"
+        CACHE PATH "CACHE PATH JoltPhysics source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_OZZANIMATION
+        "${CMAKE_SOURCE_DIR}/libs/OzzAnimation"
+        CACHE PATH "CACHE PATH OzzAnimation source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_ASSIMP
+        "${CMAKE_SOURCE_DIR}/libs/assimp"
+        CACHE PATH "CACHE PATH assimp source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_SOL2
+        "${CMAKE_SOURCE_DIR}/libs/sol2"
+        CACHE PATH "CACHE PATH sol2 source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_UUID_V4
+        "${CMAKE_SOURCE_DIR}/libs/uuid_v4"
+        CACHE PATH "CACHE PATH uuid_v4 source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_VGJS
+        "${CMAKE_SOURCE_DIR}/libs/ViennaGameJobSystem"
+        CACHE PATH "CACHE PATH vgjs source dir"
+)
 
 
 # QT files deploy

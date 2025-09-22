@@ -9,11 +9,15 @@ set(ENGINE_SOURCES
         src/subsystems/Freya.cpp
         src/subsystems/Jord.cpp
         src/subsystems/Bifrost.cpp
+        include/tools/Profiler.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include ${JobSystem_DIR}/include)
+target_include_directories(${PROJECT_NAME} PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
+        ${JobSystem_DIR}/include
+        ${TracyClient_DIR}/public)
 
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -21,5 +25,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         DirectXTK12
         Jolt
         ozz_animation
-        assimp)
+        assimp
+        TracyClient)
 
