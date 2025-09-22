@@ -16,13 +16,16 @@ editor_main::editor_main(QWidget *parent)
     ui->setupUi(this);
 }
 
+
 editor_main::~editor_main()
 {
     delete ui;
 }
+
+
 HWND editor_main::GetViewportHWND() const
 {
-    return reinterpret_cast<HWND>(ui->viewport->winId());
+    return reinterpret_cast<HWND>(ui->sceneTab->winId());
 }
 
 } // namespace editor

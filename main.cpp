@@ -20,10 +20,10 @@ int main(int argc, char** argv) {
     // or editor.Update() and Engine::Run() should be updated here in while true
     // to grab HWND from editor just call editor.GetViewportHWND()
     // code below is just for tests
-    /*while (true)
+    while (true)
     {
         editor.Update();
-    }*/
+    }
 #endif
 
 	Blainn::Engine::Run();

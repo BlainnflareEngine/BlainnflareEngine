@@ -19,7 +19,8 @@ find_package(Qt6 COMPONENTS
 
 set(EDITOR_SOURCES
         src/Editor.cpp
-        src/editor_main.cpp)
+        src/editor_main.cpp
+)
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
 

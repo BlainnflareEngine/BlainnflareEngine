@@ -18,7 +18,7 @@ Editor::Editor(int &argc, char **argv)
 void Editor::Show()
 {
     std::cout << "Editor::Init()" << std::endl;
-    m_editor_main.show();
+    m_editor_main.showMaximized();
 }
 HWND Editor::GetViewportHWND()
 {
