@@ -3,6 +3,7 @@
 #include "VGJS.h"
 
 #include "subsystems/Freya.h"
+#include "subsystems/Log.h"
 #include "tools/Profiler.h"
 
 using namespace Blainn;
@@ -36,7 +37,7 @@ void Engine::Run()
         {
             sink += i;
         }
-        std::cout << sink << '\n';
+        BF_DEBUG("This is written from the Engine::Run: {:>10}", sink);
         vgjs::schedule(&Freya::Render);
 
         // Marks end of frame for tracy profiler

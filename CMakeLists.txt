@@ -17,9 +17,9 @@ set(CMAKE_CONFIGURATION_TYPES
         CACHE STRING "" FORCE)
 
 # These definitions apply to all the projects
-set(NON_DIST_DEFS TRACY_ENABLE)
 add_compile_definitions(
-        $<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:${NON_DIST_DEFS}>
+        $<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:TRACY_ENABLE>
+        $<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:BLAINN_HAS_CONSOLE>
 )
 
 set(PROJECT_NAME
@@ -40,6 +40,8 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(${PROJECT_NAME} main.cpp)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE BLAINN_INCLUDE_EDITOR)
+
+#target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_HAS_CONSOLE)
 
 # include directories
 
@@ -172,6 +174,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         ${LIBS_DIR}
         ${JobSystem_DIR}/include
         ${TracyClient_DIR}/public
+        ${spdlog_DIR}/include
 )
 
 set(FETCHCONTENT_SOURCE_DIR_EASTL

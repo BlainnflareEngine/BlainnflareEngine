@@ -5,10 +5,12 @@
 #include "editor/include/Editor.h"
 #include "engine/include/Engine.h"
 #include "engine/include/subsystems/Freya.h"
+#include "subsystems/Log.h"
 
 #include <iostream>
 int main(int argc, char** argv) {
 	// TODO:
+    Blainn::Log::Init();
 
     Blainn::Freya::Init();
 #if defined(BLAINN_INCLUDE_EDITOR)
@@ -28,5 +30,6 @@ int main(int argc, char** argv) {
 
 	Blainn::Engine::Run();
 
+    Blainn::Log::Destroy();
 	return 0;
 }
