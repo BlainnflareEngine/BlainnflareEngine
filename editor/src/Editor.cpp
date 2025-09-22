@@ -4,6 +4,7 @@
 
 #include "../include/Editor.h"
 #include "ui_editor_main.h"
+
 #include <iostream>
 
 
@@ -17,7 +18,8 @@ Editor::Editor(int &argc, char **argv)
 
 void Editor::Show()
 {
-    std::cout << "Editor::Init()" << std::endl;
+    //std::cout << "Editor::Init()" << std::endl;
+    //BF_INFO("Editor::Init()");
     m_editor_main.show();
 }
 HWND Editor::GetViewportHWND()
