@@ -5,8 +5,10 @@
 #ifndef FOLDER_CONTENT_WIDGET_H
 #define FOLDER_CONTENT_WIDGET_H
 
+#include "ContentContextMenu.h"
 #include "EASTL/unique_ptr.h"
 #include <QWidget>
+
 
 
 class QVBoxLayout;
@@ -43,6 +45,7 @@ private:
     eastl::unique_ptr<QListView> m_listView;
     eastl::unique_ptr<QFileSystemModel> m_fileSystemModel;
     eastl::unique_ptr<QVBoxLayout> m_layout;
+    eastl::unique_ptr<ContentContextMenu> m_contentContextMenu;
 };
 } // namespace editor
 

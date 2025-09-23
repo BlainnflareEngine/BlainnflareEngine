@@ -5,6 +5,8 @@
 // You may need to build the project (run Qt uic code generator) to get "ui_folder_content_widget.h" resolved
 
 #include "folder_content_widget.h"
+
+#include "ContentContextMenu.h"
 #include "ui_folder_content_widget.h"
 
 #include <QFileSystemModel>
@@ -28,13 +30,18 @@ folder_content_widget::folder_content_widget(QWidget *parent)
     m_listView->setViewMode(QListView::IconMode);
     m_listView->setResizeMode(QListView::Adjust);
     m_listView->setGridSize(QSize(100, 100));
+    m_listView->setContextMenuPolicy(Qt::CustomContextMenu);
 
     m_layout = eastl::make_unique<QVBoxLayout>(this);
     layout()->setContentsMargins(0, 0, 0, 0);
     layout()->setSpacing(5);
     layout()->addWidget(m_listView.get());
 
+    m_contentContextMenu = eastl::make_unique<ContentContextMenu>(m_listView.get());
+
     connect(m_listView.get(), &QListView::doubleClicked, this, &folder_content_widget::onFolderSelectedIndex);
+    connect(m_listView.get(), &QWidget::customContextMenuRequested, m_contentContextMenu.get(),
+            &ContentContextMenu::onContextMenu);
 }
 
 

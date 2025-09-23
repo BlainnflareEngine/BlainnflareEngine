@@ -26,6 +26,8 @@ set(EDITOR_SOURCES
         src/folder_content_widget.cpp
         include/folder_content_widget.h
         ui/folder_content_widget.ui
+        src/ContentContextMenu.cpp
+        include/ContentContextMenu.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
