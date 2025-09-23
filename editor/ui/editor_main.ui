@@ -330,32 +330,20 @@
            <property name="orientation">
             <enum>Qt::Orientation::Horizontal</enum>
            </property>
-           <widget class="QListWidget" name="folders">
+           <widget class="folders_widget" name="folders" native="true">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>1</horstretch>
               <verstretch>1</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimumSize">
-             <size>
-              <width>1</width>
-              <height>1</height>
-             </size>
-            </property>
            </widget>
-           <widget class="QTableView" name="folderContent">
+           <widget class="folder_content_widget" name="folderContent" native="true">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>5</horstretch>
-              <verstretch>1</verstretch>
+              <verstretch>5</verstretch>
              </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>1</width>
-              <height>1</height>
-             </size>
             </property>
            </widget>
           </widget>
@@ -413,6 +401,20 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>folders_widget</class>
+   <extends>QWidget</extends>
+   <header>folders_widget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>folder_content_widget</class>
+   <extends>QWidget</extends>
+   <header>folder_content_widget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

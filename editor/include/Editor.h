@@ -24,4 +24,4 @@ private:
     editor::editor_main m_editor_main;
 };
 
-} // namespace blainn
+} // namespace Blainn

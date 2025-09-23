@@ -6,6 +6,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 cmake_policy(SET CMP0074 OLD)
 cmake_policy(SET CMP0169 OLD)
+add_compile_options(/EHsc)
 
 set(CMAKE_CONFIGURATION_TYPES
         Debug
@@ -32,6 +33,9 @@ project(${PROJECT_NAME}
 
 # common options
 include(FetchContent)
+
+# add content folder
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/Content)
 
 
 # cpp options
@@ -172,6 +176,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         ${LIBS_DIR}
         ${JobSystem_DIR}/include
         ${TracyClient_DIR}/public
+        ${EASTL_DIR}/include
 )
 
 set(FETCHCONTENT_SOURCE_DIR_EASTL

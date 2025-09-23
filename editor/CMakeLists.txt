@@ -20,6 +20,12 @@ find_package(Qt6 COMPONENTS
 set(EDITOR_SOURCES
         src/Editor.cpp
         src/editor_main.cpp
+        src/folders_widget.cpp
+        include/folders_widget.h
+        ui/folders_widget.ui
+        src/folder_content_widget.cpp
+        include/folder_content_widget.h
+        ui/folder_content_widget.ui
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
@@ -39,6 +45,7 @@ target_link_libraries(EDITOR
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        EASTL
 )
 
 
