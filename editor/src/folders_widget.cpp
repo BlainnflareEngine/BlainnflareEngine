@@ -29,14 +29,15 @@ folders_widget::folders_widget(QWidget *parent)
     m_treeView->hideColumn(1);
     m_treeView->hideColumn(2);
     m_treeView->hideColumn(3);
+    m_treeView->setExpandsOnDoubleClick(false);
+    m_treeView->setRootIsDecorated(true);
 
     m_layout = eastl::make_unique<QVBoxLayout>(this);
     m_layout->setSpacing(5);
     m_layout->setContentsMargins(0, 0, 0, 0);
     m_layout->addWidget(m_treeView.get());
 
-    connect(m_treeView->selectionModel(), &QItemSelectionModel::currentChanged, this,
-            &folders_widget::onSelectionChanged);
+    connect(m_treeView.get(), &QTreeView::doubleClicked, this, &folders_widget::onFolderSelectedIndex);
 }
 
 
@@ -52,11 +53,11 @@ folders_widget::~folders_widget()
 void folders_widget::SetContentDirectory(const QString &contentDirectory)
 {
     m_treeView->setRootIndex(m_fileSystemModel->setRootPath(contentDirectory));
-    onSelectionChanged(m_fileSystemModel->index(contentDirectory));
+    onFolderSelectedIndex(m_fileSystemModel->index(contentDirectory));
 }
 
 
-void folders_widget::onSelectionChanged(const QModelIndex &newSelection)
+void folders_widget::onFolderSelectedIndex(const QModelIndex &newSelection)
 {
     if (newSelection.isValid())
     {
@@ -64,5 +65,17 @@ void folders_widget::onSelectionChanged(const QModelIndex &newSelection)
         emit folderSelected(path);
     }
 }
+
+
+void folders_widget::onFolderSelectedPath(const QString &newPath)
+{
+    QModelIndex index = m_fileSystemModel->index(newPath);
+    if (index.isValid())
+    {
+        m_treeView->setCurrentIndex(index);
+        m_treeView->scrollTo(index);
+    }
+}
+
 
 } // namespace editor

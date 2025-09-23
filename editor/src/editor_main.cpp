@@ -17,7 +17,11 @@ editor_main::editor_main(QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(ui->folders, &folders_widget::folderSelected, ui->folderContent, &folder_content_widget::onFolderSelected);
+    connect(ui->folders, &folders_widget::folderSelected,
+            ui->folderContent, &folder_content_widget::onFolderSelectedPath);
+
+    connect(ui->folderContent, &folder_content_widget::folderSelected,
+            ui->folders, &folders_widget::onFolderSelectedPath);
 }
 
 

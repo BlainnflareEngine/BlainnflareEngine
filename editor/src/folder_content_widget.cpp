@@ -33,6 +33,8 @@ folder_content_widget::folder_content_widget(QWidget *parent)
     layout()->setContentsMargins(0, 0, 0, 0);
     layout()->setSpacing(5);
     layout()->addWidget(m_listView.get());
+
+    connect(m_listView.get(), &QListView::doubleClicked, this, &folder_content_widget::onFolderSelectedIndex);
 }
 
 
@@ -50,15 +52,20 @@ void folder_content_widget::SetContentDirectory(const QString &contentDirectory)
     m_listView->setRootIndex(m_fileSystemModel->setRootPath(contentDirectory));
 }
 
-
-void folder_content_widget::onFolderSelected(const QString &path)
+void folder_content_widget::onFolderSelectedPath(const QString &newPath)
 {
-    SetFolderPath(path);
+    SetContentDirectory(newPath);
 }
 
 
-void folder_content_widget::SetFolderPath(const QString &path)
+void folder_content_widget::onFolderSelectedIndex(const QModelIndex &newPath)
 {
-    m_listView->setRootIndex(m_fileSystemModel->setRootPath(path));
+    if (m_fileSystemModel->isDir(newPath))
+    {
+        QString path = m_fileSystemModel->filePath(newPath);
+        emit folderSelected(path);
+        SetContentDirectory(path);
+    }
 }
+
 } // namespace editor

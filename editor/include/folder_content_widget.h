@@ -32,15 +32,17 @@ public:
     void SetContentDirectory(const QString &contentDirectory) const;
 
 public slots:
-    void onFolderSelected(const QString &path);
+    void onFolderSelectedPath(const QString &newPath);
+    void onFolderSelectedIndex(const QModelIndex &newSelection);
+
+signals:
+    void folderSelected(const QString &newPath);
 
 private:
     eastl::unique_ptr<Ui::folder_content_widget> ui;
     eastl::unique_ptr<QListView> m_listView;
     eastl::unique_ptr<QFileSystemModel> m_fileSystemModel;
     eastl::unique_ptr<QVBoxLayout> m_layout;
-
-    void SetFolderPath(const QString &path);
 };
 } // namespace editor
 

@@ -36,8 +36,9 @@ public:
 signals:
     void folderSelected(const QString &path);
 
-private slots:
-    void onSelectionChanged(const QModelIndex &newSelection);
+public slots:
+    void onFolderSelectedIndex(const QModelIndex &newSelection);
+    void onFolderSelectedPath(const QString &newPath);
 
 private:
     eastl::unique_ptr<Ui::folders_widget> m_ui;
