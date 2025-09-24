@@ -18,9 +18,9 @@ class FileContextMenu : public QObject
 public:
     explicit FileContextMenu(QAbstractItemView &parent, const eastl::vector<QAbstractItemView *> &additionalViews = {});
 
-    void FileContext(const QPoint &pos, QString path) const;
+    void FileContext(const QPoint &pos, const QString &path) const;
 
-    void DirectoryContext(const QPoint &pos, QString path) const;
+    void DirectoryContext(const QPoint &pos, const QString &path) const;
 
     void OnContextMenu(const QPoint &pos) const;
 

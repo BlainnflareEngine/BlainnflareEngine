@@ -5,9 +5,10 @@
 #ifndef FOLDER_CONTENT_WIDGET_H
 #define FOLDER_CONTENT_WIDGET_H
 
-#include "ContentContextMenu.h"
+#include "ContextMenu/ContentContextMenu.h"
+#include "ContextMenu/FileContextMenu.h"
 #include "EASTL/unique_ptr.h"
-#include "FileContextMenu.h"
+#include "folder_content_list_view.h"
 #include <QWidget>
 
 
@@ -47,7 +48,7 @@ signals:
 
 private:
     eastl::unique_ptr<Ui::folder_content_widget> ui;
-    eastl::unique_ptr<QListView> m_listView;
+    eastl::unique_ptr<folder_content_list_view> m_listView;
     eastl::vector<QAbstractItemView*> m_additionalViews;
     eastl::unique_ptr<QFileSystemModel> m_fileSystemModel;
     eastl::unique_ptr<QVBoxLayout> m_layout;

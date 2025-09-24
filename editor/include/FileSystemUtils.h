@@ -115,6 +115,8 @@ inline void OpenFolder(const QString &path, const eastl::vector<QAbstractItemVie
 
 inline void DeleteFile(const QString &filePath)
 {
+    qDebug() << "TODO: should notify engine that script was deleted!";
+
     QFile file(filePath);
     if (!file.exists())
     {
@@ -129,6 +131,9 @@ inline void DeleteFile(const QString &filePath)
 
 inline void DeleteFolder(const QString &path)
 {
+    qDebug() << "TODO: should notify engine that folder potentially had scripts!";
+    // could be done with listContents(const QString& path)
+
     QDir dir(path);
 
     if (!dir.exists())
@@ -141,4 +146,37 @@ inline void DeleteFolder(const QString &path)
     if (reply != QMessageBox::Yes) return;
 
     if (!dir.removeRecursively()) QMessageBox::warning(nullptr, "Error", "Failed to recursively delete folder!");
+}
+
+
+inline bool CopyRecursively(const QString &sourceFolder, const QString &destFolder)
+{
+    bool success = false;
+    QDir sourceDir(sourceFolder);
+
+    if (!sourceDir.exists()) return false;
+
+    QDir destDir(destFolder);
+    if (!destDir.exists()) destDir.mkdir(destFolder);
+
+    QStringList files = sourceDir.entryList(QDir::Files);
+    for (int i = 0; i < files.count(); i++)
+    {
+        QString srcName = sourceFolder + QDir::separator() + files[i];
+        QString destName = destFolder + QDir::separator() + files[i];
+        success = QFile::copy(srcName, destName);
+        if (!success) return false;
+    }
+
+    files.clear();
+    files = sourceDir.entryList(QDir::AllDirs | QDir::NoDotAndDotDot);
+    for (int i = 0; i < files.count(); i++)
+    {
+        QString srcName = sourceFolder + QDir::separator() + files[i];
+        QString destName = destFolder + QDir::separator() + files[i];
+        success = CopyRecursively(srcName, destName);
+        if (!success) return false;
+    }
+
+    return true;
 }

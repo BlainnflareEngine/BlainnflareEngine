@@ -2,16 +2,13 @@
 // Created by gorev on 24.09.2025.
 //
 
-#include "FileContextMenu.h"
+#include "ContextMenu/FileContextMenu.h"
 
 #include "EASTL/unique_ptr.h"
 #include "FileSystemUtils.h"
 
-#include <QDesktopServices>
 #include <QFileSystemModel>
-#include <QInputDialog>
 #include <QMenu>
-#include <QMessageBox>
 #include <qabstractitemview.h>
 #include <qfileinfo.h>
 
@@ -25,7 +22,7 @@ FileContextMenu::FileContextMenu(QAbstractItemView &parent, const eastl::vector<
 }
 
 
-void FileContextMenu::FileContext(const QPoint &pos, QString path) const
+void FileContextMenu::FileContext(const QPoint &pos, const QString &path) const
 {
     QMenu menu;
 
@@ -40,7 +37,7 @@ void FileContextMenu::FileContext(const QPoint &pos, QString path) const
 }
 
 
-void FileContextMenu::DirectoryContext(const QPoint &pos, QString path) const
+void FileContextMenu::DirectoryContext(const QPoint &pos, const QString &path) const
 {
     QMenu menu;
 

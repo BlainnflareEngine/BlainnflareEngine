@@ -2,12 +2,10 @@
 // Created by gorev on 23.09.2025.
 //
 
-#include "ContentContextMenu.h"
+#include "ContextMenu/ContentContextMenu.h"
 
-#include "EASTL/unique_ptr.h"
 #include "FileSystemUtils.h"
 
-#include <QDesktopServices>
 #include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
@@ -41,6 +39,8 @@ void ContentContextMenu::CreateFolder(QString dirPath) const
 
 void ContentContextMenu::CreateScript(const QString &dirPath) const
 {
+    qDebug() << "TODO: should notify engine that new script was added!";
+
     bool ok = false;
     QString scriptName =
         QInputDialog::getText(&m_parent, "Create script", "Script name:", QLineEdit::Normal, QString(), &ok);

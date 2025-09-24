@@ -6,14 +6,16 @@
 
 #include "folder_content_widget.h"
 
-#include "ContentContextMenu.h"
+#include "../include/ContextMenu/ContentContextMenu.h"
 #include "FileSystemUtils.h"
 #include "ui_folder_content_widget.h"
 
 #include <QFileSystemModel>
 #include <QListView>
 #include <iostream>
+#include <qevent.h>
 #include <qlayout.h>
+#include <QMimeData>
 
 namespace editor
 {
@@ -26,7 +28,8 @@ folder_content_widget::folder_content_widget(QWidget *parent)
     m_fileSystemModel = eastl::make_unique<QFileSystemModel>(this);
     m_fileSystemModel->setFilter(QDir::NoDotAndDotDot | QDir::AllEntries);
 
-    m_listView = eastl::make_unique<QListView>(this);
+    // TODO: move all this properties to folder_content_list_view
+    m_listView = eastl::make_unique<folder_content_list_view>(this);
     m_listView->setModel(m_fileSystemModel.get());
     m_listView->setViewMode(QListView::IconMode);
     m_listView->setResizeMode(QListView::Adjust);

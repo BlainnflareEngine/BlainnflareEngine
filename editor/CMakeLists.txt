@@ -26,11 +26,14 @@ set(EDITOR_SOURCES
         src/folder_content_widget.cpp
         include/folder_content_widget.h
         ui/folder_content_widget.ui
-        src/ContentContextMenu.cpp
-        include/ContentContextMenu.h
-        src/FileContextMenu.cpp
-        include/FileContextMenu.h
+        src/ContextMenu/ContentContextMenu.cpp
+        include/ContextMenu/ContentContextMenu.h
+        src/ContextMenu/FileContextMenu.cpp
+        include/ContextMenu/FileContextMenu.h
         include/FileSystemUtils.h
+        src/folder_content_list_view.cpp
+        include/folder_content_list_view.h
+        ui/folder_content_list_view.ui
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
