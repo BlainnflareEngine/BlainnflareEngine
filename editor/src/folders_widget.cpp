@@ -55,19 +55,22 @@ void folders_widget::SetContentDirectory(const QString &contentDirectory)
     m_treeView->setRootIndex(m_fileSystemModel->setRootPath(contentDirectory));
     onFolderSelectedIndex(m_fileSystemModel->index(contentDirectory));
 }
+QTreeView *folders_widget::GetTreeView() const
+{
+    return m_treeView.get();
+}
 
 
 void folders_widget::onFolderSelectedIndex(const QModelIndex &newSelection)
 {
     if (newSelection.isValid())
     {
-        QString path = m_fileSystemModel->filePath(newSelection);
-        emit folderSelected(path);
+        emit folderSelected(m_fileSystemModel->filePath(newSelection));
     }
 }
 
 
-void folders_widget::onFolderSelectedPath(const QString &newPath)
+void folders_widget::onFolderSelectedPath(const QString &newPath) const
 {
     QModelIndex index = m_fileSystemModel->index(newPath);
     if (index.isValid())

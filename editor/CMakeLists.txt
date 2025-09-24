@@ -28,6 +28,9 @@ set(EDITOR_SOURCES
         ui/folder_content_widget.ui
         src/ContentContextMenu.cpp
         include/ContentContextMenu.h
+        src/FileContextMenu.cpp
+        include/FileContextMenu.h
+        include/FileSystemUtils.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

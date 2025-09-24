@@ -3,6 +3,9 @@
 //
 
 #pragma once
+#include "EASTL/compare.h"
+
+
 #include <QFileSystemModel>
 
 
@@ -14,13 +17,16 @@ class ContentContextMenu : public QObject
 {
     Q_OBJECT
 public:
-    ContentContextMenu(QAbstractItemView *parent);
+    ContentContextMenu(QAbstractItemView &parent);
 
 public slots:
-    void onContextMenu(const QPoint &pos);
+    void OnContextMenu(const QPoint &pos) const;
 
 private:
-    QAbstractItemView *parent;
+    void CreateFolder(QString dirPath) const;
+    void CreateScript(const QString &dirPath) const;
+
+    QAbstractItemView &m_parent;
 };
 
 } // namespace editor

@@ -7,6 +7,7 @@
 #include "editor_main.h"
 #include "ui_editor_main.h"
 
+#include <QTreeView>
 #include <iostream>
 
 namespace editor
@@ -16,6 +17,8 @@ editor_main::editor_main(QWidget *parent)
     , ui(new Ui::editor_main)
 {
     ui->setupUi(this);
+
+    ui->folderContent->AddAdditionalView(ui->folders->GetTreeView());
 
     connect(ui->folders, &folders_widget::folderSelected,
             ui->folderContent, &folder_content_widget::onFolderSelectedPath);
@@ -35,12 +38,13 @@ HWND editor_main::GetViewportHWND() const
 {
     return reinterpret_cast<HWND>(ui->sceneTab->winId());
 }
+
+
 void editor_main::SetContentDirectory(const QString &path)
 {
     m_contentPath = path;
 
     ui->folders->SetContentDirectory(m_contentPath);
-    //ui->folderContent->SetContentDirectory(m_contentPath);
 }
 
 } // namespace editor

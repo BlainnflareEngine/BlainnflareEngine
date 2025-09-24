@@ -7,8 +7,8 @@
 
 #include "ContentContextMenu.h"
 #include "EASTL/unique_ptr.h"
+#include "FileContextMenu.h"
 #include <QWidget>
-
 
 
 class QVBoxLayout;
@@ -33,9 +33,14 @@ public:
 
     void SetContentDirectory(const QString &contentDirectory) const;
 
+    void AddAdditionalView(QAbstractItemView* view);
+    void RemoveAdditionalView(QAbstractItemView* view);
+
+    QListView* GetListView() const;
+
 public slots:
     void onFolderSelectedPath(const QString &newPath);
-    void onFolderSelectedIndex(const QModelIndex &newSelection);
+    void onEntrySelectedIndex(const QModelIndex &newSelection);
 
 signals:
     void folderSelected(const QString &newPath);
@@ -43,9 +48,11 @@ signals:
 private:
     eastl::unique_ptr<Ui::folder_content_widget> ui;
     eastl::unique_ptr<QListView> m_listView;
+    eastl::vector<QAbstractItemView*> m_additionalViews;
     eastl::unique_ptr<QFileSystemModel> m_fileSystemModel;
     eastl::unique_ptr<QVBoxLayout> m_layout;
     eastl::unique_ptr<ContentContextMenu> m_contentContextMenu;
+    eastl::unique_ptr<FileContextMenu> m_fileContextMenu;
 };
 } // namespace editor
 

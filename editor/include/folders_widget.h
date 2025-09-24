@@ -33,12 +33,14 @@ public:
 
     void SetContentDirectory(const QString &contentDirectory);
 
+    QTreeView* GetTreeView() const;
+
 signals:
     void folderSelected(const QString &path);
 
 public slots:
     void onFolderSelectedIndex(const QModelIndex &newSelection);
-    void onFolderSelectedPath(const QString &newPath);
+    void onFolderSelectedPath(const QString &newPath) const;
 
 private:
     eastl::unique_ptr<Ui::folders_widget> m_ui;
