@@ -10,8 +10,10 @@
 #include <QFileSystemModel>
 #include <QListView>
 #include <QMessageBox>
+#include <QMimeData>
 #include <QTreeView>
 #include <qdir.h>
+#include <qevent.h>
 #include <qfileinfo.h>
 #include <qstring.h>
 #include <qurl.h>
@@ -149,6 +151,7 @@ inline void DeleteFolder(const QString &path)
 }
 
 
+// Performs full copy of source folder to destination folder and deletes source folder
 inline bool CopyRecursively(const QString &sourceFolder, const QString &destFolder)
 {
     bool success = false;
@@ -184,4 +187,40 @@ inline bool CopyRecursively(const QString &sourceFolder, const QString &destFold
     }
 
     return true;
+}
+
+
+// Performs renaming of all files in target path
+inline bool MoveRecursively(const QString &targetPath, const QString &srcPath)
+{
+    QFileInfo srcFi(srcPath);
+    QString destPath = targetPath + "/" + srcFi.fileName();
+
+    if (srcPath == destPath)
+    {
+        return true;
+    }
+
+    if (!QFile::rename(srcPath, destPath))
+    {
+        QMessageBox::warning(nullptr, "Error", "Failed to move files!");
+        return false;
+    }
+
+    // TODO: notify engine that some files were moved!
+    return true;
+}
+
+
+inline bool WasInFolderBefore(const QString &filePath, const QString &contentFolderPath)
+{
+    QDir projectDir(contentFolderPath);
+    QString absFilePath = QFileInfo(filePath).absoluteFilePath();
+
+    QString canonProjectDir = projectDir.canonicalPath();
+    QString canonFilePath = QFileInfo(absFilePath).canonicalFilePath();
+
+    if (canonProjectDir.isEmpty() || canonFilePath.isEmpty()) return false;
+
+    return canonFilePath.startsWith(canonProjectDir, Qt::CaseInsensitive);
 }

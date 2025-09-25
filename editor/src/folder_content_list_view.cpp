@@ -72,23 +72,21 @@ void folder_content_list_view::dropEvent(QDropEvent *event)
 
     for (const QUrl &url : mime->urls())
     {
-        if (!url.isLocalFile()) continue;
+        if (url.isEmpty()) continue;
 
         QString srcPath = url.toLocalFile();
-        QFileInfo srcFi(srcPath);
-        QString destPath = targetPath + "/" + srcFi.fileName();
 
-        if (srcPath == destPath)
+        // TODO: get content folder path from editor config file
+        if (!WasInFolderBefore(srcPath, QDir::currentPath().append("/Content")))
         {
-            continue;
+            QMessageBox msgBox;
+            msgBox.setText("There was no such file in project before. Need to import this file.");
+            msgBox.exec();
         }
-
-        if (!QFile::rename(srcPath, destPath))
+        else
         {
-            QMessageBox::warning(nullptr, "Error", "Failed to move file!");
+            MoveRecursively(targetPath, srcPath);
         }
-
-        qDebug() << "TODO: notify engine that some files were moved! folder_content_list_view::dropEvent";
     }
 
     event->acceptProposedAction();

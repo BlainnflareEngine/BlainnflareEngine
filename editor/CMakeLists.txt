@@ -37,6 +37,9 @@ set(EDITOR_SOURCES
         src/folders_tree_view.cpp
         include/folders_tree_view.h
         ui/folders_tree_view.ui
+        src/import_asset_dialog.cpp
+        include/import_asset_dialog.h
+        ui/import_asset_dialog.ui
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
