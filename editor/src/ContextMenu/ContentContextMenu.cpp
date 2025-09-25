@@ -22,16 +22,25 @@ ContentContextMenu::ContentContextMenu(QAbstractItemView &parent)
 
 void ContentContextMenu::CreateFolder(QString dirPath) const
 {
-    bool ok = false;
-    QString folderName =
-        QInputDialog::getText(&m_parent, "Create folder", "Folder name:", QLineEdit::Normal, QString(), &ok);
+    QInputDialog inputDialog(&m_parent);
+    inputDialog.setWindowTitle("Create folder");
+    inputDialog.setLabelText("Folder name:");
+    inputDialog.setTextValue("");
+    inputDialog.setOkButtonText("Create");
+    inputDialog.setCancelButtonText("Cancel");
+    inputDialog.setMinimumSize(200, 100);
 
-    if (ok && !folderName.isEmpty())
+
+    if (inputDialog.exec() == QDialog::Accepted)
     {
-        QDir dir(dirPath);
-        if (!dir.mkdir(folderName))
+        QString folderName = inputDialog.textValue().trimmed();
+        if (!folderName.isEmpty())
         {
-            QMessageBox::warning(&m_parent, "Error", "Failed to create folder");
+            QDir dir(dirPath);
+            if (!dir.mkdir(folderName))
+            {
+                QMessageBox::warning(&m_parent, "Error", "Failed to create folder");
+            }
         }
     }
 }
@@ -41,18 +50,22 @@ void ContentContextMenu::CreateScript(const QString &dirPath) const
 {
     qDebug() << "TODO: should notify engine that new script was added!";
 
-    bool ok = false;
-    QString scriptName =
-        QInputDialog::getText(&m_parent, "Create script", "Script name:", QLineEdit::Normal, QString(), &ok);
+    QInputDialog inputDialog(&m_parent);
+    inputDialog.setWindowTitle("Create script");
+    inputDialog.setLabelText("Script name:");
+    inputDialog.setTextValue("");
+    inputDialog.setOkButtonText("Create");
+    inputDialog.setCancelButtonText("Cancel");
+    inputDialog.setMinimumSize(200, 100);
 
-    if (ok && !scriptName.isEmpty())
+    if (inputDialog.exec() == QDialog::Accepted)
     {
-        QString filePath = dirPath + QDir::separator() + scriptName + ".lua";
+        QString filePath = dirPath + QDir::separator() + inputDialog.textValue() + ".lua";
         QFile script(filePath);
 
         if (!script.open(QIODevice::ReadWrite))
         {
-            QMessageBox::warning(&m_parent, "Error", "Failed to open script");
+            QMessageBox::warning(&m_parent, "Error", "Failed to create script");
             return;
         }
 
@@ -72,6 +85,7 @@ void ContentContextMenu::OnContextMenu(const QPoint &pos) const
 
     QString dirPath = model->rootPath();
     QMenu menu;
+
     QAction *createFolderAction = menu.addAction("Create folder");
     QAction *createScriptAction = menu.addAction("Create script");
     QAction *showExplorerAction = menu.addAction("Show in explorer");

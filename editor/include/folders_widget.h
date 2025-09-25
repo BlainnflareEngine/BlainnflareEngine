@@ -5,6 +5,10 @@
 #ifndef FOLDERS_WIDGET_H
 #define FOLDERS_WIDGET_H
 
+#include "ContextMenu/FileContextMenu.h"
+#include "folders_tree_view.h"
+
+
 #include <EASTL/unique_ptr.h>
 #include <QWidget>
 #include <qdir.h>
@@ -33,7 +37,10 @@ public:
 
     void SetContentDirectory(const QString &contentDirectory);
 
-    QTreeView* GetTreeView() const;
+    QTreeView *GetTreeView() const;
+
+    void AddAdditionalView(QAbstractItemView *view);
+    void RemoveAdditionalView(QAbstractItemView *view);
 
 signals:
     void folderSelected(const QString &path);
@@ -44,9 +51,10 @@ public slots:
 
 private:
     eastl::unique_ptr<Ui::folders_widget> m_ui;
-    eastl::unique_ptr<QTreeView> m_treeView;
+    eastl::unique_ptr<folders_tree_view> m_treeView;
     eastl::unique_ptr<QFileSystemModel> m_fileSystemModel;
     eastl::unique_ptr<QVBoxLayout> m_layout;
+    eastl::unique_ptr<FileContextMenu> m_fileContextMenu;
 };
 } // namespace editor
 

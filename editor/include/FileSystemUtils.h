@@ -131,7 +131,7 @@ inline void DeleteFile(const QString &filePath)
 
 inline void DeleteFolder(const QString &path)
 {
-    qDebug() << "TODO: should notify engine that folder potentially had scripts!";
+    qDebug() << "TODO: should notify engine that folder potentially had scripts! FileSystemUtils::DeleteFolder";
     // could be done with listContents(const QString& path)
 
     QDir dir(path);
@@ -165,6 +165,8 @@ inline bool CopyRecursively(const QString &sourceFolder, const QString &destFold
         QString srcName = sourceFolder + QDir::separator() + files[i];
         QString destName = destFolder + QDir::separator() + files[i];
         success = QFile::copy(srcName, destName);
+        qDebug() << "TODO: should notify engine that we created new file!";
+
         if (!success) return false;
     }
 
@@ -174,7 +176,10 @@ inline bool CopyRecursively(const QString &sourceFolder, const QString &destFold
     {
         QString srcName = sourceFolder + QDir::separator() + files[i];
         QString destName = destFolder + QDir::separator() + files[i];
+        qWarning() << "TODO: should notify engine that we created new file!" << files[i];
+
         success = CopyRecursively(srcName, destName);
+
         if (!success) return false;
     }
 

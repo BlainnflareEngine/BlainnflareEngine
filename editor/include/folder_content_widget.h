@@ -49,7 +49,6 @@ signals:
 private:
     eastl::unique_ptr<Ui::folder_content_widget> ui;
     eastl::unique_ptr<folder_content_list_view> m_listView;
-    eastl::vector<QAbstractItemView*> m_additionalViews;
     eastl::unique_ptr<QFileSystemModel> m_fileSystemModel;
     eastl::unique_ptr<QVBoxLayout> m_layout;
     eastl::unique_ptr<ContentContextMenu> m_contentContextMenu;

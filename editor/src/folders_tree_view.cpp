@@ -1,26 +1,22 @@
 ﻿//
-// Created by gorev on 24.09.2025.
+// Created by gorev on 25.09.2025.
 //
 
-// You may need to build the project (run Qt uic code generator) to get "ui_folder_content_list_view.h" resolved
 
-#include "folder_content_list_view.h"
-
-#include "FileSystemUtils.h"
-#include "ui_folder_content_list_view.h"
+#include "folders_tree_view.h"
+#include "ui_folders_tree_view.h"
 
 #include <QFileSystemModel>
+#include <QMessageBox>
 #include <QMimeData>
 #include <qdir.h>
 #include <qevent.h>
 
-
-class QFileSystemModel;
 namespace editor
 {
-folder_content_list_view::folder_content_list_view(QWidget *parent)
-    : QListView(parent)
-    , ui(new Ui::folder_content_list_view)
+folders_tree_view::folders_tree_view(QWidget *parent)
+    : QTreeView(parent)
+    , ui(new Ui::folders_tree_view)
 {
     ui->setupUi(this);
 
@@ -30,13 +26,13 @@ folder_content_list_view::folder_content_list_view(QWidget *parent)
 }
 
 
-folder_content_list_view::~folder_content_list_view()
+folders_tree_view::~folders_tree_view()
 {
     ui.release();
 }
 
 
-void folder_content_list_view::dropEvent(QDropEvent *event)
+void folders_tree_view::dropEvent(QDropEvent *event)
 {
     const QMimeData *mime = event->mimeData();
 
@@ -48,7 +44,7 @@ void folder_content_list_view::dropEvent(QDropEvent *event)
 
     if (!fsModel)
     {
-        QListView::dropEvent(event);
+        QTreeView::dropEvent(event);
         return;
     }
 
@@ -95,7 +91,7 @@ void folder_content_list_view::dropEvent(QDropEvent *event)
 }
 
 
-void folder_content_list_view::dragEnterEvent(QDragEnterEvent *event)
+void folders_tree_view::dragEnterEvent(QDragEnterEvent *event)
 {
     if (event->mimeData()->hasUrls())
     {
@@ -103,19 +99,19 @@ void folder_content_list_view::dragEnterEvent(QDragEnterEvent *event)
     }
     else
     {
-        QListView::dragEnterEvent(event);
+        QTreeView::dragEnterEvent(event);
     }
 }
 
 
-void folder_content_list_view::dragMoveEvent(QDragMoveEvent *event)
+void folders_tree_view::dragMoveEvent(QDragMoveEvent *event)
 {
     QModelIndex index = indexAt(event->position().toPoint());
     QFileSystemModel *fsModel = qobject_cast<QFileSystemModel *>(model());
 
     if (!fsModel)
     {
-        QListView::dragMoveEvent(event);
+        QTreeView::dragMoveEvent(event);
         return;
     }
 

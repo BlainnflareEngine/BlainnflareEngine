@@ -34,6 +34,9 @@ set(EDITOR_SOURCES
         src/folder_content_list_view.cpp
         include/folder_content_list_view.h
         ui/folder_content_list_view.ui
+        src/folders_tree_view.cpp
+        include/folders_tree_view.h
+        ui/folders_tree_view.ui
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

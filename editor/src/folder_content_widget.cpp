@@ -43,7 +43,6 @@ folder_content_widget::folder_content_widget(QWidget *parent)
 
     m_contentContextMenu = eastl::make_unique<ContentContextMenu>(*m_listView.get());
 
-    eastl::vector<QAbstractItemView *> additionalViews;
     m_fileContextMenu = eastl::make_unique<FileContextMenu>(*m_listView.get());
 
     connect(m_listView.get(), &QListView::doubleClicked, this, &folder_content_widget::onEntrySelectedIndex);
@@ -71,14 +70,12 @@ void folder_content_widget::SetContentDirectory(const QString &contentDirectory)
 
 void folder_content_widget::AddAdditionalView(QAbstractItemView *view)
 {
-    m_additionalViews.emplace_back(view);
     m_fileContextMenu->AddAdditionalView(view);
 }
 
 
 void folder_content_widget::RemoveAdditionalView(QAbstractItemView *view)
 {
-    m_additionalViews.erase_first(view);
     m_fileContextMenu->RemoveAdditionalView(view);
 }
 

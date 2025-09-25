@@ -19,6 +19,7 @@ editor_main::editor_main(QWidget *parent)
     ui->setupUi(this);
 
     ui->folderContent->AddAdditionalView(ui->folders->GetTreeView());
+    ui->folders->AddAdditionalView(ui->folderContent->GetListView());
 
     connect(ui->folders, &folders_widget::folderSelected,
             ui->folderContent, &folder_content_widget::onFolderSelectedPath);

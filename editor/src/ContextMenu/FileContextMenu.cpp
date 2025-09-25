@@ -45,6 +45,7 @@ void FileContextMenu::DirectoryContext(const QPoint &pos, const QString &path) c
     QAction *deleteAction = menu.QWidget::addAction("Delete folder");
     QAction *explorerAction = menu.QWidget::addAction("Show in explorer");
     QAction *selectedAction = menu.exec(m_parent.viewport()->mapToGlobal(pos));
+    menu.adjustSize();
 
     eastl::vector<QAbstractItemView *> itemViews = m_additionalViews;
     itemViews.push_back(&m_parent);
