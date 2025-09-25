@@ -6,9 +6,9 @@ project(ENGINE
 
 set(ENGINE_SOURCES
         src/Engine.cpp
-        src/subsystems/Freya.cpp
-        src/subsystems/Jord.cpp
-        src/subsystems/Bifrost.cpp
+        src/subsystems/RenderSubsystem.cpp
+        src/subsystems/PhysicsSubsystem.cpp
+        src/subsystems/ScriptingSubsystem.cpp
         include/tools/Profiler.h
         include/subsystems/Log.h
         src/subsystems/Log.cpp

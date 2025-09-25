@@ -4,7 +4,7 @@
 
 #include "editor/include/Editor.h"
 #include "engine/include/Engine.h"
-#include "engine/include/subsystems/Freya.h"
+#include "engine/include/subsystems/RenderSubsystem.h"
 #include <pch.h>
 
 #include <iostream>
@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 	// TODO:
     Blainn::Log::Init();
 
-    Blainn::Freya::Init();
+    Blainn::RenderSubsystem::Init();
 #if defined(BLAINN_INCLUDE_EDITOR)
 	// init editor
     Blainn::Editor editor(argc, argv);
