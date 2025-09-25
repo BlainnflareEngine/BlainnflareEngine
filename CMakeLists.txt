@@ -39,7 +39,18 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
+# PCH
+add_library(pch INTERFACE)
+target_link_libraries(pch INTERFACE
+        EASTL
+        spdlog
+        TracyClient
+        ENGINE)
+target_precompile_headers(pch INTERFACE common/pch.h)
+
+
 target_compile_definitions(${PROJECT_NAME} PRIVATE BLAINN_INCLUDE_EDITOR)
+
 
 #target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_HAS_CONSOLE)
 
@@ -157,16 +168,9 @@ if (NOT ${vgjs_POPULATED})
 endif ()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-        EASTL
-        spdlog
-        TracyClient
+        pch
         ENGINE
-        EDITOR
-        DirectXTK12
-        Jolt
-        ozz_animation
-        assimp
-        sol2)
+        EDITOR)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         ${ENGINE_DIR}
@@ -175,6 +179,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         ${JobSystem_DIR}/include
         ${TracyClient_DIR}/public
         ${spdlog_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/common
 )
 
 set(FETCHCONTENT_SOURCE_DIR_EASTL

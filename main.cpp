@@ -5,7 +5,7 @@
 #include "editor/include/Editor.h"
 #include "engine/include/Engine.h"
 #include "engine/include/subsystems/Freya.h"
-#include "subsystems/Log.h"
+#include <pch.h>
 
 #include <iostream>
 int main(int argc, char** argv) {
@@ -31,5 +31,6 @@ int main(int argc, char** argv) {
 	Blainn::Engine::Run();
 
     Blainn::Log::Destroy();
+
 	return 0;
 }
