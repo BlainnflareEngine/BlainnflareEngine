@@ -2,8 +2,7 @@
 
 namespace Blainn
 {
-	// RenderSubsystem
-    class Freya
+    class RenderSubsystem
     {
     public:
         // TODO: virtual ~RenderSubsystem() override = default;
@@ -13,11 +12,11 @@ namespace Blainn
         static void Render();
         // TODO: Additional rendering-specific methods can be added here    
     private:
-        Freya() = delete; 
-        Freya(const Freya&) = delete;
-        Freya& operator=(const Freya&) = delete; 
-		Freya(const Freya&&) = delete;
-        Freya& operator=(const Freya&&) = delete; 
+        RenderSubsystem() = delete; 
+        RenderSubsystem(const RenderSubsystem&) = delete;
+        RenderSubsystem& operator=(const RenderSubsystem&) = delete; 
+		RenderSubsystem(const RenderSubsystem&&) = delete;
+        RenderSubsystem& operator=(const RenderSubsystem&&) = delete; 
 
 		static bool m_isInitialized;
     };

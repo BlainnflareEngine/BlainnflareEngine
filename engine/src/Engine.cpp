@@ -2,7 +2,7 @@
 
 #include "VGJS.h"
 
-#include "subsystems/Freya.h"
+#include "subsystems/RenderSubsystem.h"
 #include "subsystems/Log.h"
 #include "tools/Profiler.h"
 
@@ -17,7 +17,7 @@ void Engine::Init() {
     m_jobSystemPtr = std::make_shared<vgjs::JobSystem>(vgjs::JobSystem(jobSystemThreadCount));
     
     //   just to check that cmake is working
-    Blainn::Freya::Init();
+    Blainn::RenderSubsystem::Init();
 }
 
 void Engine::Shutdown()
@@ -38,7 +38,7 @@ void Engine::Run()
             sink += i;
         }
         BF_DEBUG("This is written from the Engine::Run: {:>10}", sink);
-        vgjs::schedule(&Freya::Render);
+        vgjs::schedule(&RenderSubsystem::Render);
 
         // Marks end of frame for tracy profiler
         BLAINN_PROFILE_MARK_FRAME;
