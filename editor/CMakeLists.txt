@@ -7,9 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC_SEARCH_PATHS
-    "${CMAKE_CURRENT_SOURCE_DIR}/ui"
-)
+set(CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/ui")
 
 find_package(Qt6 COMPONENTS
         Core
@@ -50,16 +48,20 @@ target_sources(EDITOR PRIVATE
 
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/ui
+        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/ui
 )
 
 target_link_libraries(EDITOR
         Qt::Core
         Qt::Gui
         Qt::Widgets
+<<<<<<< HEAD
         EASTL
+=======
+        pch
+>>>>>>> 8221a61 (Merge branch 'pch')
 )
 
 

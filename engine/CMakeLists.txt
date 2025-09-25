@@ -26,5 +26,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         Jolt
         ozz_animation
         assimp
-        TracyClient)
+        TracyClient
+        spdlog
+        pch
+)
 

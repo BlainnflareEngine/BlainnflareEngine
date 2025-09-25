@@ -5,29 +5,16 @@
 #include "editor/include/Editor.h"
 #include "engine/include/Engine.h"
 #include "engine/include/subsystems/Freya.h"
+#include <pch.h>
 
-#include <cstdint>
 #include <iostream>
-
-void *operator new[](size_t size, const char *pName, int flags, unsigned debugFlags, const char *file, int line)
-{
-    return new uint8_t[size];
-}
-
-void *operator new[](size_t size, size_t alignment, size_t alignmentOffset, const char *pName, int flags,
-                     unsigned debugFlags, const char *file, int line)
-{
-    return new uint8_t[size];
-}
-
-
-int main(int argc, char **argv)
-{
-    // TODO:
+int main(int argc, char** argv) {
+	// TODO:
+    Blainn::Log::Init();
 
     Blainn::Freya::Init();
 #if defined(BLAINN_INCLUDE_EDITOR)
-    // init editor
+	// init editor
     Blainn::Editor editor(argc, argv);
     editor.Show();
     // TODO:
@@ -35,13 +22,15 @@ int main(int argc, char **argv)
     // or editor.Update() and Engine::Run() should be updated here in while true
     // to grab HWND from editor just call editor.GetViewportHWND()
     // code below is just for tests
-    while (true)
+    /*while (true)
     {
         editor.Update();
-    }
+    }*/
 #endif
 
-    Blainn::Engine::Run();
+	Blainn::Engine::Run();
 
-    return 0;
+    Blainn::Log::Destroy();
+
+	return 0;
 }
