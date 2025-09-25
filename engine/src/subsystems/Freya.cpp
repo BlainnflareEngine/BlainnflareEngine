@@ -1,5 +1,6 @@
 #include "subsystems/Freya.h"
 
+#include "subsystems/Log.h"
 #include "tools/Profiler.h"
 
 #include <cassert>
@@ -12,7 +13,7 @@ bool Freya::m_isInitialized = false;
 void Blainn::Freya::Init() 
 {
     m_isInitialized = true;
-    std::cout << "RenderSubsystem::Init()" << std::endl;
+    BF_INFO("RenderSubsystem::Init()");
 }
 
 
@@ -32,5 +33,5 @@ void Freya::Render()
     {
         sink += i;
     }
-    std::cout << sink << '\n';
+    BF_INFO("Haha, the number is {:>5}, and you can't count!", sink);
 }

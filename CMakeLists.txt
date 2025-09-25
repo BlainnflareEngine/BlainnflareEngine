@@ -18,9 +18,9 @@ set(CMAKE_CONFIGURATION_TYPES
         CACHE STRING "" FORCE)
 
 # These definitions apply to all the projects
-set(NON_DIST_DEFS TRACY_ENABLE)
 add_compile_definitions(
-        $<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:${NON_DIST_DEFS}>
+        $<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:TRACY_ENABLE>
+        $<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:BLAINN_HAS_CONSOLE>
 )
 
 set(PROJECT_NAME

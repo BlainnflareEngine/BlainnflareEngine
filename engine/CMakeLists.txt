@@ -10,6 +10,8 @@ set(ENGINE_SOURCES
         src/subsystems/Jord.cpp
         src/subsystems/Bifrost.cpp
         include/tools/Profiler.h
+        include/subsystems/Log.h
+        src/subsystems/Log.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
@@ -17,7 +19,9 @@ add_library(ENGINE STATIC ${ENGINE_SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${JobSystem_DIR}/include
-        ${TracyClient_DIR}/public)
+        ${TracyClient_DIR}/public
+        ${spdlog_DIR}/include
+)
 
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

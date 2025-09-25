@@ -17,28 +17,7 @@ find_package(Qt6 COMPONENTS
 
 set(EDITOR_SOURCES
         src/Editor.cpp
-        src/editor_main.cpp
-        src/folders_widget.cpp
-        include/folders_widget.h
-        ui/folders_widget.ui
-        src/folder_content_widget.cpp
-        include/folder_content_widget.h
-        ui/folder_content_widget.ui
-        src/ContextMenu/ContentContextMenu.cpp
-        include/ContextMenu/ContentContextMenu.h
-        src/ContextMenu/FileContextMenu.cpp
-        include/ContextMenu/FileContextMenu.h
-        include/FileSystemUtils.h
-        src/folder_content_list_view.cpp
-        include/folder_content_list_view.h
-        ui/folder_content_list_view.ui
-        src/folders_tree_view.cpp
-        include/folders_tree_view.h
-        ui/folders_tree_view.ui
-        src/import_asset_dialog.cpp
-        include/import_asset_dialog.h
-        ui/import_asset_dialog.ui
-)
+        src/editor_main.cpp)
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
 
@@ -57,11 +36,7 @@ target_link_libraries(EDITOR
         Qt::Core
         Qt::Gui
         Qt::Widgets
-<<<<<<< HEAD
-        EASTL
-=======
         pch
->>>>>>> 8221a61 (Merge branch 'pch')
 )
 
 
