@@ -40,6 +40,7 @@ inline void *operator new[](size_t size, size_t alignment, size_t alignmentOffse
 
 #pragma endregion
 
+#include <uuid_v4.h>
 
 #include "subsystems/Log.h"
 #include "tools/Profiler.h"

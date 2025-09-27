@@ -39,8 +39,19 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
+# include directories
+set(LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
+set(ENGINE_DIR ${PROJECT_SOURCE_DIR}/engine)
+set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
+set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
+set(uuid_v4_DIR ${PROJECT_SOURCE_DIR}/libs/uuid_v4)
+set(Blain_common_dir ${PROJECT_SOURCE_DIR}/common)
+
 # PCH
 add_library(pch INTERFACE)
+target_include_directories(pch INTERFACE
+        ${uuid_v4_DIR}
+)
 target_link_libraries(pch INTERFACE
         EASTL
         spdlog
@@ -54,12 +65,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE BLAINN_INCLUDE_EDITOR)
 
 #target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_HAS_CONSOLE)
 
-# include directories
 
-set(LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
-set(ENGINE_DIR ${PROJECT_SOURCE_DIR}/engine)
-set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
-set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
+
 add_subdirectory(${ENGINE_DIR})
 add_subdirectory(${EDITOR_DIR})
 

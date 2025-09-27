@@ -9,9 +9,9 @@ set(ENGINE_SOURCES
         src/subsystems/RenderSubsystem.cpp
         src/subsystems/PhysicsSubsystem.cpp
         src/subsystems/ScriptingSubsystem.cpp
+        src/subsystems/Log.cpp
         include/tools/Profiler.h
         include/subsystems/Log.h
-        src/subsystems/Log.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
@@ -21,6 +21,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         ${JobSystem_DIR}/include
         ${TracyClient_DIR}/public
         ${spdlog_DIR}/include
+        ${Blain_common_dir}
 )
 
 
