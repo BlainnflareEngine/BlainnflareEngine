@@ -17,44 +17,32 @@
 #include "runtime/physics/Layers.h"
 #include "runtime/physics/BodyBuilder.h"
 #include "runtime/physics/ContactListenerImpl.h"
-#include "PhysicsSubsystem.h"
 
 using namespace Blainn;
 
 void PhysicsSubsystem::Init() {
     m_isInitialized = true;
 
-    constexpr int joltUpdateFrequencyHz = 120;
+    // TODO: set simulation frequency
 
-	JPH::TempAllocatorImpl::TempAllocator *	mTempAllocator = new JPH::TempAllocatorImpl(32 * 1024 * 1024);
-
-    int mMaxConcurrentJobs = 4;
-	JPH::JobSystem * mJobSystem = new JPH::JobSystemThreadPool(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, mMaxConcurrentJobs - 1);
-
-	//JPH::JobSystemSingleThreaded * mJobSystem = new JPH::JobSystemSingleThreaded(JPH::cMaxPhysicsJobs);
-
+	m_joltTempAllocator = eastl::make_unique<JPH::TempAllocatorImpl>(32 * 1024 * 1024);
+	m_joltJobSystem = eastl::make_unique<JPH::JobSystemThreadPool>(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, m_maxConcurrentJobs - 1);
     // Create physics system
-	JPH::PhysicsSystem* mPhysicsSystem = new JPH::PhysicsSystem();
+    m_joltPhysicsSystem = eastl::make_unique<JPH::PhysicsSystem>();
 
-    static constexpr unsigned int cNumBodies = 10240;
-    static constexpr unsigned int cNumBodyMutexes = 0; // Autodetect
-    static constexpr unsigned int cMaxBodyPairs = 65536;
-    static constexpr unsigned int cMaxContactConstraints = 20480;
-    BPLayerInterfaceImpl mBroadPhaseLayerInterface;
-    ObjectVsBroadPhaseLayerFilterImpl mObjectVsBroadPhaseLayerFilter;
-    ObjectLayerPairFilterImpl mObjectVsObjectLayerFilter;	
+    m_broadPhaseLayerInterface = eastl::make_unique<BPLayerInterfaceImpl>();
+    m_objectVsBroadPhaseLayerFilter = eastl::make_unique<ObjectVsBroadPhaseLayerFilterImpl>();
+    m_objectVsObjectLayerFilter = eastl::make_unique<ObjectLayerPairFilterImpl>();
+
     JPH::PhysicsSettings mPhysicsSettings;	
-	mPhysicsSystem->Init(cNumBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, mBroadPhaseLayerInterface, mObjectVsBroadPhaseLayerFilter, mObjectVsObjectLayerFilter);
-	mPhysicsSystem->SetPhysicsSettings(mPhysicsSettings);
+	m_joltPhysicsSystem->Init(cNumBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, *m_broadPhaseLayerInterface, *m_objectVsBroadPhaseLayerFilter, *m_objectVsObjectLayerFilter);
+	m_joltPhysicsSystem->SetPhysicsSettings(mPhysicsSettings);
 
-    ContactListenerImpl * mContactListener = new ContactListenerImpl;
-
+    m_contactListener = eastl::make_unique<ContactListenerImpl>();
 	// Optimize the broadphase to make the first update fast
-	mPhysicsSystem->OptimizeBroadPhase();
+	m_joltPhysicsSystem->OptimizeBroadPhase();
 
     // TODO: reserve m_bodyCreationQueue and m_PhysicsComponents
-
-
 }
 
 void PhysicsSubsystem::Destroy() {
