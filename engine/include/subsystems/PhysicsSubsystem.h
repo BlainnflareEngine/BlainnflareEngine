@@ -1,20 +1,35 @@
 #pragma once
 
+#include <cstdint>
+
 #include "EASTL/unordered_map.h"
 #include "EASTL/vector.h"
 
 #include "aliases.h"
 
+namespace JPH {
+	class JobSystem;
+	class RayCastResult;
+	class TempAllocator;
+	class PhysicsSystem;
+}
+
 namespace Blainn {
-	class SomeType; // TODO: remove
 	class BodyBuilder;
 	class PhysicsComponent;
+	class BPLayerInterfaceImpl;
+	class ObjectVsBroadPhaseLayerFilterImpl;
+	class ObjectLayerPairFilterImpl;
+	class ContactListenerImpl;
 
 	// PhysicsSubsystem
 	class PhysicsSubsystem  {
 	public:
 		static void Init();
 		static void Destroy();
+
+		static void PauseSimulation();
+		static void StartSimulation();
 
 		static void DoCycle();
 
@@ -33,7 +48,7 @@ namespace Blainn {
 
 		//TODO: create multipleBodies?
 
-		JPH::RayCastResult CastRay(JPH::Vec3 origin, JPH::Vec3 direction);
+		JPH::RayCastResult CastRay(Vec3 origin, Vec3 direction);
 
 	private:
         PhysicsSubsystem() = delete; 
@@ -43,8 +58,25 @@ namespace Blainn {
         PhysicsSubsystem& operator=(const PhysicsSubsystem&&) = delete; 
 
 		inline static bool m_isInitialized = false;
+		inline static bool m_isPaused = true;
 
 		static eastl::unordered_map<uuid, PhysicsComponent> m_physicsComponents;
 		static eastl::vector<eastl::pair<uuid, PhysicsComponent>> m_physicsComponentCreationQueue;
+
+		inline static constexpr uint32_t m_maxConcurrentJobs = 8;
+		inline static constexpr uint32_t m_joltUpdateFrequencyHz = 120;
+		inline static eastl::unique_ptr<JPH::JobSystem> m_joltJobSystem = nullptr;
+		inline static eastl::unique_ptr<JPH::TempAllocator> m_joltTempAllocator = nullptr;
+		inline static eastl::unique_ptr<JPH::PhysicsSystem> m_joltPhysicsSystem = nullptr;
+		
+		inline static eastl::unique_ptr<BPLayerInterfaceImpl> m_broadPhaseLayerInterface = nullptr;
+    	inline static eastl::unique_ptr<ObjectVsBroadPhaseLayerFilterImpl> m_objectVsBroadPhaseLayerFilter = nullptr;
+    	inline static eastl::unique_ptr<ObjectLayerPairFilterImpl> m_objectVsObjectLayerFilter = nullptr;	
+		inline static eastl::unique_ptr<ContactListenerImpl> m_contactListener = nullptr;
+
+		inline static constexpr uint32_t cNumBodies = 10240;
+		inline static constexpr uint32_t cNumBodyMutexes = 0; // Autodetect
+		inline static constexpr uint32_t cMaxBodyPairs = 65536;
+		inline static constexpr uint32_t cMaxContactConstraints = 20480;
 	};
 }
