@@ -1,9 +1,7 @@
 # Engine-specific dependencies
-
 include_guard(GLOBAL)
 
-set(FETCHCONTENT_BASE_DIR ${CMAKE_SOURCE_DIR}/libs CACHE PATH "Dependencies directory" FORCE)
-set(FETCHCONTENT_FULLY_DISCONNECTED TRUE CACHE BOOL "")
+set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE CACHE BOOL "")
 set(FETCHCONTENT_QUIET FALSE)
 
 include(FetchContent)
@@ -69,7 +67,12 @@ FetchContent_Declare(
         GIT_SHALLOW TRUE
         SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/uuid_v4
 )
-FetchContent_MakeAvailable(uuid_v4)
+# FetchContent_MakeAvailable(uuid_v4)
+FetchContent_GetProperties(uuid_v4)
+if (NOT ${vgjs_POPULATED})
+    FetchContent_Populate(uuid_v4)
+endif ()
+
 
 # Set cache variables for source directories
 set(FETCHCONTENT_SOURCE_DIR_DIRECTXTK12
@@ -101,3 +104,5 @@ set(FETCHCONTENT_SOURCE_DIR_UUID_V4
         "${CMAKE_SOURCE_DIR}/libs/uuid_v4"
         CACHE PATH "CACHE PATH uuid_v4 source dir"
 )
+
+

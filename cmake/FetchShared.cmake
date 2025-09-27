@@ -1,12 +1,10 @@
 # Shared dependencies for both engine and editor
 include_guard(GLOBAL)
 
-set(FETCHCONTENT_BASE_DIR ${CMAKE_SOURCE_DIR}/libs CACHE PATH "Dependencies directory" FORCE)
-set(FETCHCONTENT_FULLY_DISCONNECTED TRUE CACHE BOOL "")
+set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE CACHE BOOL "")
 set(FETCHCONTENT_QUIET FALSE)
 
 include(FetchContent)
-
 
 # EASTL - Electronic Arts Standard Template Library
 FetchContent_Declare(
@@ -17,6 +15,7 @@ FetchContent_Declare(
         SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/EASTL
 )
 FetchContent_MakeAvailable(EASTL)
+
 
 # spdlog - Fast C++ logging library
 FetchContent_Declare(

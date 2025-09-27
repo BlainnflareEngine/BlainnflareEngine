@@ -24,6 +24,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         ${TracyClient_DIR}/public
         ${spdlog_DIR}/include
         ${Blain_common_dir}
+        ${CMAKE_SOURCE_DIR}/common
 )
 
 
