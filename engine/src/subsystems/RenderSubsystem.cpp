@@ -33,5 +33,5 @@ void RenderSubsystem::Render()
     {
         sink += i;
     }
-    BF_INFO("Haha, the number is {:>5}, and you can't count!", sink);
+    //BF_INFO("Haha, the number is {:>5}, and you can't count!", sink);
 }
