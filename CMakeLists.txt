@@ -37,11 +37,24 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
+add_subdirectory(libs/EASTL)
+add_subdirectory(libs/JoltPhysics/Build)
+add_subdirectory(libs/spdlog)
+add_subdirectory(libs/tracy)
+add_subdirectory(libs/sol2)
 
-set(_prev "${CMAKE_FOLDER}")
-set(CMAKE_FOLDER "libs")
-add_subdirectory(${PROJECT_SOURCE_DIR}/libs)
-set(CMAKE_FOLDER "${_prev}")
+set (BUILD_TESTING OFF)
+add_subdirectory(libs/DIRECTXTK12)
+
+set (ozz_build_tools OFF)
+set (ozz_build_howtos OFF)
+set (ozz_build_samples OFF)
+set (ozz_build_tests OFF)
+add_subdirectory(libs/ozz-animation)
+
+set (ASSIMP_BUILD_TESTS OFF)
+set (ASSIMP_INSTALL OFF)
+add_subdirectory(libs/assimp)
 
 # PCH
 add_library(pch INTERFACE)
@@ -55,7 +68,6 @@ target_precompile_headers(pch INTERFACE common/pch.h)
 
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE BLAINN_INCLUDE_EDITOR)
-
 
 #target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_HAS_CONSOLE)
 

@@ -47,6 +47,8 @@ build/
 *.sln
 libs/*
 !libs/CMakeLists.txt
+!libs/clone_dependencies.bat
+logs/*
 .idea/
 CMakeFiles/
 /out
