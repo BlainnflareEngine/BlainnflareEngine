@@ -9,6 +9,7 @@
 
 
 #include <QMainWindow>
+#include <QPointer>
 #include <qdir.h>
 
 namespace editor
@@ -30,12 +31,15 @@ public:
 
     HWND GetViewportHWND() const;
 
-    void SetContentDirectory(const QString& path);
+    void SetContentDirectory(const QString &path);
 
 private:
-    eastl::unique_ptr<Ui::editor_main> ui;
+    Ui::editor_main* ui;
 
     QString m_contentPath;
+
+private slots:
+    void OnOpenSettings();
 };
 
 } // namespace editor

@@ -9,6 +9,7 @@
 
 
 #include <QDialog>
+#include <QPointer>
 
 namespace editor
 {
@@ -28,7 +29,7 @@ public:
     ~import_asset_dialog() override;
 
 private:
-    eastl::unique_ptr<Ui::import_asset_dialog> ui;
+    Ui::import_asset_dialog* ui;
 };
 } // namespace editor
 

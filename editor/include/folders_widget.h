@@ -47,14 +47,14 @@ signals:
 
 public slots:
     void onFolderSelectedIndex(const QModelIndex &newSelection);
-    void onFolderSelectedPath(const QString &newPath) const;
+    void OnFolderSelectedPath(const QString &newPath) const;
 
 private:
-    eastl::unique_ptr<Ui::folders_widget> m_ui;
-    eastl::unique_ptr<folders_tree_view> m_treeView;
-    eastl::unique_ptr<QFileSystemModel> m_fileSystemModel;
-    eastl::unique_ptr<QVBoxLayout> m_layout;
-    eastl::unique_ptr<FileContextMenu> m_fileContextMenu;
+    Ui::folders_widget *m_ui;
+    folders_tree_view *m_treeView;
+    QFileSystemModel *m_fileSystemModel;
+    QVBoxLayout *m_layout;
+    FileContextMenu *m_fileContextMenu;
 };
 } // namespace editor
 

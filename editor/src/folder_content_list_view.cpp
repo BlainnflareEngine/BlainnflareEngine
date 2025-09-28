@@ -32,7 +32,7 @@ folder_content_list_view::folder_content_list_view(QWidget *parent)
 
 folder_content_list_view::~folder_content_list_view()
 {
-    ui.release();
+    delete ui;
 }
 
 

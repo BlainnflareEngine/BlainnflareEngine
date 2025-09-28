@@ -20,11 +20,11 @@ folders_widget::folders_widget(QWidget *parent)
 {
     m_ui->setupUi(this);
 
-    m_fileSystemModel = eastl::make_unique<QFileSystemModel>(this);
+    m_fileSystemModel = new QFileSystemModel(this);
     m_fileSystemModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
 
-    m_treeView = eastl::make_unique<folders_tree_view>(this);
-    m_treeView->setModel(m_fileSystemModel.get());
+    m_treeView = new folders_tree_view(this);
+    m_treeView->setModel(m_fileSystemModel);
     m_treeView->setHeaderHidden(true);
     m_treeView->hideColumn(1);
     m_treeView->hideColumn(2);
@@ -33,25 +33,25 @@ folders_widget::folders_widget(QWidget *parent)
     m_treeView->setRootIsDecorated(true);
     m_treeView->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    m_layout = eastl::make_unique<QVBoxLayout>(this);
+    m_layout = new QVBoxLayout(this);
     m_layout->setSpacing(5);
     m_layout->setContentsMargins(0, 0, 0, 0);
-    m_layout->addWidget(m_treeView.get());
+    m_layout->addWidget(m_treeView);
 
-    m_fileContextMenu = eastl::make_unique<FileContextMenu>(*m_treeView.get());
+    m_fileContextMenu = new FileContextMenu(*m_treeView);
 
-    connect(m_treeView.get(), &QTreeView::doubleClicked, this, &folders_widget::onFolderSelectedIndex);
-    connect(m_treeView.get(), &QTreeView::customContextMenuRequested, m_fileContextMenu.get(),
+    connect(m_treeView, &QTreeView::doubleClicked, this, &folders_widget::onFolderSelectedIndex);
+    connect(m_treeView, &QTreeView::customContextMenuRequested, m_fileContextMenu,
             &FileContextMenu::OnContextMenu);
 }
 
 
 folders_widget::~folders_widget()
 {
-    m_ui.release();
-    m_fileSystemModel.release();
-    m_treeView.release();
-    m_layout.release();
+    delete m_ui;
+    delete m_fileSystemModel;
+    delete m_treeView;
+    delete m_layout;
 }
 
 
@@ -62,7 +62,7 @@ void folders_widget::SetContentDirectory(const QString &contentDirectory)
 }
 QTreeView *folders_widget::GetTreeView() const
 {
-    return m_treeView.get();
+    return m_treeView;
 }
 
 
@@ -87,7 +87,7 @@ void folders_widget::onFolderSelectedIndex(const QModelIndex &newSelection)
 }
 
 
-void folders_widget::onFolderSelectedPath(const QString &newPath) const
+void folders_widget::OnFolderSelectedPath(const QString &newPath) const
 {
     QModelIndex index = m_fileSystemModel->index(newPath);
     if (index.isValid())

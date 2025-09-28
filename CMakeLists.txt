@@ -165,6 +165,14 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(uuid_v4)
 
+FetchContent_Declare(
+        yaml-cpp
+        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+        GIT_TAG 0.8.0
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/yaml-cpp
+)
+FetchContent_MakeAvailable(yaml-cpp)
+
 
 file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
 
@@ -241,6 +249,11 @@ set(FETCHCONTENT_SOURCE_DIR_UUID_V4
 set(FETCHCONTENT_SOURCE_DIR_VGJS
         "${CMAKE_SOURCE_DIR}/libs/ViennaGameJobSystem"
         CACHE PATH "CACHE PATH vgjs source dir"
+)
+
+set(FETCHCONTENT_SOURCE_DIR_YAML-CPP
+        "${CMAKE_SOURCE_DIR}/libs/yaml-cpp"
+        CACHE PATH "CACHE PATH yaml-cpp source dir"
 )
 
 

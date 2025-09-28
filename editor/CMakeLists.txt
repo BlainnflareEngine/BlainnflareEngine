@@ -37,13 +37,15 @@ set(EDITOR_SOURCES
         ui/folders_tree_view.ui
         src/import_asset_dialog.cpp
         include/import_asset_dialog.h
-        ui/import_asset_dialog.ui)
+        ui/import_asset_dialog.ui
+        include/editor_main.h
+        include/Editor.h
+        src/editor_settings.cpp
+        include/editor_settings.h
+        ui/editor_settings.ui
+        include/SettingsData.h)
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
-
-target_sources(EDITOR PRIVATE
-        include/editor_main.h
-        include/Editor.h)
 
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -57,6 +59,7 @@ target_link_libraries(EDITOR
         Qt::Gui
         Qt::Widgets
         pch
+        yaml-cpp
 )
 
 

@@ -30,7 +30,7 @@ folders_tree_view::folders_tree_view(QWidget *parent)
 
 folders_tree_view::~folders_tree_view()
 {
-    ui.release();
+    delete ui;
 }
 
 

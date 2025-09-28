@@ -25,40 +25,40 @@ folder_content_widget::folder_content_widget(QWidget *parent)
 {
     ui->setupUi(this);
 
-    m_fileSystemModel = eastl::make_unique<QFileSystemModel>(this);
+    m_fileSystemModel = new QFileSystemModel(this);
     m_fileSystemModel->setFilter(QDir::NoDotAndDotDot | QDir::AllEntries);
 
     // TODO: move all this properties to folder_content_list_view
-    m_listView = eastl::make_unique<folder_content_list_view>(this);
-    m_listView->setModel(m_fileSystemModel.get());
+    m_listView = new folder_content_list_view(this);
+    m_listView->setModel(m_fileSystemModel);
     m_listView->setViewMode(QListView::IconMode);
     m_listView->setResizeMode(QListView::Adjust);
     m_listView->setGridSize(QSize(100, 100));
     m_listView->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    m_layout = eastl::make_unique<QVBoxLayout>(this);
+    m_layout = new QVBoxLayout(this);
     layout()->setContentsMargins(0, 0, 0, 0);
     layout()->setSpacing(5);
-    layout()->addWidget(m_listView.get());
+    layout()->addWidget(m_listView);
 
-    m_contentContextMenu = eastl::make_unique<ContentContextMenu>(*m_listView.get());
+    m_contentContextMenu = new ContentContextMenu(*m_listView);
 
-    m_fileContextMenu = eastl::make_unique<FileContextMenu>(*m_listView.get());
+    m_fileContextMenu = new FileContextMenu(*m_listView);
 
-    connect(m_listView.get(), &QListView::doubleClicked, this, &folder_content_widget::onEntrySelectedIndex);
-    connect(m_listView.get(), &QWidget::customContextMenuRequested, m_contentContextMenu.get(),
+    connect(m_listView, &QListView::doubleClicked, this, &folder_content_widget::onEntrySelectedIndex);
+    connect(m_listView, &QWidget::customContextMenuRequested, m_contentContextMenu,
             &ContentContextMenu::OnContextMenu);
-    connect(m_listView.get(), &QListView::customContextMenuRequested, m_fileContextMenu.get(),
+    connect(m_listView, &QListView::customContextMenuRequested, m_fileContextMenu,
             &FileContextMenu::OnContextMenu);
 }
 
 
 folder_content_widget::~folder_content_widget()
 {
-    m_fileSystemModel.reset();
-    m_listView.reset();
-    m_layout.reset();
-    ui.release();
+    delete m_fileSystemModel;
+    delete m_listView;
+    delete m_layout;
+    delete ui;
 }
 
 
@@ -82,11 +82,11 @@ void folder_content_widget::RemoveAdditionalView(QAbstractItemView *view)
 
 QListView *folder_content_widget::GetListView() const
 {
-    return m_listView.get();
+    return m_listView;
 }
 
 
-void folder_content_widget::onFolderSelectedPath(const QString &newPath)
+void folder_content_widget::OnFolderSelectedPath(const QString &newPath)
 {
     SetContentDirectory(newPath);
 }

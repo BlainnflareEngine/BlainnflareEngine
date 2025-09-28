@@ -525,6 +525,7 @@
     <property name="title">
      <string>Edit</string>
     </property>
+    <addaction name="actionEditor_settings"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -536,6 +537,11 @@
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionEditor_settings">
+   <property name="text">
+    <string>Editor settings</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

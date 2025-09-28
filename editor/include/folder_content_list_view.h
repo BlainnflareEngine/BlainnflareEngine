@@ -4,11 +4,9 @@
 
 #pragma once
 
-#include "EASTL/compare.h"
-#include "EASTL/unique_ptr.h"
-
 
 #include <QListView>
+#include <QPointer>
 
 namespace editor
 {
@@ -35,6 +33,6 @@ protected:
     void dragMoveEvent(QDragMoveEvent *event) override;
 
 private:
-    eastl::unique_ptr<Ui::folder_content_list_view> ui;
+    Ui::folder_content_list_view* ui;
 };
 } // namespace editor

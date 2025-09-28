@@ -14,8 +14,9 @@ import_asset_dialog::import_asset_dialog(QWidget *parent)
     ui->setupUi(this);
 }
 
+
 import_asset_dialog::~import_asset_dialog()
 {
-    ui.release();
+    delete ui;
 }
 } // namespace editor

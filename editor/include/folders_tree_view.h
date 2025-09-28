@@ -8,6 +8,7 @@
 #include "EASTL/unique_ptr.h"
 
 
+#include <QPointer>
 #include <QTreeView>
 
 namespace editor
@@ -35,6 +36,6 @@ protected:
     void dragMoveEvent(QDragMoveEvent *event) override;
 
 private:
-    eastl::unique_ptr<Ui::folders_tree_view> ui;
+    Ui::folders_tree_view* ui;
 };
 } // namespace editor

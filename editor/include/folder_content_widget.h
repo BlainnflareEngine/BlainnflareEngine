@@ -7,10 +7,10 @@
 
 #include "ContextMenu/ContentContextMenu.h"
 #include "ContextMenu/FileContextMenu.h"
-#include "EASTL/unique_ptr.h"
 #include "folder_content_list_view.h"
-#include <QWidget>
 
+#include <QPointer>
+#include <QWidget>
 
 class QVBoxLayout;
 class QFileSystemModel;
@@ -34,25 +34,25 @@ public:
 
     void SetContentDirectory(const QString &contentDirectory) const;
 
-    void AddAdditionalView(QAbstractItemView* view);
-    void RemoveAdditionalView(QAbstractItemView* view);
+    void AddAdditionalView(QAbstractItemView *view);
+    void RemoveAdditionalView(QAbstractItemView *view);
 
-    QListView* GetListView() const;
+    QListView *GetListView() const;
 
 public slots:
-    void onFolderSelectedPath(const QString &newPath);
+    void OnFolderSelectedPath(const QString &newPath);
     void onEntrySelectedIndex(const QModelIndex &newSelection);
 
 signals:
     void folderSelected(const QString &newPath);
 
 private:
-    eastl::unique_ptr<Ui::folder_content_widget> ui;
-    eastl::unique_ptr<folder_content_list_view> m_listView;
-    eastl::unique_ptr<QFileSystemModel> m_fileSystemModel;
-    eastl::unique_ptr<QVBoxLayout> m_layout;
-    eastl::unique_ptr<ContentContextMenu> m_contentContextMenu;
-    eastl::unique_ptr<FileContextMenu> m_fileContextMenu;
+    Ui::folder_content_widget *ui;
+    folder_content_list_view *m_listView;
+    QFileSystemModel *m_fileSystemModel;
+    QVBoxLayout *m_layout;
+    ContentContextMenu *m_contentContextMenu;
+    FileContextMenu *m_fileContextMenu;
 };
 } // namespace editor
 
