@@ -46,8 +46,7 @@ build/
 .vs/
 *.sln
 libs/*
-!libs/JobSystem/
-!libs/JobSystem/**
+!libs/CMakeLists.txt
 .idea/
 CMakeFiles/
 /out
