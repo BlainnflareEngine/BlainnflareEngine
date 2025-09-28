@@ -87,9 +87,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 # Qt files deploy for Windows
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)
-    if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
-        set(DEBUG_SUFFIX "d")
-    endif ()
+    #if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
+        set(DEBUG_SUFFIX "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:d>")
+    #endif ()
     set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
     if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
         set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
