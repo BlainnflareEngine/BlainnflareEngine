@@ -57,6 +57,14 @@ set (ASSIMP_BUILD_TESTS OFF)
 set (ASSIMP_INSTALL OFF)
 add_subdirectory(libs/assimp)
 
+set(LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
+set(ENGINE_DIR ${PROJECT_SOURCE_DIR}/engine)
+set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
+set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
+
+add_subdirectory(${ENGINE_DIR})
+add_subdirectory(${EDITOR_DIR})
+
 # PCH
 add_library(pch INTERFACE)
 target_link_libraries(pch INTERFACE
@@ -65,7 +73,12 @@ target_link_libraries(pch INTERFACE
         TracyClient
         yaml-cpp
         ENGINE)
-target_include_directories(pch INTERFACE "${CMAKE_SOURCE_DIR}/libs/uuid_v4")
+
+target_include_directories(pch INTERFACE
+        "${CMAKE_SOURCE_DIR}/libs/uuid_v4"
+        "${ENGINE_DIR}/include/subsystems"
+        "${ENGINE_DIR}/src/subsystems")
+
 target_precompile_headers(pch INTERFACE common/pch.h)
 
 
@@ -73,12 +86,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE BLAINN_INCLUDE_EDITOR)
 
 #target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_HAS_CONSOLE)
 
-set(LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
-set(ENGINE_DIR ${PROJECT_SOURCE_DIR}/engine)
-set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
-set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
-add_subdirectory(${ENGINE_DIR})
-add_subdirectory(${EDITOR_DIR})
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
         pch
