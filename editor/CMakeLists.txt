@@ -17,7 +17,10 @@ find_package(Qt6 COMPONENTS
 
 set(EDITOR_SOURCES
         src/Editor.cpp
-        src/editor_main.cpp)
+        src/editor_main.cpp
+        ui/editor_main.ui
+        include/editor_main.h
+        include/Editor.h)
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
 
@@ -25,11 +28,14 @@ target_sources(EDITOR PRIVATE
         include/editor_main.h
         include/Editor.h)
 
+source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${EDITOR_SOURCES})
+
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/src
         ${PROJECT_SOURCE_DIR}/ui
+        ${CMAKE_SOURCE_DIR}/common
 )
 
 target_link_libraries(EDITOR

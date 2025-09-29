@@ -16,12 +16,15 @@ set(ENGINE_SOURCES
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
 
+source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${ENGINE_SOURCES})
+
 target_include_directories(${PROJECT_NAME} PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${JobSystem_DIR}/include
         ${TracyClient_DIR}/public
         ${spdlog_DIR}/include
         ${Blain_common_dir}
+        ${CMAKE_SOURCE_DIR}/common
 )
 
 

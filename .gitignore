@@ -46,8 +46,9 @@ build/
 .vs/
 *.sln
 libs/*
-!libs/JobSystem/
-!libs/JobSystem/**
+!libs/CMakeLists.txt
+!libs/clone_dependencies.bat
+logs/*
 .idea/
 CMakeFiles/
 /out
