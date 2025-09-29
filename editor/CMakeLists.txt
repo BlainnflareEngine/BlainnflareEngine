@@ -18,9 +18,33 @@ find_package(Qt6 COMPONENTS
 set(EDITOR_SOURCES
         src/Editor.cpp
         src/editor_main.cpp
-        ui/editor_main.ui
+        src/editor_settings.cpp
+        src/folder_content_list_view.cpp
+        src/folder_content_widget.cpp
+        src/folders_tree_view.cpp
+        src/folders_widget.cpp
+        src/import_asset_dialog.cpp
+        src/ContextMenu/ContentContextMenu.cpp
+        src/ContextMenu/FileContextMenu.cpp
+        include/Editor.h
         include/editor_main.h
-        include/Editor.h)
+        include/editor_settings.h
+        include/FileSystemUtils.h
+        include/folder_content_list_view.h
+        include/folder_content_widget.h
+        include/folders_tree_view.h
+        include/folders_widget.h
+        include/import_asset_dialog.h
+        include/SettingsData.h
+        include/ContextMenu/ContentContextMenu.h
+        include/ContextMenu/FileContextMenu.h
+        ui/editor_main.ui
+        ui/editor_settings.ui
+        ui/folder_content_list_view.ui
+        ui/folder_content_widget.ui
+        ui/folders_tree_view.ui
+        ui/folders_widget.ui
+        ui/import_asset_dialog.ui)
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
 

@@ -21,7 +21,7 @@ set(CMAKE_CONFIGURATION_TYPES
 
 # These definitions apply to all the projects
 add_compile_definitions(
-        "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:TRACY_ENABLE BLAINN_HAS_CONSOLE>"
+        "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:TRACY_ENABLE;BLAINN_HAS_CONSOLE>"
 )
 
 set(PROJECT_NAME
@@ -42,6 +42,7 @@ add_subdirectory(libs/JoltPhysics/Build)
 add_subdirectory(libs/spdlog)
 add_subdirectory(libs/tracy)
 add_subdirectory(libs/sol2)
+add_subdirectory(libs/yaml-cpp)
 
 set (BUILD_TESTING OFF)
 add_subdirectory(libs/DIRECTXTK12)
@@ -62,6 +63,7 @@ target_link_libraries(pch INTERFACE
         EASTL
         spdlog
         TracyClient
+        yaml-cpp
         ENGINE)
 target_include_directories(pch INTERFACE "${CMAKE_SOURCE_DIR}/libs/uuid_v4")
 target_precompile_headers(pch INTERFACE common/pch.h)
@@ -77,110 +79,6 @@ set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
 set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
 add_subdirectory(${ENGINE_DIR})
 add_subdirectory(${EDITOR_DIR})
-
-# fetch content
-FetchContent_Declare(
-        EASTL
-        GIT_REPOSITORY https://github.com/electronicarts/EASTL.git
-        GIT_TAG 3.21.23
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/EASTL
-)
-
-FetchContent_MakeAvailable(EASTL)
-
-FetchContent_Declare(
-        spdlog
-        GIT_REPOSITORY https://github.com/gabime/spdlog.git
-        GIT_TAG v1.15.3
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/spdlog
-)
-
-FetchContent_MakeAvailable(spdlog)
-
-
-FetchContent_Declare(
-        tracy
-        GIT_REPOSITORY https://github.com/wolfpld/tracy.git
-        GIT_TAG v0.12.2
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/tracy
-)
-
-FetchContent_MakeAvailable(tracy)
-
-
-FetchContent_Declare(
-        DirectXTK12
-        GIT_REPOSITORY https://github.com/microsoft/DirectXTK12.git
-        GIT_TAG jul2025
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/DirectXTK
-)
-
-FetchContent_MakeAvailable(DirectXTK12)
-
-
-set(USE_STATIC_MSVC_RUNTIME_LIBRARY OFF CACHE BOOL "" FORCE)
-FetchContent_Declare(
-        JoltPhysics
-        GIT_REPOSITORY https://github.com/jrouwe/JoltPhysics.git
-        GIT_TAG v5.3.0
-        SOURCE_SUBDIR "Build"
-        UPDATE_DISCONNECTED TRUE
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/JoltPhysics
-)
-
-FetchContent_MakeAvailable(JoltPhysics)
-
-FetchContent_Declare(
-        OzzAnimation
-        GIT_REPOSITORY https://github.com/guillaumeblanc/ozz-animation.git
-        GIT_TAG 0.16.0
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/OzzAnimation
-)
-
-FetchContent_MakeAvailable(OzzAnimation)
-
-
-FetchContent_Declare(
-        assimp
-        GIT_REPOSITORY https://github.com/assimp/assimp.git
-        GIT_TAG v6.0.2
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/assimp
-)
-
-FetchContent_MakeAvailable(assimp)
-
-
-FetchContent_Declare(
-        sol2
-        GIT_REPOSITORY https://github.com/ThePhD/sol2.git
-        GIT_TAG v3.3.0
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/sol2
-)
-
-FetchContent_MakeAvailable(sol2)
-
-
-FetchContent_Declare(
-        uuid_v4
-        GIT_REPOSITORY https://github.com/crashoz/uuid_v4.git
-        GIT_TAG v1.0.0
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/uuid_v4
-)
-
-FetchContent_MakeAvailable(uuid_v4)
-
-
-file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
-
-FetchContent_Declare(
-        vgjs
-        GIT_REPOSITORY https://github.com/hlavacs/ViennaGameJobSystem.git
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/libs/ViennaGameJobSystem
-)
-FetchContent_GetProperties(vgjs)
-if (NOT ${vgjs_POPULATED})
-    FetchContent_Populate(vgjs)
-endif ()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
         pch
@@ -202,10 +100,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 # Qt files deploy for Windows
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(DEBUG_SUFFIX)
-    #if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
-        set(DEBUG_SUFFIX "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:d>")
-    #endif ()
+    set(DEBUG_SUFFIX "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:d>")
     set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
     if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
         set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
@@ -213,15 +108,12 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
             set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
         endif ()
     endif ()
-    if (EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
-    endif ()
+    # Копируем папку с плагинами целиком (лучше, чем отдельный файл)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${QT_INSTALL_PATH}/plugins/platforms"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+    # Копируем основные DLL
     foreach (QT_LIB Core Gui Widgets)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy
