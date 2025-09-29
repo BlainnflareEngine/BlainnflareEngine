@@ -15,8 +15,8 @@ int main(int argc, char** argv) {
     Blainn::RenderSubsystem::Init();
 #if defined(BLAINN_INCLUDE_EDITOR)
 	// init editor
-    Blainn::Editor editor(argc, argv);
-    editor.Show();
+    Blainn::Editor::GetInstance().Init(argc, argv);
+    Blainn::Editor::GetInstance().Show();
     // TODO:
     // editor.Update() should run in engine?
     // or editor.Update() and Engine::Run() should be updated here in while true
@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
     // code below is just for tests
     /*while (true)
     {
-        editor.Update();
+        Blainn::Editor::GetInstance().Update();
     }*/
 #endif
 

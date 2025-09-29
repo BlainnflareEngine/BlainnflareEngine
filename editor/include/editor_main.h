@@ -5,7 +5,12 @@
 #ifndef EDITOR_MAIN_H
 #define EDITOR_MAIN_H
 
+#include "../../libs/EASTL/include/EASTL/unique_ptr.h"
+
+
 #include <QMainWindow>
+#include <QPointer>
+#include <qdir.h>
 
 namespace editor
 {
@@ -26,8 +31,15 @@ public:
 
     HWND GetViewportHWND() const;
 
+    void SetContentDirectory(const QString &path);
+
 private:
-    Ui::editor_main *ui;
+    Ui::editor_main* ui;
+
+    QString m_contentPath;
+
+private slots:
+    void OnOpenSettings();
 };
 
 } // namespace editor

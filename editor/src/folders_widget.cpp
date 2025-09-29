@@ -1,0 +1,101 @@
+﻿//
+// Created by gorev on 23.09.2025.
+//
+
+// You may need to build the project (run Qt uic code generator) to get "ui_folders_widget.h" resolved
+
+#include "folders_widget.h"
+#include "ui_folders_widget.h"
+
+#include <QFileSystemModel>
+#include <QTreeView>
+#include <qboxlayout.h>
+
+
+namespace editor
+{
+folders_widget::folders_widget(QWidget *parent)
+    : QWidget(parent)
+    , m_ui(new Ui::folders_widget)
+{
+    m_ui->setupUi(this);
+
+    m_fileSystemModel = new QFileSystemModel(this);
+    m_fileSystemModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+
+    m_treeView = new folders_tree_view(this);
+    m_treeView->setModel(m_fileSystemModel);
+    m_treeView->setHeaderHidden(true);
+    m_treeView->hideColumn(1);
+    m_treeView->hideColumn(2);
+    m_treeView->hideColumn(3);
+    m_treeView->setExpandsOnDoubleClick(false);
+    m_treeView->setRootIsDecorated(true);
+    m_treeView->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    m_layout = new QVBoxLayout(this);
+    m_layout->setSpacing(5);
+    m_layout->setContentsMargins(0, 0, 0, 0);
+    m_layout->addWidget(m_treeView);
+
+    m_fileContextMenu = new FileContextMenu(*m_treeView);
+
+    connect(m_treeView, &QTreeView::doubleClicked, this, &folders_widget::onFolderSelectedIndex);
+    connect(m_treeView, &QTreeView::customContextMenuRequested, m_fileContextMenu,
+            &FileContextMenu::OnContextMenu);
+}
+
+
+folders_widget::~folders_widget()
+{
+    delete m_ui;
+    delete m_fileSystemModel;
+    delete m_treeView;
+    delete m_layout;
+}
+
+
+void folders_widget::SetContentDirectory(const QString &contentDirectory)
+{
+    m_treeView->setRootIndex(m_fileSystemModel->setRootPath(contentDirectory));
+    onFolderSelectedIndex(m_fileSystemModel->index(contentDirectory));
+}
+QTreeView *folders_widget::GetTreeView() const
+{
+    return m_treeView;
+}
+
+
+void folders_widget::AddAdditionalView(QAbstractItemView *view)
+{
+    m_fileContextMenu->AddAdditionalView(view);
+}
+
+
+void folders_widget::RemoveAdditionalView(QAbstractItemView *view)
+{
+    m_fileContextMenu->RemoveAdditionalView(view);
+}
+
+
+void folders_widget::onFolderSelectedIndex(const QModelIndex &newSelection)
+{
+    if (newSelection.isValid())
+    {
+        emit folderSelected(m_fileSystemModel->filePath(newSelection));
+    }
+}
+
+
+void folders_widget::OnFolderSelectedPath(const QString &newPath) const
+{
+    QModelIndex index = m_fileSystemModel->index(newPath);
+    if (index.isValid())
+    {
+        m_treeView->setCurrentIndex(index);
+        m_treeView->scrollTo(index);
+    }
+}
+
+
+} // namespace editor

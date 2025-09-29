@@ -21,7 +21,7 @@ set(CMAKE_CONFIGURATION_TYPES
 
 # These definitions apply to all the projects
 add_compile_definitions(
-        "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:TRACY_ENABLE BLAINN_HAS_CONSOLE>"
+        "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:TRACY_ENABLE;BLAINN_HAS_CONSOLE>"
 )
 
 set(PROJECT_NAME
@@ -42,6 +42,7 @@ add_subdirectory(libs/JoltPhysics/Build)
 add_subdirectory(libs/spdlog)
 add_subdirectory(libs/tracy)
 add_subdirectory(libs/sol2)
+add_subdirectory(libs/yaml-cpp)
 
 set (BUILD_TESTING OFF)
 add_subdirectory(libs/DIRECTXTK12)
@@ -56,14 +57,28 @@ set (ASSIMP_BUILD_TESTS OFF)
 set (ASSIMP_INSTALL OFF)
 add_subdirectory(libs/assimp)
 
+set(LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
+set(ENGINE_DIR ${PROJECT_SOURCE_DIR}/engine)
+set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
+set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
+
+add_subdirectory(${ENGINE_DIR})
+add_subdirectory(${EDITOR_DIR})
+
 # PCH
 add_library(pch INTERFACE)
 target_link_libraries(pch INTERFACE
         EASTL
         spdlog
         TracyClient
+        yaml-cpp
         ENGINE)
-target_include_directories(pch INTERFACE "${CMAKE_SOURCE_DIR}/libs/uuid_v4")
+
+target_include_directories(pch INTERFACE
+        "${CMAKE_SOURCE_DIR}/libs/uuid_v4"
+        "${ENGINE_DIR}/include/subsystems"
+        "${ENGINE_DIR}/src/subsystems")
+
 target_precompile_headers(pch INTERFACE common/pch.h)
 
 
@@ -71,12 +86,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE BLAINN_INCLUDE_EDITOR)
 
 #target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_HAS_CONSOLE)
 
-set(LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
-set(ENGINE_DIR ${PROJECT_SOURCE_DIR}/engine)
-set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
-set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
-add_subdirectory(${ENGINE_DIR})
-add_subdirectory(${EDITOR_DIR})
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
         pch
@@ -98,10 +107,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 # Qt files deploy for Windows
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(DEBUG_SUFFIX)
-    #if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
-        set(DEBUG_SUFFIX "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:d>")
-    #endif ()
+    set(DEBUG_SUFFIX "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:d>")
     set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
     if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
         set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
@@ -109,15 +115,12 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
             set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
         endif ()
     endif ()
-    if (EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
-    endif ()
+    # Копируем папку с плагинами целиком (лучше, чем отдельный файл)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${QT_INSTALL_PATH}/plugins/platforms"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+    # Копируем основные DLL
     foreach (QT_LIB Core Gui Widgets)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy
