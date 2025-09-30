@@ -22,6 +22,7 @@
 #include <EASTL/numeric.h>
 #include <EASTL/priority_queue.h>
 #include <EASTL/queue.h>
+#include <EASTL/string.h>
 
 #pragma endregion
 
@@ -43,7 +44,8 @@ inline void *operator new[](size_t size, size_t alignment, size_t alignmentOffse
 #include <uuid_v4.h>
 #include <yaml-cpp/yaml.h>
 
-#include "subsystems/Log.h"
-#include "tools/Profiler.h"
+#include "Log.h"
+#include "Profiler.h"
+#include "aliases.h"
 
 

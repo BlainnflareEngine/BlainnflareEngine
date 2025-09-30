@@ -1,11 +1,11 @@
-#include "pch.h"
 #include "Engine.h"
+#include "../../common/include/pch.h"
 
 #include "VGJS.h"
 
-#include "aliases.h"
-#include "subsystems/RenderSubsystem.h"
+#include "../../common/include/aliases.h"
 #include "subsystems/Log.h"
+#include "subsystems/RenderSubsystem.h"
 #include "tools/Profiler.h"
 
 #include "tools/Timeline.h"

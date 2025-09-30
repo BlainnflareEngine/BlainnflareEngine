@@ -1,0 +1,40 @@
+﻿//
+// Created by gorev on 30.09.2025.
+//
+
+#include "file-system/Texture.h"
+
+namespace Blainn
+{
+
+
+Texture::Texture(const Path &path, TextureType type)
+    : FileSystemObject(path), m_type(type)
+{
+}
+
+
+Texture::~Texture()
+{
+}
+
+
+void Texture::Move()
+{
+    FileSystemObject::Move();
+}
+
+
+void Texture::Delete()
+{
+    FileSystemObject::Delete();
+}
+
+
+void Texture::Copy()
+{
+    FileSystemObject::Copy();
+}
+
+
+} // namespace Blainn
