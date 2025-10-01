@@ -7,10 +7,9 @@
 namespace Blainn
 {
 
-
-Texture::Texture(const Path &path, TextureType type)
-    : FileSystemObject(path)
-    , m_type(type)
+Texture::Texture(const Path &path, const Microsoft::WRL::ComPtr<ID3D12Resource> &resource, TextureType type)
+: FileSystemObject(path)
+    , m_type(type), m_resource(resource)
 {
 }
 

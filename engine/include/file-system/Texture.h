@@ -24,7 +24,7 @@ public:
         OTHER = 6,
     };
 
-    Texture(const Path &path, TextureType type);
+    Texture(const Path &path, const Microsoft::WRL::ComPtr<ID3D12Resource> &resource, TextureType type);
     virtual ~Texture() override;
 
     virtual void Move() override;

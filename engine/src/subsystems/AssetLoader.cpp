@@ -163,7 +163,8 @@ Texture AssetLoader::LoadTexture(const std::filesystem::path &path)
 
     BF_INFO("Loading texture completed!");
 
-    return Texture(path, Texture::TextureType::ALBEDO);
+    auto temp = Microsoft::WRL::ComPtr<ID3D12Resource>();
+    return Texture(path, temp, Texture::TextureType::ALBEDO);
 }
 
 } // namespace Blainn

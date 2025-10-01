@@ -25,7 +25,10 @@ void AssetManager::Init()
     m_loader->Init();
 
     m_textures.reserve(512);
-    m_defaultTexture = eastl::make_unique<Texture>(std::filesystem::current_path(), Texture::TextureType::ALBEDO);
+
+    // TODO: create default texture
+    auto temp = Microsoft::WRL::ComPtr<ID3D12Resource>();
+    m_defaultTexture = eastl::make_unique<Texture>(std::filesystem::current_path(), temp, Texture::TextureType::ALBEDO);
 }
 
 
@@ -92,7 +95,7 @@ void AssetManager::AddTextureWhenLoaded(const Path &path, int index)
 {
     BF_INFO("Started loading texture");
     m_textures[index] = m_loader->LoadTexture(path);
-    auto str =  "Placing texture to index " + std::to_string(index);
+    auto str = "Placing texture to index " + std::to_string(index);
     BF_INFO(str);
 }
 
