@@ -4,6 +4,8 @@
 
 #pragma once
 #include "FileSystemObject.h"
+#include <d3d12.h>
+#include <wrl/client.h>
 
 namespace Blainn
 {
@@ -29,8 +31,11 @@ public:
     virtual void Delete() override;
     virtual void Copy() override;
 
+    ID3D12Resource &GetResource() const;
+
 private:
     TextureType m_type;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_resource;
 };
 
 } // namespace Blainn

@@ -5,6 +5,8 @@
 #include "subsystems/AssetLoader.h"
 
 #include "MeshData.h"
+#include "file-system/Texture.h"
+
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -146,6 +148,22 @@ Vec3 AssetLoader::GetBitangent(const aiMesh &mesh, const unsigned int meshIndex)
 Vec2 AssetLoader::GetTextCoords(const aiMesh &mesh, const unsigned int meshIndex)
 {
     return Vec2(mesh.mTextureCoords[0][meshIndex].x, mesh.mTextureCoords[0][meshIndex].y);
+}
+
+
+Texture AssetLoader::LoadTexture(const std::filesystem::path &path)
+{
+    // TODO: import texture
+
+    for (int i = 0; i < 5; ++i)
+    {
+        BF_INFO("I am loading a very big texture...");
+        Sleep(1000);
+    }
+
+    BF_INFO("Loading texture completed!");
+
+    return Texture(path, Texture::TextureType::ALBEDO);
 }
 
 } // namespace Blainn

@@ -4,20 +4,18 @@
 
 #pragma once
 #include "file-system/Model.h"
-#include "handles/Handle.h"
-#include <assimp/mesh.h>
+// #include <assimp/mesh.h>
 
 
-namespace Blainn
-{
-class Texture;
-}
-struct aiScene;
-struct aiNode;
 namespace std::filesystem
 {
 class path;
 }
+
+struct aiScene;
+struct aiNode;
+struct Texture;
+struct aiMesh;
 
 namespace Blainn
 {
@@ -33,8 +31,7 @@ public:
     void Destroy();
 
     Model ImportModel(const std::filesystem::path &path);
-
-    // TextureHandle
+    Texture LoadTexture(const std::filesystem::path &path);
 
 private:
     AssetLoader(const AssetLoader &) = delete;

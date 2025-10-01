@@ -4,22 +4,18 @@
 
 #pragma once
 
-#include <pch.h>
+#include "file-system/Material.h"
+#include "file-system/Texture.h"
 
+
+#include <pch.h>
 
 namespace Blainn
 {
-class Material;
-class Texture;
 
 struct Handle
 {
-    Handle()
-    {
-        UUIDv4::UUIDGenerator<std::mt19937_64> uuidGenerator;
-        id = uuidGenerator.getUUID();
-    }
-
+    Handle();
 
     uuid id;
 };
@@ -27,21 +23,22 @@ struct Handle
 
 struct TextureHandle : Handle
 {
-    TextureHandle()
-        : Handle()
-    {
-    }
+    TextureHandle(unsigned int index);
 
-    eastl::shared_ptr<Texture> texture;
+
+    Texture &GetTexture() const;
+
+
+    unsigned int GetTextureIndex() const;
+
+private:
+    unsigned int m_textureIndex = 0;
 };
 
 
 struct MaterialHandle : Handle
 {
-    MaterialHandle()
-        : Handle()
-    {
-    }
+    MaterialHandle();
 
     eastl::shared_ptr<Material> material;
 };

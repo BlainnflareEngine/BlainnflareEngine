@@ -4,7 +4,10 @@
 
 #include "subsystems/AssetManager.h"
 
+#include "Engine.h"
+#include "VGJS.h"
 #include "file-system/Model.h"
+#include "file-system/Texture.h"
 
 namespace Blainn
 {
@@ -20,6 +23,9 @@ void AssetManager::Init()
     BF_INFO("AssetManager Init");
     m_loader = eastl::make_unique<AssetLoader>();
     m_loader->Init();
+
+    m_textures.reserve(512);
+    m_defaultTexture = eastl::make_unique<Texture>(std::filesystem::current_path(), Texture::TextureType::ALBEDO);
 }
 
 
@@ -30,16 +36,64 @@ void AssetManager::Destroy()
 }
 
 
-Model &AssetManager::GetModel(const std::filesystem::path &path)
+eastl::shared_ptr<Model> AssetManager::GetModel(const std::filesystem::path &path)
 {
     eastl::string pathStr = path.string().c_str();
     if (auto it = m_models.find(pathStr); it != m_models.end())
     {
-        return *it->second;
+        return it->second;
     }
 
-    Model model = m_loader->ImportModel(path);
-    m_models[pathStr] = eastl::make_unique<Model>(model);
-    return *m_models[pathStr];
+    auto model = eastl::make_shared<Model>(m_loader->ImportModel(path));
+    m_models[pathStr] = model;
+    return model;
 }
+
+
+eastl::shared_ptr<TextureHandle> AssetManager::GetTexture(const std::filesystem::path &path)
+{
+    if (auto it = m_texture_paths.find(ToEASTLString(path.string())); it != m_texture_paths.end())
+        return eastl::make_shared<TextureHandle>(it->second);
+
+
+    unsigned int index = m_textures.size();
+    m_texture_paths[ToEASTLString(path.string())] = index;
+    // TODO: push back default texture
+    auto str = "Shiiiii... I don't have such texture, here is default one, "
+               "i will place some new texture to your index later "
+               + std::to_string(index);
+    BF_INFO(str)
+    m_textures.emplace_back(*m_defaultTexture.get());
+    vgjs::schedule([=]() { AddTextureWhenLoaded(path, index); });
+    return eastl::make_shared<TextureHandle>(index);
+}
+
+
+Texture &AssetManager::GetTextureByIndex(unsigned int index)
+{
+    return m_textures[index];
+}
+
+
+Texture &AssetManager::GetTextureByHandle(const TextureHandle &handle)
+{
+    unsigned int index = handle.GetTextureIndex();
+    if (index >= m_textures.size())
+    {
+        BF_FATAL("Failed to get texture by index. Index is greater than m_textures size!");
+        throw std::exception("Failed to get texture by index.");
+    }
+
+    return m_textures[index];
+}
+
+
+void AssetManager::AddTextureWhenLoaded(const Path &path, int index)
+{
+    BF_INFO("Started loading texture");
+    m_textures[index] = m_loader->LoadTexture(path);
+    auto str =  "Placing texture to index " + std::to_string(index);
+    BF_INFO(str);
+}
+
 } // namespace Blainn

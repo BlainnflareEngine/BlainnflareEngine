@@ -9,18 +9,21 @@
 #include <pch.h>
 
 #include <iostream>
-int main(int argc, char** argv) {
-	// TODO:
+int main(int argc, char **argv)
+{
+    // TODO:
     Blainn::Log::Init();
 
     Blainn::RenderSubsystem::Init();
-    Blainn::AssetManager::Init();
-    auto mesh = Blainn::AssetManager::GetInstance().GetModel(std::filesystem::current_path() / "Content" / "Mark2" / "Mark2.gltf");
+    Blainn::AssetManager::GetInstance().Init();
+    auto a = Blainn::AssetManager::GetInstance().GetTexture(std::filesystem::current_path());
+    //auto mesh = Blainn::AssetManager::GetInstance().GetModel(std::filesystem::current_path() / "Content" / "Mark2"
+    //                                                         / "Mark2.gltf");
 
 #if defined(BLAINN_INCLUDE_EDITOR)
-	// init editor
+    // init editor
     Blainn::Editor::GetInstance().Init(argc, argv);
-    Blainn::Editor::GetInstance().Show();
+    //Blainn::Editor::GetInstance().Show();
     // TODO:
     // editor.Update() should run in engine?
     // or editor.Update() and Engine::Run() should be updated here in while true
@@ -32,9 +35,9 @@ int main(int argc, char** argv) {
     }*/
 #endif
 
-	Blainn::Engine::Run();
+    Blainn::Engine::Run();
 
     Blainn::Log::Destroy();
 
-	return 0;
+    return 0;
 }

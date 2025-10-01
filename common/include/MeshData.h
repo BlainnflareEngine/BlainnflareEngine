@@ -13,6 +13,8 @@ namespace Blainn
 {
 struct MeshData
 {
+    struct MaterialHandle;
+
     MeshData()
     {
         vertices.reserve(256);

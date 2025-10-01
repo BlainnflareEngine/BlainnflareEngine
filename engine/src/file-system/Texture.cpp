@@ -9,7 +9,8 @@ namespace Blainn
 
 
 Texture::Texture(const Path &path, TextureType type)
-    : FileSystemObject(path), m_type(type)
+    : FileSystemObject(path)
+    , m_type(type)
 {
 }
 
@@ -34,6 +35,12 @@ void Texture::Delete()
 void Texture::Copy()
 {
     FileSystemObject::Copy();
+}
+
+
+ID3D12Resource &Texture::GetResource() const
+{
+    return *m_resource.Get();
 }
 
 

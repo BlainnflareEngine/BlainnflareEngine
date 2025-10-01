@@ -11,7 +11,7 @@ Blainn::Material::Material(const Path &path)
 }
 
 
-void Blainn::Material::SetTexture(const TextureHandle &textureHandle, Texture::TextureType type)
+void Blainn::Material::SetTexture(const eastl::shared_ptr<TextureHandle> &textureHandle, Texture::TextureType type)
 {
     switch (type)
     {
@@ -61,23 +61,23 @@ Blainn::TextureHandle &Blainn::Material::GetTextureHandle(Texture::TextureType t
         throw std::runtime_error("Invalid texture type: NONE");
 
     case Texture::TextureType::ALBEDO:
-        return m_albedoTexture;
+        return *m_albedoTexture;
 
     case Texture::TextureType::NORMAL:
-        return m_normalTexture;
+        return *m_normalTexture;
 
     case Texture::TextureType::METALLIC:
-        return m_metallicTexture;
+        return *m_metallicTexture;
 
     case Texture::TextureType::ROUGHNESS:
-        return m_roughnessTexture;
+        return *m_roughnessTexture;
 
     case Texture::TextureType::AO:
-        return m_aoTexture;
+        return *m_aoTexture;
 
     case Texture::TextureType::OTHER:
         BF_WARN("There is no texture handle for this texture type (OTHER).");
-        return m_albedoTexture;
+        return *m_albedoTexture;
 
     default:
         throw std::runtime_error("Invalid texture type: default");

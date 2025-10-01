@@ -21,6 +21,7 @@ set(ENGINE_SOURCES
         include/handles/Handle.h
         src/file-system/Texture.cpp
         src/file-system/Material.cpp
+        src/handles/Handle.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
