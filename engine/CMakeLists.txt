@@ -12,6 +12,16 @@ set(ENGINE_SOURCES
         src/subsystems/Log.cpp
         include/tools/Profiler.h
         include/subsystems/Log.h
+        src/subsystems/AssetManager.cpp
+        include/subsystems/AssetManager.h
+        src/subsystems/AssetLoader.cpp
+        include/subsystems/AssetLoader.h
+        src/file-system/Material.cpp
+        include/file-system/Material.h
+        include/handles/Handle.h
+        src/file-system/Texture.cpp
+        src/file-system/Material.cpp
+        src/handles/Handle.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
@@ -24,7 +34,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         ${TracyClient_DIR}/public
         ${spdlog_DIR}/include
         ${Blain_common_dir}
-        ${CMAKE_SOURCE_DIR}/common
+        ${CMAKE_SOURCE_DIR}/common/include
+        ${CMAKE_SOURCE_DIR}/common/src
 )
 
 
@@ -33,7 +44,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         DirectXTK12
         Jolt
         ozz_animation
-        assimp
+        assimp::assimp
         TracyClient
         spdlog
         pch
