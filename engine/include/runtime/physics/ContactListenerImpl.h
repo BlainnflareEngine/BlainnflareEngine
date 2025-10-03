@@ -30,7 +30,7 @@ namespace Blainn{
 
 	private:
 		// Map that keeps track of the current state of contacts based on the contact listener callbacks
-		using StatePair = std::pair<JPH::RVec3, JPH::ContactPoints>;
+		using StatePair = eastl::pair<JPH::RVec3, JPH::ContactPoints>;
 		using StateMap = JPH::UnorderedMap<JPH::SubShapeIDPair, StatePair>;
 		JPH::Mutex					mStateMutex;
 		StateMap				mState;
