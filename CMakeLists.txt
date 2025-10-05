@@ -61,6 +61,7 @@ set(LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
 set(ENGINE_DIR ${PROJECT_SOURCE_DIR}/engine)
 set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
 set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
+set(Entt_DIR ${PROJECT_SOURCE_DIR}/libs/entt)
 
 add_subdirectory(${ENGINE_DIR})
 add_subdirectory(${EDITOR_DIR})
@@ -77,7 +78,8 @@ target_link_libraries(pch INTERFACE
 target_include_directories(pch INTERFACE
         "${CMAKE_SOURCE_DIR}/libs/uuid_v4"
         "${ENGINE_DIR}/include/subsystems"
-        "${ENGINE_DIR}/src/subsystems")
+        "${ENGINE_DIR}/src/subsystems"
+        "${ENTT_DIR}/single_include")
 
 target_precompile_headers(pch INTERFACE common/pch.h)
 
@@ -93,14 +95,15 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         EDITOR)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-        ${ENGINE_DIR}
-        ${EDITOR_DIR}
-        ${LIBS_DIR}
-        ${JobSystem_DIR}/include
-        ${TracyClient_DIR}/public
-        ${spdlog_DIR}/include
-        ${CMAKE_SOURCE_DIR}/common
-        ${uuid_v4_DIR}
+        "${ENGINE_DIR}"
+        "${EDITOR_DIR}"
+        "${LIBS_DIR}"
+        "${JobSystem_DIR}/include"
+        "${TracyClient_DIR}/public"
+        "${spdlog_DIR}/include"
+        "${CMAKE_SOURCE_DIR}/common"
+        "${uuid_v4_DIR}"
+        "${Entt_DIR}/single_include"
 )
 
 
