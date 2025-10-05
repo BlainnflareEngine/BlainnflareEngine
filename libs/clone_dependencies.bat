@@ -6,7 +6,6 @@ set REPOS=^
 https://github.com/electronicarts/EASTL.git ^
 https://github.com/microsoft/DirectXTK12.git ^
 https://github.com/jrouwe/JoltPhysics.git ^
-https://github.com/hlavacs/ViennaGameJobSystem.git ^
 https://github.com/guillaumeblanc/ozz-animation.git ^
 https://github.com/assimp/assimp.git ^
 https://github.com/gabime/spdlog.git ^
@@ -34,6 +33,13 @@ for %%R in (%REPOS%) do (
     ) else (
         echo !REPO_NAME! already exists, skipping.
     )
+)
+
+if not exist ViennaGameJobSystem (
+    echo Cloning ViennaGameJobSystem into ViennaGameJobSystem
+    git clone https://github.com/hlavacs/ViennaGameJobSystem.git -b master ViennaGameJobSystem
+) else (
+    echo ViennaGameJobSystem already exists, skipping.
 )
 
 endlocal
