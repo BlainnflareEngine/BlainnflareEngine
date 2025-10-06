@@ -54,7 +54,7 @@ void Editor::Destroy()
 }
 
 
-void Editor::Show()
+void Editor::Show() const
 {
     BF_INFO("Editor::Show()");
     m_editorMain->showMaximized();
@@ -73,7 +73,7 @@ void Editor::Update() const
 }
 
 
-std::filesystem::path Editor::GetContentDirectory() const
+Path &Editor::GetContentDirectory()
 {
     return m_contentDirectory;
 }

@@ -33,6 +33,8 @@ public:
 
     void SetContentDirectory(const QString &path);
 
+    void closeEvent(QCloseEvent *event) override;
+
 private:
     Ui::editor_main* ui;
 

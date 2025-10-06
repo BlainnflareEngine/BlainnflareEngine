@@ -153,7 +153,7 @@ Vec2 AssetLoader::GetTextCoords(const aiMesh &mesh, const unsigned int meshIndex
 
 Texture AssetLoader::LoadTexture(const std::filesystem::path &path)
 {
-    // TODO: import texture
+    // TODO: dialog texture
 
     for (int i = 0; i < 5; ++i)
     {

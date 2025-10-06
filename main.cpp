@@ -23,18 +23,17 @@ int main(int argc, char **argv)
 #if defined(BLAINN_INCLUDE_EDITOR)
     // init editor
     Blainn::Editor::GetInstance().Init(argc, argv);
-    //Blainn::Editor::GetInstance().Show();
+    Blainn::Editor::GetInstance().Show();
     // TODO:
     // editor.Update() should run in engine?
     // or editor.Update() and Engine::Run() should be updated here in while true
     // to grab HWND from editor just call editor.GetViewportHWND()
     // code below is just for tests
-    /*while (true)
+    while (true)
     {
         Blainn::Editor::GetInstance().Update();
-    }*/
+    }
 #endif
-
     Blainn::Engine::Run();
 
     Blainn::Log::Destroy();

@@ -25,6 +25,7 @@ public slots:
 private:
     void CreateFolder(QString dirPath) const;
     void CreateScript(const QString &dirPath) const;
+    void CreateMaterial(const QString &dirPath) const;
 
     QAbstractItemView &m_parent;
 };

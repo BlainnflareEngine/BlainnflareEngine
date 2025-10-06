@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>editor::import_model_dialog</class>
+ <widget class="import_asset_dialog" name="editor::import_model_dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>997</width>
+    <height>739</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Import model</string>
+  </property>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>import_asset_dialog</class>
+   <extends>QWidget</extends>
+   <header>import_asset_dialog.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

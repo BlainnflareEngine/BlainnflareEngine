@@ -55,6 +55,14 @@ void editor_main::SetContentDirectory(const QString &path)
 }
 
 
+void editor_main::closeEvent(QCloseEvent *event)
+{
+    // TODO: serialize something before exit
+    QMainWindow::closeEvent(event);
+    QCoreApplication::quit();
+}
+
+
 void editor_main::OnOpenSettings()
 {
     SettingsData data = SettingsData(Blainn::Editor::GetInstance().GetContentDirectory());

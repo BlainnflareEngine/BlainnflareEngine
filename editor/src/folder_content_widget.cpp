@@ -6,7 +6,7 @@
 
 #include "folder_content_widget.h"
 
-#include "../include/ContextMenu/ContentContextMenu.h"
+#include "../include/context-menu/ContentContextMenu.h"
 #include "FileSystemUtils.h"
 #include "ui_folder_content_widget.h"
 
