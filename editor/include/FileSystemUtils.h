@@ -30,6 +30,15 @@ inline static const QStringList supported3DFormats = {
     "fbx",
 };
 
+inline static const QStringList supportedTextureFormats = {
+    "png",
+    "jpg",
+    "dds",
+    "jpeg",
+    "tga",
+    "bmp"
+};
+
 void OpenFileExternal(const QString &filePath);
 
 void OpenFileExplorer(const QString &filePath);

@@ -8,14 +8,15 @@
 
 #include "../include/context-menu/ContentContextMenu.h"
 #include "FileSystemUtils.h"
+#include "IconProvider.h"
 #include "ui_folder_content_widget.h"
 
 #include <QFileSystemModel>
 #include <QListView>
+#include <QMimeData>
 #include <iostream>
 #include <qevent.h>
 #include <qlayout.h>
-#include <QMimeData>
 
 namespace editor
 {
@@ -25,8 +26,10 @@ folder_content_widget::folder_content_widget(QWidget *parent)
 {
     ui->setupUi(this);
 
+    m_iconProvider = new IconProvider();
     m_fileSystemModel = new QFileSystemModel(this);
     m_fileSystemModel->setFilter(QDir::NoDotAndDotDot | QDir::AllEntries);
+    m_fileSystemModel->setIconProvider(m_iconProvider);
 
     // TODO: move all this properties to folder_content_list_view
     m_listView = new folder_content_list_view(this);
@@ -34,7 +37,9 @@ folder_content_widget::folder_content_widget(QWidget *parent)
     m_listView->setViewMode(QListView::IconMode);
     m_listView->setResizeMode(QListView::Adjust);
     m_listView->setGridSize(QSize(100, 100));
+    m_listView->setIconSize(QSize(55, 55));
     m_listView->setContextMenuPolicy(Qt::CustomContextMenu);
+    m_listView->setContentsMargins(10,10,10,10);
 
     m_layout = new QVBoxLayout(this);
     layout()->setContentsMargins(0, 0, 0, 0);
@@ -46,10 +51,8 @@ folder_content_widget::folder_content_widget(QWidget *parent)
     m_fileContextMenu = new FileContextMenu(*m_listView);
 
     connect(m_listView, &QListView::doubleClicked, this, &folder_content_widget::onEntrySelectedIndex);
-    connect(m_listView, &QWidget::customContextMenuRequested, m_contentContextMenu,
-            &ContentContextMenu::OnContextMenu);
-    connect(m_listView, &QListView::customContextMenuRequested, m_fileContextMenu,
-            &FileContextMenu::OnContextMenu);
+    connect(m_listView, &QWidget::customContextMenuRequested, m_contentContextMenu, &ContentContextMenu::OnContextMenu);
+    connect(m_listView, &QListView::customContextMenuRequested, m_fileContextMenu, &FileContextMenu::OnContextMenu);
 }
 
 

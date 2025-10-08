@@ -5,6 +5,8 @@
 // You may need to build the project (run Qt uic code generator) to get "ui_folders_widget.h" resolved
 
 #include "folders_widget.h"
+
+#include "IconProvider.h"
 #include "ui_folders_widget.h"
 
 #include <QFileSystemModel>
@@ -20,8 +22,10 @@ folders_widget::folders_widget(QWidget *parent)
 {
     m_ui->setupUi(this);
 
+    m_iconProvider = new IconProvider();
     m_fileSystemModel = new QFileSystemModel(this);
     m_fileSystemModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+    m_fileSystemModel->setIconProvider(m_iconProvider);
 
     m_treeView = new folders_tree_view(this);
     m_treeView->setModel(m_fileSystemModel);

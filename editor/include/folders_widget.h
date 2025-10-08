@@ -19,6 +19,7 @@ class QVBoxLayout;
 
 namespace editor
 {
+class IconProvider;
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
@@ -54,6 +55,7 @@ private:
     QFileSystemModel *m_fileSystemModel;
     QVBoxLayout *m_layout;
     FileContextMenu *m_fileContextMenu;
+    IconProvider *m_iconProvider;
 };
 } // namespace editor
 

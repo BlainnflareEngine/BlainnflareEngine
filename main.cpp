@@ -21,6 +21,9 @@ int main(int argc, char **argv)
     //                                                         / "Mark2.gltf");
 
 #if defined(BLAINN_INCLUDE_EDITOR)
+    // needed for qt to generate resources (icons etc.)
+    Q_INIT_RESOURCE(sources);
+
     // init editor
     Blainn::Editor::GetInstance().Init(argc, argv);
     Blainn::Editor::GetInstance().Show();

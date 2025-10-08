@@ -17,6 +17,8 @@ find_package(Qt6 COMPONENTS
         Widgets
         REQUIRED)
 
+qt6_add_resources(RESOURCES sources.qrc)
+
 set(EDITOR_SOURCES
         src/Editor.cpp
         src/editor_main.cpp
@@ -45,7 +47,10 @@ set(EDITOR_SOURCES
         src/FileSystemUtils.cpp
         src/dialog/create_material_dialog.cpp
         include/dialog/create_material_dialog.h
-        ui/dialog/create_material_dialog.ui)
+        ui/dialog/create_material_dialog.ui
+        src/IconProvider.cpp
+        include/IconProvider.h
+        ${RESOURCES})
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
 

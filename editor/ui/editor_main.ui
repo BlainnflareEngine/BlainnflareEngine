@@ -557,6 +557,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../sources.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -11,6 +11,7 @@
 #include "editor_settings.h"
 #include "ui_editor_main.h"
 
+#include <QResource>
 #include <QTreeView>
 #include <iostream>
 

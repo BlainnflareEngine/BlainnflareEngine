@@ -22,6 +22,7 @@ void Editor::Init(int &argc, char **argv)
 {
     using namespace std::filesystem;
     m_app = new QApplication(argc, argv);
+
     QApplication::setStyle("fusion");
     QFont editorFont("Century Gothic", 10);
     QApplication::setFont(editorFont);

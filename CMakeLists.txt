@@ -36,6 +36,7 @@ project(${PROJECT_NAME}
 # cpp options
 set(CMAKE_CXX_STANDARD 20)
 
+
 add_executable(${PROJECT_NAME} main.cpp
         engine/src/file-system/FileSystemObject.cpp
         engine/include/file-system/FileSystemObject.h

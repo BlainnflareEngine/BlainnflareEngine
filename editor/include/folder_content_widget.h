@@ -12,6 +12,10 @@
 #include <QPointer>
 #include <QWidget>
 
+namespace editor
+{
+class IconProvider;
+}
 class QVBoxLayout;
 class QFileSystemModel;
 class QListView;
@@ -53,6 +57,7 @@ private:
     QVBoxLayout *m_layout;
     ContentContextMenu *m_contentContextMenu;
     FileContextMenu *m_fileContextMenu;
+    IconProvider *m_iconProvider;
 };
 } // namespace editor
 
