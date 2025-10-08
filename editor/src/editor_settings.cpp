@@ -22,7 +22,7 @@ editor_settings::editor_settings(const SettingsData &data, QWidget *parent)
 
     ui->ContentFolderPath->setText(QString::fromStdString(data.m_contentDirectory.string()));
 
-    connect(ui->PickContentButton, &QPushButton::pressed, this, &editor_settings::OnSetDirectoryPressed);
+    connect(ui->PickContentButton, &QPushButton::clicked, this, &editor_settings::OnSetDirectoryPressed);
 }
 
 

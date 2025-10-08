@@ -29,15 +29,14 @@ void AssetLoader::Destroy()
 }
 
 
-Model AssetLoader::ImportModel(const Path &path)
+eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &path, const ImportModelData &data)
 {
-    auto model = Model(path);
-
     if (path.empty())
     {
         BF_ERROR("AssetLoader ImportModel: path is empty");
     }
 
+    Model model = Model(path);
     Assimp::Importer importer;
     const aiScene *scene =
         importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace
@@ -46,12 +45,12 @@ Model AssetLoader::ImportModel(const Path &path)
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
         BF_ERROR("AssetLoader ImportModel: error loading model " + std::string(importer.GetErrorString()));
-        return model;
+        return eastl::make_shared<Model>(model);
     }
 
     ProcessNode(path, *scene->mRootNode, *scene, Mat4::Identity, model);
 
-    return model;
+    return eastl::make_shared<Model>(model);
 }
 
 

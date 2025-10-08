@@ -22,8 +22,12 @@ public:
     void Init();
     void Destroy();
 
-    // Returns pointer to model, loads model additionally if not exists
-    eastl::shared_ptr<Model> GetModel(const std::filesystem::path &path);
+
+    bool ModelExists(const Path &path);
+
+    eastl::shared_ptr<Model> GetModel(const Path &path);
+
+    eastl::shared_ptr<Model> LoadModel(const Path &path, const ImportModelData &data);
 
     // Add material by
     // eastl::shared_ptr<MaterialHandle> AddMaterial(const std::filesystem::path &path);
@@ -31,7 +35,7 @@ public:
     // Returns pointer to texture, loads texture additionally if not exists
     // eastl::shared_ptr<TextureHandle> GetTextureHandle(const std::filesystem::path &path);
 
-    eastl::shared_ptr<TextureHandle> GetTexture(const std::filesystem::path &path);
+    eastl::shared_ptr<TextureHandle> GetTexture(const Path &path);
     Texture &GetTextureByIndex(unsigned int index);
     Texture &GetTextureByHandle(const TextureHandle &handle);
 
@@ -42,7 +46,7 @@ private:
     AssetManager(const AssetManager &&) = delete;
     AssetManager &operator=(const AssetManager &&) = delete;
 
-    void AddTextureWhenLoaded(const Path& path, int index);
+    void AddTextureWhenLoaded(const Path &path, int index);
 
 private:
     inline static eastl::unique_ptr<AssetLoader> m_loader;

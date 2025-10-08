@@ -2,13 +2,15 @@
 // Created by gorev on 02.10.2025.
 //
 
-#ifndef IMPORT_MODEL_DIALOG_H
-#define IMPORT_MODEL_DIALOG_H
+#pragma once
 
 #include "dialog/import_asset_dialog.h"
+#include "include/ImportModelData.h"
 
+class QCheckBox;
 namespace editor
 {
+
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
@@ -24,13 +26,15 @@ public:
     explicit import_model_dialog(const ImportAssetInfo &info, QWidget *parent = nullptr);
     ~import_model_dialog() override;
 
+    ImportModelData &GetData();
+
 protected:
     void OnConfirm() override;
     void OnCancel() override;
 
 private:
     Ui::import_model_dialog *ui;
+
+    ImportModelData m_importData;
 };
 } // namespace editor
-
-#endif // IMPORT_MODEL_DIALOG_H

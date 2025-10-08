@@ -5,8 +5,9 @@
 #include "file-system/Material.h"
 
 
-Blainn::Material::Material(const Path &path)
+Blainn::Material::Material(const Path &path, const eastl::string &shader)
     : FileSystemObject(path)
+    , m_shader(shader)
 {
 }
 
@@ -82,4 +83,16 @@ Blainn::TextureHandle &Blainn::Material::GetTextureHandle(Texture::TextureType t
     default:
         throw std::runtime_error("Invalid texture type: default");
     }
+}
+
+
+void Blainn::Material::SetShader(const eastl::string &shader)
+{
+    m_shader = shader;
+}
+
+
+const eastl::string &Blainn::Material::GetShader() const
+{
+    return m_shader;
 }

@@ -39,6 +39,13 @@ void AssetManager::Destroy()
 }
 
 
+bool AssetManager::ModelExists(const Path &path)
+{
+    auto it = m_models.find(ToEASTLString(path.string()));
+    return it != m_models.end();
+}
+
+
 eastl::shared_ptr<Model> AssetManager::GetModel(const std::filesystem::path &path)
 {
     eastl::string pathStr = path.string().c_str();
@@ -47,7 +54,15 @@ eastl::shared_ptr<Model> AssetManager::GetModel(const std::filesystem::path &pat
         return it->second;
     }
 
-    auto model = eastl::make_shared<Model>(m_loader->ImportModel(path));
+    BF_ERROR("Model doesn't exist");
+    return eastl::shared_ptr<Model>();
+}
+
+
+eastl::shared_ptr<Model> AssetManager::LoadModel(const std::filesystem::path &path, const ImportModelData &data)
+{
+    eastl::string pathStr = ToEASTLString(path.string());
+    auto model = m_loader->ImportModel(path, data);
     m_models[pathStr] = model;
     return model;
 }

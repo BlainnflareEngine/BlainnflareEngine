@@ -5,7 +5,9 @@
 #include "context-menu/ContentContextMenu.h"
 
 #include "../../include/dialog/create_material_dialog.h"
+#include "Editor.h"
 #include "FileSystemUtils.h"
+#include "IdGenerator.h"
 
 #include <QInputDialog>
 #include <QMenu>
@@ -85,28 +87,19 @@ void ContentContextMenu::CreateMaterial(const QString &dirPath) const
         QString filePath = dirPath + QDir::separator() + materialDialog.GetMaterialName() + ".mat";
 
         YAML::Node config;
-        UUIDv4::UUIDGenerator<std::mt19937_64> uuidGenerator;
-        Blainn::uuid uuid = uuidGenerator.getUUID();
-        std::string temp;
+        QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
 
-        config["ID"] = uuid.str();
+        // These are relative paths, you can restore full path with content folder path
+        config["ID"] = Blainn::GenerateID().str();
+        config["Path"] = ToString(dir.relativeFilePath(filePath));
+        config["ShaderPath"] = ToString(dir.relativeFilePath(materialDialog.GetShaderPath()));
+        config["AlbedoPath"] = ToString(dir.relativeFilePath(materialDialog.GetAlbedoPath()));
+        config["NormalPath"] = ToString(dir.relativeFilePath(materialDialog.GetNormalPath()));
+        config["MetallicPath"] = ToString(dir.relativeFilePath(materialDialog.GetMetallicPath()));
+        config["RoughnessPath"] = ToString(dir.relativeFilePath(materialDialog.GetRoughnessPath()));
+        config["AOPath"] = ToString(dir.relativeFilePath(materialDialog.GetAOPath()));
 
-        temp = materialDialog.GetAlbedoPath().toUtf8().constData();
-        config["AlbedoPath"] = temp;
-
-        temp = materialDialog.GetNormalPath().toUtf8().constData();
-        config["NormalPath"] = temp;
-
-        temp = materialDialog.GetMetallicPath().toUtf8().constData();
-        config["MetallicPath"] = temp;
-
-        temp = materialDialog.GetRoughnessPath().toUtf8().constData();
-        config["RoughnessPath"] = temp;
-
-        temp = materialDialog.GetAOPath().toUtf8().constData();
-        config["AOPath"] = temp;
-
-        std::string pathStr = filePath.toUtf8().constData();
+        std::string pathStr = ToString(filePath);
         const Blainn::Path configFilePath = Blainn::Path(pathStr);
         std::ofstream fout(configFilePath.string());
         fout << config;

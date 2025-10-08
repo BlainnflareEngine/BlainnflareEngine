@@ -81,12 +81,14 @@ void folder_content_list_view::dropEvent(QDropEvent *event)
         if (!WasInFolderBefore(srcPath, QDir::currentPath().append("/Content")))
         {
             ImportAssetInfo info;
-            info.path = srcPath;
-            import_asset_dialog* test = GetImportAssetDialog(info);
-            test->exec();
-            // QMessageBox msgBox;
-            // msgBox.setText("There was no such file in project before. Need to dialog this file.");
-            // msgBox.exec();
+            info.originalPath = srcPath;
+            info.destinationPath = targetPath + QDir::separator() + url.fileName();
+            import_asset_dialog *dialog = GetImportAssetDialog(info);
+            dialog->exec();
+
+            if (dialog->result() == QDialog::Accepted)
+                QFile::copy(info.originalPath, info.destinationPath);
+
         }
         else
         {

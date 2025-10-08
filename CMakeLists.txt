@@ -46,7 +46,9 @@ add_executable(${PROJECT_NAME} main.cpp
         engine/src/subsystems/AssetLoader.cpp
         engine/include/subsystems/AssetLoader.h
         common/include/Vertex.h
-        common/include/MeshData.h)
+        common/include/MeshData.h
+        common/include/ImportModelData.h
+        common/include/IdGenerator.h)
 
 add_subdirectory(libs/EASTL)
 add_subdirectory(libs/JoltPhysics/Build)

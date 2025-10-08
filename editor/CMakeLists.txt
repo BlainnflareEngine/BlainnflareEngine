@@ -66,6 +66,7 @@ target_link_libraries(EDITOR
         Qt::Gui
         Qt::Widgets
         pch
+        ENGINE
 )
 
 

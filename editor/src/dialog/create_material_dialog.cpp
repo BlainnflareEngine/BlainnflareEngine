@@ -2,7 +2,6 @@
 // Created by gorev on 06.10.2025.
 //
 
-// You may need to build the project (run Qt uic code generator) to get "ui_create_material_dialog.h" resolved
 
 #include "dialog/create_material_dialog.h"
 
@@ -20,14 +19,15 @@ create_material_dialog::create_material_dialog(QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(ui->AlbedoBrowse, &QPushButton::pressed, this, &create_material_dialog::OnSelectAlbedo);
-    connect(ui->NormalBrowse, &QPushButton::pressed, this, &create_material_dialog::OnSelectNormal);
-    connect(ui->MetallicBrowse, &QPushButton::pressed, this, &create_material_dialog::OnSelectMetallic);
-    connect(ui->RoughnessBrowse, &QPushButton::pressed, this, &create_material_dialog::OnSelectRoughness);
-    connect(ui->AOBrowse, &QPushButton::pressed, this, &create_material_dialog::OnSelectAO);
+    connect(ui->AlbedoBrowse, &QPushButton::clicked, this, &create_material_dialog::OnSelectAlbedo);
+    connect(ui->NormalBrowse, &QPushButton::clicked, this, &create_material_dialog::OnSelectNormal);
+    connect(ui->MetallicBrowse, &QPushButton::clicked, this, &create_material_dialog::OnSelectMetallic);
+    connect(ui->RoughnessBrowse, &QPushButton::clicked, this, &create_material_dialog::OnSelectRoughness);
+    connect(ui->AOBrowse, &QPushButton::clicked, this, &create_material_dialog::OnSelectAO);
+    connect(ui->ShaderBrowse, &QPushButton::clicked, this, &create_material_dialog::OnSelectShader);
 
-    connect(ui->Accept, &QPushButton::pressed, this, &create_material_dialog::accept);
-    connect(ui->Cancel, &QPushButton::pressed, this, &create_material_dialog::reject);
+    connect(ui->Accept, &QPushButton::clicked, this, &create_material_dialog::accept);
+    connect(ui->Cancel, &QPushButton::clicked, this, &create_material_dialog::reject);
 }
 
 
@@ -83,33 +83,48 @@ QString create_material_dialog::GetAOPath() const
 }
 
 
+QString create_material_dialog::GetShaderPath() const
+{
+    if (QFileInfo(ui->ShaderPath->text()).exists()) return ui->ShaderPath->text();
+
+    // TODO: use default shader
+    return QString();
+}
+
+
 void create_material_dialog::OnSelectAlbedo()
 {
-    SelectTextureFile(*ui->AlbedoPath);
+    SelectFile(*ui->AlbedoPath, "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)");
 }
 
 
 void create_material_dialog::OnSelectNormal()
 {
-    SelectTextureFile(*ui->NormaPath);
+    SelectFile(*ui->NormaPath, "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)");
 }
 
 
 void create_material_dialog::OnSelectMetallic()
 {
-    SelectTextureFile(*ui->MetallicPath);
+    SelectFile(*ui->MetallicPath, "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)");
 }
 
 
 void create_material_dialog::OnSelectRoughness()
 {
-    SelectTextureFile(*ui->RoughnessPath);
+    SelectFile(*ui->RoughnessPath, "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)");
 }
 
 
 void create_material_dialog::OnSelectAO()
 {
-    SelectTextureFile(*ui->AOPath);
+    SelectFile(*ui->AOPath, "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)");
+}
+
+
+void create_material_dialog::OnSelectShader()
+{
+    SelectFile(*ui->ShaderPath, "Shaders (*.cso);;All Files (*)");
 }
 
 
@@ -127,9 +142,9 @@ void create_material_dialog::accept()
 }
 
 
-void create_material_dialog::SelectTextureFile(QLabel &label)
+void create_material_dialog::SelectFile(QLabel &label, const QString &filter)
 {
-    QString filter = "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)";
+    // QString filter = "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)";
 
     QString fileName = QFileDialog::getOpenFileName(
         this, "Select Texture File", label.text().isEmpty() ? "." : QFileInfo(label.text()).absolutePath(), filter);

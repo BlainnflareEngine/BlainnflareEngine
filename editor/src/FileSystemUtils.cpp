@@ -226,12 +226,18 @@ bool WasInFolderBefore(const QString &filePath, const QString &contentFolderPath
 
 import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info)
 {
-    if (supported3DFormats.contains(QFileInfo(info.path).suffix().toLower()))
+    if (supported3DFormats.contains(QFileInfo(info.originalPath).suffix().toLower()))
     {
-        BF_INFO("Showing model dialog dialog.");
+        BF_INFO("Showing model dialog.");
         return new import_model_dialog(info);
     }
 
     return new import_asset_dialog(info);
+}
+
+
+std::string ToString(const QString &str)
+{
+    return str.toUtf8().constData();
 }
 } // namespace editor

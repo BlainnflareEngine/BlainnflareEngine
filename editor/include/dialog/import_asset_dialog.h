@@ -39,13 +39,13 @@ protected slots:
     virtual void OnCancel();
 
 protected:
-    QLabel *m_label;
-    QVBoxLayout *m_main_layout;
-    QHBoxLayout *m_btn_layout;
+    ImportAssetInfo m_info;
+
+    QHBoxLayout *m_layout;
     QPushButton *m_btn_confirm;
     QPushButton *m_btn_cancel;
 
-    ImportAssetInfo m_info;
+    void CreateConfirmButtons();
 
 private:
     Ui::import_asset_dialog *ui;

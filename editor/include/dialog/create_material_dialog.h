@@ -32,6 +32,7 @@ public:
     QString GetMetallicPath() const;
     QString GetRoughnessPath() const;
     QString GetAOPath() const;
+    QString GetShaderPath() const;
 
 
 public slots:
@@ -40,12 +41,13 @@ public slots:
     void OnSelectMetallic();
     void OnSelectRoughness();
     void OnSelectAO();
+    void OnSelectShader();
     void accept() override;
 
 private:
     Ui::create_material_dialog *ui;
 
-    void SelectTextureFile(QLabel &label);
+    void SelectFile(QLabel &label, const QString &filter);
 };
 
 } // namespace editor

@@ -17,9 +17,9 @@ public:
     virtual void Delete();
     virtual void Copy();
 
-    std::filesystem::path GetPath() const;
+    Path GetPath() const;
 
 protected:
-    std::filesystem::path m_path;
+    Path m_path;
 };
 } // namespace Blainn

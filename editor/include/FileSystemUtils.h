@@ -19,7 +19,8 @@ class import_asset_dialog;
 
 struct ImportAssetInfo
 {
-    QString path;
+    QString originalPath;
+    QString destinationPath;
 };
 
 inline static const QStringList supported3DFormats = {
@@ -53,4 +54,6 @@ bool MoveRecursively(const QString &targetPath, const QString &srcPath);
 bool WasInFolderBefore(const QString &filePath, const QString &contentFolderPath);
 
 import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info);
+
+std::string ToString(const QString& str);
 } // namespace editor

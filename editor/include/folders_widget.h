@@ -9,7 +9,6 @@
 #include "folders_tree_view.h"
 
 
-#include <EASTL/unique_ptr.h>
 #include <QWidget>
 #include <qdir.h>
 
