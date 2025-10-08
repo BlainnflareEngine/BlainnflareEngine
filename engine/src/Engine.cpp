@@ -32,19 +32,27 @@ void Engine::Shutdown()
 
 void Engine::Run()
 {
-    Timeline<eastl::chrono::milliseconds> sayMarioTimeline(static_cast<int64_t>(1000.0 / 2.0));
+    float marioPeriod =  1000.0 / 2.0;
+    Timeline<eastl::chrono::milliseconds> sayMarioTimeline(marioPeriod);
     sayMarioTimeline.Start();
 
-    Timeline<eastl::chrono::milliseconds> mainTimeline(static_cast<int64_t>(1000.0 / 60.0));
+    Timeline<eastl::chrono::milliseconds> mainTimeline(1000.0 / 60.0);
     mainTimeline.Start();
+
+    Timeline<eastl::chrono::milliseconds> physicsTimeline(m_physicsUpdatePeriodMs);
+    physicsTimeline.Start();
+
     bool isRunning = true;
     while (isRunning)
     {
-        int64_t cyclesPassed =  mainTimeline.Tick();
-        int64_t cyclesMarioPassed =sayMarioTimeline.Tick();
-        for (size_t i = 0; i < cyclesMarioPassed; i++)
+        float mainTimelineDeltaTime =  mainTimeline.Tick();
+        float marioTimelineDeltaTime = sayMarioTimeline.Tick();
+        static float marioAccumulator;
+        marioAccumulator += mainTimelineDeltaTime;
+        if (marioAccumulator >= marioPeriod)
         {
             std::cout << "Hello, it's me, Marrrriooooooo!" << std::endl;
+            marioAccumulator = 0;
         }
         
         // this trace doesn't make sense, it exactly matches the frame

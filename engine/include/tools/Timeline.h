@@ -19,26 +19,23 @@ namespace Blainn {
 		static_assert(is_eastl_duration<EastlDurationType>::value,
             "EastlDurationType must be a eastl::chrono::duration specialization");
 	public:
-		Timeline(int64_t period);
+		Timeline(float period);
 		void Start();
 		void Pause();
 		void Resume();
-		// returns amount of cycles done since last update
-		int64_t Tick();
+		// returns amount of time since last update
+		float Tick();
 		void Reset();
-		// since = -1 means since last update
-		int64_t GetElapsedTimeSince(int64_t since = -1) const;
 	private:
 		bool m_isActive;
-		int64_t m_period;
+		float m_period;
 		int64_t m_startTime;
-		int64_t m_prevUpdateTime;
 		int64_t m_lastSavedTime;
 		int64_t GetTime() const; 
 	};
 
 	template<typename EastlDurationType>
-	Blainn::Timeline<EastlDurationType>::Timeline(int64_t period)
+	Blainn::Timeline<EastlDurationType>::Timeline(float period)
 	{
 		m_period = period;
 		Reset();
@@ -52,7 +49,6 @@ namespace Blainn {
 		m_isActive = true;
 		m_startTime = GetTime();
 		m_lastSavedTime = m_startTime;
-		m_prevUpdateTime = m_startTime;
 	}
 
 	template<typename EastlDurationType>
@@ -68,15 +64,13 @@ namespace Blainn {
 	}
 
 	template<typename EastlDurationType>
-	int64_t Blainn::Timeline<EastlDurationType>::Tick()
+	float Blainn::Timeline<EastlDurationType>::Tick()
 	{
 		if (!m_isActive) return 0;
 
+		int64_t prevTime = m_lastSavedTime;
 		m_lastSavedTime = GetTime();
-		int64_t elapsedTime = m_lastSavedTime - m_prevUpdateTime;
-		int64_t cyclesDone = elapsedTime / m_period;
-		if (cyclesDone > 0) m_prevUpdateTime += cyclesDone * m_period;
-		return cyclesDone;
+		return m_lastSavedTime - prevTime;
 	}
 
 	template<typename EastlDurationType>
@@ -84,14 +78,7 @@ namespace Blainn {
 	{
 		m_isActive = false;
 		m_startTime = 0;
-		m_prevUpdateTime = 0;
 		m_lastSavedTime = 0;
-	}
-
-	template<typename EastlDurationType>
-	int64_t Blainn::Timeline<EastlDurationType>::GetElapsedTimeSince(int64_t since /* = -1*/) const
-	{
-		return since == -1 ? m_lastSavedTime - m_prevUpdateTime : m_lastSavedTime - since;
 	}
 
 	template<typename EastlDurationType>
