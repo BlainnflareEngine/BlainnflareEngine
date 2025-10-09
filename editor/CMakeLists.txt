@@ -53,7 +53,11 @@ set(EDITOR_SOURCES
         ${RESOURCES}
         src/path_bar_widget.cpp
         include/path_bar_widget.h
-        ui/path_bar_widget.ui)
+        ui/path_bar_widget.ui
+        include/EditorSink.h
+        src/console_messages_widget.cpp
+        include/console_messages_widget.h
+        ui/console_messages_widget.ui)
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
 

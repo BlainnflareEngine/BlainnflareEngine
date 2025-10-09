@@ -7,6 +7,7 @@
 #include "editor_main.h"
 
 #include "Editor.h"
+#include "EditorSink.h"
 #include "SettingsData.h"
 #include "editor_settings.h"
 #include "ui_editor_main.h"
@@ -22,6 +23,8 @@ editor_main::editor_main(QWidget *parent)
     , ui(new Ui::editor_main)
 {
     ui->setupUi(this);
+
+    auto logger = std::make_shared<EditorSink<std::mutex>>(ui->consoleMessages);
 
     ui->folderContent->AddAdditionalView(ui->folders->GetTreeView());
     ui->folders->AddAdditionalView(ui->folderContent->GetListView());
@@ -70,6 +73,12 @@ void editor_main::closeEvent(QCloseEvent *event)
     // TODO: serialize something before exit
     QMainWindow::closeEvent(event);
     QCoreApplication::quit();
+}
+
+
+console_messages_widget *editor_main::GetConsoleWidget() const
+{
+    return ui->consoleMessages;
 }
 
 

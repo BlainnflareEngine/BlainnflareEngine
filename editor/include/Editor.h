@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "EditorSink.h"
 #include "editor_main.h"
 
 
@@ -26,6 +27,8 @@ public:
 
     Path &GetContentDirectory();
     void SetContentDirectory(const Path &path);
+
+    std::shared_ptr<editor::EditorSink<std::mutex>> GetEditorSink() const;
 
 private:
     QApplication *m_app;

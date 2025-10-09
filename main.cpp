@@ -27,6 +27,12 @@ int main(int argc, char **argv)
     // init editor
     Blainn::Editor::GetInstance().Init(argc, argv);
     Blainn::Editor::GetInstance().Show();
+
+    BF_DEBUG("This is debug!");
+    BF_ERROR("This is error!");
+    BF_INFO("This is info!");
+    BF_WARN("This is warn!");
+    BF_TRACE("This is trace!");
     // TODO:
     // editor.Update() should run in engine?
     // or editor.Update() and Engine::Run() should be updated here in while true

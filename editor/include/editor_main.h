@@ -14,6 +14,10 @@
 
 namespace editor
 {
+class console_messages_widget;
+}
+namespace editor
+{
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
@@ -35,8 +39,10 @@ public:
 
     void closeEvent(QCloseEvent *event) override;
 
+    console_messages_widget *GetConsoleWidget() const;
+
 private:
-    Ui::editor_main* ui;
+    Ui::editor_main *ui;
 
     QString m_contentPath;
 
