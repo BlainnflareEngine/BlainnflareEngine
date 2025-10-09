@@ -28,9 +28,17 @@ editor_main::editor_main(QWidget *parent)
 
     connect(ui->folders, &folders_widget::folderSelected, ui->folderContent,
             &folder_content_widget::OnFolderSelectedPath);
+    connect(ui->folders, &folders_widget::folderSelected, ui->pathBar, &path_bar_widget::SetCurrentPath);
+
+
+    connect(ui->pathBar, &path_bar_widget::PathClicked, ui->folderContent,
+            &folder_content_widget::OnFolderSelectedPath);
+    connect(ui->pathBar, &path_bar_widget::PathClicked, ui->folders, &folders_widget::OnFolderSelectedPath);
 
     connect(ui->folderContent, &folder_content_widget::folderSelected, ui->folders,
             &folders_widget::OnFolderSelectedPath);
+    connect(ui->folderContent, &folder_content_widget::folderSelected, ui->pathBar, &path_bar_widget::SetCurrentPath);
+
 
     connect(ui->actionEditor_settings, &QAction::triggered, this, &editor_main::OnOpenSettings);
 }
@@ -53,6 +61,7 @@ void editor_main::SetContentDirectory(const QString &path)
     m_contentPath = path;
 
     ui->folders->SetContentDirectory(m_contentPath);
+    ui->pathBar->SetRootPath(m_contentPath);
 }
 
 

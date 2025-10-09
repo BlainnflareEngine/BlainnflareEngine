@@ -50,7 +50,10 @@ set(EDITOR_SOURCES
         ui/dialog/create_material_dialog.ui
         src/IconProvider.cpp
         include/IconProvider.h
-        ${RESOURCES})
+        ${RESOURCES}
+        src/path_bar_widget.cpp
+        include/path_bar_widget.h
+        ui/path_bar_widget.ui)
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
 
