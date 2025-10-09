@@ -16,6 +16,8 @@ set(ENGINE_SOURCES
         src/runtime/physics/ContactListenerImpl.cpp
         src/runtime/physics/PhysicsComponent.cpp
         src/runtime/physics/ShapeFactory.cpp
+        include/scene/Scene.h
+        src/scene/Scene.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
