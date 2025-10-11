@@ -14,7 +14,7 @@ set(ENGINE_SOURCES
         include/subsystems/Log.h
         src/runtime/physics/BodyBuilder.cpp
         src/runtime/physics/ContactListenerImpl.cpp
-        src/runtime/physics/PhysicsComponent.cpp
+        src/runtime/components/PhysicsComponent.cpp
         src/runtime/physics/ShapeFactory.cpp
 )
 
