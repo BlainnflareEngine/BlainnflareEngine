@@ -9,7 +9,7 @@
 
 using namespace Blainn;
 
-PhysicsComponent::PhysicsComponent(uuid parentId, uuid componentId, BodyBuilder &builder)
+PhysicsComponent::PhysicsComponent(const uuid& parentId, const uuid& componentId, BodyBuilder &builder)
 {
     m_parentId = parentId;
     m_id = componentId;
@@ -17,7 +17,7 @@ PhysicsComponent::PhysicsComponent(uuid parentId, uuid componentId, BodyBuilder 
     m_bodyId = builder.Build();
 }
 
-uuid PhysicsComponent::GetId() const
+const uuid& PhysicsComponent::GetId() const
 {
     return m_id;
 }

@@ -16,7 +16,7 @@ namespace Blainn
     class PhysicsComponent
     {
     public:
-        PhysicsComponent(uuid parentId, uuid componentId, BodyBuilder &builder);
+        PhysicsComponent(const uuid& parentId, const uuid& componentId, BodyBuilder &builder);
 
         // TODO:
         // void SetVelocity(Vec3 velocity);
@@ -26,7 +26,7 @@ namespace Blainn
         // void SetPosition(Vec3 position);
         // void SetRotation(Quat rotation);
 
-        uuid GetId() const;
+        const uuid& GetId() const;
     private:
         uuid m_id; // TODO: set zero uuid
         uuid m_parentId; // TODO: set zero uuid
