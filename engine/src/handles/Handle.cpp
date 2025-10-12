@@ -3,6 +3,9 @@
 //
 
 #include "handles/Handle.h"
+#include "file-system/Material.h"
+#include "file-system/Model.h"
+#include "file-system/Texture.h"
 
 #include "AssetManager.h"
 #include "IdGenerator.h"
@@ -30,4 +33,10 @@ Blainn::Texture &Blainn::TextureHandle::GetTexture() const
 Blainn::Material &Blainn::MaterialHandle::GetMaterial() const
 {
     return AssetManager::GetInstance().GetMaterialByIndex(m_index);
+}
+
+
+Blainn::Model &Blainn::ModelHandle::GetModel() const
+{
+    return AssetManager::GetInstance().GetModelByIndex(m_index);
 }

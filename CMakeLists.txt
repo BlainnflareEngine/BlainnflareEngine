@@ -38,12 +38,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 
 add_executable(${PROJECT_NAME} main.cpp
-        engine/src/file-system/FileSystemObject.cpp
-        engine/include/file-system/FileSystemObject.h
-        engine/src/file-system/Texture.cpp
-        engine/include/file-system/Texture.h
-        engine/src/file-system/Model.cpp
-        engine/include/file-system/Model.h
         engine/src/subsystems/AssetLoader.cpp
         engine/include/subsystems/AssetLoader.h
         common/include/Vertex.h

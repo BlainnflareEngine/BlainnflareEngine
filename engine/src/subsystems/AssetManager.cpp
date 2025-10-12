@@ -5,7 +5,9 @@
 #include "subsystems/AssetManager.h"
 
 #include "Engine.h"
+#include "ImportModelData.h"
 #include "VGJS.h"
+#include "file-system/Material.h"
 #include "file-system/Model.h"
 #include "file-system/Texture.h"
 
@@ -25,7 +27,8 @@ void AssetManager::Init()
     m_loader->Init();
 
     m_textures.reserve(512);
-    m_materials.reserve(512);
+    m_materials.reserve(64);
+    m_meshes.reserve(64);
 
     // TODO: create default texture
     m_textures.emplace_back(
@@ -33,7 +36,10 @@ void AssetManager::Init()
 
     // TODO: create default material
     Material material = Material(std::filesystem::current_path() / "Default.mat", "Default");
-    m_materials.emplace_back(material);
+    m_materials.emplace_back(eastl::make_shared<Material>(material));
+
+    // TODO: create default mesh
+    // m_meshes.emplace_back();
 }
 
 
@@ -46,30 +52,50 @@ void AssetManager::Destroy()
 
 bool AssetManager::ModelExists(const Path &path)
 {
-    auto it = m_models.find(ToEASTLString(path.string()));
-    return it != m_models.end();
+    auto it = m_meshPaths.find(ToEASTLString(path.string()));
+    return it != m_meshPaths.end();
 }
 
 
-eastl::shared_ptr<Model> AssetManager::GetModel(const Path &path)
+eastl::shared_ptr<ModelHandle> AssetManager::GetModel(const Path &path)
 {
     eastl::string pathStr = path.string().c_str();
-    if (auto it = m_models.find(pathStr); it != m_models.end())
+    if (auto it = m_meshPaths.find(pathStr); it != m_meshPaths.end())
     {
-        return it->second;
+        return eastl::make_shared<ModelHandle>(it->second);
     }
 
-    BF_ERROR("Model doesn't exist");
-    return eastl::shared_ptr<Model>();
+    BF_ERROR("This model doesn't imported yet. You should import it first.");
+    return eastl::shared_ptr<ModelHandle>(0);
 }
 
 
-eastl::shared_ptr<Model> AssetManager::LoadModel(const Path &path, const ImportModelData &data)
+eastl::shared_ptr<ModelHandle> AssetManager::LoadModel(const Path &path, const ImportModelData &data)
 {
-    eastl::string pathStr = ToEASTLString(path.string());
+    unsigned int index = m_meshes.size();
+    m_meshPaths[ToEASTLString(path.string())] = index;
+
+    auto str = "I don't have such model yet, here is default one, "
+               "i will place your model to your index later "
+               + std::to_string(index);
+    BF_INFO(str)
+
+    m_meshes.emplace_back(eastl::make_shared<Model>(GetDefaultModel()));
+
     auto model = m_loader->ImportModel(path, data);
-    m_models[pathStr] = model;
-    return model;
+    return eastl::make_shared<ModelHandle>(index);
+}
+
+
+Model &AssetManager::GetModelByIndex(const unsigned int index)
+{
+    return *m_meshes[index];
+}
+
+
+Model &AssetManager::GetModelByHandle(const ModelHandle &handle)
+{
+    return *m_meshes[handle.GetIndex()];
 }
 
 
@@ -100,7 +126,7 @@ eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &path, con
                + std::to_string(index);
     BF_INFO(str)
 
-    m_textures.emplace_back(GetDefaultTexture());
+    m_textures.emplace_back(eastl::make_shared<Texture>(GetDefaultTexture()));
     vgjs::schedule([=]() { AddTextureWhenLoaded(path, index, type); });
     return eastl::make_shared<TextureHandle>(index);
 }
@@ -127,7 +153,7 @@ eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path)
                + std::to_string(index);
     BF_INFO(str)
 
-    m_materials.emplace_back(GetDefaultMaterial());
+    m_materials.emplace_back(eastl::make_shared<Material>(GetDefaultMaterial()));
     vgjs::schedule([=]() { AddMaterialWhenLoaded(path, index); });
     return eastl::make_shared<MaterialHandle>(index);
 }
@@ -135,7 +161,7 @@ eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path)
 
 Material &AssetManager::GetMaterialByIndex(unsigned int index)
 {
-    return m_materials[index];
+    return *m_materials[index];
 }
 
 
@@ -148,13 +174,13 @@ Material &AssetManager::GetMaterialByHandle(const MaterialHandle &handle)
         throw std::exception("Failed to get texture by index.");
     }
 
-    return m_materials[index];
+    return *m_materials[index];
 }
 
 
 Texture &AssetManager::GetTextureByIndex(unsigned int index)
 {
-    return m_textures[index];
+    return *m_textures[index];
 }
 
 
@@ -167,7 +193,7 @@ Texture &AssetManager::GetTextureByHandle(const TextureHandle &handle)
         throw std::exception("Failed to get texture by index.");
     }
 
-    return m_textures[index];
+    return *m_textures[index];
 }
 
 
@@ -189,15 +215,30 @@ void AssetManager::AddMaterialWhenLoaded(const Path &path, const unsigned int in
 }
 
 
+void AssetManager::AddModelWhenLoaded(const Path &path, const unsigned int index, const ImportModelData data)
+{
+    BF_INFO("Started loading model.");
+    m_meshes[index] = m_loader->ImportModel(path, data);
+    auto str = "Placing model to index " + std::to_string(index);
+    BF_INFO(str);
+}
+
+
 Texture &AssetManager::GetDefaultTexture()
 {
-    return m_textures[0];
+    return *m_textures[0];
 }
 
 
 Material &AssetManager::GetDefaultMaterial()
 {
-    return m_materials[0];
+    return *m_materials[0];
+}
+
+
+Model &AssetManager::GetDefaultModel()
+{
+    return *m_meshes[0];
 }
 
 } // namespace Blainn

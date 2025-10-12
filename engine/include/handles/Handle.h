@@ -4,14 +4,15 @@
 
 #pragma once
 
-#include "file-system/Material.h"
-#include "file-system/Texture.h"
 
 
 #include <pch.h>
 
 namespace Blainn
 {
+class Material;
+class Texture;
+class Model;
 
 struct Handle
 {
@@ -34,6 +35,11 @@ struct TextureHandle : Handle
 struct MaterialHandle : Handle
 {
     Material &GetMaterial() const;
+};
+
+struct ModelHandle : Handle
+{
+    Model &GetModel() const;
 };
 
 } // namespace Blainn

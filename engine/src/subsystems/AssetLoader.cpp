@@ -6,6 +6,8 @@
 
 #include "AssetManager.h"
 #include "MeshData.h"
+#include "file-system/Material.h"
+#include "file-system/Model.h"
 #include "file-system/Texture.h"
 
 #include <assimp/Importer.hpp>
@@ -151,17 +153,17 @@ Vec2 AssetLoader::GetTextCoords(const aiMesh &mesh, const unsigned int meshIndex
 }
 
 
-Texture AssetLoader::LoadTexture(const Path &path, const Texture::TextureType type)
+eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const Texture::TextureType type)
 {
     BF_INFO("I am loading a very big texture...");
     BF_INFO("Loading texture completed!");
 
     auto temp = Microsoft::WRL::ComPtr<ID3D12Resource>();
-    return Texture(path, temp, type);
+    return eastl::make_shared<Texture>(path, temp, type);
 }
 
 
-Material AssetLoader::LoadMaterial(const Path &path)
+eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &path)
 {
     YAML::Node config = YAML::LoadFile(path.string());
 
@@ -172,18 +174,18 @@ Material AssetLoader::LoadMaterial(const Path &path)
     auto roughness = config["RoughnessPath"].as<std::string>();
     auto ambient = config["AOPath"].as<std::string>();
 
-    Material material = Material(path, ToEASTLString(shaderPath));
+    auto material = eastl::make_shared<Material>(path, ToEASTLString(shaderPath));
 
     if (!albedo.empty())
-        material.SetTexture(AssetManager::GetInstance().GetTexture(albedo), Texture::TextureType::ALBEDO);
+        material->SetTexture(AssetManager::GetInstance().GetTexture(albedo), Texture::TextureType::ALBEDO);
     if (!normal.empty())
-        material.SetTexture(AssetManager::GetInstance().GetTexture(normal), Texture::TextureType::NORMAL);
+        material->SetTexture(AssetManager::GetInstance().GetTexture(normal), Texture::TextureType::NORMAL);
     if (!metallic.empty())
-        material.SetTexture(AssetManager::GetInstance().GetTexture(metallic), Texture::TextureType::METALLIC);
+        material->SetTexture(AssetManager::GetInstance().GetTexture(metallic), Texture::TextureType::METALLIC);
     if (!roughness.empty())
-        material.SetTexture(AssetManager::GetInstance().GetTexture(roughness), Texture::TextureType::ROUGHNESS);
+        material->SetTexture(AssetManager::GetInstance().GetTexture(roughness), Texture::TextureType::ROUGHNESS);
     if (!ambient.empty())
-        material.SetTexture(AssetManager::GetInstance().GetTexture(ambient), Texture::TextureType::AO);
+        material->SetTexture(AssetManager::GetInstance().GetTexture(ambient), Texture::TextureType::AO);
 
     return material;
 }
