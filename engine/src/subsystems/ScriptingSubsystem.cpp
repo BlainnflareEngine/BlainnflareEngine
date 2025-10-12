@@ -4,13 +4,11 @@
 
 using namespace Blainn;
 
-bool ScriptingSubsystem::m_isInitialized = false;
-
-void ScriptingSubsystem::Init() {
+void ScriptingSubsystem::Init()
+{
     m_isInitialized = true;
 }
 
-void ScriptingSubsystem::Destroy() {
-
+void ScriptingSubsystem::Destroy()
+{
 }
-

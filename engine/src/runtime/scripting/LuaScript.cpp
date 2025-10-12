@@ -5,6 +5,8 @@
 
 using namespace Blainn;
 
+// TODO: push and pop environment
+
 void LuaScript::Load(eastl::string_view scriptPath)
 {
     assert(!m_isLoaded && "Script already loaded");
@@ -18,13 +20,21 @@ void LuaScript::Load(eastl::string_view scriptPath)
     m_scriptPath = scriptPath;
 
     sol::state &lua = GetLuaState();
+
     m_script = lua.load_file(scriptPath.data());
-    if (!script.valid())
+    if (!m_script.valid())
     {
-        sol::error err = script;
+        sol::error err = m_script;
         BF_ERROR("Failed to load Lua script: " + m_scriptPath + "\nError: " + err.what());
         return;
     }
+
+    m_env = lua.create_table();
+    // load lua functions to environment
+    sol::protected_function scriptFunc = m_script.get<sol::protected_function>();
+    // TODO: хрень?
+    m_env = scriptFunc();
+
     m_isLoaded = true;
 }
 
@@ -59,7 +69,7 @@ bool LuaScript::onStartCall()
         return false;
     }
 
-    sol::protected_function onStartFunc = m_script.get<sol::protected_function>("OnStart");
+    sol::protected_function onStartFunc = m_script["OnStart"];
     if (!onStartFunc.valid())
     {
         BF_DEBUG("LuaScript::onStartCall: OnStart function not found in script " + m_scriptPath);
@@ -150,6 +160,40 @@ bool LuaScript::OnDestroyCall()
 
 bool LuaScript::CustomCall(eastl::string_view functionName /*= ""*/)
 {
+    assert(m_isLoaded && "Script not loaded");
     // TODO:
+    if (!m_isLoaded)
+    {
+        BF_ERROR("LuaScript::CustomCall: Script not loaded: " + m_scriptPath);
+        return false;
+    }
+
+    if (functionName.empty())
+    {
+        sol::protected_function_result res = m_script();
+        if (!res.valid())
+        {
+            sol::error err = res;
+            BF_ERROR("LuaScript::CustomCall: Error calling script " + m_scriptPath + "\nError: " + err.what());
+            return false;
+        }
+        return true;
+    }
+    sol::protected_function customFunc = m_script.get<sol::protected_function>(functionName.data());
+    if (!customFunc.valid())
+    {
+        BF_DEBUG("LuaScript::CustomCall: Function " + eastl::string(functionName) + " not found in script "
+                 + m_scriptPath);
+        return false;
+    }
+    sol::protected_function_result result = customFunc();
+    if (!result.valid())
+    {
+        sol::error err = result;
+        BF_ERROR("LuaScript::CustomCall: Error calling function " + eastl::string(functionName) + " in script "
+                 + m_scriptPath + "\nError: " + err.what());
+        return false;
+    }
+
     return true;
 }

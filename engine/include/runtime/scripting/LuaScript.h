@@ -2,6 +2,7 @@
 
 #include "EASTL/string.h"
 
+#include <lua.hpp>
 #include <sol/sol.hpp>
 
 namespace Blainn
@@ -32,6 +33,7 @@ private:
     LuaScriptType m_scriptType = LuaScriptType::FrameworkIntegration;
     eastl::string m_scriptPath;
     sol::load_result m_script;
+    sol::table m_env;
 
     // debug checks
     bool m_OnStartCalled = false;
