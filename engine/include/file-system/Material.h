@@ -27,6 +27,8 @@ public:
     void SetShader(const eastl::string &shader);
     const eastl::string &GetShader() const;
 
+    BOOL HasTexture(Texture::TextureType type) const;
+
 private:
     eastl::shared_ptr<TextureHandle> m_albedoTexture;
     eastl::shared_ptr<TextureHandle> m_normalTexture;

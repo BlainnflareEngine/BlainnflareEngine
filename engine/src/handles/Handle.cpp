@@ -8,32 +8,26 @@
 #include "IdGenerator.h"
 
 
-Blainn::Handle::Handle()
+Blainn::Handle::Handle(const unsigned int index)
+    : id(GenerateID())
+    , m_index(index)
 {
-    id = GenerateID();
 }
 
 
-Blainn::TextureHandle::TextureHandle(unsigned int index)
-    : Handle()
-    , m_textureIndex(index)
+unsigned int Blainn::Handle::GetIndex() const
 {
+    return m_index;
 }
 
 
 Blainn::Texture &Blainn::TextureHandle::GetTexture() const
 {
-    return AssetManager::GetInstance().GetTextureByIndex(m_textureIndex);
+    return AssetManager::GetInstance().GetTextureByIndex(m_index);
 }
 
 
-unsigned int Blainn::TextureHandle::GetTextureIndex() const
+Blainn::Material &Blainn::MaterialHandle::GetMaterial() const
 {
-    return m_textureIndex;
-}
-
-
-Blainn::MaterialHandle::MaterialHandle()
-    : Handle()
-{
+    return AssetManager::GetInstance().GetMaterialByIndex(m_index);
 }

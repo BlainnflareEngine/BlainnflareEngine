@@ -15,32 +15,25 @@ namespace Blainn
 
 struct Handle
 {
-    Handle();
+    Handle(unsigned int index);
 
+    unsigned int GetIndex() const;
+
+protected:
     uuid id;
+    unsigned int m_index = 0;
 };
 
 
 struct TextureHandle : Handle
 {
-    TextureHandle(unsigned int index);
-
-
     Texture &GetTexture() const;
-
-
-    unsigned int GetTextureIndex() const;
-
-private:
-    unsigned int m_textureIndex = 0;
 };
 
 
 struct MaterialHandle : Handle
 {
-    MaterialHandle();
-
-    eastl::shared_ptr<Material> material;
+    Material &GetMaterial() const;
 };
 
 } // namespace Blainn
