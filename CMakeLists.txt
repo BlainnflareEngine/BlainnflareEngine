@@ -65,12 +65,16 @@ set (ASSIMP_BUILD_TESTS OFF)
 set (ASSIMP_INSTALL OFF)
 add_subdirectory(libs/assimp)
 
+# lua
+add_subdirectory(libs/lua)
+
 set(LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
 set(ENGINE_DIR ${PROJECT_SOURCE_DIR}/engine)
 set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
 set(COMMON_DIR ${CMAKE_SOURCE_DIR}/common)
 set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
 set(Entt_DIR ${PROJECT_SOURCE_DIR}/libs/entt)
+set(LUA_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/libs/lua/lua-5.4.4/src)
 
 add_subdirectory(${ENGINE_DIR})
 add_subdirectory(${EDITOR_DIR})

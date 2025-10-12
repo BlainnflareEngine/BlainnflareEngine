@@ -45,7 +45,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${Blain_common_dir}"
         "${CMAKE_SOURCE_DIR}/common"
         "${Entt_DIR}/single_include"/include
-        ${CMAKE_SOURCE_DIR}/common
+        "${LUA_INCLUDE_DIR}"
 )
 
 
@@ -58,5 +58,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         TracyClient
         spdlog
         pch
+        lua
 )
 
