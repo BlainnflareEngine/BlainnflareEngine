@@ -12,6 +12,29 @@ Blainn::Material::Material(const Path &path, const eastl::string &shader)
 }
 
 
+Blainn::Material::~Material()
+{
+}
+
+
+void Blainn::Material::Move()
+{
+    FileSystemObject::Move();
+}
+
+
+void Blainn::Material::Delete()
+{
+    FileSystemObject::Delete();
+}
+
+
+void Blainn::Material::Copy()
+{
+    FileSystemObject::Copy();
+}
+
+
 void Blainn::Material::SetTexture(const eastl::shared_ptr<TextureHandle> &textureHandle, Texture::TextureType type)
 {
     switch (type)
@@ -95,4 +118,24 @@ void Blainn::Material::SetShader(const eastl::string &shader)
 const eastl::string &Blainn::Material::GetShader() const
 {
     return m_shader;
+}
+
+
+BOOL Blainn::Material::HasTexture(const Texture::TextureType type) const
+{
+    switch (type)
+    {
+    case Texture::TextureType::ALBEDO:
+        return m_albedoTexture != nullptr;
+    case Texture::TextureType::NORMAL:
+        return m_normalTexture != nullptr;
+    case Texture::TextureType::METALLIC:
+        return m_metallicTexture != nullptr;
+    case Texture::TextureType::ROUGHNESS:
+        return m_roughnessTexture != nullptr;
+    case Texture::TextureType::AO:
+        return m_aoTexture != nullptr;
+    default:
+        return FALSE;
+    }
 }

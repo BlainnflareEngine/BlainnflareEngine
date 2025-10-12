@@ -22,6 +22,11 @@ set(ENGINE_SOURCES
         src/file-system/Texture.cpp
         src/file-system/Material.cpp
         src/handles/Handle.cpp
+        src/file-system/FileSystemObject.cpp
+        include/file-system/FileSystemObject.h
+        include/file-system/Texture.h
+        src/file-system/Model.cpp
+        include/file-system/Model.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})

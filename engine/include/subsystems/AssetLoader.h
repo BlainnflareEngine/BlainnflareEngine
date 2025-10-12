@@ -3,7 +3,8 @@
 //
 
 #pragma once
-#include "file-system/Model.h"
+/*#include "file-system/Model.h"*/
+#include "file-system/Texture.h"
 // #include <assimp/mesh.h>
 
 
@@ -20,6 +21,9 @@ struct aiMesh;
 
 namespace Blainn
 {
+class Model;
+class Material;
+struct MeshData;
 
 class AssetLoader
 {
@@ -31,9 +35,11 @@ public:
     void Init();
     void Destroy();
 
-    eastl::shared_ptr<Model> ImportModel(const std::filesystem::path &path, const ImportModelData &data);
+    eastl::shared_ptr<Model> ImportModel(const Path &path, const ImportModelData &data);
 
-    Texture LoadTexture(const std::filesystem::path &path);
+    eastl::shared_ptr<Texture> LoadTexture(const Path &path, Texture::TextureType type);
+
+    eastl::shared_ptr<Material> LoadMaterial(const Path &path);
 
 private:
     AssetLoader(const AssetLoader &) = delete;
@@ -41,10 +47,10 @@ private:
     AssetLoader(const AssetLoader &&) = delete;
     AssetLoader &operator=(const AssetLoader &&) = delete;
 
-    void ProcessNode(const std::filesystem::path &path, const aiNode &node, const aiScene &scene,
-                     const Mat4 &parentMatrix, Model &model);
-    MeshData ProcessMesh(const std::filesystem::path &path, const aiMesh &mesh, const aiScene &scene,
-                         const aiNode &node, const Mat4 &parentMatrix, Model &model);
+    void ProcessNode(const Path &path, const aiNode &node, const aiScene &scene, const Mat4 &parentMatrix,
+                     Model &model);
+    MeshData ProcessMesh(const Path &path, const aiMesh &mesh, const aiScene &scene, const aiNode &node,
+                         const Mat4 &parentMatrix, Model &model);
 
     static Vec3 GetPosition(const aiMesh &mesh, const unsigned int meshIndex);
     static Vec3 GetNormal(const aiMesh &mesh, const unsigned int meshIndex);

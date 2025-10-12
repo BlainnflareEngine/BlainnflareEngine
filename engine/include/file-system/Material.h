@@ -3,8 +3,8 @@
 //
 
 #pragma once
-#include "FileSystemObject.h"
 #include "Texture.h"
+#include "FileSystemObject.h"
 
 
 namespace Blainn
@@ -26,6 +26,8 @@ public:
 
     void SetShader(const eastl::string &shader);
     const eastl::string &GetShader() const;
+
+    BOOL HasTexture(Texture::TextureType type) const;
 
 private:
     eastl::shared_ptr<TextureHandle> m_albedoTexture;

@@ -3,37 +3,40 @@
 //
 
 #include "handles/Handle.h"
+#include "file-system/Material.h"
+#include "file-system/Model.h"
+#include "file-system/Texture.h"
 
 #include "AssetManager.h"
 #include "IdGenerator.h"
 
 
-Blainn::Handle::Handle()
+Blainn::Handle::Handle(const unsigned int index)
+    : id(GenerateID())
+    , m_index(index)
 {
-    id = GenerateID();
 }
 
 
-Blainn::TextureHandle::TextureHandle(unsigned int index)
-    : Handle()
-    , m_textureIndex(index)
+unsigned int Blainn::Handle::GetIndex() const
 {
+    return m_index;
 }
 
 
 Blainn::Texture &Blainn::TextureHandle::GetTexture() const
 {
-    return AssetManager::GetInstance().GetTextureByIndex(m_textureIndex);
+    return AssetManager::GetInstance().GetTextureByIndex(m_index);
 }
 
 
-unsigned int Blainn::TextureHandle::GetTextureIndex() const
+Blainn::Material &Blainn::MaterialHandle::GetMaterial() const
 {
-    return m_textureIndex;
+    return AssetManager::GetInstance().GetMaterialByIndex(m_index);
 }
 
 
-Blainn::MaterialHandle::MaterialHandle()
-    : Handle()
+Blainn::Model &Blainn::ModelHandle::GetModel() const
 {
+    return AssetManager::GetInstance().GetModelByIndex(m_index);
 }
