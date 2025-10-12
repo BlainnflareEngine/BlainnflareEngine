@@ -36,6 +36,7 @@ project(${PROJECT_NAME}
 # cpp options
 set(CMAKE_CXX_STANDARD 20)
 
+
 add_executable(${PROJECT_NAME} main.cpp
         engine/src/file-system/FileSystemObject.cpp
         engine/include/file-system/FileSystemObject.h
@@ -46,7 +47,9 @@ add_executable(${PROJECT_NAME} main.cpp
         engine/src/subsystems/AssetLoader.cpp
         engine/include/subsystems/AssetLoader.h
         common/include/Vertex.h
-        common/include/MeshData.h)
+        common/include/MeshData.h
+        common/include/ImportModelData.h
+        common/include/IdGenerator.h)
 
 add_subdirectory(libs/EASTL)
 add_subdirectory(libs/JoltPhysics/Build)
@@ -96,7 +99,7 @@ target_include_directories(pch INTERFACE
 target_precompile_headers(pch INTERFACE common/include/pch.h)
 
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE BLAINN_INCLUDE_EDITOR)
+target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_INCLUDE_EDITOR)
 
 #target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_HAS_CONSOLE)
 

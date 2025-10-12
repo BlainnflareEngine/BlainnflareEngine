@@ -7,6 +7,7 @@
 // #include <assimp/mesh.h>
 
 
+struct ImportModelData;
 namespace std::filesystem
 {
 class path;
@@ -30,7 +31,8 @@ public:
     void Init();
     void Destroy();
 
-    Model ImportModel(const std::filesystem::path &path);
+    eastl::shared_ptr<Model> ImportModel(const std::filesystem::path &path, const ImportModelData &data);
+
     Texture LoadTexture(const std::filesystem::path &path);
 
 private:

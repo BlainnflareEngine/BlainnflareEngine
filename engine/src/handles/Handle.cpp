@@ -5,12 +5,12 @@
 #include "handles/Handle.h"
 
 #include "AssetManager.h"
+#include "IdGenerator.h"
 
 
 Blainn::Handle::Handle()
 {
-    UUIDv4::UUIDGenerator<std::mt19937_64> uuidGenerator;
-    id = uuidGenerator.getUUID();
+    id = GenerateID();
 }
 
 

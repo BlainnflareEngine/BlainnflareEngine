@@ -78,7 +78,7 @@ void folders_tree_view::dropEvent(QDropEvent *event)
         if (!WasInFolderBefore(srcPath, QDir::currentPath().append("/Content")))
         {
             QMessageBox msgBox;
-            msgBox.setText("There was no such file in project before. Need to import this file.");
+            msgBox.setText("There was no such file in project before. Need to dialog this file.");
             msgBox.exec();
         }
         else
