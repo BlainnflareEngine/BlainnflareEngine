@@ -31,6 +31,8 @@ public:
 public slots:
     void AppendMessage(const LogMessage &message);
 
+    void ClearConsole();
+
 private:
     Ui::console_messages_widget *ui;
 

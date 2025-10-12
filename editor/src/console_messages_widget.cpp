@@ -66,9 +66,15 @@ void console_messages_widget::AppendMessage(const LogMessage &message)
     QTextCursor cursor = this->textCursor();
     cursor.movePosition(QTextCursor::End);
     cursor.insertText(qMessage, format);
-    //cursor.insertBlock();
+    // cursor.insertBlock();
 
     this->setTextCursor(cursor);
     this->ensureCursorVisible();
+}
+
+
+void console_messages_widget::ClearConsole()
+{
+    clear();
 }
 } // namespace editor

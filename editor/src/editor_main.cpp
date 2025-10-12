@@ -44,6 +44,8 @@ editor_main::editor_main(QWidget *parent)
 
 
     connect(ui->actionEditor_settings, &QAction::triggered, this, &editor_main::OnOpenSettings);
+
+    connect(ui->ClearConsoleButton, &QPushButton::clicked, ui->consoleMessages, &console_messages_widget::ClearConsole);
 }
 
 

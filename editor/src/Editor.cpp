@@ -26,7 +26,7 @@ void Editor::Init(int &argc, char **argv)
     m_app = new QApplication(argc, argv);
 
     QApplication::setStyle("fusion");
-    QFont editorFont("Century Gothic", 10);
+    QFont editorFont("Century Gothic", 12);
     QApplication::setFont(editorFont);
 
     m_editorMain = new editor::editor_main();

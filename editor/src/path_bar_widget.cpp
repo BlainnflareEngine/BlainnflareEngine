@@ -19,7 +19,7 @@ path_bar_widget::path_bar_widget(QWidget *parent)
 
     m_layout = new QHBoxLayout();
     m_layout->setSpacing(0);
-    m_layout->setContentsMargins(5, 5, 5, 5);
+    m_layout->setContentsMargins(0, 0, 0, 0);
     setLayout(m_layout);
 }
 
@@ -75,13 +75,12 @@ void path_bar_widget::UpdatePath()
     {
         if (i > 0)
         {
-            QLabel *arrow = new QLabel(">", this);
+            QLabel *arrow = new QLabel("/", this);
             m_layout->addWidget(arrow);
         }
 
         QPushButton *button = new QPushButton(segments[i], this);
-        button->setFlat(true);
-        button->setStyleSheet("QPushButton { text-align: left; padding: 2px; }");
+        button->setFlat(false);
 
         cumulativePath = cumulativePath.isEmpty() ? segments[i] : cumulativePath + "/" + segments[i];
 
