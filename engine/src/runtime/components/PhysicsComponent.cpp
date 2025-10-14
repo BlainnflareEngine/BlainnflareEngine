@@ -1,15 +1,15 @@
+#include "runtime/components/PhysicsComponent.h"
 #include "pch.h"
-#include "runtime/physics/PhysicsComponent.h"
+
 
 #include "Jolt/Jolt.h"
 #include "Jolt/Physics/EActivation.h"
 
 #include "runtime/physics/BodyBuilder.h"
-#include "runtime/physics/PhysicsComponent.h"
 
 using namespace Blainn;
 
-PhysicsComponent::PhysicsComponent(uuid parentId, uuid componentId, BodyBuilder &builder)
+PhysicsComponent::PhysicsComponent(const uuid &parentId, const uuid &componentId, BodyBuilder &builder)
 {
     m_parentId = parentId;
     m_id = componentId;
@@ -17,7 +17,7 @@ PhysicsComponent::PhysicsComponent(uuid parentId, uuid componentId, BodyBuilder 
     m_bodyId = builder.Build();
 }
 
-uuid PhysicsComponent::GetId() const
+const uuid &PhysicsComponent::GetId() const
 {
     return m_id;
 }
