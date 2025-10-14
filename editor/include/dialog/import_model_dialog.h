@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include "../../../common/ImportModelData.h"
 #include "dialog/import_asset_dialog.h"
-#include "include/ImportModelData.h"
 
 class QCheckBox;
 namespace editor

@@ -7,7 +7,7 @@
 #include "../../include/dialog/create_material_dialog.h"
 #include "Editor.h"
 #include "FileSystemUtils.h"
-#include "IdGenerator.h"
+#include "random.h"
 
 #include <QInputDialog>
 #include <QMenu>
@@ -90,7 +90,7 @@ void ContentContextMenu::CreateMaterial(const QString &dirPath) const
         QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
 
         // These are relative paths, you can restore full path with content folder path
-        config["ID"] = Blainn::GenerateID().str();
+        config["ID"] = Blainn::Rand::getRandomUUID().str();
         config["Path"] = ToString(dir.relativeFilePath(filePath));
         config["ShaderPath"] = ToString(dir.relativeFilePath(materialDialog.GetShaderPath()));
         config["AlbedoPath"] = ToString(dir.relativeFilePath(materialDialog.GetAlbedoPath()));

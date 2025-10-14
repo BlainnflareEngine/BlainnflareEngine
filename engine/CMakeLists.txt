@@ -12,6 +12,10 @@ set(ENGINE_SOURCES
         src/subsystems/Log.cpp
         include/tools/Profiler.h
         include/subsystems/Log.h
+        src/runtime/physics/BodyBuilder.cpp
+        src/runtime/physics/ContactListenerImpl.cpp
+        src/runtime/components/PhysicsComponent.cpp
+        src/runtime/physics/ShapeFactory.cpp
         src/subsystems/AssetManager.cpp
         include/subsystems/AssetManager.h
         src/subsystems/AssetLoader.cpp
@@ -34,13 +38,14 @@ add_library(ENGINE STATIC ${ENGINE_SOURCES})
 source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${ENGINE_SOURCES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-        ${JobSystem_DIR}/include
-        ${TracyClient_DIR}/public
-        ${spdlog_DIR}/include
-        ${Blain_common_dir}
-        ${CMAKE_SOURCE_DIR}/common/include
-        ${CMAKE_SOURCE_DIR}/common/src
+        "${PROJECT_SOURCE_DIR}/include"
+        "${JobSystem_DIR}/include"
+        "${TracyClient_DIR}/public"
+        "${spdlog_DIR}/include"
+        "${Blain_common_dir}"
+        "${CMAKE_SOURCE_DIR}/common"
+        "${Entt_DIR}/single_include"/include
+        ${CMAKE_SOURCE_DIR}/common
 )
 
 

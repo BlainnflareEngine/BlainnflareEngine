@@ -44,10 +44,8 @@ inline void *operator new[](size_t size, size_t alignment, size_t alignmentOffse
 #include <uuid_v4.h>
 #include <yaml-cpp/yaml.h>
 
-#include "Log.h"
-#include "Profiler.h"
-#include "aliases.h"
-
+#include "subsystems/Log.h"
+#include "tools/Profiler.h"
 
 inline eastl::string ToEASTLString(const std::string &s)
 {

@@ -2,11 +2,12 @@
 // Created by gorev on 21.09.2025.
 //
 
-#include "../include/Editor.h"
+#include "Editor.h"
 #include "ui_editor_main.h"
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>
+#include <QApplication>
 
 namespace Blainn
 {
@@ -18,12 +19,12 @@ Editor &Editor::GetInstance()
 }
 
 
-void Editor::Init(int &argc, char **argv)
+void Editor::Init(int argc, char **argv)
 {
     using namespace std::filesystem;
-    qRegisterMetaType<editor::LogMessage>("LogMessage");
-
     m_app = new QApplication(argc, argv);
+
+    qRegisterMetaType<editor::LogMessage>("LogMessage");
 
     QApplication::setStyle("fusion");
     QFont editorFont("Century Gothic", 12);

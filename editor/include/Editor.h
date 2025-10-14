@@ -4,6 +4,7 @@
 
 #pragma once
 #include "EditorSink.h"
+#include "aliases.h"
 #include "editor_main.h"
 
 
@@ -18,7 +19,7 @@ class Editor
 public:
     static Editor &GetInstance();
 
-    void Init(int &argc, char **argv);
+    void Init(int argc, char **argv);
     void Destroy();
 
     void Show() const;

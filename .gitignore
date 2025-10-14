@@ -44,6 +44,7 @@
 build/
 .vscode/
 .vs/
+[Cc]onfig/
 *.sln
 libs/*
 !libs/CMakeLists.txt

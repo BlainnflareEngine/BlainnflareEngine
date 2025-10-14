@@ -65,12 +65,13 @@ source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${EDITOR_SOURCES})
 
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-        ${PROJECT_SOURCE_DIR}/include/dialog
-        ${PROJECT_SOURCE_DIR}/src
-        ${PROJECT_SOURCE_DIR}/ui
-        ${PROJECT_SOURCE_DIR}/ui/import
-        ${CMAKE_SOURCE_DIR}/common
+        "${PROJECT_SOURCE_DIR}/include"
+        "${PROJECT_SOURCE_DIR}/include/dialog"
+        "${PROJECT_SOURCE_DIR}/src"
+        "${PROJECT_SOURCE_DIR}/ui"
+        "${PROJECT_SOURCE_DIR}/ui/import"
+        "${CMAKE_SOURCE_DIR}/common"
+        "${Entt_DIR}/single_include"
 )
 
 target_link_libraries(EDITOR
