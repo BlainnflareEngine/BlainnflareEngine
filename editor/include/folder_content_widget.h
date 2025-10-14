@@ -5,13 +5,17 @@
 #ifndef FOLDER_CONTENT_WIDGET_H
 #define FOLDER_CONTENT_WIDGET_H
 
-#include "ContextMenu/ContentContextMenu.h"
-#include "ContextMenu/FileContextMenu.h"
+#include "context-menu/ContentContextMenu.h"
+#include "context-menu/FileContextMenu.h"
 #include "folder_content_list_view.h"
 
 #include <QPointer>
 #include <QWidget>
 
+namespace editor
+{
+class IconProvider;
+}
 class QVBoxLayout;
 class QFileSystemModel;
 class QListView;
@@ -53,6 +57,7 @@ private:
     QVBoxLayout *m_layout;
     ContentContextMenu *m_contentContextMenu;
     FileContextMenu *m_fileContextMenu;
+    IconProvider *m_iconProvider;
 };
 } // namespace editor
 

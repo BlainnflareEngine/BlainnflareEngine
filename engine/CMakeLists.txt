@@ -16,6 +16,21 @@ set(ENGINE_SOURCES
         src/runtime/physics/ContactListenerImpl.cpp
         src/runtime/components/PhysicsComponent.cpp
         src/runtime/physics/ShapeFactory.cpp
+        src/subsystems/AssetManager.cpp
+        include/subsystems/AssetManager.h
+        src/subsystems/AssetLoader.cpp
+        include/subsystems/AssetLoader.h
+        src/file-system/Material.cpp
+        include/file-system/Material.h
+        include/handles/Handle.h
+        src/file-system/Texture.cpp
+        src/file-system/Material.cpp
+        src/handles/Handle.cpp
+        src/file-system/FileSystemObject.cpp
+        include/file-system/FileSystemObject.h
+        include/file-system/Texture.h
+        src/file-system/Model.cpp
+        include/file-system/Model.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
@@ -29,7 +44,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${spdlog_DIR}/include"
         "${Blain_common_dir}"
         "${CMAKE_SOURCE_DIR}/common"
-        "${Entt_DIR}/single_include"
+        "${Entt_DIR}/single_include"/include
+        ${CMAKE_SOURCE_DIR}/common
 )
 
 
@@ -38,7 +54,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         DirectXTK12
         Jolt
         ozz_animation
-        assimp
+        assimp::assimp
         TracyClient
         spdlog
         pch

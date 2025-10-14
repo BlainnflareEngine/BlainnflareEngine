@@ -6,6 +6,7 @@
 
 #include "folder_content_list_view.h"
 
+#include "../include/dialog/import_asset_dialog.h"
 #include "FileSystemUtils.h"
 #include "ui_folder_content_list_view.h"
 
@@ -79,9 +80,15 @@ void folder_content_list_view::dropEvent(QDropEvent *event)
         // TODO: get content folder path from editor config file
         if (!WasInFolderBefore(srcPath, QDir::currentPath().append("/Content")))
         {
-            QMessageBox msgBox;
-            msgBox.setText("There was no such file in project before. Need to import this file.");
-            msgBox.exec();
+            ImportAssetInfo info;
+            info.originalPath = srcPath;
+            info.destinationPath = targetPath + QDir::separator() + url.fileName();
+            import_asset_dialog *dialog = GetImportAssetDialog(info);
+            dialog->exec();
+
+            if (dialog->result() == QDialog::Accepted)
+                QFile::copy(info.originalPath, info.destinationPath);
+
         }
         else
         {

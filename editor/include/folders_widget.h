@@ -5,11 +5,10 @@
 #ifndef FOLDERS_WIDGET_H
 #define FOLDERS_WIDGET_H
 
-#include "ContextMenu/FileContextMenu.h"
+#include "context-menu/FileContextMenu.h"
 #include "folders_tree_view.h"
 
 
-#include <EASTL/unique_ptr.h>
 #include <QWidget>
 #include <qdir.h>
 
@@ -20,6 +19,7 @@ class QVBoxLayout;
 
 namespace editor
 {
+class IconProvider;
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
@@ -55,6 +55,7 @@ private:
     QFileSystemModel *m_fileSystemModel;
     QVBoxLayout *m_layout;
     FileContextMenu *m_fileContextMenu;
+    IconProvider *m_iconProvider;
 };
 } // namespace editor
 

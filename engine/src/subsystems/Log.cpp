@@ -45,5 +45,11 @@ namespace Blainn
         spdlog::shutdown();
     }
 
-}
+
+    void Log::AddSink(const std::shared_ptr<spdlog::sinks::base_sink<std::mutex>> &sink, const std::string &pattern)
+    {
+        s_Logger->sinks().push_back(sink);
+        s_Logger->sinks().back()->set_pattern(pattern);
+    }
+    }
 

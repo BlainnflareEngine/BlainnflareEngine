@@ -2,7 +2,7 @@
 // Created by gorev on 24.09.2025.
 //
 
-#include "ContextMenu/FileContextMenu.h"
+#include "context-menu/FileContextMenu.h"
 
 #include "EASTL/unique_ptr.h"
 #include "FileSystemUtils.h"
@@ -32,7 +32,7 @@ void FileContextMenu::FileContext(const QPoint &pos, const QString &path) const
     QAction *selectedAction = menu.exec(m_parent.viewport()->mapToGlobal(pos));
 
     if (selectedAction == openAction) OpenFileExternal(path);
-    else if (selectedAction == deleteAction) DeleteFile(path);
+    else if (selectedAction == deleteAction) BDeleteFile(path);
     else if (selectedAction == showExplorerAction) OpenFileExplorer(path);
 }
 
