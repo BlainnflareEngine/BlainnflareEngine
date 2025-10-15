@@ -6,11 +6,15 @@
 #include "aliases.h"
 #include "EASTL/string.h"
 #include "EASTL/string_view.h"
+#include "EASTL/unordered_map.h"
+#include "Entity.h"
 #include "entt/entt.hpp"
 
 
 namespace Blainn
 {
+
+    using EntityMap = eastl::unordered_map<uuid, Entity>;
     class Scene
     {
     public:
@@ -33,8 +37,37 @@ namespace Blainn
         void OnRuntimeStop();
 
         void SetViewportSize(uint32_t width, uint32_t height);
+        uint32_t GetViewportWidth() const { return m_ViewportWidth; }
+        uint32_t GetViewportHeight() const { return m_ViewportHeight; }
 
-        entt::entity CreateEntity(const eastl::string& name = "");
+        Entity CreateEntity(const eastl::string& name = "");
+        Entity CreateChildEntity(Entity parent, const eastl::string& name = "");
+        Entity CreateEntityWithID(uuid id, const eastl::string& name = "", bool shouldSort = true);
+        void SubmitToDestroyEntity(Entity entity);
+        void DestroyEntity(Entity entity, bool excludeChildren = false, bool first = true);
+        void DestroyEntity(uuid entityID, bool excludeChildren = false, bool first = true);
+
+        Entity GetEntityWithUUID(uuid id) const;
+        Entity TryGetEntityWithUUID(uuid id) const;
+        Entity TryGetEntityWithTag(const eastl::string& tag) const;
+        Entity TryGetDescendantEntityWithTag(Entity entity, const eastl::string& tag) const;
+
+        template<typename... Components>
+        auto GetAllEntitiesWith()
+        {
+            return m_Registry.view<Components...>();
+        }
+
+        void ParentEntity(Entity entity, Entity parent);
+        void UnparentEntity(Entity entity, bool convertToWorldSpace = true);
+
+        Entity DuplicateEntity(Entity entity);
+
+        void SortEntities();
+
+        // prefabs would be cool
+        // Entity CreatePrefabEntity(Entity entity, Entity parent /* and so on */);
+
     private:
         uuid m_SceneID;
         entt::entity m_SceneEntity{entt::null};
@@ -44,11 +77,16 @@ namespace Blainn
         bool m_IsEditorScene{false};
         uint32_t m_ViewportWidth{0}, m_ViewportHeight{0};
 
+        EntityMap m_EntityIdMap;
+
 /*
  *      we would hold the lights here
  *      Cherno does it with LightEnvironment struct where all the lights are stored.
  *      He also separately stores the main dir light which casts the shadows.
  */
 
+        friend class Entity;
     };
 }
+
+#include "EntityTemplates.h"
