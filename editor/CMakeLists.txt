@@ -9,7 +9,8 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS
         "${CMAKE_CURRENT_SOURCE_DIR}/ui"
-        "${CMAKE_CURRENT_SOURCE_DIR}/ui/dialog")
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui/dialog"
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui/inspector")
 
 find_package(Qt6 COMPONENTS
         Core
@@ -57,7 +58,22 @@ set(EDITOR_SOURCES
         include/EditorSink.h
         src/console_messages_widget.cpp
         include/console_messages_widget.h
-        ui/console_messages_widget.ui)
+        ui/console_messages_widget.ui
+        src/inspector/inspector_content_base.cpp
+        include/inspector/inspector_content_base.h
+        ui/inspector/inspector_content_base.ui
+        src/inspector/browser_item_inspector_content.cpp
+        include/inspector/browser_item_inspector_content.h
+        ui/inspector/browser_item_inspector_content.ui
+        src/inspector/material_inspector_content.cpp
+        include/inspector/material_inspector_content.h
+        ui/inspector/material_inspector_content.ui
+        src/InspectorFabric.cpp
+        include/InspectorFabric.h
+        src/inspector/inspector_widget.cpp
+        include/inspector/inspector_widget.h
+        ui/inspector/inspector_widget.ui
+)
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
 
@@ -67,9 +83,11 @@ source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${EDITOR_SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC
         "${PROJECT_SOURCE_DIR}/include"
         "${PROJECT_SOURCE_DIR}/include/dialog"
+        "${PROJECT_SOURCE_DIR}/include/inspector"
         "${PROJECT_SOURCE_DIR}/src"
         "${PROJECT_SOURCE_DIR}/ui"
         "${PROJECT_SOURCE_DIR}/ui/import"
+        "${PROJECT_SOURCE_DIR}/ui/inspector"
         "${CMAKE_SOURCE_DIR}/common"
         "${Entt_DIR}/single_include"
 )

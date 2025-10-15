@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1920</width>
+    <width>1784</width>
     <height>1080</height>
    </rect>
   </property>
@@ -357,7 +357,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="m_inspector" native="true">
+       <widget class="QWidget" name="m_inspector_tabs" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>1</horstretch>
@@ -388,6 +388,9 @@
          </property>
          <item>
           <widget class="QTabWidget" name="tabWidget_3">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>1</horstretch>
@@ -410,6 +413,9 @@
             <bool>false</bool>
            </property>
            <widget class="QWidget" name="inspectorTab">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>1</horstretch>
@@ -419,6 +425,25 @@
             <attribute name="title">
              <string>Inspector</string>
             </attribute>
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <item>
+              <widget class="inspector_widget" name="m_inspector">
+               <property name="widgetResizable">
+                <bool>true</bool>
+               </property>
+               <widget class="QWidget" name="scrollAreaWidgetContents">
+                <property name="geometry">
+                 <rect>
+                  <x>0</x>
+                  <y>0</y>
+                  <width>320</width>
+                  <height>780</height>
+                 </rect>
+                </property>
+               </widget>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </widget>
          </item>
@@ -613,7 +638,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1920</width>
+     <width>1784</width>
      <height>33</height>
     </rect>
    </property>
@@ -673,6 +698,12 @@
    <class>console_messages_widget</class>
    <extends>QPlainTextEdit</extends>
    <header>console_messages_widget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>inspector_widget</class>
+   <extends>QScrollArea</extends>
+   <header>inspector_widget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

@@ -5,9 +5,9 @@
 #include "Editor.h"
 #include "ui_editor_main.h"
 
+#include <QApplication>
 #include <fstream>
 #include <yaml-cpp/yaml.h>
-#include <QApplication>
 
 namespace Blainn
 {
@@ -82,6 +82,12 @@ void Editor::Update() const
 Path &Editor::GetContentDirectory()
 {
     return m_contentDirectory;
+}
+
+
+editor::inspector_widget &Editor::GetInspector() const
+{
+    return m_editorMain->GetInspectorWidget();
 }
 
 
