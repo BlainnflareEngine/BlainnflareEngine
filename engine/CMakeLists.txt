@@ -18,6 +18,10 @@ set(ENGINE_SOURCES
         src/runtime/physics/ShapeFactory.cpp
         include/scene/Scene.h
         src/scene/Scene.cpp
+        include/scene/Entity.h
+        src/scene/Entity.cpp
+        include/scene/BasicComponents.h
+        include/scene/EntityTemplates.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})

@@ -46,7 +46,11 @@ set(EDITOR_SOURCES
         ui/folders_widget.ui
         ui/import_asset_dialog.ui
         ../engine/include/scene/Scene.h
-        ../engine/src/scene/Scene.cpp)
+        ../engine/src/scene/Scene.cpp
+        ../engine/include/scene/Entity.h
+        ../engine/src/scene/Entity.cpp
+        ../engine/include/scene/BasicComponents.h
+        ../engine/include/scene/EntityTemplates.h)
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
 
