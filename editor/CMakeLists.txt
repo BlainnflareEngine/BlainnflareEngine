@@ -50,7 +50,8 @@ set(EDITOR_SOURCES
         ../engine/include/scene/Entity.h
         ../engine/src/scene/Entity.cpp
         ../engine/include/scene/BasicComponents.h
-        ../engine/include/scene/EntityTemplates.h)
+        ../engine/include/scene/EntityTemplates.h
+)
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
 
@@ -66,6 +67,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${PROJECT_SOURCE_DIR}/src"
         "${PROJECT_SOURCE_DIR}/ui"
         "${CMAKE_SOURCE_DIR}/common"
+        "${CMAKE_SOURCE_DIR}/libs/"
         "${Entt_DIR}/single_include"
 )
 

@@ -4,6 +4,7 @@
 
 #pragma once
 #include "aliases.h"
+#include "concurrentqueue.h"
 #include "EASTL/string.h"
 #include "EASTL/string_view.h"
 #include "EASTL/unordered_map.h"
@@ -42,14 +43,14 @@ namespace Blainn
 
         Entity CreateEntity(const eastl::string& name = "");
         Entity CreateChildEntity(Entity parent, const eastl::string& name = "");
-        Entity CreateEntityWithID(uuid id, const eastl::string& name = "", bool shouldSort = true);
+        Entity CreateEntityWithID(const uuid& id, const eastl::string& name = "", bool shouldSort = true);
         void SubmitToDestroyEntity(Entity entity);
         void DestroyEntity(Entity entity, bool excludeChildren = false, bool first = true);
-        void DestroyEntity(uuid entityID, bool excludeChildren = false, bool first = true);
+        void DestroyEntity(const uuid& entityID, bool excludeChildren = false, bool first = true);
 
-        Entity GetEntityWithUUID(uuid id) const;
-        Entity TryGetEntityWithUUID(uuid id) const;
-        Entity TryGetEntityWithTag(const eastl::string& tag) const;
+        Entity GetEntityWithUUID(const uuid& id) const;
+        Entity TryGetEntityWithUUID(const uuid& id) const;
+        Entity TryGetEntityWithTag(const eastl::string& tag);
         Entity TryGetDescendantEntityWithTag(Entity entity, const eastl::string& tag) const;
 
         template<typename... Components>
@@ -63,10 +64,17 @@ namespace Blainn
 
         Entity DuplicateEntity(Entity entity);
 
-        void SortEntities();
-
         // prefabs would be cool
         // Entity CreatePrefabEntity(Entity entity, Entity parent /* and so on */);
+
+    private:
+        void SortEntities();
+
+        template<typename Fn>
+        void SubmitPostUpdateFunc(Fn&& func)
+        {
+            m_PostUpdateQueue.enqueue(func);
+        }
 
     private:
         uuid m_SceneID;
@@ -78,6 +86,8 @@ namespace Blainn
         uint32_t m_ViewportWidth{0}, m_ViewportHeight{0};
 
         EntityMap m_EntityIdMap;
+
+        moodycamel::ConcurrentQueue<eastl::function<void()>> m_PostUpdateQueue;
 
 /*
  *      we would hold the lights here
