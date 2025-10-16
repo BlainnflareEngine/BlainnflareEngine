@@ -98,6 +98,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 target_include_directories(${PROJECT_NAME} PUBLIC
         "${ENGINE_DIR}"
         "${EDITOR_DIR}"
+        "${CMAKE_SOURCE_DIR}/libs"
         "${LIBS_DIR}"
         "${JobSystem_DIR}/include"
         "${TracyClient_DIR}/public"

@@ -30,12 +30,14 @@ source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${ENGINE_SOURCES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         "${PROJECT_SOURCE_DIR}/include"
+        "${CMAKE_SOURCE_DIR}/libs/"
         "${JobSystem_DIR}/include"
         "${TracyClient_DIR}/public"
         "${spdlog_DIR}/include"
         "${Blain_common_dir}"
         "${CMAKE_SOURCE_DIR}/common"
         "${Entt_DIR}/single_include"
+        "${CMAKE_SOURCE_DIR}/libs/concurrentqueue"
 )
 
 

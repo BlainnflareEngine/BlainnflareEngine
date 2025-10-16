@@ -109,6 +109,8 @@ private:
     Scene* m_Scene;
 
     inline static eastl::string s_NoName{"unnamed"};
+
+    friend class Scene;
 };
 }
 

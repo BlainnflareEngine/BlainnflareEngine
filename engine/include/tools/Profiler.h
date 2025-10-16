@@ -29,10 +29,10 @@
  *
  * BLAINN_PROFILE_THREAD assigns a name to a thread
  */
-#define BLAINN_PROFILE_FUNC(...)            ZoneScoped##__VA_OPT__(N(__VA_ARGS__))
-#define BLAINN_PROFILE_SCOPE(...)           BLAINN_PROFILE_FUNC(__VA_ARGS__)
-#define BLAINN_PROFILE_SCOPE_DYNAMIC(NAME)  ZoneScoped; ZoneName(NAME, strlen(NAME))
-#define BLAINN_PROFILE_THREAD(...)          tracy::SetThreadName(__VA_ARGS__);
+#define BLAINN_PROFILE_FUNC(...)            //ZoneScoped##__VA_OPT__(N(__VA_ARGS__))
+#define BLAINN_PROFILE_SCOPE(...)           //BLAINN_PROFILE_FUNC(__VA_ARGS__)
+#define BLAINN_PROFILE_SCOPE_DYNAMIC(NAME)  //ZoneScoped; ZoneName(NAME, strlen(NAME))
+#define BLAINN_PROFILE_THREAD(...)          //tracy::SetThreadName(__VA_ARGS__);
 
 #else
 
