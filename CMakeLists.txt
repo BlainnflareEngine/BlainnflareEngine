@@ -51,6 +51,7 @@ add_subdirectory(libs/spdlog)
 add_subdirectory(libs/tracy)
 add_subdirectory(libs/sol2)
 add_subdirectory(libs/yaml-cpp)
+add_subdirectory(libs/qlementine)
 
 set (BUILD_TESTING OFF)
 add_subdirectory(libs/DIRECTXTK12)
@@ -133,7 +134,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${QT_INSTALL_PATH}/plugins/platforms"
             "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
-    foreach (QT_LIB Core Gui Widgets)
+    foreach (QT_LIB Core Gui Widgets Svg)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy
                 "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"

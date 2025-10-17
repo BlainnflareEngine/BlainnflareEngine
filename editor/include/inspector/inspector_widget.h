@@ -34,8 +34,6 @@ public:
 private:
     Ui::inspector_widget *ui;
 
-    QVBoxLayout *m_layout;
-    QWidget *m_root;
     QWidget *m_item;
     bool m_locked = false;
 };

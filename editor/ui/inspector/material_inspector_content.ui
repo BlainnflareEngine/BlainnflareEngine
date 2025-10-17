@@ -32,7 +32,10 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Name</string>
+      <string>## Name</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::TextFormat::MarkdownText</enum>
      </property>
     </widget>
    </item>
@@ -73,7 +76,10 @@
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Shader</string>
+         <string>### Shader</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::TextFormat::MarkdownText</enum>
         </property>
        </widget>
       </item>
@@ -149,7 +155,10 @@
       <item>
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Albedo texture</string>
+         <string>### Albedo texture</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::TextFormat::MarkdownText</enum>
         </property>
        </widget>
       </item>
@@ -225,7 +234,10 @@
       <item>
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Normal texture</string>
+         <string>### Normal texture</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::TextFormat::MarkdownText</enum>
         </property>
        </widget>
       </item>
@@ -301,7 +313,10 @@
       <item>
        <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>Metallic texture</string>
+         <string>### Metallic texture</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::TextFormat::MarkdownText</enum>
         </property>
        </widget>
       </item>
@@ -377,7 +392,10 @@
       <item>
        <widget class="QLabel" name="label_5">
         <property name="text">
-         <string>Roughness texture</string>
+         <string>### Roughness texture</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::TextFormat::MarkdownText</enum>
         </property>
        </widget>
       </item>
@@ -453,7 +471,10 @@
       <item>
        <widget class="QLabel" name="label_6">
         <property name="text">
-         <string>Ambient occlusion texture</string>
+         <string>### Ambient occlusion texture</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::TextFormat::MarkdownText</enum>
         </property>
        </widget>
       </item>

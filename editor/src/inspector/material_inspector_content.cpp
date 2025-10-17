@@ -8,6 +8,7 @@
 
 #include "Editor.h"
 #include "FileSystemUtils.h"
+#include "LabelsUtils.h"
 #include "ui_material_inspector_content.h"
 
 #include "qfileinfo.h"
@@ -22,7 +23,8 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
     ui->setupUi(this);
 
     YAML::Node node = YAML::LoadFile(ToString(file));
-    ui->Name->setText(QFileInfo(file).fileName());
+    ui->Name->setTextFormat(Qt::MarkdownText);
+    ui->Name->setText(ToHeader2(QFileInfo(file).completeBaseName()));
 
     ui->Shader->setText(GetPathString(node["ShaderPath"].as<std::string>()));
     ui->Albedo->setText(GetPathString(node["AlbedoPath"].as<std::string>()));
@@ -34,7 +36,8 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
     connect(ui->BrowseShader, &QPushButton::clicked, this,
             [&]()
             {
-                SelectFile(*ui->Shader, Filters::ShaderFilter, QString::fromStdString(Blainn::Editor::GetInstance().GetContentDirectory().string()));
+                SelectFile(*ui->Shader, Filters::ShaderFilter,
+                           QString::fromStdString(Blainn::Editor::GetInstance().GetContentDirectory().string()));
                 QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
                 SetValueYAML(ToString(m_file), "ShaderPath", ToString(dir.relativeFilePath(ui->Shader->text())));
             });

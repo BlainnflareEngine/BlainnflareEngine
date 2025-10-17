@@ -7,6 +7,7 @@
 #include "folder_content_widget.h"
 
 #include "../include/context-menu/ContentContextMenu.h"
+#include "ContentDelegate.h"
 #include "Editor.h"
 #include "FileSystemUtils.h"
 #include "IconProvider.h"
@@ -18,7 +19,6 @@
 #include <QListView>
 #include <QMimeData>
 #include <iostream>
-#include <qevent.h>
 #include <qlayout.h>
 
 namespace editor
@@ -38,11 +38,9 @@ folder_content_widget::folder_content_widget(QWidget *parent)
     m_listView = new folder_content_list_view(this);
     m_listView->setModel(m_fileSystemModel);
     m_listView->setViewMode(QListView::IconMode);
-    m_listView->setResizeMode(QListView::Adjust);
-    m_listView->setGridSize(QSize(100, 100));
-    m_listView->setIconSize(QSize(55, 55));
     m_listView->setContextMenuPolicy(Qt::CustomContextMenu);
     m_listView->setContentsMargins(10, 10, 10, 10);
+    m_listView->setItemDelegate(new ContentDelegate(ContentDelegate::Elide, m_listView));
 
     m_layout = new QVBoxLayout(this);
     layout()->setContentsMargins(0, 0, 0, 0);

@@ -7,6 +7,7 @@
 
 #include <QApplication>
 #include <fstream>
+#include <oclero/qlementine.hpp>
 #include <yaml-cpp/yaml.h>
 
 namespace Blainn
@@ -26,9 +27,10 @@ void Editor::Init(int argc, char **argv)
 
     qRegisterMetaType<editor::LogMessage>("LogMessage");
 
-    QApplication::setStyle("fusion");
-    QFont editorFont("Century Gothic", 12);
-    QApplication::setFont(editorFont);
+    auto *style = new oclero::qlementine::QlementineStyle(m_app);
+    style->setThemeJsonPath(":/themes/dark.json");
+    style->animationsEnabled();
+    QApplication::setStyle(style);
 
     m_editorMain = new editor::editor_main();
 

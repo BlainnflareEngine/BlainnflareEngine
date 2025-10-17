@@ -17,8 +17,10 @@ inspector_widget::inspector_widget(QWidget *parent)
 {
     ui->setupUi(this);
 
-    m_root = new QWidget();
-    m_layout = new QVBoxLayout(m_root);
+    setWidget(new QWidget());
+
+    setAutoFillBackground(false);
+    //setStyleSheet("background-color: #2D2D2D");
 }
 
 

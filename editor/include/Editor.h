@@ -10,7 +10,6 @@
 
 
 #include <QApplication>
-#include <QPointer>
 
 namespace Blainn
 {

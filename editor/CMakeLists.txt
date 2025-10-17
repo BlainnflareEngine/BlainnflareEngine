@@ -16,6 +16,7 @@ find_package(Qt6 COMPONENTS
         Core
         Gui
         Widgets
+        Svg
         REQUIRED)
 
 qt6_add_resources(RESOURCES sources.qrc)
@@ -73,6 +74,9 @@ set(EDITOR_SOURCES
         src/inspector/inspector_widget.cpp
         include/inspector/inspector_widget.h
         ui/inspector/inspector_widget.ui
+        include/LabelsUtils.h
+        src/ContentDelegate.cpp
+        include/ContentDelegate.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
@@ -96,8 +100,10 @@ target_link_libraries(EDITOR
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        Qt6::Svg
         pch
         ENGINE
+        qlementine
 )
 
 
