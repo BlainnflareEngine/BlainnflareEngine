@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "EASTL/optional.h"
 #include "EASTL/unordered_map.h"
 #include "EASTL/vector.h"
 
@@ -12,7 +13,6 @@
 namespace JPH
 {
 class JobSystem;
-class RayCastResult;
 class TempAllocator;
 class PhysicsSystem;
 } // namespace JPH
@@ -22,6 +22,8 @@ namespace Blainn
 class BodyBuilder;
 class BPLayerInterfaceImpl;
 class ObjectVsBroadPhaseLayerFilterImpl;
+
+class RayCastResult;
 
 class PhysicsSubsystem
 {
@@ -46,7 +48,7 @@ public:
 
     // TODO: create multipleBodies?
 
-    // JPH::RayCastResult CastRay(Vec3 origin, Vec3 direction);
+    static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance);
 
     static JPH::PhysicsSystem &GetPhysicsSystem();
 
@@ -61,7 +63,7 @@ private:
 
     inline static bool m_isInitialized = false;
 
-    static eastl::unordered_map<uuid, PhysicsComponent> m_physicsComponents;
+    // static eastl::unordered_map<uuid, PhysicsComponent> m_physicsComponents;
     static eastl::vector<eastl::pair<uuid, PhysicsComponent>> m_physicsComponentCreationQueue;
 
     inline static constexpr uint32_t m_maxConcurrentJobs = 8;
