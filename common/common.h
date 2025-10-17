@@ -4,7 +4,11 @@
 
 #include "aliases.h"
 
-namespace Blainn 
+namespace Blainn
 {
-    inline static entt::registry& GetRegistry(){static entt::registry registry; return registry;};
-}
+inline static entt::registry &GetRegistry()
+{
+    static entt::registry registry;
+    return registry;
+};
+} // namespace Blainn

@@ -5,14 +5,10 @@
 #include <lua.hpp>
 #include <sol/sol.hpp>
 
+#include "subsystems/ScriptingSubsystem.h"
+
 namespace Blainn
 {
-enum class LuaScriptType
-{
-    FrameworkIntegration,
-    Custom
-};
-
 class LuaScript
 {
 public:
@@ -20,23 +16,43 @@ public:
     void Load(eastl::string_view scriptPath);
     bool IsLoaded() const;
 
-    LuaScriptType GetScriptType() const;
     const eastl::string &GetScriptPath() const;
 
     bool onStartCall();
     bool OnUpdateCall(float deltaTimeMs);
     bool OnDestroyCall();
-    bool CustomCall(eastl::string_view functionName = "");
+
+    template <typename... Args> bool CustomCall(eastl::string_view functionName = "", Args &&...args)
+    {
+        if (!m_isLoaded)
+        {
+            BF_ERROR("LuaScript::CustomCall: Script not loaded: " + m_scriptPath);
+            return false;
+        }
+
+        sol::protected_function customFunc = m_environment[functionName.data()];
+        if (!customFunc.valid())
+        {
+            BF_ERROR("LuaScript::CustomCall: Function " + eastl::string(functionName) + " not found in script "
+                     + m_scriptPath);
+            return false;
+        }
+        sol::protected_function_result result = customFunc(args...);
+        if (!result.valid())
+        {
+            sol::error err = result;
+            BF_ERROR("LuaScript::CustomCall: Error calling function " + eastl::string(functionName) + " in script "
+                     + m_scriptPath + "\nError: " + err.what());
+            return false;
+        }
+
+        return true;
+    }
 
 private:
     bool m_isLoaded = false;
-    LuaScriptType m_scriptType = LuaScriptType::FrameworkIntegration;
     eastl::string m_scriptPath;
     sol::load_result m_script;
-    sol::table m_env;
-
-    // debug checks
-    bool m_OnStartCalled = false;
-    bool m_OnDestroyCalled = false;
+    sol::environment m_environment;
 };
 } // namespace Blainn

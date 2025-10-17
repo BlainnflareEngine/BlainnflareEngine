@@ -5,8 +5,10 @@
 #include "VGJS.h"
 
 #include "aliases.h"
+#include "runtime/scripting/LuaScript.h" // TODO: remove test include
 #include "subsystems/Log.h"
 #include "subsystems/RenderSubsystem.h"
+#include "subsystems/ScriptingSubsystem.h"
 #include "tools/Profiler.h"
 
 
@@ -26,7 +28,7 @@ void Engine::Init()
     //   just to check that cmake is working
     Blainn::RenderSubsystem::Init();
 
-    Vec3 justToTest;
+    Blainn::ScriptingSubsystem::Init();
 }
 
 void Engine::Shutdown()
@@ -35,6 +37,20 @@ void Engine::Shutdown()
 
 void Engine::Run()
 {
+    // test scripting subsystem and scripts
+    std::cout << std::filesystem::current_path() << std::endl;
+    LuaScript testScript;
+    testScript.Load("C:/study/BlainnflareEngine/content/scripts/test1.lua");
+    testScript.onStartCall();
+    testScript.OnUpdateCall(16.67f);
+    testScript.OnDestroyCall();
+
+    LuaScript test2Script;
+    test2Script.Load("./content/scripts/test2.lua");
+    test2Script.onStartCall();
+    test2Script.OnUpdateCall(16.67f);
+    test2Script.OnDestroyCall();
+
     Timeline<eastl::chrono::milliseconds> sayMarioTimeline;
     sayMarioTimeline.Start();
 

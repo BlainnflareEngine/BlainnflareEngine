@@ -8,29 +8,20 @@ set(ENGINE_SOURCES
         src/Engine.cpp
         src/subsystems/RenderSubsystem.cpp
         src/subsystems/PhysicsSubsystem.cpp
-        src/subsystems/ScriptingSubsystem.cpp
+       src/subsystems/ScriptingSubsystem.cpp
         src/subsystems/Log.cpp
-        include/tools/Profiler.h
-        include/subsystems/Log.h
         src/runtime/physics/BodyBuilder.cpp
         src/runtime/physics/ContactListenerImpl.cpp
         src/runtime/components/PhysicsComponent.cpp
         src/runtime/physics/ShapeFactory.cpp
         src/subsystems/AssetManager.cpp
-        include/subsystems/AssetManager.h
         src/subsystems/AssetLoader.cpp
-        include/subsystems/AssetLoader.h
-        src/file-system/Material.cpp
-        include/file-system/Material.h
-        include/handles/Handle.h
         src/file-system/Texture.cpp
         src/file-system/Material.cpp
         src/handles/Handle.cpp
         src/file-system/FileSystemObject.cpp
-        include/file-system/FileSystemObject.h
-        include/file-system/Texture.h
         src/file-system/Model.cpp
-        include/file-system/Model.h
+        src/runtime/scripting/LuaScript.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
@@ -46,6 +37,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${CMAKE_SOURCE_DIR}/common"
         "${Entt_DIR}/single_include"/include
         "${LUA_INCLUDE_DIR}"
+        "${SOL2_INCLUDE_DIR}"
 )
 
 
