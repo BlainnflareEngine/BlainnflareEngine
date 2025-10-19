@@ -15,6 +15,7 @@ void ScriptingSubsystem::Init()
 
 void ScriptingSubsystem::Destroy()
 {
+    // TODO: unload all scripts
 }
 
 void Blainn::ScriptingSubsystem::Update(float deltaTimeMs)

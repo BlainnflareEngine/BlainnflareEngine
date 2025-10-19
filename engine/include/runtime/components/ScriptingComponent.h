@@ -1,11 +1,16 @@
 #pragma once
 
+#include <EASTL/vector.h>
+
+#include "aliases.h"
+#include "runtime/scripting/LuaScript.h"
 
 namespace Blainn
 {
-class ScriptingComponent
+struct ScriptingComponent
 {
-public:
-private:
+    uuid parentId;
+    uuid id;
+    eastl::vector<LuaScript> scripts;
 };
 } // namespace Blainn
