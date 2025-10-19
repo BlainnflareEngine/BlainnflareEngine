@@ -1,6 +1,6 @@
 #pragma once
 
-#include <EASTL/vector.h>
+#include <EASTL/unordered_map.h>
 
 #include "aliases.h"
 #include "runtime/scripting/LuaScript.h"
@@ -9,8 +9,10 @@ namespace Blainn
 {
 struct ScriptingComponent
 {
+    ScriptingComponent(const uuid &parentUuidIn)
+        : parentId(parentUuidIn) {};
+
     uuid parentId;
-    uuid id;
-    eastl::vector<LuaScript> scripts;
+    eastl::unordered_map<uuid, LuaScript> scripts;
 };
 } // namespace Blainn

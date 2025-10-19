@@ -72,13 +72,13 @@ void PhysicsSubsystem::Update(float deltaTimeMs)
         // lock no lock all bodies
         // for each body that has a physics component and transform component
         //   get body position and rotation and set transform position and rotation
-        entt::registry &registry = Blainn::GetRegistry();
-        auto view = registry.group<PhysicsComponent>();
-        for (auto entity : view)
-        {
-            PhysicsComponent &physComp = view.get<PhysicsComponent>(entity);
-            // TODO: do something?
-        }
+        // entt::registry &registry = Blainn::GetRegistry();
+        // auto view = registry.group<PhysicsComponent>();
+        // for (auto entity : view)
+        // {
+        //     PhysicsComponent &physComp = view.get<PhysicsComponent>(entity);
+        //     // TODO: do something?
+        // }
         //
         // TODO: create queued bodies
     }

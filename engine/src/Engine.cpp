@@ -37,20 +37,6 @@ void Engine::Shutdown()
 
 void Engine::Run()
 {
-    // test scripting subsystem and scripts
-    std::cout << std::filesystem::current_path() << std::endl;
-    LuaScript testScript;
-    testScript.Load("C:/study/BlainnflareEngine/content/scripts/test1.lua");
-    testScript.onStartCall();
-    testScript.OnUpdateCall(16.67f);
-    testScript.OnDestroyCall();
-
-    LuaScript test2Script;
-    test2Script.Load("./content/scripts/test2.lua");
-    test2Script.onStartCall();
-    test2Script.OnUpdateCall(16.67f);
-    test2Script.OnDestroyCall();
-
     Timeline<eastl::chrono::milliseconds> sayMarioTimeline;
     sayMarioTimeline.Start();
 

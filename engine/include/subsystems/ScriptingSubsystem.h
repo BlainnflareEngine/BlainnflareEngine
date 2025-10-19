@@ -1,10 +1,15 @@
 #pragma once
 
+#include <EASTL/optional.h>
+#include <EASTL/string.h>
+#include <EASTL/unordered_map.h>
+#include <entt/entt.hpp>
 #include <sol/sol.hpp>
 
-#include <entt/entt.hpp>
 
 #include "aliases.h"
+#include "scene/BasicComponents.h"
+#include "scene/Entity.h"
 
 namespace Blainn
 {
@@ -18,32 +23,41 @@ public:
 
     static sol::state &GetLuaState();
 
-    /// @brief
     /// @param path - ralative to cwd or absolute path
     static void SetLuaScriptsFolder(const eastl::string &path);
 
-    /// @brief
-    /// @param componentUuid - component uuid to attach to
     /// @param path - script path in scripts content folder
     /// @param callOnStart - call OnStart() script function. true by default
     /// @return returns loaded script uuid
-    static uuid LoadScript(const uuid &componentUuid, const eastl::string &path, bool callOnStart = true);
+    static eastl::optional<uuid> LoadScript(Entity entity, const eastl::string &path, bool callOnStart = true);
 
     /// @brief OnDestroy() script function called automatically
-    /// @param path - script path in scripts content folder
-    static void UnloadScript(const uuid &scriptUuid, const eastl::string &path);
+    static void UnloadScript(const uuid &scriptUuid);
 
-    /// @brief if function does not exist does nothing
-    static bool TryCallScriptFunction(const eastl::string &functionName);
-    /// @brief if function does not exist logs error
-    static bool CallScriptFunction(const eastl::string &functionName);
+    template <typename... Args>
+    static bool CallScriptFunction(const uuid &scriptUuid, const eastl::string &functionName, Args... args)
+    {
+        if (!m_scriptEntityConnections.contains(scriptUuid))
+        {
+            BF_ERROR("Script " + scriptUuid.str() + " function call error - no script");
+            return;
+        }
 
-    // TODO: replace entt entity with internal type
-    static uuid CreateAttachComponent(entt::entity entityId);
+        ScriptingComponent *component = m_scriptEntityConnections.at(scriptUuid).TryGetComponent<ScriptingComponent>();
+        if (!component)
+        {
+            BF_ERROR("Script" + scriptUuid.str() + " function call error - component not exist");
+            return;
+        }
 
-    static void DestroyComponent(const uuid &componentUuid);
-    // TODO: replace entt entity with internal type
-    static void DestroyComponents(entt::entity entityId);
+        if (!component->scripts.contains(scriptUuid))
+        {
+            BF_ERROR("Script" + scriptUuid.str() + " not contained in component");
+            return;
+        }
+
+        return component->scripts.at(scriptUuid).CustomCall(functionName, std::forward<Args>(args)...);
+    }
 
 private:
     ScriptingSubsystem() = delete;
@@ -53,9 +67,10 @@ private:
     ScriptingSubsystem &operator=(const ScriptingSubsystem &&) = delete;
 
     inline static bool m_isInitialized = false;
+    inline static sol::state m_lua = sol::state();
 
-    inline static sol::state lua = sol::state();
+    inline static eastl::string m_luaScriptsFolder = "content/scripts/";
 
-    eastl::string m_luaScriptsFolder = "content/scripts/";
+    static eastl::unordered_map<uuid, Entity> m_scriptEntityConnections;
 };
 } // namespace Blainn

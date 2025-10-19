@@ -12,13 +12,15 @@ namespace Blainn
 class LuaScript
 {
 public:
-    LuaScript() = default;
-    void Load(eastl::string_view scriptPath);
+    LuaScript();
+    bool Load(eastl::string_view scriptPath);
     bool IsLoaded() const;
 
     const eastl::string &GetScriptPath() const;
+    const uuid &GetId() const;
 
-    bool onStartCall();
+    bool HasFunction(const eastl::string &functionName);
+    bool OnStartCall();
     bool OnUpdateCall(float deltaTimeMs);
     bool OnDestroyCall();
 
@@ -33,11 +35,9 @@ public:
         sol::protected_function customFunc = m_environment[functionName.data()];
         if (!customFunc.valid())
         {
-            BF_ERROR("LuaScript::CustomCall: Function " + eastl::string(functionName) + " not found in script "
-                     + m_scriptPath);
             return false;
         }
-        sol::protected_function_result result = customFunc(args...);
+        sol::protected_function_result result = customFunc(std::forward<Args>(args)...);
         if (!result.valid())
         {
             sol::error err = result;
@@ -51,6 +51,7 @@ public:
 
 private:
     bool m_isLoaded = false;
+    uuid m_id;
     eastl::string m_scriptPath;
     sol::load_result m_script;
     sol::environment m_environment;

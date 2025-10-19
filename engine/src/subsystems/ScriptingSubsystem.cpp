@@ -1,14 +1,18 @@
 #include "subsystems/ScriptingSubsystem.h"
 
-#include "ScriptingSubsystem.h"
 #include <cassert>
+
+#include "ScriptingSubsystem.h"
+#include "runtime/components/ScriptingComponent.h"
+#include "scene/EntityTemplates.h"
+#include "tools/random.h"
 
 using namespace Blainn;
 
 void ScriptingSubsystem::Init()
 {
-    lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::string, sol::lib::table,
-                       sol::lib::os, sol::lib::io);
+    m_lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::string, sol::lib::table,
+                         sol::lib::os, sol::lib::io);
 
     m_isInitialized = true;
 }
@@ -18,12 +22,68 @@ void ScriptingSubsystem::Destroy()
     // TODO: unload all scripts
 }
 
-void Blainn::ScriptingSubsystem::Update(float deltaTimeMs)
+void ScriptingSubsystem::Update(float deltaTimeMs)
 {
     // TODO: implement
 }
 
 sol::state &ScriptingSubsystem::GetLuaState()
 {
-    return lua;
+    return m_lua;
+}
+void ScriptingSubsystem::SetLuaScriptsFolder(const eastl::string &path)
+{
+    m_luaScriptsFolder = path;
 };
+
+eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const eastl::string &path, bool callOnStart)
+{
+    ScriptingComponent *component = entity.TryGetComponent<ScriptingComponent>();
+    if (!component)
+    {
+        BF_ERROR("Script load error: entity " + entity.GetUUID().str() + "does not have scripting component");
+        return eastl::optional<uuid>();
+    }
+
+    eastl::string scriptLoadPath = m_luaScriptsFolder + path;
+    if (!std::filesystem::exists(scriptLoadPath.c_str()))
+    {
+        BF_ERROR("Script load error: script" + scriptLoadPath + "does not exist");
+        return eastl::optional<uuid>();
+    }
+
+    eastl::unordered_map<uuid, LuaScript> &scripts = component->scripts;
+    LuaScript luaScript;
+    if (!luaScript.Load(scriptLoadPath)) return eastl::optional<uuid>();
+    if (callOnStart) luaScript.OnStartCall();
+
+    uuid scriptUuid = luaScript.GetId();
+    scripts[scriptUuid] = std::move(luaScript);
+    m_scriptEntityConnections[scriptUuid] = entity;
+    return eastl::optional(eastl::move(scriptUuid));
+}
+
+void ScriptingSubsystem::UnloadScript(const uuid &scriptUuid)
+{
+    if (!m_scriptEntityConnections.contains(scriptUuid)) return;
+
+    ScriptingComponent *component = m_scriptEntityConnections.at(scriptUuid).TryGetComponent<ScriptingComponent>();
+    if (!component)
+    {
+        BF_ERROR("Script" + scriptUuid.str() + " unload error - component not exist");
+        return;
+    }
+
+    m_scriptEntityConnections.erase(scriptUuid);
+    eastl::unordered_map<uuid, LuaScript> &scripts = component->scripts;
+    if (scripts.contains(scriptUuid))
+    {
+        LuaScript &script = scripts.at(scriptUuid);
+        script.OnDestroyCall();
+        scripts.erase(scriptUuid);
+    }
+    else
+    {
+        BF_ERROR("Script" + scriptUuid.str() + " unload error - not found");
+    }
+}

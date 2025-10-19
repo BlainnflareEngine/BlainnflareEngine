@@ -2,10 +2,16 @@
 #include "pch.h"
 
 #include "subsystems/ScriptingSubsystem.h"
+#include "tools/random.h"
 
 using namespace Blainn;
 
-void LuaScript::Load(eastl::string_view scriptPath)
+LuaScript::LuaScript()
+{
+    m_id = Rand::getRandomUUID();
+}
+
+bool LuaScript::Load(eastl::string_view scriptPath)
 {
     m_scriptPath = scriptPath;
 
@@ -15,7 +21,7 @@ void LuaScript::Load(eastl::string_view scriptPath)
     {
         sol::error err = m_script;
         BF_ERROR("Failed to load Lua script: " + m_scriptPath + "\nError: " + err.what());
-        return;
+        return false;
     }
 
     m_environment = sol::environment(lua, sol::create, lua.globals());
@@ -25,10 +31,11 @@ void LuaScript::Load(eastl::string_view scriptPath)
     {
         sol::error err = result;
         BF_ERROR("Failed to execute Lua script: " + m_scriptPath + "\nError: " + err.what());
-        return;
+        return false;
     }
 
     m_isLoaded = true;
+    return true;
 }
 
 bool LuaScript::IsLoaded() const
@@ -41,7 +48,22 @@ const eastl::string &LuaScript::GetScriptPath() const
     return m_scriptPath;
 }
 
-bool LuaScript::onStartCall()
+const uuid &Blainn::LuaScript::GetId() const
+{
+    return m_id;
+}
+
+bool Blainn::LuaScript::HasFunction(const eastl::string &functionName)
+{
+    sol::protected_function customFunc = m_environment[functionName.data()];
+    if (!customFunc.valid())
+    {
+        return false;
+    }
+    return true;
+}
+
+bool LuaScript::OnStartCall()
 {
     return CustomCall("OnStart");
 }
