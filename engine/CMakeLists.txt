@@ -14,6 +14,12 @@ set(ENGINE_SOURCES
         src/runtime/physics/ContactListenerImpl.cpp
         src/runtime/components/PhysicsComponent.cpp
         src/runtime/physics/ShapeFactory.cpp
+        include/scene/Scene.h
+        src/scene/Scene.cpp
+        include/scene/Entity.h
+        src/scene/Entity.cpp
+        include/scene/BasicComponents.h
+        include/scene/EntityTemplates.h
         src/subsystems/AssetManager.cpp
         src/subsystems/AssetLoader.cpp
         src/file-system/Texture.cpp
@@ -30,12 +36,14 @@ source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${ENGINE_SOURCES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         "${PROJECT_SOURCE_DIR}/include"
+        "${CMAKE_SOURCE_DIR}/libs/"
         "${JobSystem_DIR}/include"
         "${TracyClient_DIR}/public"
         "${spdlog_DIR}/include"
         "${Blain_common_dir}"
         "${CMAKE_SOURCE_DIR}/common"
-        "${Entt_DIR}/single_include"/include
+        "${Entt_DIR}/single_include"
+        "${CMAKE_SOURCE_DIR}/libs/concurrentqueue"
         "${LUA_INCLUDE_DIR}"
         "${SOL2_INCLUDE_DIR}"
 )

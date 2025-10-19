@@ -2,7 +2,7 @@
 
 #include <uuid_v4.h>
 
-#include <SimpleMath.h>
+#include "DirectXTK12/inc/SimpleMath.h"
 
 #include <filesystem>
 
