@@ -47,14 +47,12 @@ set(EDITOR_SOURCES
         ui/folder_content_widget.ui
         ui/folders_tree_view.ui
         ui/folders_widget.ui
-        ui/import_asset_dialog.ui
         ../engine/include/scene/Scene.h
         ../engine/src/scene/Scene.cpp
         ../engine/include/scene/Entity.h
         ../engine/src/scene/Entity.cpp
         ../engine/include/scene/BasicComponents.h
         ../engine/include/scene/EntityTemplates.h
-)
         include/context-menu/ContentContextMenu.h
         include/context-menu/FileContextMenu.h
         include/dialog/import_model_dialog.h
