@@ -106,14 +106,16 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         EDITOR)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-        ${ENGINE_DIR}
-        ${EDITOR_DIR}
-        ${LIBS_DIR}
-        ${JobSystem_DIR}/include
-        ${TracyClient_DIR}/public
-        ${spdlog_DIR}/include
-        ${CMAKE_SOURCE_DIR}/common
-        ${uuid_v4_DIR}
+        "${ENGINE_DIR}"
+        "${EDITOR_DIR}"
+        "${CMAKE_SOURCE_DIR}/libs"
+        "${LIBS_DIR}"
+        "${JobSystem_DIR}/include"
+        "${TracyClient_DIR}/public"
+        "${spdlog_DIR}/include"
+        "${CMAKE_SOURCE_DIR}/common"
+        "${uuid_v4_DIR}"
+        "${Entt_DIR}/single_include"
         $<TARGET_PROPERTY:assimp::assimp,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
