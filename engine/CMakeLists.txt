@@ -22,6 +22,21 @@ set(ENGINE_SOURCES
         src/scene/Entity.cpp
         include/scene/BasicComponents.h
         include/scene/EntityTemplates.h
+        src/subsystems/AssetManager.cpp
+        include/subsystems/AssetManager.h
+        src/subsystems/AssetLoader.cpp
+        include/subsystems/AssetLoader.h
+        src/file-system/Material.cpp
+        include/file-system/Material.h
+        include/handles/Handle.h
+        src/file-system/Texture.cpp
+        src/file-system/Material.cpp
+        src/handles/Handle.cpp
+        src/file-system/FileSystemObject.cpp
+        include/file-system/FileSystemObject.h
+        include/file-system/Texture.h
+        src/file-system/Model.cpp
+        include/file-system/Model.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
@@ -38,6 +53,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${CMAKE_SOURCE_DIR}/common"
         "${Entt_DIR}/single_include"
         "${CMAKE_SOURCE_DIR}/libs/concurrentqueue"
+
 )
 
 
@@ -46,7 +62,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         DirectXTK12
         Jolt
         ozz_animation
-        assimp
+        assimp::assimp
         TracyClient
         spdlog
         pch

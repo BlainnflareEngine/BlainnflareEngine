@@ -3,6 +3,8 @@
 //
 
 #pragma once
+#include "EditorSink.h"
+#include "aliases.h"
 #include "editor_main.h"
 
 
@@ -15,23 +17,25 @@ namespace Blainn
 class Editor
 {
 public:
-    static Editor& GetInstance();
+    static Editor &GetInstance();
 
-    void Init(int &argc, char **argv);
+    void Init(int argc, char **argv);
     void Destroy();
 
-    void Show();
+    void Show() const;
     HWND GetViewportHWND();
     void Update() const;
 
-    std::filesystem::path GetContentDirectory() const;
-    void SetContentDirectory(const std::filesystem::path &path);
+    Path &GetContentDirectory();
+    void SetContentDirectory(const Path &path);
+
+    std::shared_ptr<editor::EditorSink<std::mutex>> GetEditorSink() const;
 
 private:
-    QApplication* m_app;
-    editor::editor_main* m_editorMain;
-    std::filesystem::path m_editorConfigFolder;
-    std::filesystem::path m_contentDirectory;
+    QApplication *m_app;
+    editor::editor_main *m_editorMain;
+    Path m_editorConfigFolder;
+    Path m_contentDirectory;
 
     Editor() = default;
     Editor(const Editor &) = delete;

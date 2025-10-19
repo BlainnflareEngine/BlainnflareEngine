@@ -2,11 +2,12 @@
 // Created by gorev on 21.09.2025.
 //
 
-#include "../include/Editor.h"
+#include "Editor.h"
 #include "ui_editor_main.h"
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>
+#include <QApplication>
 
 namespace Blainn
 {
@@ -18,12 +19,15 @@ Editor &Editor::GetInstance()
 }
 
 
-void Editor::Init(int &argc, char **argv)
+void Editor::Init(int argc, char **argv)
 {
     using namespace std::filesystem;
     m_app = new QApplication(argc, argv);
+
+    qRegisterMetaType<editor::LogMessage>("LogMessage");
+
     QApplication::setStyle("fusion");
-    QFont editorFont("Century Gothic", 10);
+    QFont editorFont("Century Gothic", 12);
     QApplication::setFont(editorFont);
 
     m_editorMain = new editor::editor_main();
@@ -43,6 +47,8 @@ void Editor::Init(int &argc, char **argv)
 
     BF_DEBUG("Content directory - " + m_contentDirectory.string());
     m_editorMain->SetContentDirectory(QString::fromStdString(m_contentDirectory.string()));
+
+    Log::AddSink(GetEditorSink());
 }
 
 
@@ -54,7 +60,7 @@ void Editor::Destroy()
 }
 
 
-void Editor::Show()
+void Editor::Show() const
 {
     BF_INFO("Editor::Show()");
     m_editorMain->showMaximized();
@@ -73,7 +79,7 @@ void Editor::Update() const
 }
 
 
-std::filesystem::path Editor::GetContentDirectory() const
+Path &Editor::GetContentDirectory()
 {
     return m_contentDirectory;
 }
@@ -85,6 +91,12 @@ void Editor::SetContentDirectory(const std::filesystem::path &path)
     config["ContentDirectory"] = path.string();
     m_contentDirectory = path;
     m_editorMain->SetContentDirectory(QString::fromStdString(m_contentDirectory.string()));
+}
+
+
+std::shared_ptr<editor::EditorSink<std::mutex>> Editor::GetEditorSink() const
+{
+    return std::make_shared<editor::EditorSink<std::mutex>>(m_editorMain->GetConsoleWidget());
 }
 
 

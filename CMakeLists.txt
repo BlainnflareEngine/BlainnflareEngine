@@ -6,6 +6,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 cmake_policy(SET CMP0074 OLD)
 cmake_policy(SET CMP0169 OLD)
+add_compile_options(/EHsc)
 
 # Allow VS to have the filters
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -35,7 +36,14 @@ project(${PROJECT_NAME}
 # cpp options
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(${PROJECT_NAME} main.cpp)
+
+add_executable(${PROJECT_NAME} main.cpp
+        engine/src/subsystems/AssetLoader.cpp
+        engine/include/subsystems/AssetLoader.h
+        common/Vertex.h
+        common/MeshData.h
+        common/ImportModelData.h
+)
 
 add_subdirectory(libs/EASTL)
 add_subdirectory(libs/JoltPhysics/Build)
@@ -60,6 +68,7 @@ add_subdirectory(libs/assimp)
 set(LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
 set(ENGINE_DIR ${PROJECT_SOURCE_DIR}/engine)
 set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
+set(COMMON_DIR ${CMAKE_SOURCE_DIR}/common)
 set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
 set(Entt_DIR ${PROJECT_SOURCE_DIR}/libs/entt)
 
@@ -73,11 +82,12 @@ target_link_libraries(pch INTERFACE
         spdlog
         TracyClient
         yaml-cpp
-        ENGINE)
+        DirectXTK12)
 
 target_include_directories(pch INTERFACE
         "${CMAKE_SOURCE_DIR}/libs/uuid_v4"
         "${ENGINE_DIR}/include/subsystems"
+        "${ENGINE_DIR}/include/tools"
         "${ENGINE_DIR}/src/subsystems"
         "${ENTT_DIR}/single_include")
 
@@ -85,7 +95,7 @@ target_precompile_headers(pch INTERFACE common/pch.h)
 
 
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE BLAINN_INCLUDE_EDITOR)
+target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_INCLUDE_EDITOR)
 
 #target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_HAS_CONSOLE)
 
@@ -106,6 +116,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${CMAKE_SOURCE_DIR}/common"
         "${uuid_v4_DIR}"
         "${Entt_DIR}/single_include"
+        $<TARGET_PROPERTY:assimp::assimp,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 
@@ -120,12 +131,10 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
             set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
         endif ()
     endif ()
-    # Копируем папку с плагинами целиком (лучше, чем отдельный файл)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${QT_INSTALL_PATH}/plugins/platforms"
             "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
-    # Копируем основные DLL
     foreach (QT_LIB Core Gui Widgets)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy

@@ -6,7 +6,6 @@
 
 #pragma region EASTL common includes
 
-#include <cstdint>
 #include <EASTL/algorithm.h>
 #include <EASTL/allocator.h>
 #include <EASTL/array.h>
@@ -16,12 +15,14 @@
 #include <EASTL/hash_set.h>
 #include <EASTL/list.h>
 #include <EASTL/map.h>
-#include <EASTL/unique_ptr.h>
-#include <EASTL/shared_ptr.h>
-#include <EASTL/weak_ptr.h>
 #include <EASTL/numeric.h>
 #include <EASTL/priority_queue.h>
 #include <EASTL/queue.h>
+#include <EASTL/shared_ptr.h>
+#include <EASTL/string.h>
+#include <EASTL/unique_ptr.h>
+#include <EASTL/weak_ptr.h>
+#include <cstdint>
 
 #pragma endregion
 
@@ -57,3 +58,7 @@ template <> struct hash<UUIDv4::UUID> {
 }
 
 
+inline eastl::string ToEASTLString(const std::string &s)
+{
+    return eastl::string(s.c_str());
+}

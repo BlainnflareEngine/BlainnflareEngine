@@ -7,13 +7,17 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/ui")
+set(CMAKE_AUTOUIC_SEARCH_PATHS
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui"
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui/dialog")
 
 find_package(Qt6 COMPONENTS
         Core
         Gui
         Widgets
         REQUIRED)
+
+qt6_add_resources(RESOURCES sources.qrc)
 
 set(EDITOR_SOURCES
         src/Editor.cpp
@@ -23,9 +27,10 @@ set(EDITOR_SOURCES
         src/folder_content_widget.cpp
         src/folders_tree_view.cpp
         src/folders_widget.cpp
-        src/import_asset_dialog.cpp
-        src/ContextMenu/ContentContextMenu.cpp
-        src/ContextMenu/FileContextMenu.cpp
+        src/dialog/import_asset_dialog.cpp
+        src/context-menu/ContentContextMenu.cpp
+        src/context-menu/FileContextMenu.cpp
+        src/dialog/import_model_dialog.cpp
         include/Editor.h
         include/editor_main.h
         include/editor_settings.h
@@ -34,10 +39,8 @@ set(EDITOR_SOURCES
         include/folder_content_widget.h
         include/folders_tree_view.h
         include/folders_widget.h
-        include/import_asset_dialog.h
+        include/dialog/import_asset_dialog.h
         include/SettingsData.h
-        include/ContextMenu/ContentContextMenu.h
-        include/ContextMenu/FileContextMenu.h
         ui/editor_main.ui
         ui/editor_settings.ui
         ui/folder_content_list_view.ui
@@ -52,20 +55,35 @@ set(EDITOR_SOURCES
         ../engine/include/scene/BasicComponents.h
         ../engine/include/scene/EntityTemplates.h
 )
+        include/context-menu/ContentContextMenu.h
+        include/context-menu/FileContextMenu.h
+        include/dialog/import_model_dialog.h
+        src/FileSystemUtils.cpp
+        src/dialog/create_material_dialog.cpp
+        include/dialog/create_material_dialog.h
+        ui/dialog/create_material_dialog.ui
+        src/IconProvider.cpp
+        include/IconProvider.h
+        ${RESOURCES}
+        src/path_bar_widget.cpp
+        include/path_bar_widget.h
+        ui/path_bar_widget.ui
+        include/EditorSink.h
+        src/console_messages_widget.cpp
+        include/console_messages_widget.h
+        ui/console_messages_widget.ui)
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
-
-target_sources(EDITOR PRIVATE
-        include/editor_main.h
-        include/Editor.h)
 
 source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${EDITOR_SOURCES})
 
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         "${PROJECT_SOURCE_DIR}/include"
+        "${PROJECT_SOURCE_DIR}/include/dialog"
         "${PROJECT_SOURCE_DIR}/src"
         "${PROJECT_SOURCE_DIR}/ui"
+        "${PROJECT_SOURCE_DIR}/ui/import"
         "${CMAKE_SOURCE_DIR}/common"
         "${CMAKE_SOURCE_DIR}/libs/"
         "${Entt_DIR}/single_include"
@@ -76,6 +94,7 @@ target_link_libraries(EDITOR
         Qt::Gui
         Qt::Widgets
         pch
+        ENGINE
 )
 
 

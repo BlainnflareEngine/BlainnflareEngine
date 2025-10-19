@@ -4,11 +4,6 @@
 
 #pragma once
 
-#include "EASTL/compare.h"
-#include "EASTL/unique_ptr.h"
-
-
-#include <QPointer>
 #include <QTreeView>
 
 namespace editor
