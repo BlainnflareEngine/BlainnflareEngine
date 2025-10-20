@@ -14,6 +14,7 @@ https://github.com/ThePhD/sol2.git ^
 https://github.com/crashoz/uuid_v4.git ^
 https://github.com/jbeder/yaml-cpp.git ^
 https://github.com/skypjack/entt.git ^
+https://github.com/cameron314/concurrentqueue.git ^
 https://github.com/oclero/qlementine.git
 
 REM Change to the directory containing this script

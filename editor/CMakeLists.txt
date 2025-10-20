@@ -43,6 +43,18 @@ set(EDITOR_SOURCES
         include/folders_widget.h
         include/dialog/import_asset_dialog.h
         include/SettingsData.h
+        ui/editor_main.ui
+        ui/editor_settings.ui
+        ui/folder_content_list_view.ui
+        ui/folder_content_widget.ui
+        ui/folders_tree_view.ui
+        ui/folders_widget.ui
+        ../engine/include/scene/Scene.h
+        ../engine/src/scene/Scene.cpp
+        ../engine/include/scene/Entity.h
+        ../engine/src/scene/Entity.cpp
+        ../engine/include/scene/BasicComponents.h
+        ../engine/include/scene/EntityTemplates.h
         include/context-menu/ContentContextMenu.h
         include/context-menu/FileContextMenu.h
         include/dialog/import_model_dialog.h
@@ -93,6 +105,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${PROJECT_SOURCE_DIR}/ui/import"
         "${PROJECT_SOURCE_DIR}/ui/inspector"
         "${CMAKE_SOURCE_DIR}/common"
+        "${CMAKE_SOURCE_DIR}/libs/"
         "${Entt_DIR}/single_include"
 )
 
