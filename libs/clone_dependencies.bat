@@ -12,7 +12,10 @@ https://github.com/gabime/spdlog.git ^
 https://github.com/wolfpld/tracy.git ^
 https://github.com/ThePhD/sol2.git ^
 https://github.com/crashoz/uuid_v4.git ^
-https://github.com/jbeder/yaml-cpp.git
+https://github.com/jbeder/yaml-cpp.git ^
+https://github.com/skypjack/entt.git ^
+https://github.com/cameron314/concurrentqueue.git ^
+https://github.com/oclero/qlementine.git
 
 REM Change to the directory containing this script
 cd /d "%~dp0"
@@ -29,7 +32,7 @@ for %%R in (%REPOS%) do (
     
     if not exist "!REPO_NAME!\" (
         echo Cloning !REPO_URL! into !REPO_NAME!...
-        git clone "!REPO_URL!" "!REPO_NAME!"
+        git clone "!REPO_URL!" "!REPO_NAME!" --depth=1
     ) else (
         echo !REPO_NAME! already exists, skipping.
     )

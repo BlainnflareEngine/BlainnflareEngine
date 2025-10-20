@@ -9,12 +9,14 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS
         "${CMAKE_CURRENT_SOURCE_DIR}/ui"
-        "${CMAKE_CURRENT_SOURCE_DIR}/ui/dialog")
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui/dialog"
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui/inspector")
 
 find_package(Qt6 COMPONENTS
         Core
         Gui
         Widgets
+        Svg
         REQUIRED)
 
 qt6_add_resources(RESOURCES sources.qrc)
@@ -41,6 +43,18 @@ set(EDITOR_SOURCES
         include/folders_widget.h
         include/dialog/import_asset_dialog.h
         include/SettingsData.h
+        ui/editor_main.ui
+        ui/editor_settings.ui
+        ui/folder_content_list_view.ui
+        ui/folder_content_widget.ui
+        ui/folders_tree_view.ui
+        ui/folders_widget.ui
+        ../engine/include/scene/Scene.h
+        ../engine/src/scene/Scene.cpp
+        ../engine/include/scene/Entity.h
+        ../engine/src/scene/Entity.cpp
+        ../engine/include/scene/BasicComponents.h
+        ../engine/include/scene/EntityTemplates.h
         include/context-menu/ContentContextMenu.h
         include/context-menu/FileContextMenu.h
         include/dialog/import_model_dialog.h
@@ -57,7 +71,25 @@ set(EDITOR_SOURCES
         include/EditorSink.h
         src/console_messages_widget.cpp
         include/console_messages_widget.h
-        ui/console_messages_widget.ui)
+        ui/console_messages_widget.ui
+        src/inspector/inspector_content_base.cpp
+        include/inspector/inspector_content_base.h
+        ui/inspector/inspector_content_base.ui
+        src/inspector/browser_item_inspector_content.cpp
+        include/inspector/browser_item_inspector_content.h
+        ui/inspector/browser_item_inspector_content.ui
+        src/inspector/material_inspector_content.cpp
+        include/inspector/material_inspector_content.h
+        ui/inspector/material_inspector_content.ui
+        src/InspectorFabric.cpp
+        include/InspectorFabric.h
+        src/inspector/inspector_widget.cpp
+        include/inspector/inspector_widget.h
+        ui/inspector/inspector_widget.ui
+        include/LabelsUtils.h
+        src/ContentDelegate.cpp
+        include/ContentDelegate.h
+)
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
 
@@ -65,20 +97,26 @@ source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${EDITOR_SOURCES})
 
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-        ${PROJECT_SOURCE_DIR}/include/dialog
-        ${PROJECT_SOURCE_DIR}/src
-        ${PROJECT_SOURCE_DIR}/ui
-        ${PROJECT_SOURCE_DIR}/ui/import
-        ${CMAKE_SOURCE_DIR}/common
+        "${PROJECT_SOURCE_DIR}/include"
+        "${PROJECT_SOURCE_DIR}/include/dialog"
+        "${PROJECT_SOURCE_DIR}/include/inspector"
+        "${PROJECT_SOURCE_DIR}/src"
+        "${PROJECT_SOURCE_DIR}/ui"
+        "${PROJECT_SOURCE_DIR}/ui/import"
+        "${PROJECT_SOURCE_DIR}/ui/inspector"
+        "${CMAKE_SOURCE_DIR}/common"
+        "${CMAKE_SOURCE_DIR}/libs/"
+        "${Entt_DIR}/single_include"
 )
 
 target_link_libraries(EDITOR
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        Qt6::Svg
         pch
         ENGINE
+        qlementine
 )
 
 

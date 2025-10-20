@@ -45,10 +45,12 @@ public:
 
 public slots:
     void OnFolderSelectedPath(const QString &newPath);
-    void onEntrySelectedIndex(const QModelIndex &newSelection);
+    void OnEntrySelectedIndex(const QModelIndex &newSelection);
+    void OnFileSelectedPath(const QModelIndex &index);
 
 signals:
-    void folderSelected(const QString &newPath);
+    void FolderSelected(const QString &path);
+    void FileSelected(const QString &filePath);
 
 private:
     Ui::folder_content_widget *ui;

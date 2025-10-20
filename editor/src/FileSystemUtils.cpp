@@ -7,10 +7,13 @@
 #include "../include/dialog/import_model_dialog.h"
 
 #include <QDesktopServices>
+#include <QFileDialog>
 #include <QFileSystemModel>
+#include <QLabel>
 #include <QListView>
 #include <QMessageBox>
 #include <QMimeData>
+#include <fstream>
 #include <qdir.h>
 #include <qevent.h>
 #include <qfileinfo.h>
@@ -239,5 +242,33 @@ import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info)
 std::string ToString(const QString &str)
 {
     return str.toUtf8().constData();
+}
+
+
+void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir)
+{
+    QString fileName = QFileDialog::getOpenFileName(
+        nullptr, "Select Texture File", label.text().isEmpty() ? "." : QFileInfo(label.text()).absolutePath(), filter);
+
+    if (!fileName.isEmpty() && relativeDir.isEmpty())
+    {
+        label.setText(fileName);
+    }
+    else if (!fileName.isEmpty())
+    {
+        QDir dir(relativeDir);
+        label.setText(dir.relativeFilePath(fileName));
+    }
+}
+
+void SetValueYAML(const std::string &path, const std::string &name, const std::string &value)
+{
+    YAML::Node node = YAML::LoadFile(path);
+
+    if (!node) return;
+
+    node[name] = value;
+    std::ofstream fout(path);
+    fout << node;
 }
 } // namespace editor

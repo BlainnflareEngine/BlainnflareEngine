@@ -4,11 +4,12 @@
 
 #pragma once
 #include "EditorSink.h"
+#include "aliases.h"
 #include "editor_main.h"
+#include "inspector_widget.h"
 
 
 #include <QApplication>
-#include <QPointer>
 
 namespace Blainn
 {
@@ -18,14 +19,17 @@ class Editor
 public:
     static Editor &GetInstance();
 
-    void Init(int &argc, char **argv);
+    void Init(int argc, char **argv);
     void Destroy();
 
     void Show() const;
-    HWND GetViewportHWND();
     void Update() const;
 
+    HWND GetViewportHWND();
     Path &GetContentDirectory();
+
+    editor::inspector_widget &GetInspector() const;
+
     void SetContentDirectory(const Path &path);
 
     std::shared_ptr<editor::EditorSink<std::mutex>> GetEditorSink() const;

@@ -43,7 +43,7 @@
         <x>0</x>
         <y>0</y>
         <width>764</width>
-        <height>533</height>
+        <height>541</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -65,7 +65,10 @@
           <item>
            <widget class="QLabel" name="label">
             <property name="text">
-             <string>Content folder path</string>
+             <string>## Content folder path</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::TextFormat::MarkdownText</enum>
             </property>
            </widget>
           </item>

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Vertex.h"
 #include "handles/Handle.h"
+#include "Vertex.h"
 
 #include <pch.h>
 

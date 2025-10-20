@@ -3,16 +3,13 @@
 //
 
 #include "handles/Handle.h"
-#include "file-system/Material.h"
-#include "file-system/Model.h"
-#include "file-system/Texture.h"
 
 #include "AssetManager.h"
-#include "IdGenerator.h"
+#include "random.h"
 
 
 Blainn::Handle::Handle(const unsigned int index)
-    : id(GenerateID())
+    : id(Rand::getRandomUUID())
     , m_index(index)
 {
 }

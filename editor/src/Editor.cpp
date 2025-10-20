@@ -2,10 +2,12 @@
 // Created by gorev on 21.09.2025.
 //
 
-#include "../include/Editor.h"
+#include "Editor.h"
 #include "ui_editor_main.h"
 
+#include <QApplication>
 #include <fstream>
+#include <oclero/qlementine.hpp>
 #include <yaml-cpp/yaml.h>
 
 namespace Blainn
@@ -18,16 +20,17 @@ Editor &Editor::GetInstance()
 }
 
 
-void Editor::Init(int &argc, char **argv)
+void Editor::Init(int argc, char **argv)
 {
     using namespace std::filesystem;
-    qRegisterMetaType<editor::LogMessage>("LogMessage");
-
     m_app = new QApplication(argc, argv);
 
-    QApplication::setStyle("fusion");
-    QFont editorFont("Century Gothic", 12);
-    QApplication::setFont(editorFont);
+    qRegisterMetaType<editor::LogMessage>("LogMessage");
+
+    auto *style = new oclero::qlementine::QlementineStyle(m_app);
+    style->setThemeJsonPath(":/themes/dark.json");
+    style->animationsEnabled();
+    QApplication::setStyle(style);
 
     m_editorMain = new editor::editor_main();
 
@@ -81,6 +84,12 @@ void Editor::Update() const
 Path &Editor::GetContentDirectory()
 {
     return m_contentDirectory;
+}
+
+
+editor::inspector_widget &Editor::GetInspector() const
+{
+    return m_editorMain->GetInspectorWidget();
 }
 
 

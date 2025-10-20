@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <author/>
+    <comment/>
+    <exportmacro/>
+    <class>editor::inspector_content_base</class>
+    <widget class="QWidget" name="editor::inspector_content_base">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>400</width>
+                <height>300</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>inspector_content_base</string>
+        </property>
+    </widget>
+    <pixmapfunction/>
+    <connections/>
+</ui>

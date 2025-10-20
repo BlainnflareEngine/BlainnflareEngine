@@ -8,7 +8,7 @@
 
 #include "AssetManager.h"
 #include "Editor.h"
-#include "IdGenerator.h"
+#include "random.h"
 #include "ui_import_model_dialog.h"
 
 #include <QCheckBox>
@@ -50,7 +50,7 @@ void import_model_dialog::OnConfirm()
 {
     QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
     YAML::Node meta;
-    meta["ID"] = Blainn::GenerateID().str();
+    meta["ID"] = Blainn::Rand::getRandomUUID().str();
     meta["ModelPath"] = ToString(dir.relativeFilePath(m_info.destinationPath));
     meta["ConvertToLH"] = m_importData.convertToLH;
 
