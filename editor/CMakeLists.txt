@@ -89,6 +89,9 @@ set(EDITOR_SOURCES
         include/LabelsUtils.h
         src/ContentDelegate.cpp
         include/ContentDelegate.h
+        src/dialog/import_texture_dialog.cpp
+        include/dialog/import_texture_dialog.h
+        ui/dialog/import_texture_dialog.ui
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

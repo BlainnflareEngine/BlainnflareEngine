@@ -40,7 +40,7 @@ import_model_dialog::~import_model_dialog()
 }
 
 
-ImportModelData &import_model_dialog::GetData()
+Blainn::ImportMeshData &import_model_dialog::GetData()
 {
     return m_importData;
 }

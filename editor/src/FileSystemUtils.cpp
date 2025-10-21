@@ -235,7 +235,7 @@ import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info)
         return new import_model_dialog(info);
     }
 
-    return new import_asset_dialog(info);
+    return nullptr;
 }
 
 

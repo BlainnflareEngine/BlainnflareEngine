@@ -38,11 +38,9 @@ set(CMAKE_CXX_STANDARD 20)
 
 
 add_executable(${PROJECT_NAME} main.cpp
-        #engine/src/subsystems/AssetLoader.cpp
-        #engine/include/subsystems/AssetLoader.h
         common/Vertex.h
         common/MeshData.h
-        common/ImportModelData.h
+        common/ImportAssetData.h
 )
 
 add_subdirectory(libs/EASTL)

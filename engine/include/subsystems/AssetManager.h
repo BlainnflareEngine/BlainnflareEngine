@@ -6,11 +6,13 @@
 #include "AssetLoader.h"
 #include "FreeListVector.h"
 
+
 namespace Blainn
 {
 struct MaterialHandle;
 struct TextureHandle;
 struct MeshHandle;
+struct ImportMeshData;
 
 
 class AssetManager
@@ -29,7 +31,7 @@ public:
 
     bool MeshExists(const Path &path);
     eastl::shared_ptr<MeshHandle> GetMesh(const Path &path);
-    eastl::shared_ptr<MeshHandle> LoadMesh(const Path &path, const ImportModelData &data);
+    eastl::shared_ptr<MeshHandle> LoadMesh(const Path &path, const ImportMeshData &data);
     Model &GetMeshByIndex(unsigned int index);
     Model &GetMeshByHandle(const MeshHandle &handle);
 
@@ -61,7 +63,7 @@ private:
 
     void AddTextureWhenLoaded(const Path &path, const unsigned int index, const TextureType type);
     void AddMaterialWhenLoaded(const Path &path, const unsigned int index);
-    void AddModelWhenLoaded(const Path &path, const unsigned int index, const ImportModelData data);
+    void AddModelWhenLoaded(const Path &path, const unsigned int index, const ImportMeshData data);
 
     Texture &GetDefaultTexture();
     Material &GetDefaultMaterial();

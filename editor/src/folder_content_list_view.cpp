@@ -84,6 +84,9 @@ void folder_content_list_view::dropEvent(QDropEvent *event)
             info.originalPath = srcPath;
             info.destinationPath = targetPath + QDir::separator() + url.fileName();
             import_asset_dialog *dialog = GetImportAssetDialog(info);
+
+            if (!dialog) return;
+
             dialog->exec();
 
             if (dialog->result() == QDialog::Accepted) QFile::copy(info.originalPath, info.destinationPath);

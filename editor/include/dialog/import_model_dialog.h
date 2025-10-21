@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../../../common/ImportModelData.h"
+#include "../../../common/ImportAssetData.h"
 #include "dialog/import_asset_dialog.h"
 
 class QCheckBox;
@@ -26,7 +26,7 @@ public:
     explicit import_model_dialog(const ImportAssetInfo &info, QWidget *parent = nullptr);
     ~import_model_dialog() override;
 
-    ImportModelData &GetData();
+    Blainn::ImportMeshData &GetData();
 
 protected:
     void OnConfirm() override;
@@ -35,6 +35,6 @@ protected:
 private:
     Ui::import_model_dialog *ui;
 
-    ImportModelData m_importData;
+    Blainn::ImportMeshData m_importData;
 };
 } // namespace editor

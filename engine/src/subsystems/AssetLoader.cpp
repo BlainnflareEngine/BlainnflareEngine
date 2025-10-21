@@ -6,6 +6,7 @@
 
 #include "AssetManager.h"
 #include "MeshData.h"
+#include "ImportAssetData.h"
 #include "file-system/Material.h"
 #include "file-system/Model.h"
 #include "file-system/Texture.h"
@@ -32,7 +33,7 @@ void AssetLoader::Destroy()
 }
 
 
-eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &path, const ImportModelData &data)
+eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &path, const ImportMeshData &data)
 {
     if (path.empty())
     {

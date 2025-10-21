@@ -5,7 +5,7 @@
 #include "subsystems/AssetManager.h"
 
 #include "Engine.h"
-#include "ImportModelData.h"
+#include "ImportAssetData.h"
 #include "VGJS.h"
 #include "file-system/Material.h"
 #include "file-system/Model.h"
@@ -72,7 +72,7 @@ eastl::shared_ptr<MeshHandle> AssetManager::GetMesh(const Path &path)
 }
 
 
-eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &path, const ImportModelData &data)
+eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &path, const ImportMeshData &data)
 {
     unsigned int index = m_meshes.size();
     m_meshPaths[ToEASTLString(path.string())] = AssetData{index, 1};
@@ -215,7 +215,7 @@ void AssetManager::AddMaterialWhenLoaded(const Path &path, const unsigned int in
 }
 
 
-void AssetManager::AddModelWhenLoaded(const Path &path, const unsigned int index, const ImportModelData data)
+void AssetManager::AddModelWhenLoaded(const Path &path, const unsigned int index, const ImportMeshData data)
 {
     BF_INFO("Started loading model.");
     m_meshes[index] = m_loader->ImportModel(path, data);
