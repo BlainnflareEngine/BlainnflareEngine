@@ -4,6 +4,7 @@
 
 #pragma once
 #include "AssetLoader.h"
+#include "FreeListVector.h"
 
 namespace Blainn
 {
@@ -76,16 +77,14 @@ private:
 private:
     inline static eastl::unique_ptr<AssetLoader> m_loader;
 
-    // TODO: use vector with free list
     eastl::hash_map<eastl::string, AssetData> m_materialPaths;
-    eastl::vector<eastl::shared_ptr<Material>> m_materials;
+    FreeListVector<eastl::shared_ptr<Material>> m_materials;
 
-    // TODO: use vector with free list
     eastl::hash_map<eastl::string, AssetData> m_texturePaths;
-    eastl::vector<eastl::shared_ptr<Texture>> m_textures;
+    FreeListVector<eastl::shared_ptr<Texture>> m_textures;
 
     eastl::hash_map<eastl::string, AssetData> m_meshPaths;
-    eastl::vector<eastl::shared_ptr<Model>> m_meshes;
+    FreeListVector<eastl::shared_ptr<Model>> m_meshes;
 };
 
 } // namespace Blainn

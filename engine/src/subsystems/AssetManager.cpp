@@ -31,12 +31,12 @@ void AssetManager::Init()
     m_meshes.reserve(64);
 
     // TODO: create default texture
-    m_textures.emplace_back(
+    m_textures.emplace(
         m_loader->LoadTexture(std::filesystem::current_path() / "Default.png", TextureType::ALBEDO));
 
     // TODO: create default material
     Material material = Material(std::filesystem::current_path() / "Default.mat", "Default");
-    m_materials.emplace_back(eastl::make_shared<Material>(material));
+    m_materials.emplace(eastl::make_shared<Material>(material));
 
     // TODO: create default mesh
     // m_meshes.emplace_back();
@@ -82,7 +82,7 @@ eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &path, const Imp
             "i will place your model to your index later. Index - {0}",
             index);
 
-    m_meshes.emplace_back(eastl::make_shared<Model>(GetDefaultModel()));
+    m_meshes.emplace(eastl::make_shared<Model>(GetDefaultModel()));
 
     auto model = m_loader->ImportModel(path, data);
     return eastl::make_shared<MeshHandle>(index);
@@ -126,7 +126,7 @@ eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &path, con
             "i will place some new texture to your index later. Index ={0}.",
             index);
 
-    m_textures.emplace_back(eastl::make_shared<Texture>(GetDefaultTexture()));
+    m_textures.emplace(eastl::make_shared<Texture>(GetDefaultTexture()));
     vgjs::schedule([=]() { AddTextureWhenLoaded(path, index, type); });
     return eastl::make_shared<TextureHandle>(index);
 }
@@ -153,7 +153,7 @@ eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path)
                + std::to_string(index);
     BF_INFO(str)
 
-    m_materials.emplace_back(eastl::make_shared<Material>(GetDefaultMaterial()));
+    m_materials.emplace(eastl::make_shared<Material>(GetDefaultMaterial()));
     vgjs::schedule([=]() { AddMaterialWhenLoaded(path, index); });
     return eastl::make_shared<MaterialHandle>(index);
 }

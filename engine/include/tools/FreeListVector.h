@@ -5,6 +5,9 @@
 
 #include <pch.h>
 
+namespace Blainn
+{
+
 /**
  * @brief Free list vector contains deque of empty items in vector.
  * @details Vector can look like [10, 13, 5, 4, empty, 3, empty, 12].
@@ -37,9 +40,9 @@ public:
 
 
     T &operator[](size_t pos);
-    const T &operator[](size_t pos);
+    const T &operator[](size_t pos) const;
     T &at(size_t pos);
-    const T &at(size_t pos);
+    const T &at(size_t pos) const;
 
 
     eastl::vector<T>::iterator begin();
@@ -88,7 +91,7 @@ template <typename T> template <typename... Args> size_t FreeListVector<T>::empl
     if (!m_freeList.empty())
     {
         size_t freeIndex = m_freeList.front();
-        m_freeList.pop();
+        m_freeList.pop_front();
         new (&m_data[freeIndex]) T(eastl::forward<Args>(args)...);
         return freeIndex;
     }
@@ -115,16 +118,16 @@ template <typename T> void FreeListVector<T>::erase(size_t index)
     if (index < m_data.size())
     {
         m_data[index].~T();
-        m_freeList.push(index);
+        m_freeList.push_back(index);
     }
 }
 
 
 template <typename T> void FreeListVector<T>::erase(typename eastl::vector<T>::iterator it)
 {
-    if (it >= m_vector.begin() && it < m_vector.end())
+    if (it >= m_data.begin() && it < m_data.end())
     {
-        const size_t index = static_cast<size_t>(it - m_vector.begin());
+        const size_t index = static_cast<size_t>(it - m_data.begin());
         erase(index);
     }
 }
@@ -198,7 +201,7 @@ template <typename T> T &FreeListVector<T>::operator[](size_t pos)
 }
 
 
-template <typename T> T &FreeListVector<T>::operator[](size_t pos)
+template <typename T> const T &FreeListVector<T>::operator[](size_t pos) const
 {
     return m_data[pos];
 }
@@ -210,7 +213,7 @@ template <typename T> T &FreeListVector<T>::at(size_t pos)
 }
 
 
-template <typename T> const T &FreeListVector<T>::at(size_t pos)
+template <typename T> const T &FreeListVector<T>::at(size_t pos) const
 {
     return m_data[pos];
 }
@@ -280,3 +283,5 @@ template <typename T> bool FreeListVector<T>::has_free_slots() const
 {
     return !m_freeList.empty();
 }
+
+} // namespace Blainn
