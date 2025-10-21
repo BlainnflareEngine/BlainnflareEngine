@@ -3,31 +3,30 @@
 //
 
 #pragma once
-#include "Texture.h"
 #include "FileSystemObject.h"
-
 
 namespace Blainn
 {
-class TextureHandle;
+struct TextureHandle;
+enum class TextureType;
 
 class Material : public FileSystemObject
 {
 public:
-    Material(const Path &path, const eastl::string& shader);
+    Material(const Path &path, const eastl::string &shader);
     virtual ~Material() override;
 
     virtual void Move() override;
     virtual void Delete() override;
     virtual void Copy() override;
 
-    void SetTexture(const eastl::shared_ptr<TextureHandle> &textureHandle, Texture::TextureType type);
-    TextureHandle &GetTextureHandle(Texture::TextureType type);
+    void SetTexture(const eastl::shared_ptr<TextureHandle> &textureHandle, TextureType type);
+    TextureHandle &GetTextureHandle(TextureType type);
 
     void SetShader(const eastl::string &shader);
     const eastl::string &GetShader() const;
 
-    BOOL HasTexture(Texture::TextureType type) const;
+    BOOL HasTexture(TextureType type) const;
 
 private:
     eastl::shared_ptr<TextureHandle> m_albedoTexture;

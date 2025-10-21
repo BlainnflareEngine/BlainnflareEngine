@@ -37,7 +37,7 @@ public:
 
     eastl::shared_ptr<Model> ImportModel(const Path &path, const ImportModelData &data);
 
-    eastl::shared_ptr<Texture> LoadTexture(const Path &path, Texture::TextureType type);
+    eastl::shared_ptr<Texture> LoadTexture(const Path &path, TextureType type);
 
     eastl::shared_ptr<Material> LoadMaterial(const Path &path);
 
