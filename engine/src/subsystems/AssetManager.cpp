@@ -32,7 +32,7 @@ void AssetManager::Init()
 
     // TODO: create default texture
     m_textures.emplace_back(
-        m_loader->LoadTexture(std::filesystem::current_path() / "Default.png", Texture::TextureType::ALBEDO));
+        m_loader->LoadTexture(std::filesystem::current_path() / "Default.png", TextureType::ALBEDO));
 
     // TODO: create default material
     Material material = Material(std::filesystem::current_path() / "Default.mat", "Default");
@@ -50,50 +50,52 @@ void AssetManager::Destroy()
 }
 
 
-bool AssetManager::ModelExists(const Path &path)
+bool AssetManager::MeshExists(const Path &path)
 {
     auto it = m_meshPaths.find(ToEASTLString(path.string()));
     return it != m_meshPaths.end();
 }
 
 
-eastl::shared_ptr<ModelHandle> AssetManager::GetModel(const Path &path)
+eastl::shared_ptr<MeshHandle> AssetManager::GetMesh(const Path &path)
 {
     eastl::string pathStr = path.string().c_str();
     if (auto it = m_meshPaths.find(pathStr); it != m_meshPaths.end())
     {
-        return eastl::make_shared<ModelHandle>(it->second);
+        return eastl::make_shared<MeshHandle>(it->second.index);
     }
 
-    BF_ERROR("This model doesn't imported yet. You should import it first.");
-    return eastl::shared_ptr<ModelHandle>(0);
+    BF_ERROR("This model doesn't imported yet. You should import it first. {0}", path.string());
+
+    // TODO: return default mesh
+    return eastl::shared_ptr<MeshHandle>(0);
 }
 
 
-eastl::shared_ptr<ModelHandle> AssetManager::LoadModel(const Path &path, const ImportModelData &data)
+eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &path, const ImportModelData &data)
 {
     unsigned int index = m_meshes.size();
-    m_meshPaths[ToEASTLString(path.string())] = index;
+    m_meshPaths[ToEASTLString(path.string())] = AssetData{index, 1};
 
-    auto str = "I don't have such model yet, here is default one, "
-               "i will place your model to your index later "
-               + std::to_string(index);
-    BF_INFO(str)
+
+    BF_INFO("I don't have such model yet, here is default one, "
+            "i will place your model to your index later. Index - {0}",
+            index);
 
     m_meshes.emplace_back(eastl::make_shared<Model>(GetDefaultModel()));
 
     auto model = m_loader->ImportModel(path, data);
-    return eastl::make_shared<ModelHandle>(index);
+    return eastl::make_shared<MeshHandle>(index);
 }
 
 
-Model &AssetManager::GetModelByIndex(const unsigned int index)
+Model &AssetManager::GetMeshByIndex(const unsigned int index)
 {
     return *m_meshes[index];
 }
 
 
-Model &AssetManager::GetModelByHandle(const ModelHandle &handle)
+Model &AssetManager::GetMeshByHandle(const MeshHandle &handle)
 {
     return *m_meshes[handle.GetIndex()];
 }
@@ -108,23 +110,21 @@ bool AssetManager::HasTexture(const Path &path)
 eastl::shared_ptr<TextureHandle> AssetManager::GetTexture(const Path &path)
 {
     if (auto it = m_texturePaths.find(ToEASTLString(path.string())); it != m_texturePaths.end())
-        return eastl::make_shared<TextureHandle>(it->second);
+        return eastl::make_shared<TextureHandle>(it->second.index);
 
-    BF_ERROR("Texture doesn't exist. You should load it first.");
-    return eastl::shared_ptr<TextureHandle>(nullptr);
+    BF_ERROR("Texture doesn't exist. You should load it first. Texture - {0}", path.string());
+    return eastl::shared_ptr<TextureHandle>(0);
 }
 
 
-eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &path, const Texture::TextureType type)
+eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &path, const TextureType type)
 {
     unsigned int index = m_textures.size();
-    m_texturePaths[ToEASTLString(path.string())] = index;
+    m_texturePaths[ToEASTLString(path.string())] = AssetData{index, 1};
 
-    // TODO: push back default texture
-    auto str = "Shiiiii... I don't have such texture, here is default one, "
-               "i will place some new texture to your index later "
-               + std::to_string(index);
-    BF_INFO(str)
+    BF_INFO("Shiiiii... I don't have such texture, here is default one, "
+            "i will place some new texture to your index later. Index ={0}.",
+            index);
 
     m_textures.emplace_back(eastl::make_shared<Texture>(GetDefaultTexture()));
     vgjs::schedule([=]() { AddTextureWhenLoaded(path, index, type); });
@@ -135,17 +135,17 @@ eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &path, con
 eastl::shared_ptr<MaterialHandle> AssetManager::GetMaterial(const Path &path)
 {
     if (auto it = m_materialPaths.find(ToEASTLString(path.string())); it != m_materialPaths.end())
-        return eastl::make_shared<MaterialHandle>(it->second);
+        return eastl::make_shared<MaterialHandle>(it->second.index);
 
-    BF_ERROR("Material doesn't exist. You should load it first.");
-    return eastl::shared_ptr<MaterialHandle>(nullptr);
+    BF_ERROR("Material doesn't exist. You should load it first. Path - {0}", path.string());
+    return eastl::shared_ptr<MaterialHandle>(0);
 }
 
 
 eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path)
 {
     unsigned int index = m_materials.size();
-    m_materialPaths[ToEASTLString(path.string())] = index;
+    m_materialPaths[ToEASTLString(path.string())] = AssetData{index, 1};
 
     // TODO: push back default material
     auto str = "I don't have that material, here is default one, "
@@ -197,7 +197,7 @@ Texture &AssetManager::GetTextureByHandle(const TextureHandle &handle)
 }
 
 
-void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int index, const Texture::TextureType type)
+void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int index, const TextureType type)
 {
     BF_INFO("Started loading texture.");
     m_textures[index] = m_loader->LoadTexture(path, type);
@@ -239,6 +239,54 @@ Material &AssetManager::GetDefaultMaterial()
 Model &AssetManager::GetDefaultModel()
 {
     return *m_meshes[0];
+}
+
+
+void AssetManager::IncreaseTextureRefCount(const unsigned int index)
+{
+    for (auto &[key, value] : m_texturePaths)
+        if (value.index == index) ++value.refCount;
+}
+
+
+void AssetManager::IncreaseMaterialRefCount(const unsigned int index)
+{
+    for (auto &[key, value] : m_materialPaths)
+        if (value.index == index) ++value.refCount;
+}
+
+
+void AssetManager::IncreaseMeshRefCount(const unsigned int index)
+{
+    for (auto &[key, value] : m_meshPaths)
+        if (value.index == index) ++value.refCount;
+}
+
+
+void AssetManager::DecreaseTextureRefCount(const unsigned int index)
+{
+    for (auto &[key, value] : m_texturePaths)
+        if (value.index == index) --value.refCount;
+
+    // TODO: remove asset if refCount == 0
+}
+
+
+void AssetManager::DecreaseMaterialRefCount(const unsigned int index)
+{
+    for (auto &[key, value] : m_materialPaths)
+        if (value.index == index) --value.refCount;
+
+    // TODO: remove asset if refCount == 0
+}
+
+
+void AssetManager::DecreaseMeshRefCount(const unsigned int index)
+{
+    for (auto &[key, value] : m_meshPaths)
+        if (value.index == index) --value.refCount;
+
+    // TODO: remove asset if refCount == 0
 }
 
 } // namespace Blainn

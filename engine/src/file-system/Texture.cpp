@@ -3,6 +3,7 @@
 //
 
 #include "file-system/Texture.h"
+#include "file-system/TextureType.h"
 
 namespace Blainn
 {

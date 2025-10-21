@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 
     Blainn::RenderSubsystem::Init();
     Blainn::AssetManager::GetInstance().Init();
-    auto a = Blainn::AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), Blainn::Texture::TextureType::ALBEDO);
+    auto a = Blainn::AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), Blainn::TextureType::ALBEDO);
 
 #if defined(BLAINN_INCLUDE_EDITOR)
     // needed for qt to generate resources (icons etc.)

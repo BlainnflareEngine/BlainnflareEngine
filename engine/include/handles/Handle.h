@@ -5,10 +5,9 @@
 #pragma once
 
 
+#include "AssetManager.h"
 #include "aliases.h"
 
-
-#include <pch.h>
 
 namespace Blainn
 {
@@ -18,7 +17,7 @@ class Model;
 
 struct Handle
 {
-    Handle(unsigned int index);
+    Handle(const unsigned int index, AssetManager &manager = AssetManager::GetInstance());
 
     unsigned int GetIndex() const;
 
@@ -30,18 +29,21 @@ protected:
 
 struct TextureHandle : Handle
 {
+    TextureHandle(const unsigned int index, AssetManager &manager = AssetManager::GetInstance());
     Texture &GetTexture() const;
 };
 
 
 struct MaterialHandle : Handle
 {
+    MaterialHandle(const unsigned int index, AssetManager &manager = AssetManager::GetInstance());
     Material &GetMaterial() const;
 };
 
-struct ModelHandle : Handle
+struct MeshHandle : Handle
 {
-    Model &GetModel() const;
+    MeshHandle(const unsigned int index, AssetManager &manager = AssetManager::GetInstance());
+    Model &GetMesh() const;
 };
 
 } // namespace Blainn
