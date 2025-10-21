@@ -37,6 +37,8 @@ set(ENGINE_SOURCES
         src/file-system/Model.cpp
         include/file-system/Model.h
         include/file-system/TextureType.h
+        src/tools/FreeListVector.cpp
+        include/tools/FreeListVector.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
