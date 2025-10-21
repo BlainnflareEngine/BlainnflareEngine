@@ -11,6 +11,12 @@
 Blainn::Handle::Handle(const unsigned int index, AssetManager &manager)
     : id(Rand::getRandomUUID())
     , m_index(index)
+    , m_manager(manager)
+{
+}
+
+
+Blainn::Handle::~Handle()
 {
 }
 
@@ -28,6 +34,12 @@ Blainn::TextureHandle::TextureHandle(const unsigned int index, AssetManager &man
 }
 
 
+Blainn::TextureHandle::~TextureHandle()
+{
+    m_manager.DecreaseTextureRefCount(m_index);
+}
+
+
 Blainn::Texture &Blainn::TextureHandle::GetTexture() const
 {
     return AssetManager::GetInstance().GetTextureByIndex(m_index);
@@ -41,6 +53,12 @@ Blainn::MaterialHandle::MaterialHandle(const unsigned int index, AssetManager &m
 }
 
 
+Blainn::MaterialHandle::~MaterialHandle()
+{
+    m_manager.DecreaseMaterialRefCount(m_index);
+}
+
+
 Blainn::Material &Blainn::MaterialHandle::GetMaterial() const
 {
     return AssetManager::GetInstance().GetMaterialByIndex(m_index);
@@ -51,6 +69,12 @@ Blainn::MeshHandle::MeshHandle(const unsigned int index, AssetManager &manager)
     : Handle(index, manager)
 {
     manager.IncreaseMeshRefCount(index);
+}
+
+
+Blainn::MeshHandle::~MeshHandle()
+{
+    m_manager.DecreaseMeshRefCount(m_index);
 }
 
 
