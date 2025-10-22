@@ -92,6 +92,11 @@ set(EDITOR_SOURCES
         src/dialog/import_texture_dialog.cpp
         include/dialog/import_texture_dialog.h
         ui/dialog/import_texture_dialog.ui
+        src/inspector/mesh_inspector_content.cpp
+        include/inspector/mesh_inspector_content.h
+        ui/inspector/mesh_inspector_content.ui
+        src/ContentFilterProxyModel.cpp
+        include/ContentFilterProxyModel.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

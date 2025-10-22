@@ -26,6 +26,7 @@ import_model_dialog::import_model_dialog(const ImportAssetInfo &info, QWidget *p
 {
     ui->setupUi(this);
 
+    ui->Path->setText(info.originalPath);
     ui->ConvertToLH->setChecked(true);
     ui->CreateMaterials->setChecked(true);
 

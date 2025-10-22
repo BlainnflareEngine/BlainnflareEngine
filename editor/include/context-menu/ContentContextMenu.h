@@ -3,8 +3,6 @@
 //
 
 #pragma once
-#include "EASTL/compare.h"
-
 
 #include <QFileSystemModel>
 

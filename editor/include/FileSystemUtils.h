@@ -70,6 +70,6 @@ std::string ToString(const QString &str);
 
 void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir = QString());
 
-void SetValueYAML(const std::string& path,const std::string& name, const std::string& value);
+void SetValueYAML(const std::string &path, const std::string &name, const std::string &value);
 
 } // namespace editor

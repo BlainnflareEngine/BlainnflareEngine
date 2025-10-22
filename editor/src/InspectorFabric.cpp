@@ -4,7 +4,9 @@
 
 #include "InspectorFabric.h"
 
+#include "FileSystemUtils.h"
 #include "material_inspector_content.h"
+#include "mesh_inspector_content.h"
 
 #include <qfileinfo.h>
 
@@ -26,6 +28,11 @@ inspector_content_base *InspectorFabric::GetInspector(const QString &file)
         return GetMaterialInspector(file);
     }
 
+    if (supported3DFormats.contains(fileInfo.suffix().toLower()))
+    {
+        return GetMeshInspector(file);
+    }
+
     BF_ERROR("This file extension is not supported yet");
     return nullptr;
 }
@@ -34,6 +41,15 @@ inspector_content_base *InspectorFabric::GetInspector(const QString &file)
 material_inspector_content *InspectorFabric::GetMaterialInspector(const QString &file)
 {
     auto inspector = new material_inspector_content(file);
+    inspector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    inspector->adjustSize();
+    return inspector;
+}
+
+
+mesh_inspector_content *InspectorFabric::GetMeshInspector(const QString &file)
+{
+    auto inspector = new mesh_inspector_content(file);
     inspector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     inspector->adjustSize();
     return inspector;

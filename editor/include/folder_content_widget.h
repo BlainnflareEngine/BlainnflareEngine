@@ -14,6 +14,7 @@
 
 namespace editor
 {
+class ContentFilterProxyModel;
 class IconProvider;
 }
 class QVBoxLayout;
@@ -55,6 +56,7 @@ signals:
 private:
     Ui::folder_content_widget *ui;
     folder_content_list_view *m_listView;
+    ContentFilterProxyModel *m_proxyModel;
     QFileSystemModel *m_fileSystemModel;
     QVBoxLayout *m_layout;
     ContentContextMenu *m_contentContextMenu;

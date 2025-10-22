@@ -14,7 +14,7 @@
 #include <QMimeData>
 #include <qdir.h>
 #include <qevent.h>
-
+#include <QSortFilterProxyModel>
 
 class QFileSystemModel;
 namespace editor
@@ -85,7 +85,12 @@ void folder_content_list_view::dropEvent(QDropEvent *event)
             info.destinationPath = targetPath + QDir::separator() + url.fileName();
             import_asset_dialog *dialog = GetImportAssetDialog(info);
 
-            if (!dialog) return;
+            if (!dialog)
+            {
+                BF_INFO("Importing file without import dialog: {0}", ToString(info.originalPath));
+                QFile::copy(info.originalPath, info.destinationPath);
+                return;
+            }
 
             dialog->exec();
 
