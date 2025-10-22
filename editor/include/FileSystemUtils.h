@@ -72,4 +72,6 @@ void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir
 
 void SetValueYAML(const std::string &path, const std::string &name, const std::string &value);
 
+void ImportAsset(const QString& src,const QString& dest,const QUrl& url);
+
 } // namespace editor

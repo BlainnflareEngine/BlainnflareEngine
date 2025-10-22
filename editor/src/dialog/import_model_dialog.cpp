@@ -54,10 +54,11 @@ void import_model_dialog::OnConfirm()
     meta["ID"] = Blainn::Rand::getRandomUUID().str();
     meta["ModelPath"] = ToString(dir.relativeFilePath(m_info.destinationPath));
     meta["ConvertToLH"] = m_importData.convertToLH;
+    meta["CreateMaterials"] = m_importData.createMaterials;
 
     QFileInfo fileInfo(m_info.originalPath);
     Blainn::Path modelPath = Blainn::Path(ToString(m_info.destinationPath));
-    Blainn::Path configFilePath = modelPath.replace_extension(".blainn");
+    Blainn::Path configFilePath = modelPath.concat(".blainn");
     std::ofstream fout(configFilePath.string());
     fout << meta;
 
