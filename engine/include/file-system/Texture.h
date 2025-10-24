@@ -4,8 +4,12 @@
 
 #pragma once
 #include "FileSystemObject.h"
+#include "TextureType.h"
+
 #include <d3d12.h>
 #include <wrl/client.h>
+
+
 
 namespace Blainn
 {
@@ -13,17 +17,6 @@ namespace Blainn
 class Texture : public FileSystemObject
 {
 public:
-    enum class TextureType
-    {
-        NONE = 0,
-        ALBEDO = 1,
-        NORMAL = 2,
-        METALLIC = 3,
-        ROUGHNESS = 4,
-        AO = 5,
-        OTHER = 6,
-    };
-
     Texture(const Path &path, const Microsoft::WRL::ComPtr<ID3D12Resource> &resource, TextureType type);
     virtual ~Texture() override;
 

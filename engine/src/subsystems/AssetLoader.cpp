@@ -6,6 +6,7 @@
 
 #include "AssetManager.h"
 #include "MeshData.h"
+#include "ImportAssetData.h"
 #include "file-system/Material.h"
 #include "file-system/Model.h"
 #include "file-system/Texture.h"
@@ -32,7 +33,7 @@ void AssetLoader::Destroy()
 }
 
 
-eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &path, const ImportModelData &data)
+eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &path, const ImportMeshData &data)
 {
     if (path.empty())
     {
@@ -153,7 +154,7 @@ Vec2 AssetLoader::GetTextCoords(const aiMesh &mesh, const unsigned int meshIndex
 }
 
 
-eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const Texture::TextureType type)
+eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const TextureType type)
 {
     BF_INFO("I am loading a very big texture...");
     BF_INFO("Loading texture completed!");
@@ -177,15 +178,15 @@ eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &path)
     auto material = eastl::make_shared<Material>(path, ToEASTLString(shaderPath));
 
     if (!albedo.empty())
-        material->SetTexture(AssetManager::GetInstance().GetTexture(albedo), Texture::TextureType::ALBEDO);
+        material->SetTexture(AssetManager::GetInstance().GetTexture(albedo), TextureType::ALBEDO);
     if (!normal.empty())
-        material->SetTexture(AssetManager::GetInstance().GetTexture(normal), Texture::TextureType::NORMAL);
+        material->SetTexture(AssetManager::GetInstance().GetTexture(normal), TextureType::NORMAL);
     if (!metallic.empty())
-        material->SetTexture(AssetManager::GetInstance().GetTexture(metallic), Texture::TextureType::METALLIC);
+        material->SetTexture(AssetManager::GetInstance().GetTexture(metallic), TextureType::METALLIC);
     if (!roughness.empty())
-        material->SetTexture(AssetManager::GetInstance().GetTexture(roughness), Texture::TextureType::ROUGHNESS);
+        material->SetTexture(AssetManager::GetInstance().GetTexture(roughness), TextureType::ROUGHNESS);
     if (!ambient.empty())
-        material->SetTexture(AssetManager::GetInstance().GetTexture(ambient), Texture::TextureType::AO);
+        material->SetTexture(AssetManager::GetInstance().GetTexture(ambient), TextureType::AO);
 
     return material;
 }

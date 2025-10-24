@@ -26,7 +26,6 @@ set(ENGINE_SOURCES
         include/subsystems/AssetManager.h
         src/subsystems/AssetLoader.cpp
         include/subsystems/AssetLoader.h
-        src/file-system/Material.cpp
         include/file-system/Material.h
         include/handles/Handle.h
         src/file-system/Texture.cpp
@@ -37,6 +36,8 @@ set(ENGINE_SOURCES
         include/file-system/Texture.h
         src/file-system/Model.cpp
         include/file-system/Model.h
+        include/file-system/TextureType.h
+        include/tools/FreeListVector.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})

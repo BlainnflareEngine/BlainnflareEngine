@@ -7,10 +7,13 @@
 #include "../include/dialog/import_model_dialog.h"
 
 #include <QDesktopServices>
+#include <QFileDialog>
 #include <QFileSystemModel>
+#include <QLabel>
 #include <QListView>
 #include <QMessageBox>
 #include <QMimeData>
+#include <fstream>
 #include <qdir.h>
 #include <qevent.h>
 #include <qfileinfo.h>
@@ -191,18 +194,28 @@ bool CopyRecursively(const QString &sourceFolder, const QString &destFolder)
 
 bool MoveRecursively(const QString &targetPath, const QString &srcPath)
 {
-    QFileInfo srcFi(srcPath);
-    QString destPath = targetPath + "/" + srcFi.fileName();
+    QFileInfo srcFile(srcPath);
+    QString destPath = targetPath + "/" + srcFile.fileName();
 
     if (srcPath == destPath)
     {
         return true;
     }
 
+
     if (!QFile::rename(srcPath, destPath))
     {
-        QMessageBox::warning(nullptr, "Error", "Failed to move files!");
+        BF_ERROR("Failed to move file {0} to {1}.", ToString(srcFile.fileName()), ToString(targetPath));
         return false;
+    }
+
+    if (supported3DFormats.contains(srcFile.suffix()))
+    {
+        if (!QFile::rename(srcPath + ".blainn", destPath + ".blainn"))
+        {
+            BF_ERROR("Failed to move file {0} to {1}.", ToString(srcFile.fileName()), ToString(targetPath));
+            return false;
+        }
     }
 
     // TODO: notify engine that some files were moved!
@@ -232,12 +245,60 @@ import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info)
         return new import_model_dialog(info);
     }
 
-    return new import_asset_dialog(info);
+    return nullptr;
 }
 
 
 std::string ToString(const QString &str)
 {
     return str.toUtf8().constData();
+}
+
+
+void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir)
+{
+    QString fileName = QFileDialog::getOpenFileName(
+        nullptr, "Select Texture File", label.text().isEmpty() ? "." : QFileInfo(label.text()).absolutePath(), filter);
+
+    if (!fileName.isEmpty() && relativeDir.isEmpty())
+    {
+        label.setText(fileName);
+    }
+    else if (!fileName.isEmpty())
+    {
+        QDir dir(relativeDir);
+        label.setText(dir.relativeFilePath(fileName));
+    }
+}
+
+void SetValueYAML(const std::string &path, const std::string &name, const std::string &value)
+{
+    YAML::Node node = YAML::LoadFile(path);
+
+    if (!node) return;
+
+    node[name] = value;
+    std::ofstream fout(path);
+    fout << node;
+}
+
+
+void ImportAsset(const QString &src, const QString &dest, const QUrl &url)
+{
+    ImportAssetInfo info;
+    info.originalPath = src;
+    info.destinationPath = dest + QDir::separator() + url.fileName();
+    import_asset_dialog *dialog = GetImportAssetDialog(info);
+
+    if (!dialog)
+    {
+        BF_INFO("Importing file without import dialog: {0}", ToString(info.originalPath));
+        QFile::copy(info.originalPath, info.destinationPath);
+        return;
+    }
+
+    dialog->exec();
+
+    if (dialog->result() == QDialog::Accepted) QFile::copy(info.originalPath, info.destinationPath);
 }
 } // namespace editor

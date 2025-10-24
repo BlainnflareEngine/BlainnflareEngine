@@ -2,8 +2,7 @@
 // Created by gorev on 25.09.2025.
 //
 
-#ifndef IMPORT_ASSET_DIALOG_H
-#define IMPORT_ASSET_DIALOG_H
+#pragma once
 
 
 #include "FileSystemUtils.h"
@@ -51,5 +50,3 @@ private:
     Ui::import_asset_dialog *ui;
 };
 } // namespace editor
-
-#endif // IMPORT_ASSET_DIALOG_H

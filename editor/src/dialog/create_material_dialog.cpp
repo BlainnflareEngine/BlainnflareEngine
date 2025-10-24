@@ -5,6 +5,7 @@
 
 #include "dialog/create_material_dialog.h"
 
+#include "FileSystemUtils.h"
 #include "ui_create_material_dialog.h"
 
 #include <QFileDialog>
@@ -94,37 +95,37 @@ QString create_material_dialog::GetShaderPath() const
 
 void create_material_dialog::OnSelectAlbedo()
 {
-    SelectFile(*ui->AlbedoPath, "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)");
+    SelectFile(*ui->AlbedoPath, Filters::TextureFilter);
 }
 
 
 void create_material_dialog::OnSelectNormal()
 {
-    SelectFile(*ui->NormaPath, "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)");
+    SelectFile(*ui->NormaPath, Filters::TextureFilter);
 }
 
 
 void create_material_dialog::OnSelectMetallic()
 {
-    SelectFile(*ui->MetallicPath, "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)");
+    SelectFile(*ui->MetallicPath, Filters::TextureFilter);
 }
 
 
 void create_material_dialog::OnSelectRoughness()
 {
-    SelectFile(*ui->RoughnessPath, "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)");
+    SelectFile(*ui->RoughnessPath, Filters::TextureFilter);
 }
 
 
 void create_material_dialog::OnSelectAO()
 {
-    SelectFile(*ui->AOPath, "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)");
+    SelectFile(*ui->AOPath, Filters::TextureFilter);
 }
 
 
 void create_material_dialog::OnSelectShader()
 {
-    SelectFile(*ui->ShaderPath, "Shaders (*.cso);;All Files (*)");
+    SelectFile(*ui->ShaderPath, Filters::ShaderFilter);
 }
 
 
@@ -139,19 +140,5 @@ void create_material_dialog::accept()
     }
 
     QDialog::accept();
-}
-
-
-void create_material_dialog::SelectFile(QLabel &label, const QString &filter)
-{
-    // QString filter = "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)";
-
-    QString fileName = QFileDialog::getOpenFileName(
-        this, "Select Texture File", label.text().isEmpty() ? "." : QFileInfo(label.text()).absolutePath(), filter);
-
-    if (!fileName.isEmpty())
-    {
-        label.setText(fileName);
-    }
 }
 } // namespace editor

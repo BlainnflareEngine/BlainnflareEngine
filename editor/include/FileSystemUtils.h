@@ -9,6 +9,8 @@
 #include <QTreeView>
 #include <qstring.h>
 
+
+class QLabel;
 namespace editor
 {
 class import_asset_dialog;
@@ -30,14 +32,14 @@ inline static const QStringList supported3DFormats = {
     "fbx",
 };
 
-inline static const QStringList supportedTextureFormats = {
-    "png",
-    "jpg",
-    "dds",
-    "jpeg",
-    "tga",
-    "bmp"
-};
+namespace Filters
+{
+inline static QString ShaderFilter = "Shaders (*.cso);;All Files (*)";
+inline static QString TextureFilter = "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)";
+} // namespace Filters
+
+
+inline static const QStringList supportedTextureFormats = {"png", "jpg", "dds", "jpeg", "tga", "bmp"};
 
 void OpenFileExternal(const QString &filePath);
 
@@ -64,5 +66,12 @@ bool WasInFolderBefore(const QString &filePath, const QString &contentFolderPath
 
 import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info);
 
-std::string ToString(const QString& str);
+std::string ToString(const QString &str);
+
+void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir = QString());
+
+void SetValueYAML(const std::string &path, const std::string &name, const std::string &value);
+
+void ImportAsset(const QString& src,const QString& dest,const QUrl& url);
+
 } // namespace editor

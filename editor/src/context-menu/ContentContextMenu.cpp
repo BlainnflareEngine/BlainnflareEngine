@@ -5,6 +5,7 @@
 #include "context-menu/ContentContextMenu.h"
 
 #include "../../include/dialog/create_material_dialog.h"
+#include "ContentFilterProxyModel.h"
 #include "Editor.h"
 #include "FileSystemUtils.h"
 #include "random.h"
@@ -110,24 +111,35 @@ void ContentContextMenu::CreateMaterial(const QString &dirPath) const
 void ContentContextMenu::OnContextMenu(const QPoint &pos) const
 {
     QModelIndex index = m_parent.indexAt(pos);
-
     if (index.isValid()) return;
 
-    QFileSystemModel *model = qobject_cast<QFileSystemModel *>(m_parent.model());
-    if (!model) return;
+    QFileSystemModel *fileSystemModel = nullptr;
 
-    QString dirPath = model->rootPath();
+    if (auto *proxyModel = qobject_cast<QAbstractProxyModel *>(m_parent.model()))
+    {
+        fileSystemModel = qobject_cast<QFileSystemModel *>(proxyModel->sourceModel());
+    }
+    else
+    {
+        fileSystemModel = qobject_cast<QFileSystemModel *>(m_parent.model());
+    }
+
+    if (!fileSystemModel) return;
+
+    QString dirPath = fileSystemModel->rootPath();
     QMenu menu;
 
     QAction *createFolderAction = menu.addAction("Create folder");
     QAction *createScriptAction = menu.addAction("Create script");
     QAction *createMaterialAction = menu.addAction("Create material");
     QAction *showExplorerAction = menu.addAction("Show in explorer");
-    QAction *selectedAction = menu.exec(m_parent.viewport()->mapToGlobal(pos));
 
-    if (selectedAction == createFolderAction) CreateFolder(dirPath);
-    else if (selectedAction == createScriptAction) CreateScript(dirPath);
-    else if (selectedAction == createMaterialAction) CreateMaterial(dirPath);
-    else if (selectedAction == showExplorerAction) OpenFolderExplorer(dirPath);
+    if (QAction *selectedAction = menu.exec(m_parent.viewport()->mapToGlobal(pos)))
+    {
+        if (selectedAction == createFolderAction) CreateFolder(dirPath);
+        else if (selectedAction == createScriptAction) CreateScript(dirPath);
+        else if (selectedAction == createMaterialAction) CreateMaterial(dirPath);
+        else if (selectedAction == showExplorerAction) OpenFolderExplorer(dirPath);
+    }
 }
 } // namespace editor

@@ -46,8 +46,6 @@ public slots:
 
 private:
     Ui::create_material_dialog *ui;
-
-    void SelectFile(QLabel &label, const QString &filter);
 };
 
 } // namespace editor

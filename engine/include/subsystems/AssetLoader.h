@@ -3,12 +3,10 @@
 //
 
 #pragma once
-/*#include "file-system/Model.h"*/
 #include "file-system/Texture.h"
-// #include <assimp/mesh.h>
 
 
-struct ImportModelData;
+
 namespace std::filesystem
 {
 class path;
@@ -24,6 +22,7 @@ namespace Blainn
 class Model;
 class Material;
 struct MeshData;
+struct ImportMeshData;
 
 class AssetLoader
 {
@@ -35,9 +34,9 @@ public:
     void Init();
     void Destroy();
 
-    eastl::shared_ptr<Model> ImportModel(const Path &path, const ImportModelData &data);
+    eastl::shared_ptr<Model> ImportModel(const Path &path, const ImportMeshData &data);
 
-    eastl::shared_ptr<Texture> LoadTexture(const Path &path, Texture::TextureType type);
+    eastl::shared_ptr<Texture> LoadTexture(const Path &path, TextureType type);
 
     eastl::shared_ptr<Material> LoadMaterial(const Path &path);
 
