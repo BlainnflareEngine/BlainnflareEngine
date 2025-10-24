@@ -6,14 +6,14 @@ namespace Blainn
 template<typename T, typename... Args>
 T& Entity::AddComponent(Args&&... args)
 {
-    assert(HasComponent<T>() || "Entity doesn't have the component!");
+    assert(!HasComponent<T>() && "Entity already has the component!");
     return m_Scene->m_Registry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
 }
 
 template<typename T>
 T& Entity::GetComponent() const
 {
-    assert(HasComponent<T>() || "Entity doesn't have the component!");
+    assert(HasComponent<T>() && "Entity doesn't have the component!");
     return m_Scene->m_Registry.get<T>(m_EntityHandle);
 }
 
@@ -75,7 +75,7 @@ bool Entity::HasAll() const
 template<typename T>
 void Entity::RemoveComponent()
 {
-    assert(HasComponent<T>() || "Entity doesn't have the component!");
+    assert(HasComponent<T>() && "Entity doesn't have the component!");
     return m_Scene->m_Registry.erase<T>(m_EntityHandle);
 }
 template<typename T>
