@@ -18,12 +18,28 @@ void ScriptingSubsystem::Init()
 
 void ScriptingSubsystem::Destroy()
 {
-    // TODO: unload all scripts
+    for (const auto &[scriptUuid, script] : m_scriptEntityConnections)
+    {
+        ScriptingComponent *component = m_scriptEntityConnections.at(scriptUuid).TryGetComponent<ScriptingComponent>();
+        if (!component) continue;
+        for (auto &script : component->scripts)
+        {
+            script.second.OnDestroyCall();
+        }
+    }
+    m_scriptEntityConnections = {};
 }
 
-void ScriptingSubsystem::Update(float deltaTimeMs)
+void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
 {
-    // TODO: implement
+    auto view = scene.GetAllEntitiesWith<ScriptingComponent>();
+    for (const auto &[entity, scriptingComponent] : view.each())
+    {
+        for (auto &script : scriptingComponent.scripts)
+        {
+            script.second.OnUpdateCall(deltaTimeMs);
+        }
+    }
 }
 
 sol::state &ScriptingSubsystem::GetLuaState()
@@ -57,7 +73,7 @@ eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const eastl:
     if (callOnStart) luaScript.OnStartCall();
 
     uuid scriptUuid = luaScript.GetId();
-    scripts.emplace(scriptUuid, std::move(luaScript));
+    scripts[scriptUuid] = std::move(luaScript);
     m_scriptEntityConnections[scriptUuid] = entity;
     return eastl::optional(eastl::move(scriptUuid));
 }

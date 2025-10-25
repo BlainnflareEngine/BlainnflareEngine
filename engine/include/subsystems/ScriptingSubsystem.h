@@ -17,7 +17,7 @@ public:
     static void Init();
     static void Destroy();
 
-    static void Update(float deltaTimeMs);
+    static void Update(Scene &scene, float deltaTimeMs);
 
     static sol::state &GetLuaState();
 
