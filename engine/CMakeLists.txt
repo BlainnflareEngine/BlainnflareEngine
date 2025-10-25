@@ -48,6 +48,7 @@ set(ENGINE_SOURCES
         include/tools/FreeListVector.h
         include/scene/BasicComponents.h
         include/scene/EntityTemplates.h
+        include/physics/RayCastResult.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
