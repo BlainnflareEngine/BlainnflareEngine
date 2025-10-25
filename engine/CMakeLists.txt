@@ -8,7 +8,8 @@ set(ENGINE_SOURCES
         src/Engine.cpp
         src/subsystems/RenderSubsystem.cpp
         src/subsystems/PhysicsSubsystem.cpp
-       src/subsystems/ScriptingSubsystem.cpp
+        include/subsystems/ScriptingSubsystem.h
+        src/subsystems/ScriptingSubsystem.cpp
         src/subsystems/Log.cpp
         src/runtime/physics/BodyBuilder.cpp
         src/runtime/physics/ContactListenerImpl.cpp
@@ -33,7 +34,9 @@ set(ENGINE_SOURCES
         include/file-system/Model.h
         include/file-system/TextureType.h
         include/tools/FreeListVector.h
+        include/runtime/scripting/LuaScript.h
         src/runtime/scripting/LuaScript.cpp
+        include/runtime/components/ScriptingComponent.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})

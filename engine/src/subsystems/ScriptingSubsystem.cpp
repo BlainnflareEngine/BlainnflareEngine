@@ -1,10 +1,9 @@
+#include "pch.h"
+
 #include "subsystems/ScriptingSubsystem.h"
 
 #include <cassert>
 
-#include "ScriptingSubsystem.h"
-#include "runtime/components/ScriptingComponent.h"
-#include "scene/EntityTemplates.h"
 #include "tools/random.h"
 
 using namespace Blainn;
@@ -58,7 +57,7 @@ eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const eastl:
     if (callOnStart) luaScript.OnStartCall();
 
     uuid scriptUuid = luaScript.GetId();
-    scripts[scriptUuid] = std::move(luaScript);
+    scripts.emplace(scriptUuid, std::move(luaScript));
     m_scriptEntityConnections[scriptUuid] = entity;
     return eastl::optional(eastl::move(scriptUuid));
 }

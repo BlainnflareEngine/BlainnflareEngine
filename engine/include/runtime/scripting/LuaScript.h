@@ -1,11 +1,11 @@
 #pragma once
 
-#include "EASTL/string.h"
+#include <EASTL/string.h>
 
 #include <lua.hpp>
 #include <sol/sol.hpp>
 
-#include "subsystems/ScriptingSubsystem.h"
+#include "aliases.h"
 
 namespace Blainn
 {
@@ -13,6 +13,7 @@ class LuaScript
 {
 public:
     LuaScript();
+
     bool Load(eastl::string_view scriptPath);
     bool IsLoaded() const;
 
@@ -53,7 +54,6 @@ private:
     bool m_isLoaded = false;
     uuid m_id;
     eastl::string m_scriptPath;
-    sol::load_result m_script;
     sol::environment m_environment;
 };
 } // namespace Blainn

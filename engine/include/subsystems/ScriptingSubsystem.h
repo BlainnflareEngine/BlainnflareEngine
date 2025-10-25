@@ -3,13 +3,11 @@
 #include <EASTL/optional.h>
 #include <EASTL/string.h>
 #include <EASTL/unordered_map.h>
-#include <entt/entt.hpp>
 #include <sol/sol.hpp>
 
-
 #include "aliases.h"
-#include "scene/BasicComponents.h"
-#include "scene/Entity.h"
+#include "runtime/components/ScriptingComponent.h"
+#include "scene/Scene.h"
 
 namespace Blainn
 {
@@ -71,6 +69,6 @@ private:
 
     inline static eastl::string m_luaScriptsFolder = "content/scripts/";
 
-    static eastl::unordered_map<uuid, Entity> m_scriptEntityConnections;
+    inline static eastl::unordered_map<uuid, Entity> m_scriptEntityConnections = eastl::unordered_map<uuid, Entity>{};
 };
 } // namespace Blainn

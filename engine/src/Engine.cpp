@@ -5,7 +5,6 @@
 #include "VGJS.h"
 
 #include "aliases.h"
-#include "runtime/scripting/LuaScript.h" // TODO: remove test include
 #include "subsystems/Log.h"
 #include "subsystems/RenderSubsystem.h"
 #include "subsystems/ScriptingSubsystem.h"

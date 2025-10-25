@@ -1,5 +1,6 @@
-#include "runtime/scripting/LuaScript.h"
 #include "pch.h"
+
+#include "runtime/scripting/LuaScript.h"
 
 #include "subsystems/ScriptingSubsystem.h"
 #include "tools/random.h"
@@ -16,17 +17,17 @@ bool LuaScript::Load(eastl::string_view scriptPath)
     m_scriptPath = scriptPath;
 
     sol::state &lua = ScriptingSubsystem::GetLuaState();
-    m_script = lua.load_file(scriptPath.data());
-    if (!m_script.valid())
+    sol::load_result script = lua.load_file(scriptPath.data());
+    if (!script.valid())
     {
-        sol::error err = m_script;
+        sol::error err = script;
         BF_ERROR("Failed to load Lua script: " + m_scriptPath + "\nError: " + err.what());
         return false;
     }
 
     m_environment = sol::environment(lua, sol::create, lua.globals());
     // load lua functions to environment
-    sol::protected_function_result result = m_script();
+    sol::protected_function_result result = script();
     if (!result.valid())
     {
         sol::error err = result;

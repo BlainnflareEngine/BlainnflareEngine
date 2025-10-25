@@ -3,10 +3,12 @@
 #include <EASTL/unordered_map.h>
 
 #include "aliases.h"
+
 #include "runtime/scripting/LuaScript.h"
 
 namespace Blainn
 {
+
 struct ScriptingComponent
 {
     ScriptingComponent(const uuid &parentUuidIn)
