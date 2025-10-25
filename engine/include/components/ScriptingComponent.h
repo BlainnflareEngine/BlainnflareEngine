@@ -11,10 +11,7 @@ namespace Blainn
 
 struct ScriptingComponent
 {
-    ScriptingComponent(const uuid &parentUuidIn)
-        : parentId(parentUuidIn) {};
-
-    uuid parentId;
+    // uuid parentId;TODO: store Entity here?
     eastl::unordered_map<uuid, LuaScript> scripts;
 };
 } // namespace Blainn

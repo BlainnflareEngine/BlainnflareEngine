@@ -10,6 +10,7 @@
 #include "subsystems/ScriptingSubsystem.h"
 #include "tools/Profiler.h"
 
+#include "scene/Scene.h"
 
 #include "tools/Timeline.h"
 
@@ -30,12 +31,25 @@ void Engine::Init()
     Blainn::ScriptingSubsystem::Init();
 }
 
-void Engine::Shutdown()
+void Engine::Destroy()
 {
 }
 
 void Engine::Run()
 {
+    /// ----- TEST SCRIPTING -----
+    // Scene sc;
+    // Entity entity = sc.CreateEntity();
+    // entity.AddComponent<ScriptingComponent>();
+    // uuid scriptUuid = ScriptingSubsystem::LoadScript(entity, "test1.lua").value();
+    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "abobus");
+    // ScriptingSubsystem::UnloadScript(scriptUuid);
+    // scriptUuid = ScriptingSubsystem::LoadScript(entity, "test2.lua").value();
+    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnUpdate");
+    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnCustomCall");
+    // ScriptingSubsystem::UnloadScript(scriptUuid);
+    /// ----- END TEST SCRIPTING -----
+
     Timeline<eastl::chrono::milliseconds> sayMarioTimeline;
     sayMarioTimeline.Start();
 

@@ -38,20 +38,20 @@ public:
         if (!m_scriptEntityConnections.contains(scriptUuid))
         {
             BF_ERROR("Script " + scriptUuid.str() + " function call error - no script");
-            return;
+            return false;
         }
 
         ScriptingComponent *component = m_scriptEntityConnections.at(scriptUuid).TryGetComponent<ScriptingComponent>();
         if (!component)
         {
             BF_ERROR("Script" + scriptUuid.str() + " function call error - component not exist");
-            return;
+            return false;
         }
 
         if (!component->scripts.contains(scriptUuid))
         {
             BF_ERROR("Script" + scriptUuid.str() + " not contained in component");
-            return;
+            return false;
         }
 
         return component->scripts.at(scriptUuid).CustomCall(functionName, std::forward<Args>(args)...);

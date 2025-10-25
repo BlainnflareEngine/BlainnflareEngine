@@ -38,6 +38,7 @@ public:
         {
             return false;
         }
+        sol::set_environment(m_environment, customFunc);
         sol::protected_function_result result = customFunc(std::forward<Args>(args)...);
         if (!result.valid())
         {

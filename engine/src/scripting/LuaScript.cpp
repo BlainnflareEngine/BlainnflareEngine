@@ -25,7 +25,9 @@ bool LuaScript::Load(eastl::string_view scriptPath)
         return false;
     }
 
+    sol::protected_function scriptAsFunc = script.get<sol::protected_function>();
     m_environment = sol::environment(lua, sol::create, lua.globals());
+    sol::set_environment(m_environment, scriptAsFunc);
     // load lua functions to environment
     sol::protected_function_result result = script();
     if (!result.valid())
