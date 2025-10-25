@@ -5,11 +5,9 @@
 #include "EASTL/unordered_map.h"
 #include "EASTL/vector.h"
 
-#include "common.h"
-
-#include "runtime/components/PhysicsComponent.h"
-#include "runtime/physics/ContactListenerImpl.h"
-#include "runtime/physics/Layers.h"
+#include "components/PhysicsComponent.h"
+#include "physics/ContactListenerImpl.h"
+#include "physics/Layers.h"
 
 namespace JPH
 {

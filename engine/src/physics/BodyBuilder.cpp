@@ -1,5 +1,5 @@
+#include "physics/BodyBuilder.h"
 #include "pch.h"
-#include "runtime/physics/BodyBuilder.h"
 
 #include "Jolt/Jolt.h"
 #include "Jolt/Physics/Body/Body.h"
@@ -50,6 +50,6 @@ BodyBuilder &BodyBuilder::SetAngularVelocity(Vec3 vec)
 
 JPH::BodyID BodyBuilder::Build(JPH::EActivation activate /*= JPH::EActivation::Activate*/)
 {
-    JPH::BodyInterface & interf = PhysicsSubsystem::GetPhysicsSystem().GetBodyInterface();
+    JPH::BodyInterface &interf = PhysicsSubsystem::GetPhysicsSystem().GetBodyInterface();
     return interf.CreateAndAddBody(m_settings, activate);
 }

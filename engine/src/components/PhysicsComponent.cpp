@@ -1,11 +1,11 @@
-#include "runtime/components/PhysicsComponent.h"
+#include "components/PhysicsComponent.h"
 #include "pch.h"
 
 
 #include "Jolt/Jolt.h"
 #include "Jolt/Physics/EActivation.h"
 
-#include "runtime/physics/BodyBuilder.h"
+#include "physics/BodyBuilder.h"
 
 using namespace Blainn;
 
