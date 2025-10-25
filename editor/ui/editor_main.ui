@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1920</width>
+    <width>1784</width>
     <height>1080</height>
    </rect>
   </property>
@@ -190,7 +190,7 @@
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>1</horstretch>
-         <verstretch>30</verstretch>
+         <verstretch>4</verstretch>
         </sizepolicy>
        </property>
        <property name="minimumSize">
@@ -300,7 +300,7 @@
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>3</horstretch>
-          <verstretch>3</verstretch>
+          <verstretch>1</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
@@ -357,7 +357,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="m_inspector" native="true">
+       <widget class="QWidget" name="m_inspector_tabs" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>1</horstretch>
@@ -388,6 +388,9 @@
          </property>
          <item>
           <widget class="QTabWidget" name="tabWidget_3">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>1</horstretch>
@@ -410,6 +413,9 @@
             <bool>false</bool>
            </property>
            <widget class="QWidget" name="inspectorTab">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>1</horstretch>
@@ -419,6 +425,36 @@
             <attribute name="title">
              <string>Inspector</string>
             </attribute>
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <property name="spacing">
+              <number>5</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="inspector_widget" name="m_inspector">
+               <property name="frameShape">
+                <enum>QFrame::Shape::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Shadow::Plain</enum>
+               </property>
+               <property name="widgetResizable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </widget>
          </item>
@@ -429,13 +465,19 @@
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
          <horstretch>1</horstretch>
-         <verstretch>2</verstretch>
+         <verstretch>1</verstretch>
         </sizepolicy>
        </property>
        <property name="minimumSize">
         <size>
-         <width>1</width>
-         <height>1</height>
+         <width>10</width>
+         <height>10</height>
+        </size>
+       </property>
+       <property name="sizeIncrement">
+        <size>
+         <width>0</width>
+         <height>0</height>
         </size>
        </property>
        <property name="autoFillBackground">
@@ -613,7 +655,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1920</width>
+     <width>1784</width>
      <height>33</height>
     </rect>
    </property>
@@ -673,6 +715,12 @@
    <class>console_messages_widget</class>
    <extends>QPlainTextEdit</extends>
    <header>console_messages_widget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>inspector_widget</class>
+   <extends>QScrollArea</extends>
+   <header>inspector_widget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

@@ -3,6 +3,7 @@
 //
 
 #include "file-system/Material.h"
+#include "file-system/TextureType.h"
 
 
 Blainn::Material::Material(const Path &path, const eastl::string &shader)
@@ -35,71 +36,71 @@ void Blainn::Material::Copy()
 }
 
 
-void Blainn::Material::SetTexture(const eastl::shared_ptr<TextureHandle> &textureHandle, Texture::TextureType type)
+void Blainn::Material::SetTexture(const eastl::shared_ptr<TextureHandle> &textureHandle, TextureType type)
 {
     switch (type)
     {
-    case Texture::TextureType::NONE:
+    case TextureType::NONE:
         BF_WARN("Trying to set none texture in " + m_path.string())
         break;
 
-    case Texture::TextureType::ALBEDO:
+    case TextureType::ALBEDO:
         BF_INFO("Trying to set albedo texture in " + m_path.string())
         m_albedoTexture = textureHandle;
         break;
 
-    case Texture::TextureType::NORMAL:
+    case TextureType::NORMAL:
         BF_INFO("Trying to set normal texture in " + m_path.string())
         m_normalTexture = textureHandle;
         break;
 
-    case Texture::TextureType::METALLIC:
+    case TextureType::METALLIC:
         BF_INFO("Trying to set metallic texture in " + m_path.string())
         m_metallicTexture = textureHandle;
         break;
 
-    case Texture::TextureType::ROUGHNESS:
+    case TextureType::ROUGHNESS:
         BF_INFO("Trying to set roughness texture in " + m_path.string())
         m_roughnessTexture = textureHandle;
         break;
 
-    case Texture::TextureType::AO:
+    case TextureType::AO:
         BF_INFO("Trying to set AO texture in " + m_path.string())
         m_aoTexture = textureHandle;
         break;
 
-    case Texture::TextureType::OTHER:
+    case TextureType::OTHER:
         BF_INFO("Trying to set other texture in " + m_path.string())
         break;
     }
 }
 
 
-Blainn::TextureHandle &Blainn::Material::GetTextureHandle(Texture::TextureType type)
+Blainn::TextureHandle &Blainn::Material::GetTextureHandle(TextureType type)
 {
     switch (type)
     {
 
-    case Texture::TextureType::NONE:
+    case TextureType::NONE:
         BF_FATAL("There is no texture handle for this texture type (NONE).");
         throw std::runtime_error("Invalid texture type: NONE");
 
-    case Texture::TextureType::ALBEDO:
+    case TextureType::ALBEDO:
         return *m_albedoTexture;
 
-    case Texture::TextureType::NORMAL:
+    case TextureType::NORMAL:
         return *m_normalTexture;
 
-    case Texture::TextureType::METALLIC:
+    case TextureType::METALLIC:
         return *m_metallicTexture;
 
-    case Texture::TextureType::ROUGHNESS:
+    case TextureType::ROUGHNESS:
         return *m_roughnessTexture;
 
-    case Texture::TextureType::AO:
+    case TextureType::AO:
         return *m_aoTexture;
 
-    case Texture::TextureType::OTHER:
+    case TextureType::OTHER:
         BF_WARN("There is no texture handle for this texture type (OTHER).");
         return *m_albedoTexture;
 
@@ -121,19 +122,19 @@ const eastl::string &Blainn::Material::GetShader() const
 }
 
 
-BOOL Blainn::Material::HasTexture(const Texture::TextureType type) const
+BOOL Blainn::Material::HasTexture(const TextureType type) const
 {
     switch (type)
     {
-    case Texture::TextureType::ALBEDO:
+    case TextureType::ALBEDO:
         return m_albedoTexture != nullptr;
-    case Texture::TextureType::NORMAL:
+    case TextureType::NORMAL:
         return m_normalTexture != nullptr;
-    case Texture::TextureType::METALLIC:
+    case TextureType::METALLIC:
         return m_metallicTexture != nullptr;
-    case Texture::TextureType::ROUGHNESS:
+    case TextureType::ROUGHNESS:
         return m_roughnessTexture != nullptr;
-    case Texture::TextureType::AO:
+    case TextureType::AO:
         return m_aoTexture != nullptr;
     default:
         return FALSE;

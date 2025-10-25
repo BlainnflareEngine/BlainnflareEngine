@@ -4,6 +4,7 @@
 
 #include "context-menu/FileContextMenu.h"
 
+#include "ContentFilterProxyModel.h"
 #include "EASTL/unique_ptr.h"
 #include "FileSystemUtils.h"
 
@@ -29,11 +30,13 @@ void FileContextMenu::FileContext(const QPoint &pos, const QString &path) const
     QAction *openAction = menu.addAction("Open file");
     QAction *deleteAction = menu.addAction("Delete file");
     QAction *showExplorerAction = menu.addAction("Show in explorer");
-    QAction *selectedAction = menu.exec(m_parent.viewport()->mapToGlobal(pos));
 
-    if (selectedAction == openAction) OpenFileExternal(path);
-    else if (selectedAction == deleteAction) BDeleteFile(path);
-    else if (selectedAction == showExplorerAction) OpenFileExplorer(path);
+    if (QAction *selectedAction = menu.exec(m_parent.viewport()->mapToGlobal(pos)))
+    {
+        if (selectedAction == openAction) OpenFileExternal(path);
+        else if (selectedAction == deleteAction) BDeleteFile(path);
+        else if (selectedAction == showExplorerAction) OpenFileExplorer(path);
+    }
 }
 
 
@@ -44,27 +47,41 @@ void FileContextMenu::DirectoryContext(const QPoint &pos, const QString &path) c
     QAction *openAction = menu.QWidget::addAction("Open folder");
     QAction *deleteAction = menu.QWidget::addAction("Delete folder");
     QAction *explorerAction = menu.QWidget::addAction("Show in explorer");
-    QAction *selectedAction = menu.exec(m_parent.viewport()->mapToGlobal(pos));
     menu.adjustSize();
 
     eastl::vector<QAbstractItemView *> itemViews = m_additionalViews;
     itemViews.push_back(&m_parent);
 
-    if (openAction == selectedAction) OpenFolder(path, itemViews);
-    else if (selectedAction == deleteAction) DeleteFolder(path);
-    else if (selectedAction == explorerAction) OpenFolderExplorer(path);
+    if (QAction *selectedAction = menu.exec(m_parent.viewport()->mapToGlobal(pos)))
+    {
+        if (openAction == selectedAction) OpenFolder(path, itemViews);
+        else if (selectedAction == deleteAction) DeleteFolder(path);
+        else if (selectedAction == explorerAction) OpenFolderExplorer(path);
+    }
 }
 
 
 void FileContextMenu::OnContextMenu(const QPoint &pos) const
 {
-    QModelIndex modelIndex = m_parent.indexAt(pos);
-    if (!modelIndex.isValid()) return;
+    QModelIndex index = m_parent.indexAt(pos);
+    if (!index.isValid()) return;
 
-    QFileSystemModel *model = qobject_cast<QFileSystemModel *>(m_parent.model());
-    if (!model) return;
+    QFileSystemModel *fileSystemModel = nullptr;
+    QModelIndex sourceIndex = index;
 
-    QString filePath = model->filePath(modelIndex);
+    if (QAbstractProxyModel *proxyModel = qobject_cast<QAbstractProxyModel *>(m_parent.model()))
+    {
+        fileSystemModel = qobject_cast<QFileSystemModel *>(proxyModel->sourceModel());
+        sourceIndex = proxyModel->mapToSource(index);
+    }
+    else
+    {
+        fileSystemModel = qobject_cast<QFileSystemModel *>(m_parent.model());
+    }
+
+    if (!fileSystemModel) return;
+
+    QString filePath = fileSystemModel->filePath(sourceIndex);
     QFileInfo fileInfo = QFileInfo(filePath);
 
     if (fileInfo.isFile())

@@ -6,6 +6,7 @@
 #define EDITOR_MAIN_H
 
 #include "../../libs/EASTL/include/EASTL/unique_ptr.h"
+#include "inspector_widget.h"
 
 
 #include <QMainWindow>
@@ -38,6 +39,8 @@ public:
     void SetContentDirectory(const QString &path);
 
     void closeEvent(QCloseEvent *event) override;
+
+    inspector_widget& GetInspectorWidget();
 
     console_messages_widget *GetConsoleWidget() const;
 

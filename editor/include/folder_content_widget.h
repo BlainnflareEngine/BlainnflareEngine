@@ -14,6 +14,7 @@
 
 namespace editor
 {
+class ContentFilterProxyModel;
 class IconProvider;
 }
 class QVBoxLayout;
@@ -45,14 +46,17 @@ public:
 
 public slots:
     void OnFolderSelectedPath(const QString &newPath);
-    void onEntrySelectedIndex(const QModelIndex &newSelection);
+    void OnEntrySelectedIndex(const QModelIndex &newSelection);
+    void OnFileSelectedPath(const QModelIndex &index);
 
 signals:
-    void folderSelected(const QString &newPath);
+    void FolderSelected(const QString &path);
+    void FileSelected(const QString &filePath);
 
 private:
     Ui::folder_content_widget *ui;
     folder_content_list_view *m_listView;
+    ContentFilterProxyModel *m_proxyModel;
     QFileSystemModel *m_fileSystemModel;
     QVBoxLayout *m_layout;
     ContentContextMenu *m_contentContextMenu;

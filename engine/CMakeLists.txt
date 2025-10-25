@@ -22,11 +22,17 @@ set(ENGINE_SOURCES
         include/scene/EntityTemplates.h
         src/subsystems/AssetManager.cpp
         src/subsystems/AssetLoader.cpp
+        include/subsystems/AssetLoader.h
+        include/file-system/Material.h
+        include/handles/Handle.h
         src/file-system/Texture.cpp
         src/file-system/Material.cpp
         src/handles/Handle.cpp
         src/file-system/FileSystemObject.cpp
         src/file-system/Model.cpp
+        include/file-system/Model.h
+        include/file-system/TextureType.h
+        include/tools/FreeListVector.h
         src/runtime/scripting/LuaScript.cpp
 )
 

@@ -38,9 +38,9 @@ editor_main::editor_main(QWidget *parent)
             &folder_content_widget::OnFolderSelectedPath);
     connect(ui->pathBar, &path_bar_widget::PathClicked, ui->folders, &folders_widget::OnFolderSelectedPath);
 
-    connect(ui->folderContent, &folder_content_widget::folderSelected, ui->folders,
+    connect(ui->folderContent, &folder_content_widget::FolderSelected, ui->folders,
             &folders_widget::OnFolderSelectedPath);
-    connect(ui->folderContent, &folder_content_widget::folderSelected, ui->pathBar, &path_bar_widget::SetCurrentPath);
+    connect(ui->folderContent, &folder_content_widget::FolderSelected, ui->pathBar, &path_bar_widget::SetCurrentPath);
 
 
     connect(ui->actionEditor_settings, &QAction::triggered, this, &editor_main::OnOpenSettings);
@@ -75,6 +75,12 @@ void editor_main::closeEvent(QCloseEvent *event)
     // TODO: serialize something before exit
     QMainWindow::closeEvent(event);
     QCoreApplication::quit();
+}
+
+
+inspector_widget &editor_main::GetInspectorWidget()
+{
+    return *ui->m_inspector;
 }
 
 

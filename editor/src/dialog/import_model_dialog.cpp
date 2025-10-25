@@ -26,6 +26,7 @@ import_model_dialog::import_model_dialog(const ImportAssetInfo &info, QWidget *p
 {
     ui->setupUi(this);
 
+    ui->Path->setText(info.originalPath);
     ui->ConvertToLH->setChecked(true);
     ui->CreateMaterials->setChecked(true);
 
@@ -40,7 +41,7 @@ import_model_dialog::~import_model_dialog()
 }
 
 
-ImportModelData &import_model_dialog::GetData()
+Blainn::ImportMeshData &import_model_dialog::GetData()
 {
     return m_importData;
 }
@@ -53,10 +54,11 @@ void import_model_dialog::OnConfirm()
     meta["ID"] = Blainn::Rand::getRandomUUID().str();
     meta["ModelPath"] = ToString(dir.relativeFilePath(m_info.destinationPath));
     meta["ConvertToLH"] = m_importData.convertToLH;
+    meta["CreateMaterials"] = m_importData.createMaterials;
 
     QFileInfo fileInfo(m_info.originalPath);
     Blainn::Path modelPath = Blainn::Path(ToString(m_info.destinationPath));
-    Blainn::Path configFilePath = modelPath.replace_extension(".blainn");
+    Blainn::Path configFilePath = modelPath.concat(".blainn");
     std::ofstream fout(configFilePath.string());
     fout << meta;
 
