@@ -43,15 +43,15 @@ set(ENGINE_SOURCES
         src/file-system/FileSystemObject.cpp
         include/file-system/Model.h
         src/file-system/Model.cpp
+        include/scripting/LuaScript.h
+        src/scripting/LuaScript.cpp
         include/file-system/TextureType.h
         include/tools/Profiler.h
         include/tools/FreeListVector.h
         include/scene/BasicComponents.h
         include/scene/EntityTemplates.h
         include/physics/RayCastResult.h
-        include/runtime/scripting/LuaScript.h
-        src/runtime/scripting/LuaScript.cpp
-        include/runtime/components/ScriptingComponent.h
+        include/components/ScriptingComponent.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})

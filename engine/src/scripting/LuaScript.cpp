@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include "runtime/scripting/LuaScript.h"
+#include "scripting/LuaScript.h"
 
 #include "subsystems/ScriptingSubsystem.h"
 #include "tools/random.h"

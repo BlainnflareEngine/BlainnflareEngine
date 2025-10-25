@@ -6,7 +6,7 @@
 #include <sol/sol.hpp>
 
 #include "aliases.h"
-#include "runtime/components/ScriptingComponent.h"
+#include "components/ScriptingComponent.h"
 #include "scene/Scene.h"
 
 namespace Blainn

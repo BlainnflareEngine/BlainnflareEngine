@@ -4,7 +4,7 @@
 
 #include "aliases.h"
 
-#include "runtime/scripting/LuaScript.h"
+#include "scripting/LuaScript.h"
 
 namespace Blainn
 {
