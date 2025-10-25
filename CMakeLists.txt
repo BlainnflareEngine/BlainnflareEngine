@@ -47,9 +47,9 @@ add_subdirectory(libs/EASTL)
 add_subdirectory(libs/JoltPhysics/Build)
 add_subdirectory(libs/spdlog)
 add_subdirectory(libs/tracy)
-add_subdirectory(libs/sol2)
 add_subdirectory(libs/yaml-cpp)
 add_subdirectory(libs/qlementine)
+add_subdirectory(libs/sol2)
 
 set (BUILD_TESTING OFF)
 add_subdirectory(libs/DIRECTXTK12)
@@ -64,12 +64,17 @@ set (ASSIMP_BUILD_TESTS OFF)
 set (ASSIMP_INSTALL OFF)
 add_subdirectory(libs/assimp)
 
+# lua
+add_subdirectory(libs/lua)
+
 set(LIBS_DIR ${PROJECT_SOURCE_DIR}/libs)
 set(ENGINE_DIR ${PROJECT_SOURCE_DIR}/engine)
 set(EDITOR_DIR ${PROJECT_SOURCE_DIR}/editor)
 set(COMMON_DIR ${CMAKE_SOURCE_DIR}/common)
 set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
 set(Entt_DIR ${PROJECT_SOURCE_DIR}/libs/entt)
+set(LUA_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/libs/lua/lua-5.4.4/src)
+set(SOL2_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/libs/sol2/include)
 
 add_subdirectory(${ENGINE_DIR})
 add_subdirectory(${EDITOR_DIR})

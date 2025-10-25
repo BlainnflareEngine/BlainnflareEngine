@@ -47,8 +47,10 @@ build/
 [Cc]onfig/
 *.sln
 libs/*
-!libs/CMakeLists.txt
 !libs/clone_dependencies.bat
+!libs/lua
+libs/lua/*
+!libs/lua/CMakeLists.txt
 logs/*
 .idea/
 CMakeFiles/

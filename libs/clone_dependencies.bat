@@ -45,4 +45,46 @@ if not exist ViennaGameJobSystem (
     echo ViennaGameJobSystem already exists, skipping.
 )
 
+set LUA_VERSION=5.4.4
+set LUA_URL=https://www.lua.org/ftp/lua-%LUA_VERSION%.tar.gz
+set LUA_DIR=%~dp0lua
+set LUA_SRC_DIR=%LUA_DIR%\lua-%LUA_VERSION%
+set LUA_ARCHIVE=%LUA_DIR%\lua-%LUA_VERSION%.tar.gz
+
+:: Проверяем, существует ли директория с исходниками
+if exist "%LUA_SRC_DIR%" (
+    echo Lua %LUA_VERSION% already extracted in %LUA_DIR%.
+    goto :done
+)
+
+echo.
+echo === Downloading Lua %LUA_VERSION% ===
+
+:: Создаём директорию lua, если её нет
+if not exist "%LUA_DIR%" mkdir "%LUA_DIR%"
+
+:: Скачиваем архив
+curl -L --ssl-no-revoke -o "%LUA_ARCHIVE%" "%LUA_URL%"
+if errorlevel 1 (
+    echo Failed to download Lua archive.
+    exit /b 1
+)
+
+echo.
+echo === Extracting Lua %LUA_VERSION% ===
+
+:: Распаковываем архив в директорию lua
+tar -xzf "%LUA_ARCHIVE%" -C "%LUA_DIR%"
+if errorlevel 1 (
+    echo Failed to extract archive.
+    exit /b 1
+)
+
+:: Удаляем архив после успешной распаковки
+del "%LUA_ARCHIVE%"
+
+echo.
+echo === Lua %LUA_VERSION% is ready at %LUA_SRC_DIR% ===
+
+:done
 endlocal

@@ -43,12 +43,15 @@ set(ENGINE_SOURCES
         src/file-system/FileSystemObject.cpp
         include/file-system/Model.h
         src/file-system/Model.cpp
+        include/scripting/LuaScript.h
+        src/scripting/LuaScript.cpp
         include/file-system/TextureType.h
         include/tools/Profiler.h
         include/tools/FreeListVector.h
         include/scene/BasicComponents.h
         include/scene/EntityTemplates.h
         include/physics/RayCastResult.h
+        include/components/ScriptingComponent.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
@@ -64,7 +67,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${CMAKE_SOURCE_DIR}/common"
         "${Entt_DIR}/single_include"
         "${CMAKE_SOURCE_DIR}/libs/concurrentqueue"
-
+        "${LUA_INCLUDE_DIR}"
+        "${SOL2_INCLUDE_DIR}"
 )
 
 
@@ -77,5 +81,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         TracyClient
         spdlog
         pch
+        lua
 )
 
