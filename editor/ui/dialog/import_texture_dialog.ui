@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <author/>
+    <comment/>
+    <exportmacro/>
+    <class>editor::import_texture_dialog</class>
+    <widget class="import_asset_dialog" name="editor::import_texture_dialog">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>400</width>
+                <height>300</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>import_texture_dialog</string>
+        </property>
+    </widget>
+    <pixmapfunction/>
+    <connections/>
+</ui>

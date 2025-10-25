@@ -5,13 +5,18 @@
 #ifndef FOLDER_CONTENT_WIDGET_H
 #define FOLDER_CONTENT_WIDGET_H
 
-#include "ContextMenu/ContentContextMenu.h"
-#include "ContextMenu/FileContextMenu.h"
+#include "context-menu/ContentContextMenu.h"
+#include "context-menu/FileContextMenu.h"
 #include "folder_content_list_view.h"
 
 #include <QPointer>
 #include <QWidget>
 
+namespace editor
+{
+class ContentFilterProxyModel;
+class IconProvider;
+}
 class QVBoxLayout;
 class QFileSystemModel;
 class QListView;
@@ -41,18 +46,22 @@ public:
 
 public slots:
     void OnFolderSelectedPath(const QString &newPath);
-    void onEntrySelectedIndex(const QModelIndex &newSelection);
+    void OnEntrySelectedIndex(const QModelIndex &newSelection);
+    void OnFileSelectedPath(const QModelIndex &index);
 
 signals:
-    void folderSelected(const QString &newPath);
+    void FolderSelected(const QString &path);
+    void FileSelected(const QString &filePath);
 
 private:
     Ui::folder_content_widget *ui;
     folder_content_list_view *m_listView;
+    ContentFilterProxyModel *m_proxyModel;
     QFileSystemModel *m_fileSystemModel;
     QVBoxLayout *m_layout;
     ContentContextMenu *m_contentContextMenu;
     FileContextMenu *m_fileContextMenu;
+    IconProvider *m_iconProvider;
 };
 } // namespace editor
 

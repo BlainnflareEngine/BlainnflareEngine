@@ -5,6 +5,7 @@
 
 #include "folders_tree_view.h"
 
+#include "Editor.h"
 #include "FileSystemUtils.h"
 #include "ui_folders_tree_view.h"
 
@@ -73,13 +74,11 @@ void folders_tree_view::dropEvent(QDropEvent *event)
         if (url.isEmpty()) continue;
         
         QString srcPath = url.toLocalFile();
+        QString contentDir = QString::fromStdString(Blainn::Editor::GetInstance().GetContentDirectory().string());
 
-        // TODO: get content folder path from editor config file
-        if (!WasInFolderBefore(srcPath, QDir::currentPath().append("/Content")))
+        if (!WasInFolderBefore(srcPath, contentDir))
         {
-            QMessageBox msgBox;
-            msgBox.setText("There was no such file in project before. Need to import this file.");
-            msgBox.exec();
+            ImportAsset(srcPath, targetPath, url);
         }
         else
         {

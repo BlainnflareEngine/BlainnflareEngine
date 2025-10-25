@@ -3,6 +3,7 @@
 //
 #pragma once
 
+#include "spdlog/sinks/base_sink.h"
 #include "spdlog/spdlog.h"
 
 #define BLAINN_DEFAULT_LOGGER_NAME "BLAINN"
@@ -30,6 +31,7 @@ namespace Blainn
     public:
         static void Init();
         static void Destroy();
+        static void AddSink(const std::shared_ptr<spdlog::sinks::base_sink<std::mutex>>& sink, const std::string & pattern = "%^[%Y-%m-%d %H:%M:%S.%e] %v%$");
 
     private:
         Log() = default;

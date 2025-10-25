@@ -6,11 +6,14 @@
 
 #include "folder_content_list_view.h"
 
+#include "Editor.h"
 #include "FileSystemUtils.h"
+#include "import_asset_dialog.h"
 #include "ui_folder_content_list_view.h"
 
 #include <QFileSystemModel>
 #include <QMimeData>
+#include <QSortFilterProxyModel>
 #include <qdir.h>
 #include <qevent.h>
 
@@ -42,9 +45,23 @@ void folder_content_list_view::dropEvent(QDropEvent *event)
 
     if (!mime->hasUrls()) return;
 
-
     QModelIndex targetIndex = indexAt(event->position().toPoint());
-    QFileSystemModel *fsModel = qobject_cast<QFileSystemModel *>(model());
+
+    QFileSystemModel *fsModel = nullptr;
+    QModelIndex sourceTargetIndex = targetIndex;
+
+    if (QAbstractProxyModel *proxyModel = qobject_cast<QAbstractProxyModel *>(model()))
+    {
+        fsModel = qobject_cast<QFileSystemModel *>(proxyModel->sourceModel());
+        if (targetIndex.isValid())
+        {
+            sourceTargetIndex = proxyModel->mapToSource(targetIndex);
+        }
+    }
+    else
+    {
+        fsModel = qobject_cast<QFileSystemModel *>(model());
+    }
 
     if (!fsModel)
     {
@@ -53,9 +70,9 @@ void folder_content_list_view::dropEvent(QDropEvent *event)
     }
 
     QString targetPath;
-    if (targetIndex.isValid())
+    if (sourceTargetIndex.isValid())
     {
-        QFileInfo fi = fsModel->fileInfo(targetIndex);
+        QFileInfo fi = fsModel->fileInfo(sourceTargetIndex);
         if (fi.isDir())
         {
             targetPath = fi.absoluteFilePath();
@@ -70,18 +87,17 @@ void folder_content_list_view::dropEvent(QDropEvent *event)
         targetPath = fsModel->rootPath();
     }
 
+
     for (const QUrl &url : mime->urls())
     {
         if (url.isEmpty()) continue;
 
         QString srcPath = url.toLocalFile();
+        QString contentDir = QString::fromStdString(Blainn::Editor::GetInstance().GetContentDirectory().string());
 
-        // TODO: get content folder path from editor config file
-        if (!WasInFolderBefore(srcPath, QDir::currentPath().append("/Content")))
+        if (!WasInFolderBefore(srcPath, contentDir))
         {
-            QMessageBox msgBox;
-            msgBox.setText("There was no such file in project before. Need to import this file.");
-            msgBox.exec();
+            ImportAsset(srcPath, targetPath, url);
         }
         else
         {
@@ -108,8 +124,23 @@ void folder_content_list_view::dragEnterEvent(QDragEnterEvent *event)
 
 void folder_content_list_view::dragMoveEvent(QDragMoveEvent *event)
 {
-    QModelIndex index = indexAt(event->position().toPoint());
-    QFileSystemModel *fsModel = qobject_cast<QFileSystemModel *>(model());
+    QModelIndex targetIndex = indexAt(event->position().toPoint());
+
+    QFileSystemModel *fsModel = nullptr;
+    QModelIndex sourceTargetIndex = targetIndex;
+
+    if (QAbstractProxyModel *proxyModel = qobject_cast<QAbstractProxyModel *>(model()))
+    {
+        fsModel = qobject_cast<QFileSystemModel *>(proxyModel->sourceModel());
+        if (targetIndex.isValid())
+        {
+            sourceTargetIndex = proxyModel->mapToSource(targetIndex);
+        }
+    }
+    else
+    {
+        fsModel = qobject_cast<QFileSystemModel *>(model());
+    }
 
     if (!fsModel)
     {
@@ -117,31 +148,13 @@ void folder_content_list_view::dragMoveEvent(QDragMoveEvent *event)
         return;
     }
 
-    bool canDrop = false;
 
     if (event->mimeData()->hasUrls())
     {
-        if (index.isValid())
-        {
-            QFileInfo fi = fsModel->fileInfo(index);
-            if (fi.isDir())
-            {
-                canDrop = true;
-            }
-        }
-        else
-        {
-            canDrop = true;
-        }
+        event->acceptProposedAction();
+        return;
     }
 
-    if (canDrop)
-    {
-        event->acceptProposedAction();
-    }
-    else
-    {
-        event->ignore();
-    }
+    event->ignore();
 }
 } // namespace editor

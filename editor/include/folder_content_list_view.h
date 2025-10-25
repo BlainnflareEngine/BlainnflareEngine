@@ -6,7 +6,6 @@
 
 
 #include <QListView>
-#include <QPointer>
 
 namespace editor
 {

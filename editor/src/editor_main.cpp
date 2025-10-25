@@ -7,10 +7,12 @@
 #include "editor_main.h"
 
 #include "Editor.h"
+#include "EditorSink.h"
 #include "SettingsData.h"
 #include "editor_settings.h"
 #include "ui_editor_main.h"
 
+#include <QResource>
 #include <QTreeView>
 #include <iostream>
 
@@ -22,16 +24,28 @@ editor_main::editor_main(QWidget *parent)
 {
     ui->setupUi(this);
 
+    auto logger = std::make_shared<EditorSink<std::mutex>>(ui->consoleMessages);
+
     ui->folderContent->AddAdditionalView(ui->folders->GetTreeView());
     ui->folders->AddAdditionalView(ui->folderContent->GetListView());
 
     connect(ui->folders, &folders_widget::folderSelected, ui->folderContent,
             &folder_content_widget::OnFolderSelectedPath);
+    connect(ui->folders, &folders_widget::folderSelected, ui->pathBar, &path_bar_widget::SetCurrentPath);
 
-    connect(ui->folderContent, &folder_content_widget::folderSelected, ui->folders,
+
+    connect(ui->pathBar, &path_bar_widget::PathClicked, ui->folderContent,
+            &folder_content_widget::OnFolderSelectedPath);
+    connect(ui->pathBar, &path_bar_widget::PathClicked, ui->folders, &folders_widget::OnFolderSelectedPath);
+
+    connect(ui->folderContent, &folder_content_widget::FolderSelected, ui->folders,
             &folders_widget::OnFolderSelectedPath);
+    connect(ui->folderContent, &folder_content_widget::FolderSelected, ui->pathBar, &path_bar_widget::SetCurrentPath);
+
 
     connect(ui->actionEditor_settings, &QAction::triggered, this, &editor_main::OnOpenSettings);
+
+    connect(ui->ClearConsoleButton, &QPushButton::clicked, ui->consoleMessages, &console_messages_widget::ClearConsole);
 }
 
 
@@ -52,6 +66,27 @@ void editor_main::SetContentDirectory(const QString &path)
     m_contentPath = path;
 
     ui->folders->SetContentDirectory(m_contentPath);
+    ui->pathBar->SetRootPath(m_contentPath);
+}
+
+
+void editor_main::closeEvent(QCloseEvent *event)
+{
+    // TODO: serialize something before exit
+    QMainWindow::closeEvent(event);
+    QCoreApplication::quit();
+}
+
+
+inspector_widget &editor_main::GetInspectorWidget()
+{
+    return *ui->m_inspector;
+}
+
+
+console_messages_widget *editor_main::GetConsoleWidget() const
+{
+    return ui->consoleMessages;
 }
 
 

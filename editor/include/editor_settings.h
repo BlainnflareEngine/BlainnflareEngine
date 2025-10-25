@@ -9,7 +9,6 @@
 
 
 #include <QDialog>
-#include <QPointer>
 
 
 struct SettingsData;

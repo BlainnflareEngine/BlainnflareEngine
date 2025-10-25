@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/folder.png</file>
+        <file>icons/file.png</file>
+        <file>icons/image.png</file>
+        <file>icons/lua.png</file>
+        <file>icons/material.png</file>
+        <file>icons/meta.png</file>
+        <file>icons/model.png</file>
+        <file>themes/dark.json</file>
+    </qresource>
+</RCC>
