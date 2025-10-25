@@ -10,7 +10,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS
         "${CMAKE_CURRENT_SOURCE_DIR}/ui"
         "${CMAKE_CURRENT_SOURCE_DIR}/ui/dialog"
-        "${CMAKE_CURRENT_SOURCE_DIR}/ui/inspector")
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui/inspector"
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui/scene")
 
 find_package(Qt6 COMPONENTS
         Core
@@ -97,6 +98,16 @@ set(EDITOR_SOURCES
         ui/inspector/mesh_inspector_content.ui
         src/ContentFilterProxyModel.cpp
         include/ContentFilterProxyModel.h
+        src/context-menu/AddToSceneContextMenu.cpp
+        include/context-menu/AddToSceneContextMenu.h
+        src/scene/scene_hierarchy_widget.cpp
+        include/scene/scene_hierarchy_widget.h
+        ui/scene/scene_hierarchy_widget.ui
+        include/scene/EntityNode.h
+        ui/scene/SceneModel.cpp
+        include/scene/SceneModel.h
+        src/scene/EntityDelegate.cpp
+        include/scene/EntityDelegate.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
@@ -108,10 +119,12 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${PROJECT_SOURCE_DIR}/include"
         "${PROJECT_SOURCE_DIR}/include/dialog"
         "${PROJECT_SOURCE_DIR}/include/inspector"
+        "${PROJECT_SOURCE_DIR}/include/scene"
         "${PROJECT_SOURCE_DIR}/src"
         "${PROJECT_SOURCE_DIR}/ui"
         "${PROJECT_SOURCE_DIR}/ui/import"
         "${PROJECT_SOURCE_DIR}/ui/inspector"
+        "${PROJECT_SOURCE_DIR}/ui/scene"
         "${CMAKE_SOURCE_DIR}/common"
         "${CMAKE_SOURCE_DIR}/libs/"
         "${Entt_DIR}/single_include"

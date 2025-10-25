@@ -58,7 +58,7 @@ void import_model_dialog::OnConfirm()
 
     QFileInfo fileInfo(m_info.originalPath);
     Blainn::Path modelPath = Blainn::Path(ToString(m_info.destinationPath));
-    Blainn::Path configFilePath = modelPath.concat(".blainn");
+    Blainn::Path configFilePath = modelPath.concat(".").concat(ToString(metaFormat));
     std::ofstream fout(configFilePath.string());
     fout << meta;
 

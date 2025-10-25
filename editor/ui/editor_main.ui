@@ -10,6 +10,12 @@
     <height>1080</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>1000</width>
+    <height>700</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>editor_main</string>
   </property>
@@ -38,6 +44,12 @@
     </property>
     <item>
      <widget class="QWidget" name="playControls" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="minimumSize">
        <size>
         <width>100</width>
@@ -170,8 +182,8 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>400</width>
-        <height>300</height>
+        <width>100</width>
+        <height>100</height>
        </size>
       </property>
       <property name="frameShape">
@@ -189,8 +201,8 @@
       <widget class="QSplitter" name="splitter">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>1</horstretch>
-         <verstretch>4</verstretch>
+         <horstretch>2</horstretch>
+         <verstretch>2</verstretch>
         </sizepolicy>
        </property>
        <property name="minimumSize">
@@ -230,12 +242,12 @@
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>1</horstretch>
-          <verstretch>1</verstretch>
+          <verstretch>0</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
          <size>
-          <width>10</width>
+          <width>150</width>
           <height>10</height>
          </size>
         </property>
@@ -291,6 +303,101 @@
             <attribute name="title">
              <string>Scene</string>
             </attribute>
+            <layout class="QVBoxLayout" name="verticalLayout">
+             <property name="spacing">
+              <number>6</number>
+             </property>
+             <property name="leftMargin">
+              <number>9</number>
+             </property>
+             <property name="topMargin">
+              <number>9</number>
+             </property>
+             <property name="rightMargin">
+              <number>9</number>
+             </property>
+             <property name="bottomMargin">
+              <number>9</number>
+             </property>
+             <item>
+              <widget class="QFrame" name="frame">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::Shape::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Shadow::Raised</enum>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_6">
+                <property name="spacing">
+                 <number>5</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="AddToScene">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset theme="QIcon::ThemeIcon::ListAdd"/>
+                  </property>
+                  <property name="iconSize">
+                   <size>
+                    <width>24</width>
+                    <height>24</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>10</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="scene_hierarchy_widget" name="Entities">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </widget>
           </widget>
          </item>
@@ -299,14 +406,14 @@
        <widget class="QWidget" name="m_viewport" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>3</horstretch>
+          <horstretch>10</horstretch>
           <verstretch>1</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
          <size>
-          <width>100</width>
-          <height>20</height>
+          <width>300</width>
+          <height>100</height>
          </size>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -360,13 +467,13 @@
        <widget class="QWidget" name="m_inspector_tabs" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>1</horstretch>
-          <verstretch>1</verstretch>
+          <horstretch>2</horstretch>
+          <verstretch>0</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
          <size>
-          <width>10</width>
+          <width>150</width>
           <height>10</height>
          </size>
         </property>
@@ -463,15 +570,15 @@
       </widget>
       <widget class="QTabWidget" name="tabWidget">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>1</horstretch>
          <verstretch>1</verstretch>
         </sizepolicy>
        </property>
        <property name="minimumSize">
         <size>
-         <width>10</width>
-         <height>10</height>
+         <width>100</width>
+         <height>100</height>
         </size>
        </property>
        <property name="sizeIncrement">
@@ -721,6 +828,11 @@
    <extends>QScrollArea</extends>
    <header>inspector_widget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>scene_hierarchy_widget</class>
+   <extends>QTreeView</extends>
+   <header>scene_hierarchy_widget.h</header>
   </customwidget>
  </customwidgets>
  <resources>

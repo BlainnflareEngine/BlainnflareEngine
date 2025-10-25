@@ -87,5 +87,9 @@
   "statusColorWarning": "#fbc064",
   "statusColorWarningHovered": "#ffcf6c",
   "statusColorWarningPressed": "#ffd880",
-  "statusColorWarningDisabled": "#393737"
+  "statusColorWarningDisabled": "#393737",
+
+  "animationDuration": 200,
+  "focusAnimationDuration": 200,
+  "sliderAnimationDuration": 200
 }

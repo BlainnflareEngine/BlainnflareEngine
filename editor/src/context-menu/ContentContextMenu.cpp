@@ -85,7 +85,7 @@ void ContentContextMenu::CreateMaterial(const QString &dirPath) const
 
     if (materialDialog.exec() == QDialog::Accepted)
     {
-        QString filePath = dirPath + QDir::separator() + materialDialog.GetMaterialName() + ".mat";
+        QString filePath = dirPath + QDir::separator() + materialDialog.GetMaterialName() + "." + materialFormat;
 
         YAML::Node config;
         QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
@@ -104,6 +104,31 @@ void ContentContextMenu::CreateMaterial(const QString &dirPath) const
         const Blainn::Path configFilePath = Blainn::Path(pathStr);
         std::ofstream fout(configFilePath.string());
         fout << config;
+    }
+}
+
+
+void ContentContextMenu::CreateScene(const QString &dirPath) const
+{
+    QInputDialog inputDialog(&m_parent);
+    inputDialog.setWindowTitle("Create scene");
+    inputDialog.setLabelText("Scene name:");
+    inputDialog.setTextValue("");
+    inputDialog.setOkButtonText("Create");
+    inputDialog.setCancelButtonText("Cancel");
+    inputDialog.setMinimumSize(200, 100);
+
+    if (inputDialog.exec() == QDialog::Accepted)
+    {
+        QString filePath = dirPath + QDir::separator() + inputDialog.textValue() + "." + sceneFormat;
+
+        YAML::Node scene;
+        QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
+
+        std::string pathStr = ToString(filePath);
+        const Blainn::Path configFilePath = Blainn::Path(pathStr);
+        std::ofstream fout(configFilePath.string());
+        fout << scene;
     }
 }
 
@@ -128,10 +153,15 @@ void ContentContextMenu::OnContextMenu(const QPoint &pos) const
 
     QString dirPath = fileSystemModel->rootPath();
     QMenu menu;
+    QMenu *createSubMenu = menu.addMenu("Create");
 
-    QAction *createFolderAction = menu.addAction("Create folder");
-    QAction *createScriptAction = menu.addAction("Create script");
-    QAction *createMaterialAction = menu.addAction("Create material");
+    QAction *createFolderAction = createSubMenu->addAction("Folder");
+    QAction *createScriptAction = createSubMenu->addAction("Script");
+    QAction *createMaterialAction = createSubMenu->addAction("Material");
+    QAction *createSceneAction = createSubMenu->addAction("Scene");
+
+    menu.addSeparator();
+
     QAction *showExplorerAction = menu.addAction("Show in explorer");
 
     if (QAction *selectedAction = menu.exec(m_parent.viewport()->mapToGlobal(pos)))
@@ -140,6 +170,7 @@ void ContentContextMenu::OnContextMenu(const QPoint &pos) const
         else if (selectedAction == createScriptAction) CreateScript(dirPath);
         else if (selectedAction == createMaterialAction) CreateMaterial(dirPath);
         else if (selectedAction == showExplorerAction) OpenFolderExplorer(dirPath);
+        else if (selectedAction == createSceneAction) CreateScene(dirPath);
     }
 }
 } // namespace editor

@@ -32,6 +32,14 @@ inline static const QStringList supported3DFormats = {
     "fbx",
 };
 
+inline static const QString metaFormat = "blainn";
+
+inline static const QString materialFormat = "mat";
+
+inline static const QString scriptFormat = "lua";
+
+inline static const QString sceneFormat = "scene";
+
 namespace Filters
 {
 inline static QString ShaderFilter = "Shaders (*.cso);;All Files (*)";

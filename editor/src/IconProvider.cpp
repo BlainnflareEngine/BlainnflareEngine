@@ -27,16 +27,18 @@ QIcon IconProvider::icon(const QFileInfo &file_info) const
 {
     if (file_info.isDir()) return QIcon(":/icons/folder.png");
 
-    if (supportedTextureFormats.contains(file_info.suffix().toLower())) return QIcon(":/icons/image.png");
+    QString suffix = file_info.suffix().toLower();
 
-    if (file_info.suffix().toLower() == "lua") return QIcon(":/icons/lua.png");
+    if (supportedTextureFormats.contains(suffix)) return QIcon(":/icons/image.png");
 
-    if (file_info.suffix().toLower() == "mat") return QIcon(":/icons/material.png");
+    if (suffix == scriptFormat) return QIcon(":/icons/lua.png");
 
-    if (file_info.suffix().toLower() == "blainn") return QIcon(":/icons/meta.png");
+    if (suffix == materialFormat) return QIcon(":/icons/material.png");
 
-    if (supported3DFormats.contains(file_info.suffix().toLower())) return QIcon(":/icons/model.png");
+    if (supported3DFormats.contains(suffix)) return QIcon(":/icons/model.png");
 
-    return QFileIconProvider::icon(file_info);
+    if (suffix == sceneFormat) return QIcon(":/icons/scene.png");
+
+    return QIcon(":/icons/file.png");
 }
 } // namespace editor

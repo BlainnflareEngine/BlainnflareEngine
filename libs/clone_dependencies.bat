@@ -14,8 +14,7 @@ https://github.com/ThePhD/sol2.git ^
 https://github.com/crashoz/uuid_v4.git ^
 https://github.com/jbeder/yaml-cpp.git ^
 https://github.com/skypjack/entt.git ^
-https://github.com/cameron314/concurrentqueue.git ^
-https://github.com/oclero/qlementine.git
+https://github.com/cameron314/concurrentqueue.git
 
 REM Change to the directory containing this script
 cd /d "%~dp0"
@@ -43,6 +42,11 @@ if not exist ViennaGameJobSystem (
     git clone https://github.com/hlavacs/ViennaGameJobSystem.git -b master ViennaGameJobSystem
 ) else (
     echo ViennaGameJobSystem already exists, skipping.
+)
+
+if not exist qlementine (
+    echo Cloning qlementine into qlementine
+    git clone -b v1.3.0 --single-branch https://github.com/oclero/qlementine.git
 )
 
 endlocal
