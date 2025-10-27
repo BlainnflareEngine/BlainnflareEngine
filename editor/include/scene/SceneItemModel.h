@@ -6,13 +6,13 @@
 #include "EntityNode.h"
 #include <QAbstractItemModel>
 
-class SceneModel : public QAbstractItemModel
+class SceneItemModel : public QAbstractItemModel
 {
     Q_OBJECT
 
 public:
-    explicit SceneModel(QObject *parent = nullptr);
-    ~SceneModel() override;
+    explicit SceneItemModel(QObject *parent = nullptr);
+    ~SceneItemModel() override;
 
     QModelIndex addNewEntity(const QModelIndex &parentIndex = QModelIndex());
 

@@ -6,7 +6,7 @@
 #include "scene_hierarchy_widget.h"
 
 #include "EntityDelegate.h"
-#include "SceneModel.h"
+#include "SceneItemModel.h"
 #include "context-menu/AddToSceneContextMenu.h"
 #include "ui_scene_hierarchy_widget.h"
 
@@ -18,7 +18,7 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
 {
     ui->setupUi(this);
 
-    m_sceneModel = new SceneModel(this);
+    m_sceneModel = new SceneItemModel(this);
     setModel(m_sceneModel);
     setHeaderHidden(true);
     setSelectionMode(SingleSelection);
@@ -42,7 +42,7 @@ void scene_hierarchy_widget::OpenContextMenu(const QPoint &position)
 }
 
 
-SceneModel &scene_hierarchy_widget::GetSceneModel()
+SceneItemModel &scene_hierarchy_widget::GetSceneModel()
 {
     return *m_sceneModel;
 }

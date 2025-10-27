@@ -11,7 +11,7 @@
 #include <QTreeView>
 
 
-class SceneModel;
+class SceneItemModel;
 namespace editor
 {
 QT_BEGIN_NAMESPACE
@@ -31,11 +31,11 @@ public:
 
     void OpenContextMenu(const QPoint &position);
 
-    SceneModel &GetSceneModel();
+    SceneItemModel &GetSceneModel();
 
 private:
     Ui::scene_hierarchy_widget *ui;
-    SceneModel *m_sceneModel;
+    SceneItemModel *m_sceneModel;
     AddToSceneContextMenu *m_addToSceneMenu;
 };
 }; // namespace editor

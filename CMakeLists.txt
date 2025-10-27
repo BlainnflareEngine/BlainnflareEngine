@@ -134,6 +134,12 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${QT_INSTALL_PATH}/plugins/platforms"
             "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${QT_INSTALL_PATH}/plugins/imageformats"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
+
     foreach (QT_LIB Core Gui Widgets Svg)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy

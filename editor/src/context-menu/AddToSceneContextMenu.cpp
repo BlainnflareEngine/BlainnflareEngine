@@ -4,7 +4,7 @@
 
 #include "context-menu/AddToSceneContextMenu.h"
 
-#include "SceneModel.h"
+#include "SceneItemModel.h"
 #include "oclero/qlementine/widgets/Menu.hpp"
 #include "scene_hierarchy_widget.h"
 

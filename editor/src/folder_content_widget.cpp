@@ -44,7 +44,7 @@ folder_content_widget::folder_content_widget(QWidget *parent)
     m_listView->setViewMode(QListView::IconMode);
     m_listView->setContextMenuPolicy(Qt::CustomContextMenu);
     m_listView->setContentsMargins(10, 10, 10, 10);
-    m_listView->setItemDelegate(new ContentDelegate(ContentDelegate::Elide, m_listView));
+    m_listView->setItemDelegate(new ContentDelegate(ContentDelegate::Elide, m_fileSystemModel, m_proxyModel, this));
 
     m_layout = new QVBoxLayout(this);
     layout()->setContentsMargins(0, 0, 0, 0);

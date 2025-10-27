@@ -6,25 +6,50 @@
 
 #include "Editor.h"
 #include "FileSystemUtils.h"
+#include "TexturePreviewAsyncLoader.h"
+#include "oclero/qlementine/widgets/LoadingSpinner.hpp"
 
 #include <QApplication>
 #include <QCache>
+#include <QFileSystemModel>
 #include <QPainter>
 #include <qfileinfo.h>
 
+
+class QFileSystemModel;
 namespace editor
 {
-ContentDelegate::ContentDelegate(TextMode mode, QObject *parent)
+
+ContentDelegate::ContentDelegate(TextMode mode, QFileSystemModel *model, QSortFilterProxyModel *proxy, QObject *parent)
     : QStyledItemDelegate(parent)
     , m_textMode(mode)
+    , m_pixmapCache(100)
+    , m_model(model)
+    , m_proxy(proxy)
+    , m_palette(qApp->palette())
 {
+    m_threadPool = new QThreadPool(this);
+    m_threadPool->setMaxThreadCount(4);
+}
+
+
+ContentDelegate::~ContentDelegate()
+{
+    m_threadPool->waitForDone();
 }
 
 
 void ContentDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     painter->save();
-    auto file = QFileInfo(index.data().toString());
+
+    QModelIndex sourceIndex;
+    if (m_proxy)
+    {
+        sourceIndex = m_proxy->mapToSource(index);
+    }
+
+    auto file = QFileInfo(m_model->filePath(sourceIndex));
 
     if (supportedTextureFormats.contains(file.suffix())) DrawTexturePreview(file, painter, option, index);
     else DrawStandard(painter, option, index);
@@ -54,6 +79,19 @@ QSize ContentDelegate::sizeHint(const QStyleOptionViewItem &option, const QModel
 }
 
 
+void ContentDelegate::OnTextureLoaded(const QString &filePath, const QPixmap &pixmap,
+                                      const QPersistentModelIndex &index)
+{
+    m_pixmapCache.insert(filePath, new QPixmap(pixmap));
+    m_loadingTextures.remove(filePath);
+
+    if (index.isValid() && m_proxy)
+    {
+        Q_EMIT m_proxy->dataChanged(index, index);
+    }
+}
+
+
 void ContentDelegate::DrawStandard(QPainter *painter, const QStyleOptionViewItem &option,
                                    const QModelIndex &index) const
 {
@@ -79,14 +117,17 @@ void ContentDelegate::DrawTexturePreview(QFileInfo &filePath, QPainter *painter,
     QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
 
+    QString path = filePath.filePath();
+
     DrawBackground(painter, opt, index, false);
 
-    QPixmap pixmap = GetTexturePixmap(filePath);
+    QPixmap pixmap = GetTexturePixmap(filePath, index);
     QRect iconRect = CalculateIconRect(opt.rect);
 
-    painter->drawPixmap(iconRect, pixmap);
+    if (!pixmap.isNull()) painter->drawPixmap(iconRect, pixmap);
 
-    painter->setPen(QPen(Qt::darkGray, 1));
+    QColor borderColor = m_palette.color(QPalette::Light);
+    painter->setPen(QPen(borderColor, 2));
     painter->setBrush(Qt::NoBrush);
     painter->drawRect(iconRect);
 
@@ -155,34 +196,37 @@ QRect ContentDelegate::CalculateTextRect(const QRect &itemRect, const QRect &ico
 }
 
 
-QPixmap ContentDelegate::GetTexturePixmap(const QFileInfo &filePath) const
+void ContentDelegate::StartAsyncLoading(const QModelIndex &index, const QString &path) const
 {
-    QString path = QString::fromStdString(Blainn::Editor::GetInstance().GetContentDirectory().string())
-                   + QDir::separator() + filePath.fileName();
+    m_loadingTextures.insert(path);
 
-    static QCache<QString, QPixmap> pixmapCache(100);
-    QPixmap *cachedPixmap = pixmapCache.object(path);
+    auto spinner = new oclero::qlementine::LoadingSpinner();
+    spinner->setSpinning(true);
 
-    if (cachedPixmap)
+    auto *loader = new TexturePreviewAsyncLoader(path, QPersistentModelIndex(index));
+
+    connect(loader, &TexturePreviewAsyncLoader::loaded, this, &ContentDelegate::OnTextureLoaded, Qt::QueuedConnection);
+
+    m_threadPool->start(loader);
+}
+
+
+QPixmap ContentDelegate::GetTexturePixmap(const QFileInfo &filePath, const QModelIndex &index) const
+{
+    QString path = filePath.filePath();
+
+    if (QPixmap *cachedPixmap = m_pixmapCache.object(path))
     {
         return *cachedPixmap;
     }
 
-    QPixmap pixmap(path);
-    if (!pixmap.isNull())
+    if (m_loadingTextures.contains(path))
     {
-        pixmap = pixmap.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        pixmapCache.insert(path, new QPixmap(pixmap));
-    }
-    else
-    {
-        pixmap = QPixmap(64, 64);
-        pixmap.fill(Qt::lightGray);
-        QPainter placeholderPainter(&pixmap);
-        placeholderPainter.setPen(Qt::black);
-        placeholderPainter.drawText(pixmap.rect(), Qt::AlignCenter, "Error");
+        return QPixmap();
     }
 
-    return pixmap;
+    StartAsyncLoading(index, path);
+
+    return QPixmap();
 }
 } // namespace editor

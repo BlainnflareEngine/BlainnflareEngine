@@ -104,10 +104,12 @@ set(EDITOR_SOURCES
         include/scene/scene_hierarchy_widget.h
         ui/scene/scene_hierarchy_widget.ui
         include/scene/EntityNode.h
-        ui/scene/SceneModel.cpp
-        include/scene/SceneModel.h
+        ui/scene/SceneItemModel.cpp
+        include/scene/SceneItemModel.h
         src/scene/EntityDelegate.cpp
         include/scene/EntityDelegate.h
+        src/TexturePreviewAsyncLoader.cpp
+        include/TexturePreviewAsyncLoader.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
@@ -139,6 +141,9 @@ target_link_libraries(EDITOR
         ENGINE
         qlementine
 )
+
+qt6_import_plugins(EDITOR
+    INCLUDE Qt6::QJpegPlugin)
 
 
 
