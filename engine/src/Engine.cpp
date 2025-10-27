@@ -48,16 +48,18 @@ void Engine::Destroy()
 void Engine::Update(float deltaTime)
 {
     /// ----- TEST SCRIPTING -----
-    // Scene sc;
-    // Entity entity = sc.CreateEntity();
-    // entity.AddComponent<ScriptingComponent>();
-    // uuid scriptUuid = ScriptingSubsystem::LoadScript(entity, "test1.lua").value();
-    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "abobus");
-    // ScriptingSubsystem::UnloadScript(scriptUuid);
-    // scriptUuid = ScriptingSubsystem::LoadScript(entity, "test2.lua").value();
-    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnUpdate");
-    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnCustomCall");
-    // ScriptingSubsystem::UnloadScript(scriptUuid);
+    Scene sc;
+    Entity entity = sc.CreateEntity();
+    entity.AddComponent<ScriptingComponent>();
+    uuid scriptUuid = ScriptingSubsystem::LoadScript(entity, "test1.lua").value();
+    ScriptingSubsystem::CallScriptFunction(scriptUuid, "abobus");
+    ScriptingSubsystem::UnloadScript(scriptUuid);
+    scriptUuid = ScriptingSubsystem::LoadScript(entity, "test2.lua").value();
+    ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnUpdate", 16.67f);
+    int b = 42;
+    ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnCustomCall", eastl::ref(b));
+    std::cout << "Value of b after script call: " << b << std::endl;
+    ScriptingSubsystem::UnloadScript(scriptUuid);
     /// ----- END TEST SCRIPTING -----
 
     // this trace doesn't make sense, it exactly matches the frame
