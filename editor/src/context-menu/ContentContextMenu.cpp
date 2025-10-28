@@ -4,8 +4,8 @@
 
 #include "context-menu/ContentContextMenu.h"
 
+#include "../../include/content-browser/folder-content/ContentFilterProxyModel.h"
 #include "../../include/dialog/create_material_dialog.h"
-#include "ContentFilterProxyModel.h"
 #include "Editor.h"
 #include "FileSystemUtils.h"
 #include "random.h"

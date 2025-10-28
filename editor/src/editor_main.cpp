@@ -10,10 +10,11 @@
 #include "EditorSink.h"
 #include "SettingsData.h"
 #include "editor_settings.h"
+#include "folder_content_widget.h"
 #include "ui_editor_main.h"
 
+#include <QListView>
 #include <QResource>
-#include <QTreeView>
 #include <iostream>
 
 namespace editor

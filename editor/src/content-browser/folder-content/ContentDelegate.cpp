@@ -14,7 +14,7 @@
 #include <QFileSystemModel>
 #include <QPainter>
 #include <qfileinfo.h>
-
+#include <QThreadPool>
 
 class QFileSystemModel;
 namespace editor

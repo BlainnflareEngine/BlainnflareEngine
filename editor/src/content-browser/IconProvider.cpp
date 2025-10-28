@@ -2,7 +2,7 @@
 // Created by gorev on 08.10.2025.
 //
 
-#include "../include/IconProvider.h"
+#include "IconProvider.h"
 
 #include "FileSystemUtils.h"
 

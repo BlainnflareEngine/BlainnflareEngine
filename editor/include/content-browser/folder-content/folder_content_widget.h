@@ -2,18 +2,17 @@
 // Created by gorev on 23.09.2025.
 //
 
-#ifndef FOLDER_CONTENT_WIDGET_H
-#define FOLDER_CONTENT_WIDGET_H
+#pragma once
 
-#include "context-menu/ContentContextMenu.h"
-#include "context-menu/FileContextMenu.h"
-#include "folder_content_list_view.h"
-
-#include <QPointer>
 #include <QWidget>
 
+
+class QAbstractItemView;
 namespace editor
 {
+class folder_content_list_view;
+class ContentContextMenu;
+class FileContextMenu;
 class ContentFilterProxyModel;
 class IconProvider;
 }
@@ -65,4 +64,3 @@ private:
 };
 } // namespace editor
 
-#endif // FOLDER_CONTENT_WIDGET_H

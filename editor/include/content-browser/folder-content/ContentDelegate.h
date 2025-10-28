@@ -7,16 +7,13 @@
 
 #include <QCache>
 #include <QStyledItemDelegate>
-#include <QThreadPool>
 
 
-namespace oclero::qlementine
-{
-class LoadingSpinner;
-}
 class QSortFilterProxyModel;
 class QFileSystemModel;
 class QFileInfo;
+class QThreadPool;
+
 namespace editor
 {
 

@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "ContentFilterProxyModel.h"
+#include "../content-browser/folder-content/ContentFilterProxyModel.h"
 
 
 #include <QObject>

@@ -4,7 +4,7 @@
 
 #include "context-menu/FileContextMenu.h"
 
-#include "ContentFilterProxyModel.h"
+#include "../../include/content-browser/folder-content/ContentFilterProxyModel.h"
 #include "EASTL/unique_ptr.h"
 #include "FileSystemUtils.h"
 
