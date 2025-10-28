@@ -4,7 +4,7 @@
 
 #include "context-menu/FileContextMenu.h"
 
-#include "ContentFilterProxyModel.h"
+#include "../../include/content-browser/folder-content/ContentFilterProxyModel.h"
 #include "EASTL/unique_ptr.h"
 #include "FileSystemUtils.h"
 
@@ -27,8 +27,9 @@ void FileContextMenu::FileContext(const QPoint &pos, const QString &path) const
 {
     QMenu menu;
 
-    QAction *openAction = menu.addAction("Open file");
-    QAction *deleteAction = menu.addAction("Delete file");
+    QAction *openAction = menu.addAction("Open");
+    QAction *deleteAction = menu.addAction("Delete");
+    menu.addSeparator();
     QAction *showExplorerAction = menu.addAction("Show in explorer");
 
     if (QAction *selectedAction = menu.exec(m_parent.viewport()->mapToGlobal(pos)))
@@ -44,8 +45,9 @@ void FileContextMenu::DirectoryContext(const QPoint &pos, const QString &path) c
 {
     QMenu menu;
 
-    QAction *openAction = menu.QWidget::addAction("Open folder");
-    QAction *deleteAction = menu.QWidget::addAction("Delete folder");
+    QAction *openAction = menu.QWidget::addAction("Open");
+    QAction *deleteAction = menu.QWidget::addAction("Delete");
+    menu.addSeparator();
     QAction *explorerAction = menu.QWidget::addAction("Show in explorer");
     menu.adjustSize();
 

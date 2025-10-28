@@ -6,6 +6,7 @@
 #include "ui_editor_main.h"
 
 #include <QApplication>
+#include <QImageReader>
 #include <fstream>
 #include <oclero/qlementine.hpp>
 #include <yaml-cpp/yaml.h>
@@ -24,6 +25,9 @@ void Editor::Init(int argc, char **argv)
 {
     using namespace std::filesystem;
     m_app = new QApplication(argc, argv);
+
+    QList<QByteArray> formats = QImageReader::supportedImageFormats();
+    qDebug() << "Supported formats:" << formats;
 
     qRegisterMetaType<editor::LogMessage>("LogMessage");
 

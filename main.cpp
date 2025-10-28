@@ -16,7 +16,6 @@ int main(int argc, char **argv)
     // TODO:
     Blainn::Log::Init();
 
-    Blainn::RenderSubsystem::Init();
     Blainn::AssetManager::GetInstance().Init();
     auto a = Blainn::AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), Blainn::TextureType::ALBEDO);
 
@@ -43,6 +42,7 @@ int main(int argc, char **argv)
         Blainn::Editor::GetInstance().Update();
     }
 #endif
+    Blainn::Engine::Init();
     Blainn::Engine::Run();
 
     Blainn::Log::Destroy();

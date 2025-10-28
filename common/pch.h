@@ -24,6 +24,12 @@
 #include <EASTL/weak_ptr.h>
 #include <cstdint>
 
+#include <uuid_v4.h>
+#include <yaml-cpp/yaml.h>
+
+#include "subsystems/Log.h"
+#include "tools/Profiler.h"
+
 #pragma endregion
 
 #pragma region New operators for EASTL
@@ -41,21 +47,17 @@ inline void *operator new[](size_t size, size_t alignment, size_t alignmentOffse
 
 #pragma endregion
 
-#include <uuid_v4.h>
-#include <yaml-cpp/yaml.h>
 
-#include "subsystems/Log.h"
-#include "tools/Profiler.h"
-
-#include <EASTL/functional.h>
-
-namespace eastl {
-template <> struct hash<UUIDv4::UUID> {
-    size_t operator()(const UUIDv4::UUID& u) const EA_NOEXCEPT {
+namespace eastl
+{
+template <> struct hash<UUIDv4::UUID>
+{
+    size_t operator()(const UUIDv4::UUID &u) const EA_NOEXCEPT
+    {
         return u.hash(); // must return size_t
     }
 };
-}
+} // namespace eastl
 
 
 inline eastl::string ToEASTLString(const std::string &s)

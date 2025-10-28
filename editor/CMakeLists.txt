@@ -10,7 +10,11 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS
         "${CMAKE_CURRENT_SOURCE_DIR}/ui"
         "${CMAKE_CURRENT_SOURCE_DIR}/ui/dialog"
-        "${CMAKE_CURRENT_SOURCE_DIR}/ui/inspector")
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui/inspector"
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui/scene"
+        "${PROJECT_SOURCE_DIR}/ui/content-browser"
+        "${PROJECT_SOURCE_DIR}/ui/content-browser/folders"
+        "${PROJECT_SOURCE_DIR}/ui/content-browser/folder-content")
 
 find_package(Qt6 COMPONENTS
         Core
@@ -25,10 +29,10 @@ set(EDITOR_SOURCES
         src/Editor.cpp
         src/editor_main.cpp
         src/editor_settings.cpp
-        src/folder_content_list_view.cpp
-        src/folder_content_widget.cpp
-        src/folders_tree_view.cpp
-        src/folders_widget.cpp
+        src/content-browser/folder-content/folder_content_list_view.cpp
+        src/content-browser/folder-content/folder_content_widget.cpp
+        src/content-browser/folders/folders_tree_view.cpp
+        src/content-browser/folders/folders_widget.cpp
         src/dialog/import_asset_dialog.cpp
         src/context-menu/ContentContextMenu.cpp
         src/context-menu/FileContextMenu.cpp
@@ -37,24 +41,24 @@ set(EDITOR_SOURCES
         include/editor_main.h
         include/editor_settings.h
         include/FileSystemUtils.h
-        include/folder_content_list_view.h
-        include/folder_content_widget.h
-        include/folders_tree_view.h
-        include/folders_widget.h
+        include/content-browser/folder-content/folder_content_list_view.h
+        include/content-browser/folder-content/folder_content_widget.h
+        include/content-browser/folders/folders_tree_view.h
+        include/content-browser/folders/folders_widget.h
         include/dialog/import_asset_dialog.h
         include/SettingsData.h
         ui/editor_main.ui
         ui/editor_settings.ui
-        ui/folder_content_list_view.ui
-        ui/folder_content_widget.ui
-        ui/folders_tree_view.ui
-        ui/folders_widget.ui
-        ../engine/include/scene/Scene.h
-        ../engine/src/scene/Scene.cpp
-        ../engine/include/scene/Entity.h
-        ../engine/src/scene/Entity.cpp
-        ../engine/include/scene/BasicComponents.h
-        ../engine/include/scene/EntityTemplates.h
+        ui/content-browser/folder-content/folder_content_list_view.ui
+        ui/content-browser/folder-content/folder_content_widget.ui
+        ui/content-browser/folders/folders_tree_view.ui
+        ui/content-browser/folders/folders_widget.ui
+        #../engine/include/scene/Scene.h
+        #../engine/src/scene/Scene.cpp
+        #../engine/include/scene/Entity.h
+        #../engine/src/scene/Entity.cpp
+        #../engine/include/scene/BasicComponents.h
+        #../engine/include/scene/EntityTemplates.h
         include/context-menu/ContentContextMenu.h
         include/context-menu/FileContextMenu.h
         include/dialog/import_model_dialog.h
@@ -62,12 +66,12 @@ set(EDITOR_SOURCES
         src/dialog/create_material_dialog.cpp
         include/dialog/create_material_dialog.h
         ui/dialog/create_material_dialog.ui
-        src/IconProvider.cpp
-        include/IconProvider.h
+        src/content-browser/IconProvider.cpp
+        include/content-browser/IconProvider.h
         ${RESOURCES}
-        src/path_bar_widget.cpp
-        include/path_bar_widget.h
-        ui/path_bar_widget.ui
+        src/content-browser/path_bar_widget.cpp
+        include/content-browser/path_bar_widget.h
+        ui/content-browser/path_bar_widget.ui
         include/EditorSink.h
         src/console_messages_widget.cpp
         include/console_messages_widget.h
@@ -81,22 +85,34 @@ set(EDITOR_SOURCES
         src/inspector/material_inspector_content.cpp
         include/inspector/material_inspector_content.h
         ui/inspector/material_inspector_content.ui
-        src/InspectorFabric.cpp
-        include/InspectorFabric.h
+        src/inspector/InspectorFabric.cpp
+        include/inspector/InspectorFabric.h
         src/inspector/inspector_widget.cpp
         include/inspector/inspector_widget.h
         ui/inspector/inspector_widget.ui
         include/LabelsUtils.h
-        src/ContentDelegate.cpp
-        include/ContentDelegate.h
+        src/content-browser/folder-content/ContentDelegate.cpp
+        include/content-browser/folder-content/ContentDelegate.h
         src/dialog/import_texture_dialog.cpp
         include/dialog/import_texture_dialog.h
         ui/dialog/import_texture_dialog.ui
         src/inspector/mesh_inspector_content.cpp
         include/inspector/mesh_inspector_content.h
         ui/inspector/mesh_inspector_content.ui
-        src/ContentFilterProxyModel.cpp
-        include/ContentFilterProxyModel.h
+        src/content-browser/folder-content/ContentFilterProxyModel.cpp
+        include/content-browser/folder-content/ContentFilterProxyModel.h
+        src/context-menu/AddToSceneContextMenu.cpp
+        include/context-menu/AddToSceneContextMenu.h
+        src/scene/scene_hierarchy_widget.cpp
+        include/scene/scene_hierarchy_widget.h
+        ui/scene/scene_hierarchy_widget.ui
+        include/scene/EntityNode.h
+        ui/scene/SceneItemModel.cpp
+        include/scene/SceneItemModel.h
+        src/scene/EntityDelegate.cpp
+        include/scene/EntityDelegate.h
+        src/TexturePreviewAsyncLoader.cpp
+        include/TexturePreviewAsyncLoader.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
@@ -108,10 +124,16 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${PROJECT_SOURCE_DIR}/include"
         "${PROJECT_SOURCE_DIR}/include/dialog"
         "${PROJECT_SOURCE_DIR}/include/inspector"
+        "${PROJECT_SOURCE_DIR}/include/content-browser"
+        "${PROJECT_SOURCE_DIR}/include/content-browser/folders"
+        "${PROJECT_SOURCE_DIR}/include/content-browser/folder-content"
+        "${PROJECT_SOURCE_DIR}/include/scene"
         "${PROJECT_SOURCE_DIR}/src"
         "${PROJECT_SOURCE_DIR}/ui"
+        "${PROJECT_SOURCE_DIR}/ui/content-browser/folder-content"
         "${PROJECT_SOURCE_DIR}/ui/import"
         "${PROJECT_SOURCE_DIR}/ui/inspector"
+        "${PROJECT_SOURCE_DIR}/ui/scene"
         "${CMAKE_SOURCE_DIR}/common"
         "${CMAKE_SOURCE_DIR}/libs/"
         "${Entt_DIR}/single_include"
@@ -126,6 +148,9 @@ target_link_libraries(EDITOR
         ENGINE
         qlementine
 )
+
+qt6_import_plugins(EDITOR
+        INCLUDE Qt6::QJpegPlugin)
 
 
 

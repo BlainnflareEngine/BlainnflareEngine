@@ -6,20 +6,22 @@
 #include "Jolt/Core/JobSystemThreadPool.h"
 #include "Jolt/Core/TempAllocator.h"
 #include "Jolt/Jolt.h"
+#include "Jolt/Physics/Body/Body.h"
 #include "Jolt/Physics/Body/BodyCreationSettings.h"
 #include "Jolt/Physics/Collision/BroadPhase/BroadPhase.h"
 #include "Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h"
 #include "Jolt/Physics/Collision/BroadPhase/BroadPhaseLayerInterfaceMask.h"
 #include "Jolt/Physics/Collision/CastResult.h"
 #include "Jolt/Physics/Collision/ContactListener.h"
+#include "Jolt/Physics/Collision/NarrowPhaseQuery.h"
+#include "Jolt/Physics/Collision/RayCast.h"
 #include "Jolt/Physics/PhysicsSettings.h"
 #include "Jolt/Physics/PhysicsSystem.h"
 
-
-#include "runtime/physics/BodyBuilder.h"
-#include "runtime/physics/ContactListenerImpl.h"
-#include "runtime/physics/Layers.h"
-
+#include "physics/BodyBuilder.h"
+#include "physics/ContactListenerImpl.h"
+#include "physics/Layers.h"
+#include "physics/RayCastResult.h"
 
 using namespace Blainn;
 
@@ -72,13 +74,13 @@ void PhysicsSubsystem::Update(float deltaTimeMs)
         // lock no lock all bodies
         // for each body that has a physics component and transform component
         //   get body position and rotation and set transform position and rotation
-        entt::registry &registry = Blainn::GetRegistry();
-        auto view = registry.group<PhysicsComponent>();
-        for (auto entity : view)
-        {
-            PhysicsComponent &physComp = view.get<PhysicsComponent>(entity);
-            // TODO: do something?
-        }
+        // entt::registry &registry = Blainn::GetRegistry();
+        // auto view = registry.group<PhysicsComponent>();
+        // for (auto entity : view)
+        //{
+        // PhysicsComponent &physComp = view.get<PhysicsComponent>(entity);
+        // TODO: do something?
+        //}
         //
         // TODO: create queued bodies
     }
@@ -96,12 +98,28 @@ void PhysicsSubsystem::Update(float deltaTimeMs)
 //     //TODO: create physics component
 // }
 
-// JPH::RayCastResult Blainn::PhysicsSubsystem::CastRay(Vec3 origin, Vec3 direction)
-// {
-//     //TODO: implement
-//     // TODO: probaply forward to shape (physics component)
-// }
 JPH::PhysicsSystem &Blainn::PhysicsSubsystem::GetPhysicsSystem()
 {
     return *m_joltPhysicsSystem;
+}
+
+eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 directionAndDistance)
+{
+    JPH::RRayCast ray(ToJoltRVec3(origin), ToJoltRVec3(directionAndDistance));
+    JPH::RayCastResult result;
+    if (!m_joltPhysicsSystem->GetNarrowPhaseQuery().CastRay(ray, result))
+    {
+        return eastl::optional<RayCastResult>();
+    }
+
+    RayCastResult rayCastResult;
+    rayCastResult.bodyId; //= bodyUuid;    // TODO: get uuid from body user data
+    rayCastResult.distance = result.mFraction * directionAndDistance.Length();
+    rayCastResult.hitPoint = origin + directionAndDistance * result.mFraction;
+    JPH::RefConst<JPH::Shape> bodyShape = m_joltPhysicsSystem->GetBodyInterface().GetShape(result.mBodyID);
+    rayCastResult.hitNormal = ToBlainnVec3(bodyShape->GetSurfaceNormal(
+        result.mSubShapeID2,
+        ToJoltVec3(rayCastResult.hitPoint) - bodyShape->GetCenterOfMass())); // TODO: convert to world space
+
+    return eastl::optional<RayCastResult>(rayCastResult);
 }

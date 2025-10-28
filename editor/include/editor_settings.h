@@ -2,8 +2,7 @@
 // Created by gorev on 28.09.2025.
 //
 
-#ifndef EDITOR_SETTINGS_H
-#define EDITOR_SETTINGS_H
+#pragma once
 
 #include "SettingsData.h"
 
@@ -30,7 +29,7 @@ public:
     ~editor_settings() override;
 
 private:
-    Ui::editor_settings* ui;
+    Ui::editor_settings *ui;
 
     SettingsData data;
 
@@ -38,5 +37,3 @@ private slots:
     void OnSetDirectoryPressed();
 };
 } // namespace editor
-
-#endif // EDITOR_SETTINGS_H
