@@ -5,7 +5,7 @@
 #ifndef FOLDERS_WIDGET_H
 #define FOLDERS_WIDGET_H
 
-#include "context-menu/FileContextMenu.h"
+#include "../../context-menu/FileContextMenu.h"
 #include "folders_tree_view.h"
 
 

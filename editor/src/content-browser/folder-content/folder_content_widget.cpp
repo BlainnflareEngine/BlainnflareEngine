@@ -12,6 +12,8 @@
 #include "IconProvider.h"
 #include "InspectorFabric.h"
 #include "context-menu/ContentContextMenu.h"
+#include "context-menu/FileContextMenu.h"
+#include "folder_content_list_view.h"
 #include "inspector_content_base.h"
 #include "ui_folder_content_widget.h"
 
@@ -19,7 +21,6 @@
 #include <QListView>
 #include <QMimeData>
 #include <QSortFilterProxyModel>
-#include <iostream>
 #include <qlayout.h>
 
 namespace editor
@@ -38,13 +39,12 @@ folder_content_widget::folder_content_widget(QWidget *parent)
     m_proxyModel = new ContentFilterProxyModel(this);
     m_proxyModel->setSourceModel(m_fileSystemModel);
 
-    // TODO: move all this properties to folder_content_list_view
     m_listView = new folder_content_list_view(this);
     m_listView->setModel(m_proxyModel);
     m_listView->setViewMode(QListView::IconMode);
     m_listView->setContextMenuPolicy(Qt::CustomContextMenu);
     m_listView->setContentsMargins(10, 10, 10, 10);
-    m_listView->setItemDelegate(new ContentDelegate(ContentDelegate::Elide, m_listView));
+    m_listView->setItemDelegate(new ContentDelegate(ContentDelegate::Elide, m_fileSystemModel, m_proxyModel, this));
 
     m_layout = new QVBoxLayout(this);
     layout()->setContentsMargins(0, 0, 0, 0);
@@ -52,7 +52,6 @@ folder_content_widget::folder_content_widget(QWidget *parent)
     layout()->addWidget(m_listView);
 
     m_contentContextMenu = new ContentContextMenu(*m_listView);
-
     m_fileContextMenu = new FileContextMenu(*m_listView);
 
     connect(m_listView, &QListView::doubleClicked, this, &folder_content_widget::OnEntrySelectedIndex);

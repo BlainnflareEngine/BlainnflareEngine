@@ -211,7 +211,7 @@ bool MoveRecursively(const QString &targetPath, const QString &srcPath)
 
     if (supported3DFormats.contains(srcFile.suffix()))
     {
-        if (!QFile::rename(srcPath + ".blainn", destPath + ".blainn"))
+        if (!QFile::rename(srcPath + "." + metaFormat, destPath + "." + metaFormat))
         {
             BF_ERROR("Failed to move file {0} to {1}.", ToString(srcFile.fileName()), ToString(targetPath));
             return false;

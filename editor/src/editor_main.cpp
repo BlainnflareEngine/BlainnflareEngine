@@ -10,10 +10,11 @@
 #include "EditorSink.h"
 #include "SettingsData.h"
 #include "editor_settings.h"
+#include "folder_content_widget.h"
 #include "ui_editor_main.h"
 
+#include <QListView>
 #include <QResource>
-#include <QTreeView>
 #include <iostream>
 
 namespace editor
@@ -46,6 +47,8 @@ editor_main::editor_main(QWidget *parent)
     connect(ui->actionEditor_settings, &QAction::triggered, this, &editor_main::OnOpenSettings);
 
     connect(ui->ClearConsoleButton, &QPushButton::clicked, ui->consoleMessages, &console_messages_widget::ClearConsole);
+
+    connect(ui->AddToScene, &QPushButton::clicked, this, &editor_main::OpenAddToScene);
 }
 
 
@@ -87,6 +90,13 @@ inspector_widget &editor_main::GetInspectorWidget()
 console_messages_widget *editor_main::GetConsoleWidget() const
 {
     return ui->consoleMessages;
+}
+
+
+void editor_main::OpenAddToScene() const
+{
+    QPoint pos = ui->AddToScene->rect().bottomLeft();
+    ui->Entities->OpenContextMenu(ui->AddToScene->mapToGlobal(pos));
 }
 
 

@@ -2,15 +2,13 @@
 // Created by gorev on 21.09.2025.
 //
 
-#ifndef EDITOR_MAIN_H
-#define EDITOR_MAIN_H
+#pragma once
 
-#include "../../libs/EASTL/include/EASTL/unique_ptr.h"
+#include "context-menu/AddToSceneContextMenu.h"
 #include "inspector_widget.h"
 
 
 #include <QMainWindow>
-#include <QPointer>
 #include <qdir.h>
 
 namespace editor
@@ -40,7 +38,7 @@ public:
 
     void closeEvent(QCloseEvent *event) override;
 
-    inspector_widget& GetInspectorWidget();
+    inspector_widget &GetInspectorWidget();
 
     console_messages_widget *GetConsoleWidget() const;
 
@@ -49,10 +47,10 @@ private:
 
     QString m_contentPath;
 
+    void OpenAddToScene() const;
+
 private slots:
     void OnOpenSettings();
 };
 
 } // namespace editor
-
-#endif // EDITOR_MAIN_H

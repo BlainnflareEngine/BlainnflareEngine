@@ -64,6 +64,8 @@ void folders_widget::SetContentDirectory(const QString &contentDirectory)
     m_treeView->setRootIndex(m_fileSystemModel->setRootPath(contentDirectory));
     onFolderSelectedIndex(m_fileSystemModel->index(contentDirectory));
 }
+
+
 QTreeView *folders_widget::GetTreeView() const
 {
     return m_treeView;
