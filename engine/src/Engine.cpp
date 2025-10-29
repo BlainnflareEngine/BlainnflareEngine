@@ -15,12 +15,12 @@
 
 using namespace Blainn;
 
-eastl::shared_ptr<vgjs::JobSystem> Engine::m_jobSystemPtr = nullptr;
+eastl::shared_ptr<vgjs::JobSystem> Engine::m_JobSystemPtr = nullptr;
 
 void Engine::Init()
 {
     vgjs::thread_count_t jobSystemThreadCount{8};
-    m_jobSystemPtr = eastl::make_shared<vgjs::JobSystem>(vgjs::JobSystem(jobSystemThreadCount));
+    m_JobSystemPtr = eastl::make_shared<vgjs::JobSystem>(vgjs::JobSystem(jobSystemThreadCount));
 
     Log::Init();
     AssetManager::GetInstance().Init();
@@ -42,21 +42,22 @@ void Engine::Destroy()
     AssetManager::GetInstance().Destroy();
     Log::Destroy();
 
-    m_jobSystemPtr->terminate();
+    m_JobSystemPtr->terminate();
 }
 
 void Engine::Update(float deltaTime)
 {
     /// ----- TEST SCRIPTING -----
-    // Scene sc;
     // Entity entity = sc.CreateEntity();
     // entity.AddComponent<ScriptingComponent>();
     // uuid scriptUuid = ScriptingSubsystem::LoadScript(entity, "test1.lua").value();
     // ScriptingSubsystem::CallScriptFunction(scriptUuid, "abobus");
     // ScriptingSubsystem::UnloadScript(scriptUuid);
     // scriptUuid = ScriptingSubsystem::LoadScript(entity, "test2.lua").value();
-    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnUpdate");
-    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnCustomCall");
+    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnUpdate", 16.67f);
+    // int b = 42;
+    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnCustomCall", eastl::ref(b));
+    // std::cout << "Value of b after script call: " << b << std::endl;
     // ScriptingSubsystem::UnloadScript(scriptUuid);
     /// ----- END TEST SCRIPTING -----
 

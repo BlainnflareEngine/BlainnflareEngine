@@ -4,6 +4,7 @@
 
 #include <cassert>
 
+#include "ScriptingSubsystem.h"
 #include "tools/random.h"
 
 using namespace Blainn;
@@ -13,6 +14,7 @@ void ScriptingSubsystem::Init()
     m_lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::string, sol::lib::table,
                          sol::lib::os, sol::lib::io);
 
+    RegisterBlainnTypes();
     m_isInitialized = true;
 }
 
@@ -101,4 +103,27 @@ void ScriptingSubsystem::UnloadScript(const uuid &scriptUuid)
     {
         BF_ERROR("Script" + scriptUuid.str() + " unload error - not found");
     }
+}
+
+void Blainn::ScriptingSubsystem::RegisterBlainnTypes()
+{
+    sol::usertype<Vec2> Vec2Type = m_lua.new_usertype<Vec2>(
+        "Vec2", sol::constructors<Vec2(), Vec2(float, float)>(), sol::meta_function::subtraction,
+        [](const Vec2 &a, const Vec2 &b) { return a - b; }, sol::meta_function::addition,
+        [](const Vec2 &a, const Vec2 &b) { return a + b; }, sol::meta_function::unary_minus, [](const Vec2 &a)
+        { return -a; }, sol::meta_function::multiplication, [](const Vec2 &a, float s) { return a * s; },
+        sol::meta_function::division, [](const Vec2 &a, float s) { return a / s; }, sol::meta_function::equal_to,
+        [](const Vec2 &a, const Vec2 &b) { return a == b; });
+
+    Vec2Type["x"] = &Vec2::x;
+    Vec2Type["y"] = &Vec2::y;
+
+    Vec2Type["Length"] = &Vec2::Length;
+    Vec2Type["LengthSquared"] = &Vec2::LengthSquared;
+    Vec2Type["Normalize"] = static_cast<void (Vec2::*)()>(&Vec2::Normalize);
+    Vec2Type["Dot"] = &Vec2::Dot;
+
+    Vec2Type["Distance"] = &Vec2::Distance;
+    Vec2Type["Clamp"] = static_cast<void (Vec2::*)(const Vec2 &, const Vec2 &)>(&Vec2::Clamp);
+    Vec2Type["Lerp"] = static_cast<Vec2 (*)(const Vec2 &, const Vec2 &, float)>(&Vec2::Lerp);
 }

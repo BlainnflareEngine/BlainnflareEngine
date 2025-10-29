@@ -1,6 +1,8 @@
 #pragma once
 #include <Windows.h>
 
+#include "scene/Scene.h"
+
 namespace vgjs
 {
 class JobSystem;
@@ -19,6 +21,7 @@ public:
     static void Update(float deltaTime);
 
 private:
-    static eastl::shared_ptr<vgjs::JobSystem> m_jobSystemPtr;
+    static eastl::shared_ptr<vgjs::JobSystem> m_JobSystemPtr;
+    static Scene m_ActiveScene; // TODO: make shared?
 };
 } // namespace Blainn
