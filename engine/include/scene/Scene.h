@@ -19,8 +19,9 @@ using EntityMap = eastl::unordered_map<uuid, Entity>;
 class Scene
 {
 public:
-    Scene(const eastl::string_view &name = "UntitledScene", bool isEditorScene = false) noexcept {};
-    ~Scene() {};
+    Scene(const eastl::string_view &name = "UntitledScene", bool isEditorScene = false) noexcept {
+    }; // TODO: @JSrct2324 wrote here empty {} change if needed
+    ~Scene() {}; // TODO: @JSrct2324 wrote here empty {} change if needed
     // I'm not sure we need to copy or move scenes so if needed add these functions
     Scene(Scene &) = delete;
     Scene &operator=(Scene &) = delete;
