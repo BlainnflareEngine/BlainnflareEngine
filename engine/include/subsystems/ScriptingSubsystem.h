@@ -59,10 +59,6 @@ public:
 
 private:
     ScriptingSubsystem() = delete;
-    ScriptingSubsystem(const ScriptingSubsystem &) = delete;
-    ScriptingSubsystem &operator=(const ScriptingSubsystem &) = delete;
-    ScriptingSubsystem(const ScriptingSubsystem &&) = delete;
-    ScriptingSubsystem &operator=(const ScriptingSubsystem &&) = delete;
 
     inline static bool m_isInitialized = false;
     inline static sol::state m_lua = sol::state();
@@ -70,5 +66,7 @@ private:
     inline static eastl::string m_luaScriptsFolder = "content/scripts/";
 
     inline static eastl::unordered_map<uuid, Entity> m_scriptEntityConnections = eastl::unordered_map<uuid, Entity>{};
+
+    static void RegisterBlainnTypes();
 };
 } // namespace Blainn

@@ -73,7 +73,7 @@ bool LuaScript::OnStartCall()
 
 bool LuaScript::OnUpdateCall(float deltaTimeMs)
 {
-    return CustomCall("OnUpdate");
+    return CustomCall("OnUpdate", deltaTimeMs);
 }
 
 bool LuaScript::OnDestroyCall()

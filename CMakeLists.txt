@@ -30,8 +30,9 @@ set(PROJECT_NAME
 
 project(${PROJECT_NAME}
         VERSION 0.0.1
-        LANGUAGES CXX
+        LANGUAGES CXX C
 )
+
 
 # cpp options
 set(CMAKE_CXX_STANDARD 20)
