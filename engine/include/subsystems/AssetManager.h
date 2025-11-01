@@ -5,6 +5,7 @@
 #pragma once
 #include "AssetLoader.h"
 #include "FreeListVector.h"
+#include "helpers.h"
 
 
 namespace Blainn
@@ -24,6 +25,8 @@ class AssetManager
     };
 
 public:
+    NO_COPY_NO_MOVE(AssetManager);
+
     static AssetManager &GetInstance();
 
     void Init();
@@ -47,13 +50,10 @@ public:
     Material &GetMaterialByIndex(unsigned int index);
     Material &GetMaterialByHandle(const MaterialHandle &handle);
 
+    void OpenScene(const Path &path);
 
 private:
     AssetManager() = default;
-    AssetManager(const AssetManager &) = delete;
-    AssetManager &operator=(const AssetManager &) = delete;
-    AssetManager(const AssetManager &&) = delete;
-    AssetManager &operator=(const AssetManager &&) = delete;
 
     friend struct MeshHandle;
     friend struct MaterialHandle;

@@ -8,6 +8,7 @@
 
 #include "AssetManager.h"
 #include "Editor.h"
+#include "Engine.h"
 #include "random.h"
 #include "ui_import_model_dialog.h"
 
@@ -49,7 +50,7 @@ Blainn::ImportMeshData &import_model_dialog::GetData()
 
 void import_model_dialog::OnConfirm()
 {
-    QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
+    QDir dir(Blainn::Engine::GetContentDirectory());
     YAML::Node meta;
     meta["ID"] = Blainn::Rand::getRandomUUID().str();
     meta["ModelPath"] = ToString(dir.relativeFilePath(m_info.destinationPath));

@@ -4,6 +4,7 @@ project(EDITOR
         LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
@@ -53,12 +54,6 @@ set(EDITOR_SOURCES
         ui/content-browser/folder-content/folder_content_widget.ui
         ui/content-browser/folders/folders_tree_view.ui
         ui/content-browser/folders/folders_widget.ui
-        #../engine/include/scene/Scene.h
-        #../engine/src/scene/Scene.cpp
-        #../engine/include/scene/Entity.h
-        #../engine/src/scene/Entity.cpp
-        #../engine/include/scene/BasicComponents.h
-        #../engine/include/scene/EntityTemplates.h
         include/context-menu/ContentContextMenu.h
         include/context-menu/FileContextMenu.h
         include/dialog/import_model_dialog.h
@@ -140,17 +135,14 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_link_libraries(EDITOR
-        Qt::Core
-        Qt::Gui
-        Qt::Widgets
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
         Qt6::Svg
         pch
         ENGINE
         qlementine
 )
-
-qt6_import_plugins(EDITOR
-        INCLUDE Qt6::QJpegPlugin)
 
 
 

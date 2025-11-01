@@ -31,8 +31,7 @@ void AssetManager::Init()
     m_meshes.reserve(64);
 
     // TODO: create default texture
-    m_textures.emplace(
-        m_loader->LoadTexture(std::filesystem::current_path() / "Default.png", TextureType::ALBEDO));
+    m_textures.emplace(m_loader->LoadTexture(std::filesystem::current_path() / "Default.png", TextureType::ALBEDO));
 
     // TODO: create default material
     Material material = Material(std::filesystem::current_path() / "Default.mat", "Default");
@@ -175,6 +174,26 @@ Material &AssetManager::GetMaterialByHandle(const MaterialHandle &handle)
     }
 
     return *m_materials[index];
+}
+
+
+void AssetManager::OpenScene(const Path &path)
+{
+    // TODO: unload all from current scene
+    YAML::Node scene;
+
+    if (exists(path))
+    {
+        scene = YAML::LoadFile(path.string());
+        BF_DEBUG("Opening scene {0}", path.string());
+    }
+    else
+    {
+        scene["SceneName"] = (Engine::GetContentDirectory() / path.string()).string();
+        BF_DEBUG("Opening scene {0}", path.filename().string());
+        std::ofstream fout(path.string());
+        fout << scene;
+    }
 }
 
 

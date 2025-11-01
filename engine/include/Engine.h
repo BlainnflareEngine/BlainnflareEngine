@@ -20,8 +20,12 @@ public:
     static void Destroy();
     static void Update(float deltaTime);
 
+    static Path &GetContentDirectory();
+    static void SetContentDirectory(const Path &contentDirectory);
+
 private:
     static eastl::shared_ptr<vgjs::JobSystem> m_JobSystemPtr;
-    static Scene m_ActiveScene; // TODO: make shared?
+    static eastl::shared_ptr<Scene> m_ActiveScene;
+    inline static Path m_contentDirectory;
 };
 } // namespace Blainn

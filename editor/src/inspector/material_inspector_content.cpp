@@ -7,6 +7,7 @@
 #include "material_inspector_content.h"
 
 #include "Editor.h"
+#include "Engine.h"
 #include "FileSystemUtils.h"
 #include "LabelsUtils.h"
 #include "ui_material_inspector_content.h"
@@ -37,8 +38,8 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
             [&]()
             {
                 SelectFile(*ui->Shader, Filters::ShaderFilter,
-                           QString::fromStdString(Blainn::Editor::GetInstance().GetContentDirectory().string()));
-                QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
+                           QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
+                QDir dir(Blainn::Engine::GetContentDirectory());
                 SetValueYAML(ToString(m_file), "ShaderPath", ToString(dir.relativeFilePath(ui->Shader->text())));
             });
 
@@ -46,8 +47,8 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
             [&]()
             {
                 SelectFile(*ui->Albedo, Filters::TextureFilter,
-                           QString::fromStdString(Blainn::Editor::GetInstance().GetContentDirectory().string()));
-                QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
+                           QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
+                QDir dir(Blainn::Engine::GetContentDirectory());
                 SetValueYAML(ToString(m_file), "AlbedoPath", ToString(dir.relativeFilePath(ui->Albedo->text())));
             });
 
@@ -55,8 +56,8 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
             [&]()
             {
                 SelectFile(*ui->Normal, Filters::TextureFilter,
-                           QString::fromStdString(Blainn::Editor::GetInstance().GetContentDirectory().string()));
-                QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
+                           QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
+                QDir dir(Blainn::Engine::GetContentDirectory());
                 SetValueYAML(ToString(m_file), "NormalPath", ToString(dir.relativeFilePath(ui->Normal->text())));
             });
 
@@ -64,8 +65,8 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
             [&]()
             {
                 SelectFile(*ui->Metallic, Filters::TextureFilter,
-                           QString::fromStdString(Blainn::Editor::GetInstance().GetContentDirectory().string()));
-                QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
+                           QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
+                QDir dir(Blainn::Engine::GetContentDirectory());
                 SetValueYAML(ToString(m_file), "MetallicPath", ToString(dir.relativeFilePath(ui->Metallic->text())));
             });
 
@@ -73,8 +74,8 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
             [&]()
             {
                 SelectFile(*ui->Roughness, Filters::TextureFilter,
-                           QString::fromStdString(Blainn::Editor::GetInstance().GetContentDirectory().string()));
-                QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
+                           QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
+                QDir dir(Blainn::Engine::GetContentDirectory());
                 SetValueYAML(ToString(m_file), "RoughnessPath", ToString(dir.relativeFilePath(ui->Roughness->text())));
             });
 
@@ -82,8 +83,8 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
             [&]()
             {
                 SelectFile(*ui->AO, Filters::TextureFilter,
-                           QString::fromStdString(Blainn::Editor::GetInstance().GetContentDirectory().string()));
-                QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
+                           QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
+                QDir dir(Blainn::Engine::GetContentDirectory());
                 SetValueYAML(ToString(m_file), "AOPath", ToString(dir.relativeFilePath(ui->AO->text())));
             });
 }

@@ -7,6 +7,7 @@
 #include "../../include/content-browser/folder-content/ContentFilterProxyModel.h"
 #include "../../include/dialog/create_material_dialog.h"
 #include "Editor.h"
+#include "Engine.h"
 #include "FileSystemUtils.h"
 #include "random.h"
 
@@ -88,7 +89,7 @@ void ContentContextMenu::CreateMaterial(const QString &dirPath) const
         QString filePath = dirPath + QDir::separator() + materialDialog.GetMaterialName() + "." + materialFormat;
 
         YAML::Node config;
-        QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
+        QDir dir(Blainn::Engine::GetContentDirectory());
 
         // These are relative paths, you can restore full path with content folder path
         config["ID"] = Blainn::Rand::getRandomUUID().str();
@@ -123,7 +124,7 @@ void ContentContextMenu::CreateScene(const QString &dirPath) const
         QString filePath = dirPath + QDir::separator() + inputDialog.textValue() + "." + sceneFormat;
 
         YAML::Node scene;
-        QDir dir(Blainn::Editor::GetInstance().GetContentDirectory());
+        QDir dir(Blainn::Engine::GetContentDirectory());
 
         std::string pathStr = ToString(filePath);
         const Blainn::Path configFilePath = Blainn::Path(pathStr);

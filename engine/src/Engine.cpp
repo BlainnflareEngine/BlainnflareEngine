@@ -82,3 +82,15 @@ void Engine::Update(float deltaTime)
 
     // TODO: wait for jobs to finish?
 }
+
+
+Path &Engine::GetContentDirectory()
+{
+    return m_contentDirectory;
+}
+
+
+void Engine::SetContentDirectory(const Path &contentDirectory)
+{
+    m_contentDirectory = contentDirectory;
+}
