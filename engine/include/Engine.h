@@ -1,5 +1,7 @@
 #pragma once
-#include <memory>
+#include <Windows.h>
+
+#include "scene/Scene.h"
 
 namespace vgjs
 {
@@ -14,10 +16,12 @@ class Engine
 public:
     Engine() = delete;
     static void Init();
+    static void InitRenderSubsystem(HWND windowHandle);
     static void Destroy();
-    static void Run();
+    static void Update(float deltaTime);
 
 private:
-    static std::shared_ptr<vgjs::JobSystem> m_jobSystemPtr;
+    static eastl::shared_ptr<vgjs::JobSystem> m_JobSystemPtr;
+    static Scene m_ActiveScene; // TODO: make shared?
 };
 } // namespace Blainn

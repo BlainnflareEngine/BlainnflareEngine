@@ -4,7 +4,7 @@
 
 #pragma once
 
-#define BLAINN_ENABLE_PROFILING _DEBUG
+#define BLAINN_ENABLE_PROFILING 0
 
 #if BLAINN_ENABLE_PROFILING
 #include <tracy/Tracy.hpp>
