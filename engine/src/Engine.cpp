@@ -62,7 +62,7 @@ void Engine::Update(float deltaTime)
     /// ----- END TEST SCRIPTING -----
 
     // this trace doesn't make sense, it exactly matches the frame
-    BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop");
+    //BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop"); <= WARNING! THIS LINE IS BLEEDING!!
 
     // test
     static float testAccumulator;
@@ -76,7 +76,7 @@ void Engine::Update(float deltaTime)
     vgjs::schedule(&RenderSubsystem::Render);
 
     // Marks end of frame for tracy profiler
-    BLAINN_PROFILE_MARK_FRAME;
+    //BLAINN_PROFILE_MARK_FRAME;
 
 
     // TODO: wait for jobs to finish?
