@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include <EASTL/chrono.h>
+#include <EASTL/vector.h>
 
 namespace Blainn
 {
@@ -25,25 +26,41 @@ template <typename EastlDurationType> class Timeline
                   "EastlDurationType must be a eastl::chrono::duration specialization");
 
 public:
-    Timeline();
+    Timeline(Timeline *parentTimeline);
+    virtual ~Timeline();
     void Start();
     void Pause();
     void Resume();
     bool isActive() const;
     // returns amount of time since last update
-    float Tick();
+    virtual float Tick();
     void Reset();
+
+    void AddChildTimeline(Timeline *childTimeline);
+    void RemoveChildTimeline(Timeline *childTimeline);
 
 private:
     bool m_isActive;
     int64_t m_startTime;
     int64_t m_lastSavedTime;
     int64_t GetTime() const;
+
+    Timeline *m_parentTimeline = nullptr;
+    eastl::vector<Timeline *> m_childTimelines;
 };
 
-template <typename EastlDurationType> Blainn::Timeline<EastlDurationType>::Timeline()
+template <typename EastlDurationType> Blainn::Timeline<EastlDurationType>::Timeline(Timeline *parentTimeline)
 {
     Reset();
+    m_parentTimeline = parentTimeline;
+}
+
+template <typename EastlDurationType> inline Timeline<EastlDurationType>::~Timeline()
+{
+    if (m_parentTimeline)
+    {
+        m_parentTimeline->RemoveChildTimeline(this);
+    }
 }
 
 template <typename EastlDurationType> void Blainn::Timeline<EastlDurationType>::Start()
@@ -53,16 +70,33 @@ template <typename EastlDurationType> void Blainn::Timeline<EastlDurationType>::
     m_isActive = true;
     m_startTime = GetTime();
     m_lastSavedTime = m_startTime;
+
+    for (Timeline *childTimeline : m_childTimelines)
+    {
+        childTimeline->Start();
+    }
 }
 
 template <typename EastlDurationType> void Blainn::Timeline<EastlDurationType>::Pause()
 {
-    if (m_isActive) m_isActive = false;
+    if (!m_isActive) return;
+    m_isActive = false;
+
+    for (Timeline *childTimeline : m_childTimelines)
+    {
+        childTimeline->Pause();
+    }
 }
 
 template <typename EastlDurationType> void Blainn::Timeline<EastlDurationType>::Resume()
 {
-    if (!m_isActive) m_isActive = true;
+    if (m_isActive) return;
+    m_isActive = true;
+
+    for (Timeline *childTimeline : m_childTimelines)
+    {
+        childTimeline->Resume();
+    }
 }
 
 template <typename EastlDurationType> float Blainn::Timeline<EastlDurationType>::Tick()
@@ -79,6 +113,26 @@ template <typename EastlDurationType> void Blainn::Timeline<EastlDurationType>::
     m_isActive = false;
     m_startTime = 0;
     m_lastSavedTime = 0;
+
+    for (Timeline *childTimeline : m_childTimelines)
+    {
+        childTimeline->Reset();
+    }
+}
+
+template <typename EastlDurationType> inline void Timeline<EastlDurationType>::AddChildTimeline(Timeline *childTimeline)
+{
+    m_childTimelines.push_back(childTimeline);
+}
+
+template <typename EastlDurationType>
+inline void Timeline<EastlDurationType>::RemoveChildTimeline(Timeline *childTimeline)
+{
+    auto it = eastl::find(m_childTimelines.begin(), m_childTimelines.end(), childTimeline);
+    if (it != m_childTimelines.end())
+    {
+        m_childTimelines.erase(it);
+    }
 }
 
 template <typename EastlDurationType> int64_t Blainn::Timeline<EastlDurationType>::GetTime() const
@@ -90,6 +144,10 @@ template <typename EastlDurationType> int64_t Blainn::Timeline<EastlDurationType
 
 template <typename EastlDurationType> bool Blainn::Timeline<EastlDurationType>::isActive() const
 {
+    if (m_parentTimeline)
+    {
+        return m_isActive && m_parentTimeline->isActive();
+    }
     return m_isActive;
 }
 } // namespace Blainn

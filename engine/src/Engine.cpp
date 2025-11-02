@@ -8,6 +8,7 @@
 #include "scene/Scene.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
+#include "subsystems/PhysicsSubsystem.h"
 #include "subsystems/RenderSubsystem.h"
 #include "subsystems/ScriptingSubsystem.h"
 #include "tools/Profiler.h"
@@ -17,7 +18,7 @@ using namespace Blainn;
 
 eastl::shared_ptr<vgjs::JobSystem> Engine::m_JobSystemPtr = nullptr;
 
-void Engine::Init()
+void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
 {
     vgjs::thread_count_t jobSystemThreadCount{8};
     m_JobSystemPtr = eastl::make_shared<vgjs::JobSystem>(vgjs::JobSystem(jobSystemThreadCount));
@@ -25,6 +26,7 @@ void Engine::Init()
     Log::Init();
     AssetManager::GetInstance().Init();
     ScriptingSubsystem::Init();
+    PhysicsSubsystem::Init(globalTimeline);
 
     // TODO: -- remove --  test asset manager
     auto a = AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), TextureType::ALBEDO);

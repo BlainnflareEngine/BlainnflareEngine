@@ -6,6 +6,7 @@
 
 #include "editor/include/Editor.h"
 #include "engine/include/Engine.h"
+#include "engine/include/tools/PeriodicTimeline.h"
 #include "engine/include/tools/Timeline.h"
 
 int main(int argc, char **argv)
@@ -16,7 +17,9 @@ int main(int argc, char **argv)
     BF_WARN("This is warn!");
     BF_TRACE("This is trace!");
 
-    Blainn::Engine::Init();
+    Blainn::Timeline<eastl::chrono::milliseconds> globalTimeline{nullptr};
+
+    Blainn::Engine::Init(globalTimeline);
 
 #if defined(BLAINN_INCLUDE_EDITOR)
     // needed for qt to generate resources (icons etc.)
@@ -29,13 +32,13 @@ int main(int argc, char **argv)
     HWND hwnd = Blainn::Editor::GetInstance().GetViewportHWND();
     Blainn::Engine::InitRenderSubsystem(hwnd);
 
-    Blainn::Timeline<eastl::chrono::milliseconds> mainTimeline;
-    mainTimeline.Start();
+
+    globalTimeline.Start();
 
     bool isRunning = true;
     while (isRunning)
     {
-        float mainTimelineDeltaTime = mainTimeline.Tick();
+        float mainTimelineDeltaTime = globalTimeline.Tick();
         Blainn::Engine::Update(mainTimelineDeltaTime);
 
 #if defined(BLAINN_INCLUDE_EDITOR)

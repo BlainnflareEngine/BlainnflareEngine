@@ -6,15 +6,18 @@
 #include "EASTL/unordered_map.h"
 #include "EASTL/vector.h"
 
+#include "Jolt/Physics/PhysicsSystem.h"
+
 #include "components/PhysicsComponent.h"
 #include "physics/ContactListenerImpl.h"
 #include "physics/Layers.h"
+
+#include "tools/PeriodicTimeline.h"
 
 namespace JPH
 {
 class JobSystem;
 class TempAllocator;
-class PhysicsSystem;
 } // namespace JPH
 
 namespace Blainn
@@ -28,7 +31,7 @@ class RayCastResult;
 class PhysicsSubsystem
 {
 public:
-    static void Init();
+    static void Init(Timeline<eastl::chrono::milliseconds> &globalTimeline);
     static void Destroy();
 
     static void Update(float deltaTimeMs);
@@ -60,6 +63,7 @@ private:
     PhysicsSubsystem &operator=(const PhysicsSubsystem &&) = delete;
 
     inline static constexpr float m_physicsUpdatePeriodMs = 1000.0 / 120.0; // 120 Hz
+    static PeriodicTimeline<eastl::chrono::milliseconds> m_physicsTimeline; // initialized in Init()
 
     inline static bool m_isInitialized = false;
 

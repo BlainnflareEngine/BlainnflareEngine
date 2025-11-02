@@ -2,6 +2,7 @@
 #include <Windows.h>
 
 #include "scene/Scene.h"
+#include "tools/Timeline.h"
 
 namespace vgjs
 {
@@ -15,7 +16,7 @@ class Engine
 {
 public:
     Engine() = delete;
-    static void Init();
+    static void Init(Timeline<eastl::chrono::milliseconds> &globalTimeline);
     static void InitRenderSubsystem(HWND windowHandle);
     static void Destroy();
     static void Update(float deltaTime);

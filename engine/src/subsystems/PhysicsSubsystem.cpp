@@ -25,9 +25,9 @@
 
 using namespace Blainn;
 
-void PhysicsSubsystem::Init()
+void PhysicsSubsystem::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
 {
-    m_isInitialized = true;
+    m_physicsTimeline = PeriodicTimeline<eastl::chrono::milliseconds>(m_physicsUpdatePeriodMs, &globalTimeline);
 
     m_joltTempAllocator = eastl::make_unique<JPH::TempAllocatorImpl>(32 * 1024 * 1024);
     m_joltJobSystem = eastl::make_unique<JPH::JobSystemThreadPool>(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers,
@@ -51,6 +51,8 @@ void PhysicsSubsystem::Init()
     m_joltPhysicsSystem->OptimizeBroadPhase();
 
     // TODO: reserve m_bodyCreationQueue and m_PhysicsComponents
+
+    m_isInitialized = true;
 }
 
 void PhysicsSubsystem::Destroy()
@@ -59,8 +61,12 @@ void PhysicsSubsystem::Destroy()
 
 void PhysicsSubsystem::Update(float deltaTimeMs)
 {
+    std::cout << m_physicsTimeline.Tick() << std::endl;
+
+
     assert(m_isInitialized && "PhysicsSubsystem not initialized. Call PhysicsSubsystem::Init() before using it.");
     if (deltaTimeMs == 0.0f) return;
+
 
     static float accumulatedTimeMs;
     accumulatedTimeMs += deltaTimeMs;
