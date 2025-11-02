@@ -52,6 +52,7 @@ set(ENGINE_SOURCES
         include/scene/EntityTemplates.h
         include/physics/RayCastResult.h
         include/components/ScriptingComponent.h
+        include/
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
@@ -69,6 +70,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${CMAKE_SOURCE_DIR}/libs/concurrentqueue"
         "${LUA_INCLUDE_DIR}"
         "${SOL2_INCLUDE_DIR}"
+        "${CMAKE_SOURCE_DIR}/libs/eventpp/include"
 )
 
 

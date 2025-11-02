@@ -137,6 +137,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${CMAKE_SOURCE_DIR}/common"
         "${CMAKE_SOURCE_DIR}/libs/"
         "${Entt_DIR}/single_include"
+        "${CMAKE_SOURCE_DIR}/libs/eventpp/include"
 )
 
 target_link_libraries(EDITOR
