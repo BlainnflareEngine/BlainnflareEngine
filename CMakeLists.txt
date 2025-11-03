@@ -39,7 +39,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 
 add_executable(${PROJECT_NAME} main.cpp
-        common/Vertex.h
+        common/VertexTypes.h
         common/MeshData.h
         common/ImportAssetData.h
         common/helpers.h
