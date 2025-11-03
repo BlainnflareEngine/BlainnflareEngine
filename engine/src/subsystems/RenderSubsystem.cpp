@@ -8,12 +8,15 @@
 
 using namespace Blainn;
 
-bool RenderSubsystem::m_isInitialized = false;
-
 void Blainn::RenderSubsystem::Init() 
 {
-    m_isInitialized = true;
     BF_INFO("RenderSubsystem::Init()");
+
+#if !definded(BLAINN_INCLUDE_EDITOR)
+    InitializeWindow();
+#endif
+
+    InitializeDirect3D();
 }
 
 
@@ -35,3 +38,42 @@ void RenderSubsystem::Render()
     }
     //BF_INFO("Haha, the number is {:>5}, and you can't count!", sink);
 }
+
+#pragma region GoingDirectX
+void RenderSubsystem::InitializeDirect3D()
+{
+    CreateCommandObjects();
+    
+    CreateRootSignature();
+    CreateShaders();   
+    CreatePSO();
+
+    m_isInitialized = true;
+}
+    
+void RenderSubsystem::InitializeWindow()
+{
+    
+}
+
+void RenderSubsystem::CreateCommandObjects()
+{
+
+}
+ 
+void RenderSubsystem::CreateRootSignature()
+{
+
+}
+
+void RenderSubsystem::CreateShaders()
+{
+
+}
+
+void RenderSubsystem::CreatePSO()
+{
+
+}
+
+#pragma endregion GoingDirectX
