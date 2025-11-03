@@ -43,6 +43,7 @@ add_executable(${PROJECT_NAME} main.cpp
         common/MeshData.h
         common/ImportAssetData.h
         common/helpers.h
+        engine/include/subsystems/Input/KeyboardEvents.h
 )
 
 add_subdirectory(libs/EASTL)

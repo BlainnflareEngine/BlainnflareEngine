@@ -53,6 +53,12 @@ set(ENGINE_SOURCES
         include/physics/RayCastResult.h
         include/components/ScriptingComponent.h
         include/
+        include/subsystems/input/InputSubsystem.h
+        include/subsystems/input/InputEvent.h
+        include/subsystems/input/KeyboardEvents.h
+        include/subsystems/input/MouseEvents.h
+        include/subsystems/input/KeyCodes.h
+        src/subsystems/InputSubsystem.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
