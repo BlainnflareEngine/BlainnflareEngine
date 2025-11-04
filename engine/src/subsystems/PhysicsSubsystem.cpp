@@ -16,10 +16,13 @@
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 
+#include "PhysicsSubsystem.h"
 #include "physics/BodyBuilder.h"
 #include "physics/ContactListenerImpl.h"
 #include "physics/Layers.h"
 #include "physics/RayCastResult.h"
+#include "physics/ShapeFactory.h"
+#include "scene/Scene.h"
 
 using namespace Blainn;
 
@@ -88,6 +91,13 @@ void PhysicsSubsystem::Update()
     // TODO: create queued bodies
 }
 
+void Blainn::PhysicsSubsystem::CreateSpherePhysicsComponent(Entity entity, PhysicsComponentMotionType motionType,
+                                                            float radius, Vec3 position, Quat rotation)
+{
+    CreateAddComponent(entity, motionType, ShapeFactory::CreateSphereShape(radius).second, position, rotation);
+}
+
+
 // uuid PhysicsSubsystem::QueuePhysicsComponentCreation(uuid parentId)
 // {
 //     JPH::BodyCreationSettings settings;
@@ -103,6 +113,25 @@ void PhysicsSubsystem::Update()
 JPH::PhysicsSystem &Blainn::PhysicsSubsystem::GetPhysicsSystem()
 {
     return *m_joltPhysicsSystem;
+}
+
+void Blainn::PhysicsSubsystem::CreateAddComponent(Entity entity, PhysicsComponentMotionType motionType,
+                                                  eastl::shared_ptr<JPH::Shape> shapePtr, Vec3 position, Quat rotation)
+{
+    PhysicsComponent *componentPtr = entity.TryGetComponent<PhysicsComponent>();
+    if (componentPtr) return;
+
+    BodyBuilder builder;
+    builder.SetMotionType(motionType);
+    builder.SetPosition(position);
+    builder.SetRotation(rotation);
+    builder.SetShape(shapePtr);
+
+    PhysicsComponent comomponent;
+    comomponent.m_bodyId = builder.Build();
+    comomponent.m_parentId = entity.GetUUID();
+
+    entity.AddComponent<PhysicsComponent>(eastl::move(comomponent));
 }
 
 eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 directionAndDistance)

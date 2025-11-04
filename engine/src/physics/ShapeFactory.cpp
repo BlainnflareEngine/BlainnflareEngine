@@ -13,10 +13,6 @@ eastl::pair<uuid, eastl::shared_ptr<JPH::Shape>> Blainn::ShapeFactory::CreateSph
 {
     uuid id = Rand::getRandomUUID();
     auto shapePtr = eastl::make_shared<JPH::SphereShape>(radius);
-    if (m_shapes.contains(id))
-    {
-        // TODO: log error
-    }
 
     return eastl::pair<uuid, eastl::shared_ptr<JPH::Shape>>{eastl::move(id), shapePtr};
 }

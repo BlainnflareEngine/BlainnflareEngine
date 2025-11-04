@@ -16,8 +16,10 @@
 #include "components/PhysicsComponent.h"
 #include "physics/ContactListenerImpl.h"
 #include "physics/Layers.h"
-
+#include "physics/PhysicsTypes.h"
+#include "scene/Scene.h"
 #include "tools/PeriodicTimeline.h"
+
 
 namespace JPH
 {
@@ -41,27 +43,31 @@ public:
 
     static void Update();
 
-    // TODO: Additional physics-specific methods can be added here
-    // createShape(shape type, position, optional params) -> returns shape ID
-    // applyForce(shape ID, force vector)
-    // add velocity and so on
 
     // TODO: shape position rotation motion_type object_layer
     // static uuid QueuePhysicsComponentCreation(uuid parentId);
     // static uuid QueuePhysicsComponentCreation(uuid parentId, const BodyBuilder& builder);
 
     // TODO: shape position rotation motion_type object_layer
-    // static uuid CreatePhysicsComponent(uuid parentId);
-    // static uuid CreatePhysicsComponent(uuid parentId, const BodyBuilder& builder);
+    static void CreateSpherePhysicsComponent(Entity entity, PhysicsComponentMotionType motionType, float radius,
+                                             Vec3 position = Vec3::Zero, Quat rotation = Quat::Identity);
+    static void CreatePhysicsComponent(Entity entity, const BodyBuilder &builder);
 
-    // TODO: create multipleBodies?
+    static void setVelocity(Entity entity, Vec3 velocity);
+    // TODO: Additional physics-specific methods can be added here
+    // applyForce(shape ID, force vector)
+    // add velocity and so on
 
     static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance);
 
+    // TODO: hide somehow?
     static JPH::PhysicsSystem &GetPhysicsSystem();
 
 private:
     PhysicsSubsystem() = delete;
+
+    static void CreateAddComponent(Entity entity, PhysicsComponentMotionType motionType, eastl::shared_ptr<JPH::Shape>,
+                                   Vec3 position, Quat rotation);
 
     inline static constexpr float m_physicsUpdatePeriodMs = 1000.0 / 120.0; // 120 Hz
     inline static eastl::unique_ptr<Blainn::PeriodicTimeline<eastl::chrono::milliseconds>> m_physicsTimeline =

@@ -24,6 +24,8 @@ public:
     /// @param path - ralative to cwd or absolute path
     static void SetLuaScriptsFolder(const eastl::string &path);
 
+    // TODO: create component
+
     /// @param path - script path in scripts content folder
     /// @param callOnStart - call OnStart() script function. true by default
     /// @return returns loaded script uuid

@@ -21,8 +21,6 @@ set(ENGINE_SOURCES
         src/physics/BodyBuilder.cpp
         include/physics/ContactListenerImpl.h
         src/physics/ContactListenerImpl.cpp
-        include/components/PhysicsComponent.h
-        src/components/PhysicsComponent.cpp
         include/physics/ShapeFactory.h
         src/physics/ShapeFactory.cpp
         include/scene/Scene.h
@@ -52,6 +50,7 @@ set(ENGINE_SOURCES
         include/scene/EntityTemplates.h
         include/physics/RayCastResult.h
         include/components/ScriptingComponent.h
+        include/components/PhysicsComponent.h
         include/tools/Timeline.h
         include/tools/PeriodicTimeline.h
 )
