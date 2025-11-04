@@ -2,21 +2,19 @@
 
 #include <cassert>
 
-#include "Jolt/Core/JobSystemSingleThreaded.h"
-#include "Jolt/Core/JobSystemThreadPool.h"
-#include "Jolt/Core/TempAllocator.h"
-#include "Jolt/Jolt.h"
-#include "Jolt/Physics/Body/Body.h"
-#include "Jolt/Physics/Body/BodyCreationSettings.h"
-#include "Jolt/Physics/Collision/BroadPhase/BroadPhase.h"
-#include "Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h"
-#include "Jolt/Physics/Collision/BroadPhase/BroadPhaseLayerInterfaceMask.h"
-#include "Jolt/Physics/Collision/CastResult.h"
-#include "Jolt/Physics/Collision/ContactListener.h"
-#include "Jolt/Physics/Collision/NarrowPhaseQuery.h"
-#include "Jolt/Physics/Collision/RayCast.h"
-#include "Jolt/Physics/PhysicsSettings.h"
-#include "Jolt/Physics/PhysicsSystem.h"
+
+#include <Jolt/Jolt.h>
+#include <Jolt/Physics/Body/Body.h>
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Collision/BroadPhase/BroadPhase.h>
+#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
+#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayerInterfaceMask.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/ContactListener.h>
+#include <Jolt/Physics/Collision/NarrowPhaseQuery.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/PhysicsSettings.h>
+#include <Jolt/Physics/PhysicsSystem.h>
 
 #include "physics/BodyBuilder.h"
 #include "physics/ContactListenerImpl.h"
@@ -27,11 +25,14 @@ using namespace Blainn;
 
 void PhysicsSubsystem::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
 {
-    m_physicsTimeline = PeriodicTimeline<eastl::chrono::milliseconds>(m_physicsUpdatePeriodMs, &globalTimeline);
+    m_physicsTimeline =
+        eastl::make_unique<PeriodicTimeline<eastl::chrono::milliseconds>>(m_physicsUpdatePeriodMs, &globalTimeline);
 
+    JPH::RegisterDefaultAllocator();
     m_joltTempAllocator = eastl::make_unique<JPH::TempAllocatorImpl>(32 * 1024 * 1024);
-    m_joltJobSystem = eastl::make_unique<JPH::JobSystemThreadPool>(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers,
-                                                                   m_maxConcurrentJobs - 1);
+
+    // TODO: change to job system
+    m_joltJobSystem = eastl::make_unique<JPH::JobSystemSingleThreaded>(JPH::cMaxPhysicsJobs);
     // Create physics system
     m_joltPhysicsSystem = eastl::make_unique<JPH::PhysicsSystem>();
 
@@ -59,37 +60,32 @@ void PhysicsSubsystem::Destroy()
 {
 }
 
-void PhysicsSubsystem::Update(float deltaTimeMs)
+void PhysicsSubsystem::Update()
 {
-    std::cout << m_physicsTimeline.Tick() << std::endl;
-
-
     assert(m_isInitialized && "PhysicsSubsystem not initialized. Call PhysicsSubsystem::Init() before using it.");
+
+    float deltaTimeMs = m_physicsTimeline->Tick();
     if (deltaTimeMs == 0.0f) return;
 
+    static int c;
+    std::cout << std::format("physics update {}\n", c);
+    ++c;
 
-    static float accumulatedTimeMs;
-    accumulatedTimeMs += deltaTimeMs;
-    while (accumulatedTimeMs > m_physicsUpdatePeriodMs)
-    {
-        accumulatedTimeMs -= m_physicsUpdatePeriodMs;
+    m_joltPhysicsSystem->Update(deltaTimeMs, 1, m_joltTempAllocator.get(), m_joltJobSystem.get());
 
-        m_joltPhysicsSystem->Update(m_physicsUpdatePeriodMs, 1, m_joltTempAllocator.get(), m_joltJobSystem.get());
-
-        // TODO: copy body properties to transforms
-        // lock no lock all bodies
-        // for each body that has a physics component and transform component
-        //   get body position and rotation and set transform position and rotation
-        // entt::registry &registry = Blainn::GetRegistry();
-        // auto view = registry.group<PhysicsComponent>();
-        // for (auto entity : view)
-        //{
-        // PhysicsComponent &physComp = view.get<PhysicsComponent>(entity);
-        // TODO: do something?
-        //}
-        //
-        // TODO: create queued bodies
-    }
+    // TODO: copy body properties to transforms
+    // lock no lock all bodies
+    // for each body that has a physics component and transform component
+    //   get body position and rotation and set transform position and rotation
+    // entt::registry &registry = Blainn::GetRegistry();
+    // auto view = registry.group<PhysicsComponent>();
+    // for (auto entity : view)
+    //{
+    // PhysicsComponent &physComp = view.get<PhysicsComponent>(entity);
+    // TODO: do something?
+    //}
+    //
+    // TODO: create queued bodies
 }
 
 // uuid PhysicsSubsystem::QueuePhysicsComponentCreation(uuid parentId)

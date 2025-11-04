@@ -75,7 +75,13 @@ void Engine::Update(float deltaTime)
         testAccumulator = 0.0f;
     }
 
-    vgjs::schedule(&RenderSubsystem::Render);
+    // group of jobs 0
+    vgjs::schedule(&PhysicsSubsystem::Update, vgjs::tag_t{0});
+    vgjs::schedule(vgjs::tag_t{0});
+
+    // group of jobs 1. Probably render is the last engine update cycle stage
+    vgjs::schedule(&RenderSubsystem::Render, vgjs::tag_t{1});
+    vgjs::schedule(vgjs::tag_t{1});
 
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;

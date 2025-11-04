@@ -2,11 +2,16 @@
 
 #include <cstdint>
 
-#include "EASTL/optional.h"
-#include "EASTL/unordered_map.h"
-#include "EASTL/vector.h"
+#include <EASTL/optional.h>
+#include <EASTL/unique_ptr.h>
+#include <EASTL/unordered_map.h>
+#include <EASTL/vector.h>
 
-#include "Jolt/Physics/PhysicsSystem.h"
+#include <Jolt/Jolt.h>
+
+#include <Jolt/Core/JobSystemSingleThreaded.h>
+#include <Jolt/Core/TempAllocator.h>
+#include <Jolt/Physics/PhysicsSystem.h>
 
 #include "components/PhysicsComponent.h"
 #include "physics/ContactListenerImpl.h"
@@ -34,7 +39,7 @@ public:
     static void Init(Timeline<eastl::chrono::milliseconds> &globalTimeline);
     static void Destroy();
 
-    static void Update(float deltaTimeMs);
+    static void Update();
 
     // TODO: Additional physics-specific methods can be added here
     // createShape(shape type, position, optional params) -> returns shape ID
@@ -57,13 +62,10 @@ public:
 
 private:
     PhysicsSubsystem() = delete;
-    PhysicsSubsystem(const PhysicsSubsystem &) = delete;
-    PhysicsSubsystem &operator=(const PhysicsSubsystem &) = delete;
-    PhysicsSubsystem(const PhysicsSubsystem &&) = delete;
-    PhysicsSubsystem &operator=(const PhysicsSubsystem &&) = delete;
 
     inline static constexpr float m_physicsUpdatePeriodMs = 1000.0 / 120.0; // 120 Hz
-    static PeriodicTimeline<eastl::chrono::milliseconds> m_physicsTimeline; // initialized in Init()
+    inline static eastl::unique_ptr<Blainn::PeriodicTimeline<eastl::chrono::milliseconds>> m_physicsTimeline =
+        nullptr; // initialized in Init()
 
     inline static bool m_isInitialized = false;
 
@@ -71,8 +73,8 @@ private:
     static eastl::vector<eastl::pair<uuid, PhysicsComponent>> m_physicsComponentCreationQueue;
 
     inline static constexpr uint32_t m_maxConcurrentJobs = 8;
-    inline static eastl::unique_ptr<JPH::JobSystem> m_joltJobSystem = nullptr;
-    inline static eastl::unique_ptr<JPH::TempAllocator> m_joltTempAllocator = nullptr;
+    inline static eastl::unique_ptr<JPH::JobSystemSingleThreaded> m_joltJobSystem = nullptr;
+    inline static eastl::unique_ptr<JPH::TempAllocatorImpl> m_joltTempAllocator = nullptr;
     inline static eastl::unique_ptr<JPH::PhysicsSystem> m_joltPhysicsSystem = nullptr;
 
     inline static eastl::unique_ptr<BPLayerInterfaceImpl> m_broadPhaseLayerInterface = nullptr;

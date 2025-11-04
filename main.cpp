@@ -6,7 +6,6 @@
 
 #include "editor/include/Editor.h"
 #include "engine/include/Engine.h"
-#include "engine/include/tools/PeriodicTimeline.h"
 #include "engine/include/tools/Timeline.h"
 
 int main(int argc, char **argv)

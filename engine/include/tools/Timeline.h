@@ -53,6 +53,7 @@ template <typename EastlDurationType> Blainn::Timeline<EastlDurationType>::Timel
 {
     Reset();
     m_parentTimeline = parentTimeline;
+    if (parentTimeline) parentTimeline->AddChildTimeline(this);
 }
 
 template <typename EastlDurationType> inline Timeline<EastlDurationType>::~Timeline()

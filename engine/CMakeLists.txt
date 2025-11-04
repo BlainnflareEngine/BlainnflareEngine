@@ -52,6 +52,8 @@ set(ENGINE_SOURCES
         include/scene/EntityTemplates.h
         include/physics/RayCastResult.h
         include/components/ScriptingComponent.h
+        include/tools/Timeline.h
+        include/tools/PeriodicTimeline.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
