@@ -85,7 +85,7 @@ MeshData AssetLoader::ProcessMesh(const Path &path, const aiMesh &mesh, const ai
 
     for (size_t i = 0; i < mesh.mNumVertices; ++i)
     {
-        VertexPositionNormalTangentBitangentUV vertex;
+        BlainnVertex vertex;
 
         vertex.position = GetPosition(mesh, i);
 

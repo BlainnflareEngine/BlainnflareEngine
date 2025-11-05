@@ -25,7 +25,7 @@ struct MeshData
     }
 
 
-    MeshData(const eastl::vector<VertexPositionNormalTangentBitangentUV>& vertices, const eastl::vector<UINT>& indices,
+    MeshData(const eastl::vector<BlainnVertex>& vertices, const eastl::vector<UINT>& indices,
              const eastl::shared_ptr<MaterialHandle> &materialHandle)
         : vertices(vertices)
         , indices(indices)
@@ -34,7 +34,7 @@ struct MeshData
     }
 
 
-    eastl::vector<VertexPositionNormalTangentBitangentUV> vertices;
+    eastl::vector<BlainnVertex> vertices;
     eastl::vector<UINT> indices;
     Mat4 parentMatrix;
     eastl::shared_ptr<MaterialHandle> materialHandle;
