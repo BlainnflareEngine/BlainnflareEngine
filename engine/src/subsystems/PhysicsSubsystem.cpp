@@ -23,6 +23,7 @@
 #include "physics/RayCastResult.h"
 #include "physics/ShapeFactory.h"
 #include "scene/Scene.h"
+#include "subsystems/Log.h"
 
 using namespace Blainn;
 
@@ -61,6 +62,7 @@ void PhysicsSubsystem::Init(Timeline<eastl::chrono::milliseconds> &globalTimelin
 
 void PhysicsSubsystem::Destroy()
 {
+    // TODO:
 }
 
 void PhysicsSubsystem::Update()
@@ -91,47 +93,52 @@ void PhysicsSubsystem::Update()
     // TODO: create queued bodies
 }
 
-void Blainn::PhysicsSubsystem::CreateSpherePhysicsComponent(Entity entity, PhysicsComponentMotionType motionType,
-                                                            float radius, Vec3 position, Quat rotation)
+void Blainn::PhysicsSubsystem::CreateComponent(PhysicsComponentSettings &settings)
 {
-    CreateAddComponent(entity, motionType, ShapeFactory::CreateSphereShape(radius).second, position, rotation);
+    PhysicsComponent *componentPtr = settings.entity.TryGetComponent<PhysicsComponent>();
+    if (componentPtr)
+    {
+        BF_ERROR(std::format("Entity {} already has a physics component", settings.entity.GetUUID().str()));
+        return;
+    }
+
+    eastl::shared_ptr<JPH::Shape> shape = nullptr;
+    switch (settings.shapeType)
+    {
+    case ComponentShapeType::Sphere:
+        shape = ShapeFactory::CreateSphereShape(settings.radius).second;
+        break;
+    case ComponentShapeType::Box:
+        shape = ShapeFactory::CreateBoxShape(settings.halfExtents).second;
+        break;
+    case ComponentShapeType::Capsule:
+        shape = ShapeFactory::CreateCapsuleShape(settings.halfCylinderHeight, settings.radius).second;
+        break;
+    case ComponentShapeType::Cylinder:
+        shape = ShapeFactory::CreateCylinderShape(settings.halfCylinderHeight, settings.radius).second;
+    default:
+        BF_ERROR("Invalid physics shape type");
+        return;
+    }
+
+    BodyBuilder builder;
+    builder.SetMotionType(settings.motionType);
+    builder.SetPosition(settings.position);
+    builder.SetRotation(settings.rotation);
+    builder.SetShape(shape);
+    builder.SetIsTrigger(settings.isTrigger);
+
+    PhysicsComponent component;
+    component.m_bodyId = builder.Build(settings.activate);
+    component.m_parentId = settings.entity.GetUUID();
+
+    settings.entity.AddComponent<PhysicsComponent>(eastl::move(component));
 }
 
-
-// uuid PhysicsSubsystem::QueuePhysicsComponentCreation(uuid parentId)
-// {
-//     JPH::BodyCreationSettings settings;
-//     // TODO: fill settings.
-//     JPH::BodyInterface().CreateBody(settings);
-// }
-
-// uuid Blainn::PhysicsSubsystem::QueuePhysicsComponentCreation(uuid parentId, const BodyBuilder &builder)
-// {
-//     //TODO: create physics component
-// }
 
 JPH::PhysicsSystem &Blainn::PhysicsSubsystem::GetPhysicsSystem()
 {
     return *m_joltPhysicsSystem;
-}
-
-void Blainn::PhysicsSubsystem::CreateAddComponent(Entity entity, PhysicsComponentMotionType motionType,
-                                                  eastl::shared_ptr<JPH::Shape> shapePtr, Vec3 position, Quat rotation)
-{
-    PhysicsComponent *componentPtr = entity.TryGetComponent<PhysicsComponent>();
-    if (componentPtr) return;
-
-    BodyBuilder builder;
-    builder.SetMotionType(motionType);
-    builder.SetPosition(position);
-    builder.SetRotation(rotation);
-    builder.SetShape(shapePtr);
-
-    PhysicsComponent comomponent;
-    comomponent.m_bodyId = builder.Build();
-    comomponent.m_parentId = entity.GetUUID();
-
-    entity.AddComponent<PhysicsComponent>(eastl::move(comomponent));
 }
 
 eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 directionAndDistance)

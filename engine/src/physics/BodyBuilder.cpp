@@ -8,6 +8,7 @@
 
 #include "aliases.h"
 
+#include "BodyBuilder.h"
 #include "subsystems/PhysicsSubsystem.h"
 
 using namespace Blainn;
@@ -45,6 +46,17 @@ BodyBuilder &BodyBuilder::SetLinearVelocity(Vec3 vec)
 BodyBuilder &BodyBuilder::SetAngularVelocity(Vec3 vec)
 {
     m_settings.mAngularVelocity = ToJoltVec3(vec);
+    return *this;
+}
+
+BodyBuilder &Blainn::BodyBuilder::SetIsTrigger(bool isTrigger)
+{
+    m_settings.mIsSensor = isTrigger;
+    if (isTrigger)
+    {
+        m_settings.mCollideKinematicVsNonDynamic = true;
+    }
+
     return *this;
 }
 

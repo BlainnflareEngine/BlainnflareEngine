@@ -11,6 +11,7 @@
 
 #include <Jolt/Core/JobSystemSingleThreaded.h>
 #include <Jolt/Core/TempAllocator.h>
+#include <Jolt/Physics/EActivation.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 
 #include "components/PhysicsComponent.h"
@@ -32,8 +33,29 @@ namespace Blainn
 class BodyBuilder;
 class BPLayerInterfaceImpl;
 class ObjectVsBroadPhaseLayerFilterImpl;
-
 class RayCastResult;
+
+
+struct PhysicsComponentSettings
+{
+    PhysicsComponentSettings(Entity entityIn, ComponentShapeType shapeTypeIn)
+        : entity(entityIn)
+        , shapeType(shapeTypeIn)
+    {
+    }
+
+    Entity entity;
+    ComponentShapeType shapeType;
+    JPH::EActivation activate = JPH::EActivation::DontActivate;
+    PhysicsComponentMotionType motionType = PhysicsComponentMotionType::Dynamic;
+    JPH::ObjectLayer layer = 0;
+    Vec3 position = Vec3::Zero;
+    Quat rotation = Quat::Identity;
+    bool isTrigger = false;
+    float radius = 0.5f;                       // sphere, capsule, cylinder
+    Vec3 halfExtents = Vec3{0.5f, 0.5f, 0.5f}; // box
+    float halfCylinderHeight = 0.5f;           // capsule, cylinder
+};
 
 class PhysicsSubsystem
 {
@@ -43,20 +65,18 @@ public:
 
     static void Update();
 
+    // TODO: QueuePhysicsComponentCreation();
 
-    // TODO: shape position rotation motion_type object_layer
-    // static uuid QueuePhysicsComponentCreation(uuid parentId);
-    // static uuid QueuePhysicsComponentCreation(uuid parentId, const BodyBuilder& builder);
+    static void CreateComponent(PhysicsComponentSettings &settings);
 
-    // TODO: shape position rotation motion_type object_layer
-    static void CreateSpherePhysicsComponent(Entity entity, PhysicsComponentMotionType motionType, float radius,
-                                             Vec3 position = Vec3::Zero, Quat rotation = Quat::Identity);
-    static void CreatePhysicsComponent(Entity entity, const BodyBuilder &builder);
+    // TODO:
+    static void DestroyComponent(Entity entity);
 
     static void setVelocity(Entity entity, Vec3 velocity);
     // TODO: Additional physics-specific methods can be added here
     // applyForce(shape ID, force vector)
     // add velocity and so on
+
 
     static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance);
 
@@ -65,9 +85,6 @@ public:
 
 private:
     PhysicsSubsystem() = delete;
-
-    static void CreateAddComponent(Entity entity, PhysicsComponentMotionType motionType, eastl::shared_ptr<JPH::Shape>,
-                                   Vec3 position, Quat rotation);
 
     inline static constexpr float m_physicsUpdatePeriodMs = 1000.0 / 120.0; // 120 Hz
     inline static eastl::unique_ptr<Blainn::PeriodicTimeline<eastl::chrono::milliseconds>> m_physicsTimeline =

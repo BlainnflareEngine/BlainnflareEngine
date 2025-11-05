@@ -7,7 +7,7 @@
 #include "Jolt/Physics/EActivation.h"
 
 #include "aliases.h"
-#include "tools/conversion.h"
+#include "physics/Conversion.h"
 
 namespace Blainn
 {
@@ -23,8 +23,9 @@ public:
     BodyBuilder &SetRotation(Quat quat);
     BodyBuilder &SetLinearVelocity(Vec3 vec);
     BodyBuilder &SetAngularVelocity(Vec3 vec);
+    BodyBuilder &SetIsTrigger(bool isTrigger);
 
-    JPH::BodyID Build(JPH::EActivation activate = JPH::EActivation::Activate);
+    JPH::BodyID Build(JPH::EActivation activate = JPH::EActivation::DontActivate);
 
 private:
     JPH::BodyCreationSettings m_settings;

@@ -9,5 +9,12 @@
 namespace Blainn
 {
 using PhysicsComponentMotionType = JPH::EMotionType;
-// using ComponentShapeType = JPH::EShapeSubType;
+
+enum class ComponentShapeType
+{
+    Sphere = JPH::EShapeSubType::Sphere,
+    Box = JPH::EShapeSubType::Box,
+    Capsule = JPH::EShapeSubType::Capsule,
+    Cylinder = JPH::EShapeSubType::Cylinder
+};
 } // namespace Blainn
