@@ -93,14 +93,20 @@ void PhysicsSubsystem::Update()
     // TODO: create queued bodies
 }
 
+void Blainn::PhysicsSubsystem::StartSimulation()
+{
+    m_physicsTimeline->Start();
+}
+
+void Blainn::PhysicsSubsystem::StopSimulation()
+{
+    m_physicsTimeline->Pause();
+}
+
 void Blainn::PhysicsSubsystem::CreateComponent(PhysicsComponentSettings &settings)
 {
     PhysicsComponent *componentPtr = settings.entity.TryGetComponent<PhysicsComponent>();
-    if (componentPtr)
-    {
-        BF_ERROR(std::format("Entity {} already has a physics component", settings.entity.GetUUID().str()));
-        return;
-    }
+    assert(!componentPtr && "Entity already has physics component on creation");
 
     eastl::shared_ptr<JPH::Shape> shape = nullptr;
     switch (settings.shapeType)
@@ -135,6 +141,33 @@ void Blainn::PhysicsSubsystem::CreateComponent(PhysicsComponentSettings &setting
     settings.entity.AddComponent<PhysicsComponent>(eastl::move(component));
 }
 
+bool Blainn::PhysicsSubsystem::HasComponent(Entity entity)
+{
+    return entity.HasComponent<PhysicsComponent>();
+}
+
+void Blainn::PhysicsSubsystem::DestroyComponent(Entity entity)
+{
+    PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
+    JPH::BodyInterface &bodyInterface = m_joltPhysicsSystem->GetBodyInterface();
+    bodyInterface.RemoveBody(component.m_bodyId);
+    bodyInterface.DestroyBody(component.m_bodyId);
+    entity.RemoveComponent<PhysicsComponent>();
+}
+
+void Blainn::PhysicsSubsystem::SetVelocity(Entity entity, Vec3 velocity)
+{
+    PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
+    const JPH::BodyLockInterface &bodyLockInterface = m_joltPhysicsSystem->GetBodyLockInterface();
+    JPH::BodyInterface &bodyInterface = m_joltPhysicsSystem->GetBodyInterface();
+    JPH::BodyLockWrite bodyLock(bodyLockInterface, component.m_bodyId);
+    if (bodyLock.Succeeded())
+    {
+        const JPH::Body &body = bodyLock.GetBody();
+        bodyInterface.SetLinearVelocity(component.m_bodyId, ToJoltVec3(velocity));
+    }
+}
+
 
 JPH::PhysicsSystem &Blainn::PhysicsSubsystem::GetPhysicsSystem()
 {
@@ -160,4 +193,22 @@ eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 direc
         ToJoltVec3(rayCastResult.hitPoint) - bodyShape->GetCenterOfMass())); // TODO: convert to world space
 
     return eastl::optional<RayCastResult>(rayCastResult);
+}
+
+bool Blainn::PhysicsSubsystem::IsBodyActive(Entity entity)
+{
+    PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
+    return m_joltPhysicsSystem->GetBodyInterface().IsActive(component.m_bodyId);
+}
+
+void Blainn::PhysicsSubsystem::ActivateBody(Entity entity)
+{
+    PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
+    m_joltPhysicsSystem->GetBodyInterface().ActivateBody(component.m_bodyId);
+}
+
+void Blainn::PhysicsSubsystem::DeactivateBody(Entity entity)
+{
+    PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
+    m_joltPhysicsSystem->GetBodyInterface().DeactivateBody(component.m_bodyId);
 }

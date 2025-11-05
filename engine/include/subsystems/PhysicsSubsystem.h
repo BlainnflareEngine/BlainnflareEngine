@@ -63,19 +63,36 @@ public:
     static void Init(Timeline<eastl::chrono::milliseconds> &globalTimeline);
     static void Destroy();
 
+    /// @brief physics has its own timeline so you may not pass deltaTime to Update()
     static void Update();
+
+    static void StartSimulation();
+    static void StopSimulation();
 
     // TODO: QueuePhysicsComponentCreation();
 
     static void CreateComponent(PhysicsComponentSettings &settings);
-
-    // TODO:
+    static bool HasComponent(Entity entity);
     static void DestroyComponent(Entity entity);
 
-    static void setVelocity(Entity entity, Vec3 velocity);
-    // TODO: Additional physics-specific methods can be added here
-    // applyForce(shape ID, force vector)
-    // add velocity and so on
+    static void SetVelocity(Entity entity, Vec3 velocity);
+    static void SetMaxLinearVelocity(Entity entity, Vec3 maxVelocity);
+    static void SetAngularVelocity(Entity entity, Vec3 angularVelocity);
+    static void SetMaxAngularVelocity(Entity entity, Vec3 maxAngularVelocity);
+    static void SetPosition(Entity entity, Vec3 position);
+    static void SetRotation(Entity entity, Quat rotation);
+    static void SetGravityFactor(Entity entity, float gravityFactor);
+    static void SetObjectLayer(Entity entity, JPH::ObjectLayer layer);
+
+    static void AddVelocity(Entity entity, Vec3 deltaVelocity);
+    static void AddAngularVelocity(Entity entity, Vec3 deltaAngularVelocity);
+    static void AddImpulse(Entity entity, Vec3 impulse);
+    static void AddForce(Entity entity, Vec3 force);
+
+    bool IsBodyActive(Entity entity);
+
+    static void ActivateBody(Entity entity);
+    static void DeactivateBody(Entity entity);
 
 
     static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance);
