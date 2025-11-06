@@ -4,12 +4,14 @@
 #pragma once
 
 #include "BasicComponents.h"
+#include "TransformComponent.h"
 #include "EASTL/string.h"
 #include "aliases.h"
 #include "entt/entt.hpp"
 
 namespace Blainn
 {
+struct TransformComponent;
 class Scene;
 
 class Entity
@@ -63,6 +65,9 @@ public:
         return GetComponent<IDComponent>().ID;
     }
     uuid GetSceneUUID() const;
+
+    TransformComponent& Transform() { return GetComponent<TransformComponent>(); }
+    const Mat4& Transform() const { return GetComponent<TransformComponent>().GetTransform(); }
 
 #pragma region Utility templates for queriyng and managing components
 

@@ -59,6 +59,7 @@ set(ENGINE_SOURCES
         include/subsystems/input/MouseEvents.h
         include/subsystems/input/KeyCodes.h
         src/subsystems/InputSubsystem.cpp
+        include/scene/TransformComponent.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
