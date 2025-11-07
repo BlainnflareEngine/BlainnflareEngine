@@ -25,6 +25,18 @@ set(ENGINE_SOURCES
         src/components/PhysicsComponent.cpp
         include/physics/ShapeFactory.h
         src/physics/ShapeFactory.cpp
+        include/Render/Renderer.h
+        include/Render/CommandQueue.h
+        include/Render/Device.h
+        include/Render/DXHelpers.h
+        include/Render/FreyaCoreTypes.h
+        include/Render/MathHelper.h
+        include/Render/PSO.h
+        include/Render/RootSignature.h
+        include/Render/Shader.h
+        src/Render/Renderer.cpp
+        src/Render/CommandQueue.cpp
+        src/Render/Device.cpp
         include/scene/Scene.h
         src/scene/Scene.cpp
         include/scene/Entity.h
