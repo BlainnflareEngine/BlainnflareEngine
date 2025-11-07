@@ -12,16 +12,13 @@ void Blainn::RenderSubsystem::Init()
 {
     BF_INFO("RenderSubsystem::Init()");
 
-#if !definded(BLAINN_INCLUDE_EDITOR)
-    InitializeWindow();
-#endif
-
     InitializeDirect3D();
 }
 
 
 void RenderSubsystem::Destroy()
 {
+
 }
 
 void RenderSubsystem::Render()
@@ -45,15 +42,10 @@ void RenderSubsystem::InitializeDirect3D()
     CreateCommandObjects();
     
     CreateRootSignature();
-    CreateShaders();   
+    CreateShaders();
     CreatePSO();
 
     m_isInitialized = true;
-}
-    
-void RenderSubsystem::InitializeWindow()
-{
-    
 }
 
 void RenderSubsystem::CreateCommandObjects()

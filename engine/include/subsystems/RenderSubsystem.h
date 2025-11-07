@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Windows.h>
 #include "Render/DXHelpers.h"
 
 namespace Blainn
@@ -19,12 +20,11 @@ namespace Blainn
 
         static void Render();
         // TODO: Additional rendering-specific methods can be added here
+        
     private:
     #pragma region GoingDirectX
         static void InitializeDirect3D();
     
-        static void InitializeWindow();
-
         static void LoadPipeline();
 
         static void CreateDebugLayer();
@@ -40,10 +40,11 @@ namespace Blainn
 
         static void OnResize(UINT newWidth, UINT newHeight);
         static void Reset();
-
-    #pragma endregion GoingDirectX
-
+        
+        #pragma endregion GoingDirectX
+        
     private:
+        HWND m_hWND;
         static inline bool m_isInitialized = false;
         
         UINT m_dxgiFactoryFlags = 0u;
