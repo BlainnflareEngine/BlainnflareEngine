@@ -66,10 +66,10 @@ struct ObjectConstants
 	XMFLOAT4X4 World;
 	XMFLOAT4X4 InvTransposeWorld;
 	XMFLOAT4X4 TexTransform;
-	UINT MaterialIndex = 0u;
-	UINT objPad0 = 0u;
-	UINT objPad1 = 0u;
-	UINT objPad2 = 0u;
+	uint32_t MaterialIndex = 0u;
+	uint32_t objPad0 = 0u;
+	uint32_t objPad1 = 0u;
+	uint32_t objPad2 = 0u;
 };
 
 struct PassConstants
@@ -113,10 +113,10 @@ struct MaterialData
 	XMFLOAT3 FresnelR0 = { 0.01f, 0.01f, 0.01f };
 	float Roughness = 0.25f;
 	XMFLOAT4X4 MatTransform;
-	UINT DiffusseMapIndex = 0u;
-	UINT matPad0 = 0u;
-	UINT matPad1 = 0u;
-	UINT matPad2 = 0u;
+	uint32_t DiffusseMapIndex = 0u;
+	uint32_t matPad0 = 0u;
+	uint32_t matPad1 = 0u;
+	uint32_t matPad2 = 0u;
 };
 
 }
