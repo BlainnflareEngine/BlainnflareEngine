@@ -52,6 +52,7 @@ add_subdirectory(libs/tracy)
 add_subdirectory(libs/yaml-cpp)
 add_subdirectory(libs/qlementine)
 add_subdirectory(libs/sol2)
+add_subdirectory(libs/D3D12MemoryAllocator)
 
 set (BUILD_TESTING OFF)
 add_subdirectory(libs/DIRECTXTK12)
@@ -88,7 +89,8 @@ target_link_libraries(pch INTERFACE
         spdlog
         TracyClient
         yaml-cpp
-        DirectXTK12)
+        DirectXTK12
+	D3D12MemoryAllocator)
 
 target_include_directories(pch INTERFACE
         "${CMAKE_SOURCE_DIR}/libs/uuid_v4"
