@@ -6,6 +6,28 @@
 
 using namespace Blainn;
 
+BodyUpdater &Blainn::BodyUpdater::SetPosition(Vec3 position, JPH::EActivation activation)
+{
+    const JPH::Body &body = m_bodyLock.GetBody();
+    m_bodyInterface.SetPosition(m_bodyId, ToJoltRVec3(position), activation);
+    return *this;
+}
+
+BodyUpdater &Blainn::BodyUpdater::SetRotation(Quat rotation, JPH::EActivation activation)
+{
+    const JPH::Body &body = m_bodyLock.GetBody();
+    m_bodyInterface.SetRotation(m_bodyId, ToJoltQuat(rotation), activation);
+    return *this;
+}
+
+BodyUpdater &Blainn::BodyUpdater::SetScale(Vec3 scale)
+{
+    const JPH::Body &body = m_bodyLock.GetBody();
+    // TODO: оно возвращает новый shape?
+    JPH::Shape::ShapeResult res = body.GetShape()->ScaleShape(ToJoltVec3(scale));
+    return *this;
+}
+
 BodyUpdater &BodyUpdater::SetVelocity(Vec3 velocity)
 {
     const JPH::Body &body = m_bodyLock.GetBody();

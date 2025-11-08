@@ -17,7 +17,7 @@ public:
     BodyBuilder() = default;
 
     BodyBuilder &SetMotionType(JPH::EMotionType motionType);
-    BodyBuilder &SetShape(eastl::shared_ptr<JPH::Shape> shape);
+    BodyBuilder &SetShape(JPH::Shape *shape);
 
     BodyBuilder &SetPosition(Vec3 vec);
     BodyBuilder &SetRotation(Quat quat);

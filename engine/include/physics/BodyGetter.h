@@ -27,6 +27,8 @@ public:
 
     Vec3 GetPosition();
     Quat GetRotation();
+    Vec3 GetScale();
+
     Vec3 GetVelocity();
     float GetMaxLinearVelocity();
     Vec3 GetAngularVelocity();

@@ -18,9 +18,9 @@ BodyBuilder &BodyBuilder::SetMotionType(JPH::EMotionType motionType)
     return *this;
 }
 
-BodyBuilder &BodyBuilder::SetShape(eastl::shared_ptr<JPH::Shape> shape)
+BodyBuilder &BodyBuilder::SetShape(JPH::Shape *shape)
 {
-    m_settings.SetShape(shape.get());
+    m_settings.SetShape(shape);
     return *this;
 }
 

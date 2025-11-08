@@ -74,6 +74,7 @@ public:
     void ConvertToLocalSpace(Entity entity);
     void ConvertToWorldSpace(Entity entity);
     Mat4 GetWorldSpaceTransformMatrix(Entity entity);
+    void SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTransform);
     TransformComponent GetWorldSpaceTransform(Entity entity);
 
     // prefabs would be cool
