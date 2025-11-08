@@ -47,6 +47,8 @@ set(ENGINE_SOURCES
         src/file-system/Model.cpp
         include/scripting/LuaScript.h
         src/scripting/LuaScript.cpp
+        include/subsystems/input/InputSubsystem.h
+        src/subsystems/InputSubsystem.cpp
         include/file-system/TextureType.h
         include/tools/Profiler.h
         include/tools/FreeListVector.h
@@ -58,12 +60,11 @@ set(ENGINE_SOURCES
         include/tools/Timeline.h
         include/tools/PeriodicTimeline.h
         include/
-        include/subsystems/input/InputSubsystem.h
         include/subsystems/input/InputEvent.h
         include/subsystems/input/KeyboardEvents.h
         include/subsystems/input/MouseEvents.h
         include/subsystems/input/KeyCodes.h
-        src/subsystems/InputSubsystem.cpp
+
         include/scene/TransformComponent.h
 )
 

@@ -83,8 +83,8 @@ public:
     static void ActivateBody(Entity entity);
     static void DeactivateBody(Entity entity);
 
-    BodyUpdater GetBodyUpdater(Entity entity);
-    BodyGetter GetBodyGetter(Entity entity);
+    static BodyUpdater GetBodyUpdater(Entity entity);
+    static BodyGetter GetBodyGetter(Entity entity);
 
     static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance);
 

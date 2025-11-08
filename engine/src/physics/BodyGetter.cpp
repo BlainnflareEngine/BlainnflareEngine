@@ -6,37 +6,49 @@
 
 using namespace Blainn;
 
-Vec3 BodyGetter::GetVelocity(Vec3 velocity)
+Vec3 Blainn::BodyGetter::GetPosition()
+{
+    const JPH::Body &body = m_bodyLock.GetBody();
+    return ToBlainnVec3(body.GetPosition());
+}
+
+Quat Blainn::BodyGetter::GetRotation()
+{
+    const JPH::Body &body = m_bodyLock.GetBody();
+    return ToBlainnQuat(body.GetRotation());
+}
+
+Vec3 BodyGetter::GetVelocity()
 {
     const JPH::Body &body = m_bodyLock.GetBody();
     return ToBlainnVec3(body.GetLinearVelocity());
 }
 
-float BodyGetter::GetMaxLinearVelocity(float maxVelocity)
+float BodyGetter::GetMaxLinearVelocity()
 {
     const JPH::Body &body = m_bodyLock.GetBody();
     return body.GetMotionProperties()->GetMaxLinearVelocity();
 }
 
-Vec3 BodyGetter::GetAngularVelocity(Vec3 angularVelocity)
+Vec3 BodyGetter::GetAngularVelocity()
 {
     const JPH::Body &body = m_bodyLock.GetBody();
     return ToBlainnVec3(body.GetAngularVelocity());
 }
 
-float BodyGetter::GetMaxAngularVelocity(float maxAngularVelocity)
+float BodyGetter::GetMaxAngularVelocity()
 {
     const JPH::Body &body = m_bodyLock.GetBody();
     return body.GetMotionProperties()->GetMaxAngularVelocity();
 }
 
-float BodyGetter::GetGravityFactor(float gravityFactor)
+float BodyGetter::GetGravityFactor()
 {
     const JPH::Body &body = m_bodyLock.GetBody();
     return body.GetMotionProperties()->GetGravityFactor();
 }
 
-JPH::ObjectLayer BodyGetter::GetObjectLayer(JPH::ObjectLayer layer)
+JPH::ObjectLayer BodyGetter::GetObjectLayer()
 {
     const JPH::Body &body = m_bodyLock.GetBody();
     return body.GetObjectLayer();

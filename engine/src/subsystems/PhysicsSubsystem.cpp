@@ -5,6 +5,7 @@
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Body/Body.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Body/BodyManager.h>
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhase.h>
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayerInterfaceMask.h>
@@ -15,13 +16,16 @@
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 
+#include "Engine.h"
 #include "PhysicsSubsystem.h"
 #include "physics/BodyBuilder.h"
 #include "physics/ContactListenerImpl.h"
 #include "physics/Layers.h"
 #include "physics/RayCastResult.h"
 #include "physics/ShapeFactory.h"
+#include "scene/BasicComponents.h"
 #include "scene/Scene.h"
+#include "scene/TransformComponent.h"
 #include "subsystems/Log.h"
 
 using namespace Blainn;
@@ -73,19 +77,18 @@ void PhysicsSubsystem::Update()
 
     m_joltPhysicsSystem->Update(deltaTimeMs, 1, m_joltTempAllocator.get(), m_joltJobSystem.get());
 
-    // TODO: copy body properties to transforms
-    // lock no lock all bodies
-    // for each body that has a physics component and transform component
-    //   get body position and rotation and set transform position and rotation
-    // entt::registry &registry = Blainn::GetRegistry();
-    // auto view = registry.group<PhysicsComponent>();
-    // for (auto entity : view)
-    //{
-    // PhysicsComponent &physComp = view.get<PhysicsComponent>(entity);
-    // TODO: do something?
-    //}
-    //
-    // TODO: create queued bodies
+    auto &activeScene = Engine::GetActiveScene();
+    auto enities = activeScene.GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
+    for (auto entityComponents : enities.each())
+    {
+        const IDComponent &idComp = std::get<1>(entityComponents);
+        TransformComponent &transformComp = std::get<2>(entityComponents);
+
+        Entity entity = activeScene.GetEntityWithUUID(idComp.ID);
+        BodyGetter bodyGetter = GetBodyGetter(entity);
+        transformComp.Translation = bodyGetter.GetPosition();
+        transformComp.SetRotation(bodyGetter.GetRotation());
+    }
 }
 
 void Blainn::PhysicsSubsystem::StartSimulation()

@@ -21,8 +21,13 @@ public:
     static void Destroy();
     static void Update(float deltaTime);
 
+    static Scene &GetActiveScene()
+    {
+        return m_ActiveScene;
+    }
+
 private:
     static eastl::shared_ptr<vgjs::JobSystem> m_JobSystemPtr;
-    static Scene m_ActiveScene; // TODO: make shared?
+    inline static Scene m_ActiveScene; // TODO: make shared?
 };
 } // namespace Blainn

@@ -25,12 +25,14 @@ public:
     }
     ~BodyGetter() = default;
 
-    Vec3 GetVelocity(Vec3 velocity);
-    float GetMaxLinearVelocity(float maxVelocity);
-    Vec3 GetAngularVelocity(Vec3 angularVelocity);
-    float GetMaxAngularVelocity(float maxAngularVelocity);
-    float GetGravityFactor(float gravityFactor);
-    JPH::ObjectLayer GetObjectLayer(JPH::ObjectLayer layer);
+    Vec3 GetPosition();
+    Quat GetRotation();
+    Vec3 GetVelocity();
+    float GetMaxLinearVelocity();
+    Vec3 GetAngularVelocity();
+    float GetMaxAngularVelocity();
+    float GetGravityFactor();
+    JPH::ObjectLayer GetObjectLayer();
 
 private:
     JPH::BodyLockRead m_bodyLock;

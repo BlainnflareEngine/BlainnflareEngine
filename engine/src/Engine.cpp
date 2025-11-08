@@ -4,9 +4,9 @@
 
 #include "VGJS.h"
 
-#include "aliases.h"
 #include "Input/InputSubsystem.h"
 #include "Input/KeyboardEvents.h"
+#include "aliases.h"
 #include "scene/Scene.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
@@ -34,17 +34,19 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     auto a = AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), TextureType::ALBEDO);
 
     // TODO: -- remove -- test input
-    Input::AddEventListener(InputEventType::KeyPressed, [](const InputEventPointer& event)
-    {
-        const KeyPressedEvent* keyEvent = static_cast<const KeyPressedEvent*>(event.get());
-        BF_INFO("Key {} was pressed", static_cast<int>(keyEvent->GetKey()));
-    });
+    Input::AddEventListener(InputEventType::KeyPressed,
+                            [](const InputEventPointer &event)
+                            {
+                                const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent *>(event.get());
+                                BF_INFO("Key {} was pressed", static_cast<int>(keyEvent->GetKey()));
+                            });
 
-    Input::AddEventListener(InputEventType::KeyReleased, [](const InputEventPointer& event)
-    {
-        const KeyReleasedEvent* keyEvent = static_cast<const KeyReleasedEvent*>(event.get());
-        BF_INFO("Key {} was released", static_cast<int>(keyEvent->GetKey()));
-    });
+    Input::AddEventListener(InputEventType::KeyReleased,
+                            [](const InputEventPointer &event)
+                            {
+                                const KeyReleasedEvent *keyEvent = static_cast<const KeyReleasedEvent *>(event.get());
+                                BF_INFO("Key {} was released", static_cast<int>(keyEvent->GetKey()));
+                            });
 }
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
@@ -98,8 +100,8 @@ void Engine::Update(float deltaTime)
     }
 
     // group of jobs 0
-    vgjs::schedule(&PhysicsSubsystem::Update, vgjs::tag_t{0});
-    vgjs::schedule(vgjs::tag_t{0});
+    // vgjs::schedule(&PhysicsSubsystem::Update, vgjs::tag_t{0});
+    // vgjs::schedule(vgjs::tag_t{0});
 
     // group of jobs 1. Probably render is the last engine update cycle stage
     vgjs::schedule(&RenderSubsystem::Render, vgjs::tag_t{1});
