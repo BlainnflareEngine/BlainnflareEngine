@@ -57,6 +57,14 @@ set(ENGINE_SOURCES
         include/components/PhysicsComponent.h
         include/tools/Timeline.h
         include/tools/PeriodicTimeline.h
+        include/
+        include/subsystems/input/InputSubsystem.h
+        include/subsystems/input/InputEvent.h
+        include/subsystems/input/KeyboardEvents.h
+        include/subsystems/input/MouseEvents.h
+        include/subsystems/input/KeyCodes.h
+        src/subsystems/InputSubsystem.cpp
+        include/scene/TransformComponent.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
@@ -74,6 +82,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${CMAKE_SOURCE_DIR}/libs/concurrentqueue"
         "${LUA_INCLUDE_DIR}"
         "${SOL2_INCLUDE_DIR}"
+        "${CMAKE_SOURCE_DIR}/libs/eventpp/include"
 )
 
 

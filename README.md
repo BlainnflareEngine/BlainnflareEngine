@@ -1,15 +1,15 @@
 # BlainnflareEngine
 
-## Profiler
+## Building the engine
 
-This project uses Tracy Profiler(https://github.com/wolfpld/tracy).
+<p>To build the engine you need CMake and Qt6 installed.</p>
 
-This is a live profiler, meaning you need to launch a separate app that would listen to your application.
+<p>Open the libs folder and run the clone_dependencies.bat</p>
 
-To build Tracy you need to run these two commands from tracy directory (libs/tracy, in our case)
-<pre>cmake -B profiler/build -S profiler -DCMAKE_BUILD_TYPE=Release</pre>
-This would generate the build for config for us and
-<pre>cmake --build profiler/build --config Release --parallel</pre>
-would actually build it.
+<p>Open the project in your IDE of choice, and when generating the CMake you need to specify the flag  </p>
+<pre>
+-DCMAKE_PREFIX_PATH="[your path to Qt]/msvc2022_64/lib/cmake" 
+</pre>
 
-After compiling it would generate the executable in release folder (libs/tracy/profiler/build/Release). Run tracy and then the target app, in tracy you'd be able to connect to your app and see the profiler.
+<p>And possibly</p>
+<pre>-DCMAKE_POLICY_VERSION_MINIMUM=3.5</pre>
