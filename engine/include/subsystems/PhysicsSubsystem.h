@@ -15,6 +15,8 @@
 #include <Jolt/Physics/PhysicsSystem.h>
 
 #include "components/PhysicsComponent.h"
+#include "physics/BodyGetter.h"
+#include "physics/BodyUpdater.h"
 #include "physics/ContactListenerImpl.h"
 #include "physics/Layers.h"
 #include "physics/PhysicsTypes.h"
@@ -36,6 +38,7 @@ class ObjectVsBroadPhaseLayerFilterImpl;
 class RayCastResult;
 
 
+// структура для указания настроек физического компонента при создании
 struct PhysicsComponentSettings
 {
     PhysicsComponentSettings(Entity entityIn, ComponentShapeType shapeTypeIn)
@@ -63,7 +66,7 @@ public:
     static void Init(Timeline<eastl::chrono::milliseconds> &globalTimeline);
     static void Destroy();
 
-    /// @brief physics has its own timeline so you may not pass deltaTime to Update()
+    /// @brief physics has its own timeline so you do not need to pass deltaTime in Update()
     static void Update();
 
     static void StartSimulation();
@@ -74,26 +77,14 @@ public:
     static void CreateComponent(PhysicsComponentSettings &settings);
     static bool HasComponent(Entity entity);
     static void DestroyComponent(Entity entity);
-
-    static void SetVelocity(Entity entity, Vec3 velocity);
-    static void SetMaxLinearVelocity(Entity entity, Vec3 maxVelocity);
-    static void SetAngularVelocity(Entity entity, Vec3 angularVelocity);
-    static void SetMaxAngularVelocity(Entity entity, Vec3 maxAngularVelocity);
-    static void SetPosition(Entity entity, Vec3 position);
-    static void SetRotation(Entity entity, Quat rotation);
-    static void SetGravityFactor(Entity entity, float gravityFactor);
-    static void SetObjectLayer(Entity entity, JPH::ObjectLayer layer);
-
-    static void AddVelocity(Entity entity, Vec3 deltaVelocity);
-    static void AddAngularVelocity(Entity entity, Vec3 deltaAngularVelocity);
-    static void AddImpulse(Entity entity, Vec3 impulse);
-    static void AddForce(Entity entity, Vec3 force);
+    static JPH::BodyID GetBodyId(Entity entity);
 
     bool IsBodyActive(Entity entity);
-
     static void ActivateBody(Entity entity);
     static void DeactivateBody(Entity entity);
 
+    BodyUpdater GetBodyUpdater(Entity entity);
+    BodyGetter GetBodyGetter(Entity entity);
 
     static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance);
 

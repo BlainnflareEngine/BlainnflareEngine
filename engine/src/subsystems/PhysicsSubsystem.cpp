@@ -2,7 +2,6 @@
 
 #include <cassert>
 
-
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Body/Body.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
@@ -71,10 +70,6 @@ void PhysicsSubsystem::Update()
 
     float deltaTimeMs = m_physicsTimeline->Tick();
     if (deltaTimeMs == 0.0f) return;
-
-    static int c;
-    std::cout << std::format("physics update {}\n", c);
-    ++c;
 
     m_joltPhysicsSystem->Update(deltaTimeMs, 1, m_joltTempAllocator.get(), m_joltJobSystem.get());
 
@@ -155,17 +150,10 @@ void Blainn::PhysicsSubsystem::DestroyComponent(Entity entity)
     entity.RemoveComponent<PhysicsComponent>();
 }
 
-void Blainn::PhysicsSubsystem::SetVelocity(Entity entity, Vec3 velocity)
+JPH::BodyID Blainn::PhysicsSubsystem::GetBodyId(Entity entity)
 {
     PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
-    const JPH::BodyLockInterface &bodyLockInterface = m_joltPhysicsSystem->GetBodyLockInterface();
-    JPH::BodyInterface &bodyInterface = m_joltPhysicsSystem->GetBodyInterface();
-    JPH::BodyLockWrite bodyLock(bodyLockInterface, component.m_bodyId);
-    if (bodyLock.Succeeded())
-    {
-        const JPH::Body &body = bodyLock.GetBody();
-        bodyInterface.SetLinearVelocity(component.m_bodyId, ToJoltVec3(velocity));
-    }
+    return component.m_bodyId;
 }
 
 
@@ -211,4 +199,18 @@ void Blainn::PhysicsSubsystem::DeactivateBody(Entity entity)
 {
     PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
     m_joltPhysicsSystem->GetBodyInterface().DeactivateBody(component.m_bodyId);
+}
+
+BodyUpdater Blainn::PhysicsSubsystem::GetBodyUpdater(Entity entity)
+{
+    PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
+    return BodyUpdater(m_joltPhysicsSystem->GetBodyLockInterface(), m_joltPhysicsSystem->GetBodyInterface(),
+                       component.m_bodyId);
+}
+
+BodyGetter Blainn::PhysicsSubsystem::GetBodyGetter(Entity entity)
+{
+    PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
+    return BodyGetter(m_joltPhysicsSystem->GetBodyLockInterface(), m_joltPhysicsSystem->GetBodyInterface(),
+                      component.m_bodyId);
 }

@@ -19,6 +19,10 @@ set(ENGINE_SOURCES
         src/subsystems/Log.cpp
         include/physics/BodyBuilder.h
         src/physics/BodyBuilder.cpp
+        include/physics/BodyUpdater.h
+        src/physics/BodyUpdater.cpp
+        include/physics/BodyGetter.h
+        src/physics/BodyGetter.cpp
         include/physics/ContactListenerImpl.h
         src/physics/ContactListenerImpl.cpp
         include/physics/ShapeFactory.h
