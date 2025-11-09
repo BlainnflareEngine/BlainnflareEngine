@@ -1,7 +1,9 @@
 #pragma once
 
 #include <Windows.h>
+
 #include "scene/Scene.h"
+#include <functional>
 
 namespace vgjs
 {
@@ -25,6 +27,7 @@ public:
     static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 private:
+    static inline eastl::function<void(float)> m_renderFunc = nullptr;
     static eastl::shared_ptr<vgjs::JobSystem> m_JobSystemPtr;
     static Scene m_ActiveScene; // TODO: make shared?
 };

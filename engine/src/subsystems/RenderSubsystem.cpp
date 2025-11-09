@@ -1,5 +1,8 @@
 #include "subsystems/RenderSubsystem.h"
 
+#include "Render/Device.h"
+#include "Render/Renderer.h"
+
 #include "subsystems/Log.h"
 #include "tools/Profiler.h"
 
@@ -10,9 +13,21 @@ using namespace Blainn;
 
 void Blainn::RenderSubsystem::Init() 
 {
+    if (m_isInitialized) return;
+
     BF_INFO("RenderSubsystem::Init()");
 
-    InitializeDirect3D();
+#if defined(_DEBUG)
+    // Enable the debug layer (requires the Graphics Tools "optional feature").
+    // NOTE: Enabling the debug layer after device creation will invalidate the active device.
+    Blainn::Device::CreateDebugLayer();
+#endif
+    m_device = eastl::make_unique<Device>();
+    m_renderer = eastl::make_unique<Renderer>(m_device.get(), m_width, m_height);
+    
+    m_renderer->Init();
+
+    m_isInitialized = true;
 }
 
 
@@ -21,7 +36,13 @@ void RenderSubsystem::Destroy()
 
 }
 
-void RenderSubsystem::Render()
+RenderSubsystem& RenderSubsystem::GetInstance()
+{
+    static RenderSubsystem render;
+    return render;
+}
+
+void RenderSubsystem::Render(float deltaTime)
 {
     //BLAINN_PROFILE_THREAD("Render thread");
     assert(m_isInitialized && "Freya subsystem not initialized");
@@ -39,20 +60,11 @@ void RenderSubsystem::Render()
 #pragma region GoingDirectX
 void RenderSubsystem::InitializeDirect3D()
 {
-    CreateCommandObjects();
-    
     CreateRootSignature();
     CreateShaders();
     CreatePSO();
-
-    m_isInitialized = true;
 }
 
-void RenderSubsystem::CreateCommandObjects()
-{
-
-}
- 
 void RenderSubsystem::CreateRootSignature()
 {
 

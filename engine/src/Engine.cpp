@@ -10,7 +10,6 @@
 #include "subsystems/ScriptingSubsystem.h"
 #include "tools/Profiler.h"
 
-
 using namespace Blainn;
 
 eastl::shared_ptr<vgjs::JobSystem> Engine::m_JobSystemPtr = nullptr;
@@ -30,17 +29,19 @@ void Engine::Init()
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
 {
-    // RenderSubsystem::SetWindowHandle(windowHandle);
-    RenderSubsystem::Init();
+    auto &renderInst = RenderSubsystem::GetInstance();
+
+    renderInst.Init();
+    m_renderFunc = std::bind(&RenderSubsystem::Render, &renderInst, std::placeholders::_1);
 }
 
 void Engine::Destroy()
 {
-    RenderSubsystem::Destroy();
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
     Log::Destroy();
-
+    RenderSubsystem::GetInstance().Destroy();
+    
     m_JobSystemPtr->terminate();
 }
 
@@ -72,7 +73,10 @@ void Engine::Update(float deltaTime)
         testAccumulator = 0.0f;
     }
 
-    vgjs::schedule(&RenderSubsystem::Render);
+    vgjs::schedule([deltaTime]() -> void
+        {
+            m_renderFunc(deltaTime);
+        });
 
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;

@@ -6,12 +6,39 @@
 Blainn::Device::Device()
     : m_useWarpDevice(false)
 {
-
+    Create();
 }
 
 Blainn::Device::~Device()
 {
+    Destroy();
+}
 
+void Blainn::Device::Create(/* some description would be good */)
+{
+    // HRESULT check
+    ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(&m_factory)));
+    
+    if (m_useWarpDevice)
+    {
+        ComPtr<IDXGIAdapter> warpAdapter;
+        // HRESULT check
+        ThrowIfFailed(m_factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
+        // HRESULT check
+        ThrowIfFailed(D3D12CreateDevice(warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_device)));
+    }
+    else
+    {
+        GetHardwareAdapter(m_factory.Get(), &m_hardwareAdapter);
+        
+        // HRESULT check
+        ThrowIfFailed(D3D12CreateDevice(m_hardwareAdapter.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&m_device)));
+    }
+}
+
+void Blainn::Device::Destroy()
+{
+    
 }
 
 void Blainn::Device::CreateDebugLayer()
