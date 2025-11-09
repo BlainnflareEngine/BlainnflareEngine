@@ -193,15 +193,19 @@ eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 direc
     {
         return eastl::optional<RayCastResult>();
     }
+    JPH::BodyID hitBodyId = joltResult.mBodyID;
+    BodyGetter bodyGetter(m_joltPhysicsSystem->GetBodyLockInterface(), m_joltPhysicsSystem->GetBodyInterface(),
+                          hitBodyId);
+    Vec3 bodyPosition = bodyGetter.GetPosition();
 
     RayCastResult rayCastResult;
-    rayCastResult.entityId = m_bodyEntityConnections[joltResult.mBodyID];
+    rayCastResult.entityId = m_bodyEntityConnections[hitBodyId];
     rayCastResult.distance = joltResult.mFraction * directionAndDistance.Length();
     rayCastResult.hitPoint = origin + directionAndDistance * joltResult.mFraction;
-    JPH::RefConst<JPH::Shape> bodyShape = m_joltPhysicsSystem->GetBodyInterface().GetShape(joltResult.mBodyID);
-    rayCastResult.hitNormal = ToBlainnVec3(bodyShape->GetSurfaceNormal(
-        joltResult.mSubShapeID2,
-        ToJoltVec3(rayCastResult.hitPoint) - bodyShape->GetCenterOfMass())); // TODO: convert to world space
+
+    JPH::RefConst<JPH::Shape> bodyShape = bodyGetter.GetShape();
+    rayCastResult.hitNormal = ToBlainnVec3(
+        bodyShape->GetSurfaceNormal(joltResult.mSubShapeID2, ToJoltVec3(rayCastResult.hitPoint - bodyPosition)));
 
     return eastl::optional<RayCastResult>(eastl::move(rayCastResult));
 }

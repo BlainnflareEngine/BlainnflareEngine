@@ -29,6 +29,8 @@ public:
     Quat GetRotation();
     Vec3 GetScale();
 
+    JPH::RefConst<JPH::Shape> GetShape();
+
     Vec3 GetVelocity();
     float GetMaxLinearVelocity();
     Vec3 GetAngularVelocity();

@@ -18,6 +18,12 @@ Quat Blainn::BodyGetter::GetRotation()
     return ToBlainnQuat(body.GetRotation());
 }
 
+JPH::RefConst<JPH::Shape> Blainn::BodyGetter::GetShape()
+{
+    const JPH::Body &body = m_bodyLock.GetBody();
+    return body.GetShape();
+}
+
 Vec3 BodyGetter::GetVelocity()
 {
     const JPH::Body &body = m_bodyLock.GetBody();
