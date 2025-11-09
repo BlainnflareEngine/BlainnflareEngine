@@ -54,6 +54,7 @@ struct PhysicsComponentSettings
     JPH::ObjectLayer layer = 0;
     Vec3 position = Vec3::Zero;
     Quat rotation = Quat::Identity;
+    // TODO: scale?
     bool isTrigger = false;
     float radius = 0.5f;                       // sphere, capsule, cylinder
     Vec3 halfExtents = Vec3{0.5f, 0.5f, 0.5f}; // box
@@ -72,7 +73,7 @@ public:
     static void StartSimulation();
     static void StopSimulation();
 
-    // TODO: QueuePhysicsComponentCreation();
+    // TODO: QueuePhysicsComponentCreation()?;
 
     static void CreateComponent(PhysicsComponentSettings &settings);
     static bool HasComponent(Entity entity);
@@ -100,8 +101,10 @@ private:
 
     inline static bool m_isInitialized = false;
 
+    inline static eastl::unordered_map<JPH::BodyID, uuid> m_bodyEntityConnections{};
+
     // static eastl::unordered_map<uuid, PhysicsComponent> m_physicsComponents;
-    static eastl::vector<eastl::pair<uuid, PhysicsComponent>> m_physicsComponentCreationQueue;
+    // static eastl::vector<eastl::pair<uuid, PhysicsComponent>> m_physicsComponentCreationQueue;
 
     inline static constexpr uint32_t m_maxConcurrentJobs = 8;
     inline static eastl::unique_ptr<JPH::JobSystemSingleThreaded> m_joltJobSystem = nullptr;

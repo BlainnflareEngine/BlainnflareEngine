@@ -121,8 +121,10 @@ void Blainn::PhysicsSubsystem::CreateComponent(PhysicsComponentSettings &setting
     PhysicsComponent *componentPtr = settings.entity.TryGetComponent<PhysicsComponent>();
     assert(!componentPtr && "Entity already has physics component on creation");
 
+    uuid parentId = settings.entity.GetUUID();
+
     PhysicsComponent component;
-    component.parentId = settings.entity.GetUUID();
+    component.parentId = parentId;
     component.shapeType = settings.shapeType;
 
     switch (settings.shapeType)
@@ -151,6 +153,7 @@ void Blainn::PhysicsSubsystem::CreateComponent(PhysicsComponentSettings &setting
     builder.SetIsTrigger(settings.isTrigger);
 
     component.bodyId = builder.Build(settings.activate);
+    m_bodyEntityConnections.try_emplace(component.bodyId, parentId);
 
     settings.entity.AddComponent<PhysicsComponent>(eastl::move(component));
 }
@@ -166,6 +169,7 @@ void Blainn::PhysicsSubsystem::DestroyComponent(Entity entity)
     JPH::BodyInterface &bodyInterface = m_joltPhysicsSystem->GetBodyInterface();
     bodyInterface.RemoveBody(component.bodyId);
     bodyInterface.DestroyBody(component.bodyId);
+    m_bodyEntityConnections.erase(component.bodyId);
     entity.RemoveComponent<PhysicsComponent>();
 }
 
@@ -184,22 +188,22 @@ JPH::PhysicsSystem &Blainn::PhysicsSubsystem::GetPhysicsSystem()
 eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 directionAndDistance)
 {
     JPH::RRayCast ray(ToJoltRVec3(origin), ToJoltRVec3(directionAndDistance));
-    JPH::RayCastResult result;
-    if (!m_joltPhysicsSystem->GetNarrowPhaseQuery().CastRay(ray, result))
+    JPH::RayCastResult joltResult;
+    if (!m_joltPhysicsSystem->GetNarrowPhaseQuery().CastRay(ray, joltResult))
     {
         return eastl::optional<RayCastResult>();
     }
 
     RayCastResult rayCastResult;
-    rayCastResult.bodyId; //= bodyUuid;    // TODO: get uuid from body user data
-    rayCastResult.distance = result.mFraction * directionAndDistance.Length();
-    rayCastResult.hitPoint = origin + directionAndDistance * result.mFraction;
-    JPH::RefConst<JPH::Shape> bodyShape = m_joltPhysicsSystem->GetBodyInterface().GetShape(result.mBodyID);
+    rayCastResult.entityId = m_bodyEntityConnections[joltResult.mBodyID];
+    rayCastResult.distance = joltResult.mFraction * directionAndDistance.Length();
+    rayCastResult.hitPoint = origin + directionAndDistance * joltResult.mFraction;
+    JPH::RefConst<JPH::Shape> bodyShape = m_joltPhysicsSystem->GetBodyInterface().GetShape(joltResult.mBodyID);
     rayCastResult.hitNormal = ToBlainnVec3(bodyShape->GetSurfaceNormal(
-        result.mSubShapeID2,
+        joltResult.mSubShapeID2,
         ToJoltVec3(rayCastResult.hitPoint) - bodyShape->GetCenterOfMass())); // TODO: convert to world space
 
-    return eastl::optional<RayCastResult>(rayCastResult);
+    return eastl::optional<RayCastResult>(eastl::move(rayCastResult));
 }
 
 bool Blainn::PhysicsSubsystem::IsBodyActive(Entity entity)
