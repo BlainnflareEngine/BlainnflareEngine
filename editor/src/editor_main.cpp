@@ -42,11 +42,19 @@ editor_main::editor_main(QWidget *parent)
     connect(ui->folderContent, &folder_content_widget::FolderSelected, ui->pathBar, &path_bar_widget::SetCurrentPath);
 
 
-    connect(ui->actionEditor_settings, &QAction::triggered, this, &editor_main::OnOpenSettings);
-
     connect(ui->ClearConsoleButton, &QPushButton::clicked, ui->consoleMessages, &console_messages_widget::ClearConsole);
 
     connect(ui->AddToScene, &QPushButton::clicked, this, &editor_main::OpenAddToScene);
+
+
+    // Action bar
+    ui->actionSave->setShortcut(Qt::CTRL + Qt::Key_S);
+    ui->actionSave->setIcon(QIcon(":/icons/save.png"));
+    ui->actionEditor_settings->setShortcut(Qt::CTRL + Qt::Key_P);
+    ui->actionEditor_settings->setIcon(QIcon(":/icons/settings.png"));
+
+    connect(ui->actionEditor_settings, &QAction::triggered, this, &editor_main::OnOpenSettings);
+    connect(ui->actionSave, &QAction::triggered, this, &editor_main::OnSaveScene);
 }
 
 
@@ -76,23 +84,6 @@ void editor_main::closeEvent(QCloseEvent *event)
     // TODO: serialize something before exit
     QMainWindow::closeEvent(event);
     QCoreApplication::quit();
-}
-
-
-void editor_main::keyPressEvent(QKeyEvent *event)
-{
-    if (event->modifiers() & Qt::ControlModifier)
-    {
-        switch (event->key())
-        {
-        case Qt::Key_S:
-            OnSaveScene();
-            event->accept();
-            return;
-        }
-    }
-
-    QMainWindow::keyPressEvent(event);
 }
 
 

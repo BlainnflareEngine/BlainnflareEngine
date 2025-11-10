@@ -32,16 +32,12 @@ public:
     explicit editor_main(QWidget *parent = nullptr);
     ~editor_main() override;
 
-    HWND GetViewportHWND() const;
 
     void SetContentDirectory(const QString &path);
-
     void closeEvent(QCloseEvent *event) override;
 
-    void keyPressEvent(QKeyEvent *event) override;
-
+    HWND GetViewportHWND() const;
     inspector_widget &GetInspectorWidget();
-
     console_messages_widget *GetConsoleWidget() const;
 
 private:
