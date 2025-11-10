@@ -11,9 +11,10 @@
 #include <QTreeView>
 
 
-class SceneItemModel;
 namespace editor
 {
+class SceneItemModel;
+
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
@@ -31,7 +32,13 @@ public:
 
     void OpenContextMenu(const QPoint &position);
 
-    SceneItemModel &GetSceneModel();
+    SceneItemModel &GetSceneModel() const;
+
+
+public slots:
+
+    void OnItemDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
+
 
 private:
     Ui::scene_hierarchy_widget *ui;

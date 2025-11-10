@@ -14,8 +14,6 @@
 #include "ui_editor_main.h"
 
 #include <QListView>
-#include <QResource>
-#include <iostream>
 
 namespace editor
 {
@@ -81,6 +79,23 @@ void editor_main::closeEvent(QCloseEvent *event)
 }
 
 
+void editor_main::keyPressEvent(QKeyEvent *event)
+{
+    if (event->modifiers() & Qt::ControlModifier)
+    {
+        switch (event->key())
+        {
+        case Qt::Key_S:
+            OnSaveScene();
+            event->accept();
+            return;
+        }
+    }
+
+    QMainWindow::keyPressEvent(event);
+}
+
+
 inspector_widget &editor_main::GetInspectorWidget()
 {
     return *ui->m_inspector;
@@ -106,6 +121,12 @@ void editor_main::OnOpenSettings()
     eastl::unique_ptr<editor_settings> settings = eastl::make_unique<editor_settings>(data, this);
     settings->show();
     settings->exec();
+}
+
+
+void editor_main::OnSaveScene()
+{
+    Blainn::Engine::GetActiveScene()->SaveScene();
 }
 
 } // namespace editor

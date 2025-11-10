@@ -255,6 +255,18 @@ std::string ToString(const QString &str)
 }
 
 
+eastl::string ToEASTLString(const QString &str)
+{
+    return str.toUtf8().constData();
+}
+
+
+QString ToQString(const eastl::string &str)
+{
+    return QString(str.c_str());
+}
+
+
 void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir)
 {
     QString fileName = QFileDialog::getOpenFileName(

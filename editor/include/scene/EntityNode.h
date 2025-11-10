@@ -4,11 +4,22 @@
 
 #pragma once
 
+#include "scene/Entity.h"
+
+
 #include <QList>
 #include <QString>
 
 struct EntityNode
 {
+    EntityNode(const Blainn::Entity &entity, EntityNode *parent = nullptr)
+        : m_parent(parent)
+        , m_entity(entity)
+    {
+        children.reserve(4);
+    }
+
+
     ~EntityNode()
     {
         qDeleteAll(children);
@@ -25,12 +36,15 @@ struct EntityNode
         return name;
     }
 
-    QVector<EntityNode *> children;
-    EntityNode *parent = nullptr;
+    QVector<EntityNode *> children = {}; // can't use smart ptr because qDeleteAll uses raw ptr
+    EntityNode *m_parent = nullptr;
+
+    Blainn::Entity &GetEntity()
+    {
+        return m_entity;
+    }
 
 private:
     QString name;
-
-    // Should we have a reference?
-    // Blainn::Entity entity;
+    Blainn::Entity m_entity;
 };

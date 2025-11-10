@@ -19,6 +19,7 @@ namespace editor
 class AddToSceneContextMenu : public QObject
 {
     Q_OBJECT
+
 public:
     AddToSceneContextMenu(scene_hierarchy_widget &treeView, QObject *parent = nullptr);
 

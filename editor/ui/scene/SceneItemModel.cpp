@@ -4,22 +4,24 @@
 
 #include "SceneItemModel.h"
 
+#include "FileSystemUtils.h"
+
 #include <QMessageBox>
 
 
-SceneItemModel::SceneItemModel(QObject *parent)
+editor::SceneItemModel::SceneItemModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
 }
 
 
-SceneItemModel::~SceneItemModel()
+editor::SceneItemModel::~SceneItemModel()
 {
     qDeleteAll(m_rootNodes);
 }
 
 
-QModelIndex SceneItemModel::addNewEntity(const QModelIndex &parentIndex)
+QModelIndex editor::SceneItemModel::AddNewEntity(const Blainn::Entity &entity, const QModelIndex &parentIndex)
 {
     EntityNode *parentNode = nullptr;
     QVector<EntityNode *> *targetCollection = &m_rootNodes;
@@ -30,10 +32,9 @@ QModelIndex SceneItemModel::addNewEntity(const QModelIndex &parentIndex)
         targetCollection = &parentNode->children;
     }
 
-    EntityNode *newNode = new EntityNode();
-    if (targetCollection->size() == 0) newNode->SetName(QString("Entity"));
-    else newNode->SetName(QString("Entity (%1)").arg(targetCollection->size()));
-    newNode->parent = parentNode;
+    EntityNode *newNode = new EntityNode(entity, parentNode);
+
+    newNode->SetName(editor::ToQString(entity.Name()));
 
     int newRow = targetCollection->size();
     beginInsertRows(parentIndex, newRow, newRow);
@@ -44,7 +45,7 @@ QModelIndex SceneItemModel::addNewEntity(const QModelIndex &parentIndex)
 }
 
 
-QModelIndex SceneItemModel::index(int row, int column, const QModelIndex &parent) const
+QModelIndex editor::SceneItemModel::index(int row, int column, const QModelIndex &parent) const
 {
     if (!hasIndex(row, column, parent)) return QModelIndex();
 
@@ -76,16 +77,16 @@ QModelIndex SceneItemModel::index(int row, int column, const QModelIndex &parent
 }
 
 
-QModelIndex SceneItemModel::parent(const QModelIndex &child) const
+QModelIndex editor::SceneItemModel::parent(const QModelIndex &child) const
 {
     if (!child.isValid()) return QModelIndex();
 
     EntityNode *childNode = static_cast<EntityNode *>(child.internalPointer());
-    EntityNode *parentNode = childNode->parent;
+    EntityNode *parentNode = childNode->m_parent;
 
     if (!parentNode) return QModelIndex();
 
-    EntityNode *grandParent = parentNode->parent;
+    EntityNode *grandParent = parentNode->m_parent;
     int row = 0;
 
     if (grandParent)
@@ -103,7 +104,7 @@ QModelIndex SceneItemModel::parent(const QModelIndex &child) const
 }
 
 
-int SceneItemModel::rowCount(const QModelIndex &parent) const
+int editor::SceneItemModel::rowCount(const QModelIndex &parent) const
 {
     if (!parent.isValid()) return m_rootNodes.size();
 
@@ -113,7 +114,7 @@ int SceneItemModel::rowCount(const QModelIndex &parent) const
 }
 
 
-int SceneItemModel::columnCount(const QModelIndex &parent) const
+int editor::SceneItemModel::columnCount(const QModelIndex &parent) const
 {
     // here we should return column count
     // (we can have two rows for instance - first entity name, second entity ID)
@@ -124,7 +125,7 @@ int SceneItemModel::columnCount(const QModelIndex &parent) const
 }
 
 
-QVariant SceneItemModel::data(const QModelIndex &index, int role) const
+QVariant editor::SceneItemModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() || role != Qt::DisplayRole) return QVariant();
 
@@ -136,7 +137,7 @@ QVariant SceneItemModel::data(const QModelIndex &index, int role) const
 }
 
 
-bool SceneItemModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool editor::SceneItemModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (role == Qt::EditRole || role == Qt::DisplayRole)
     {
@@ -155,7 +156,7 @@ bool SceneItemModel::setData(const QModelIndex &index, const QVariant &value, in
 }
 
 
-bool SceneItemModel::IsNameDuplicate(const QString &name, const QModelIndex &excludeIndex) const
+bool editor::SceneItemModel::IsNameDuplicate(const QString &name, const QModelIndex &excludeIndex) const
 {
     QModelIndex parentIndex = excludeIndex.parent();
     EntityNode *parentNode = parentIndex.isValid() ? static_cast<EntityNode *>(parentIndex.internalPointer()) : nullptr;
@@ -173,9 +174,17 @@ bool SceneItemModel::IsNameDuplicate(const QString &name, const QModelIndex &exc
 }
 
 
-Qt::ItemFlags SceneItemModel::flags(const QModelIndex &index) const
+Qt::ItemFlags editor::SceneItemModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid()) return Qt::NoItemFlags;
 
     return Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+}
+
+
+EntityNode *editor::SceneItemModel::GetNodeFromIndex(const QModelIndex &index)
+{
+    if (index.isValid()) return static_cast<EntityNode *>(index.internalPointer());
+
+    return nullptr;
 }

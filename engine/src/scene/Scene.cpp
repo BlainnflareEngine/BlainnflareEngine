@@ -4,13 +4,78 @@
 
 #include "scene/Scene.h"
 
+#include "Engine.h"
+#include "Serializer.h"
+#include "ozz/base/containers/string.h"
+
+#include "sol/types.hpp"
 #include "tools/Profiler.h"
 #include "tools/random.h"
 
+#include <fstream>
+
 using namespace Blainn;
+
+
+Scene::Scene(const eastl::string_view &name, uuid uid, bool isEditorScene) noexcept
+    : m_SceneID(uid)
+    , m_Name(name)
+    , m_IsEditorScene(isEditorScene)
+{
+}
+
+
+Scene::Scene(const YAML::Node &config)
+{
+    assert(config.IsDefined());
+
+    m_Name = config["SceneName"].as<std::string>().c_str();
+
+    BF_DEBUG(m_Name.c_str());
+    // TODO: parse all entities
+}
+
+
+void Scene::SaveScene()
+{
+    BF_DEBUG("Saved scene {}", m_Name.c_str());
+
+    YAML::Emitter out;
+    out << YAML::BeginMap; // Root
+
+    out << YAML::Key << "SceneName" << YAML::Value << m_Name.c_str();
+    out << YAML::Key << "SceneID" << YAML::Value << m_SceneID.str();
+
+    out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq; // Entities
+
+    auto view = m_Registry.view<IDComponent>();
+    for (auto entity : view)
+    {
+        Entity e = {entity, this};
+        if (!e) continue;
+
+        out << YAML::BeginMap; // begin for every entity
+
+        Serializer::Default(e, out);
+        Serializer::Tag(e, out);
+        Serializer::Transform(e, out);
+        Serializer::Relationship(e, out);
+
+        out << YAML::EndMap; // end for every entity
+    }
+
+    out << YAML::EndSeq; // Entities
+    out << YAML::EndMap; // Root
+
+    std::string filepath = (Engine::GetContentDirectory() / std::string(m_Name.c_str())).string();
+    std::ofstream fout(filepath);
+    fout << out.c_str();
+}
+
 
 Entity Scene::CreateEntity(const eastl::string &name)
 {
+    BF_DEBUG("Created entity! {0}", name.c_str());
     return CreateChildEntity({}, name);
 }
 
@@ -177,8 +242,7 @@ void Scene::UnparentEntity(Entity entity, bool convertToWorldSpace)
     parentChildren.erase(std::remove(parentChildren.begin(), parentChildren.end(), entity.GetUUID()),
                          parentChildren.end());
 
-    if (convertToWorldSpace)
-         ConvertToWorldSpace(entity);
+    if (convertToWorldSpace) ConvertToWorldSpace(entity);
 
     entity.SetParentUUID(0);
 }
@@ -195,7 +259,7 @@ void Scene::ConvertToLocalSpace(Entity entity)
 
     if (!parent) return;
 
-    auto& transform = entity.Transform();
+    auto &transform = entity.Transform();
     auto parentTransform = GetWorldSpaceTransformMatrix(parent);
     auto localTransform = parentTransform.Invert() * transform.GetTransform();
     transform.SetTransform(localTransform);
@@ -208,7 +272,7 @@ void Scene::ConvertToWorldSpace(Entity entity)
     if (!parent) return;
 
     Mat4 transform = GetWorldSpaceTransformMatrix(entity);
-    auto& entityTransform = entity.Transform();
+    auto &entityTransform = entity.Transform();
     entityTransform.SetTransform(transform);
 }
 
@@ -218,8 +282,7 @@ Mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
 
     Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
 
-    if (parent)
-        return GetWorldSpaceTransformMatrix(parent);
+    if (parent) return GetWorldSpaceTransformMatrix(parent);
 
     return transform * entity.Transform().GetTransform();
 }

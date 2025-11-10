@@ -4,9 +4,9 @@
 
 #include "VGJS.h"
 
-#include "aliases.h"
 #include "Input/InputSubsystem.h"
 #include "Input/KeyboardEvents.h"
+#include "aliases.h"
 #include "scene/Scene.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
@@ -18,6 +18,7 @@
 using namespace Blainn;
 
 eastl::shared_ptr<vgjs::JobSystem> Engine::m_JobSystemPtr = nullptr;
+eastl::shared_ptr<Scene> Engine::m_ActiveScene = nullptr;
 
 void Engine::Init()
 {
@@ -32,17 +33,19 @@ void Engine::Init()
     auto a = AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), TextureType::ALBEDO);
 
     // TODO: -- remove -- test input
-    Input::AddEventListener(InputEventType::KeyPressed, [](const InputEventPointer& event)
-    {
-        const KeyPressedEvent* keyEvent = static_cast<const KeyPressedEvent*>(event.get());
-        BF_INFO("Key {} was pressed", static_cast<int>(keyEvent->GetKey()));
-    });
+    Input::AddEventListener(InputEventType::KeyPressed,
+                            [](const InputEventPointer &event)
+                            {
+                                const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent *>(event.get());
+                                BF_INFO("Key {} was pressed", static_cast<int>(keyEvent->GetKey()));
+                            });
 
-    Input::AddEventListener(InputEventType::KeyReleased, [](const InputEventPointer& event)
-    {
-        const KeyReleasedEvent* keyEvent = static_cast<const KeyReleasedEvent*>(event.get());
-        BF_INFO("Key {} was released", static_cast<int>(keyEvent->GetKey()));
-    });
+    Input::AddEventListener(InputEventType::KeyReleased,
+                            [](const InputEventPointer &event)
+                            {
+                                const KeyReleasedEvent *keyEvent = static_cast<const KeyReleasedEvent *>(event.get());
+                                BF_INFO("Key {} was released", static_cast<int>(keyEvent->GetKey()));
+                            });
 }
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
@@ -116,13 +119,16 @@ void Engine::SetContentDirectory(const Path &contentDirectory)
 }
 
 
-Path &Engine::GetContentDirectory()
+eastl::shared_ptr<Scene> Engine::GetActiveScene()
 {
-    return m_contentDirectory;
+    return m_ActiveScene;
 }
 
 
-void Engine::SetContentDirectory(const Path &contentDirectory)
+void Engine::SetCurrentScene(const eastl::shared_ptr<Scene> &scene)
 {
-    m_contentDirectory = contentDirectory;
+    // TODO: should trigger delegate?
+    // TODO: should notify editor?
+
+    m_ActiveScene = scene;
 }

@@ -6,6 +6,7 @@
 #include "scene_hierarchy_widget.h"
 
 #include "EntityDelegate.h"
+#include "FileSystemUtils.h"
 #include "SceneItemModel.h"
 #include "context-menu/AddToSceneContextMenu.h"
 #include "ui_scene_hierarchy_widget.h"
@@ -28,6 +29,8 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
     m_addToSceneMenu = new AddToSceneContextMenu(*this, this);
 
     connect(this, &QTreeView::customContextMenuRequested, m_addToSceneMenu, &AddToSceneContextMenu::OnContextMenu);
+
+    connect(m_sceneModel, &QAbstractItemModel::dataChanged, this, &scene_hierarchy_widget::OnItemDataChanged);
 }
 
 scene_hierarchy_widget::~scene_hierarchy_widget()
@@ -42,8 +45,38 @@ void scene_hierarchy_widget::OpenContextMenu(const QPoint &position)
 }
 
 
-SceneItemModel &scene_hierarchy_widget::GetSceneModel()
+SceneItemModel &scene_hierarchy_widget::GetSceneModel() const
 {
     return *m_sceneModel;
 }
+
+
+void scene_hierarchy_widget::OnItemDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
+                                               const QVector<int> &roles)
+{
+    if (!topLeft.isValid()) return;
+
+
+    QString newName = topLeft.data(Qt::DisplayRole).toString();
+    BF_DEBUG("Item renamed to: {0}", ToString(newName))
+
+    SceneItemModel *sceneModel = qobject_cast<SceneItemModel *>(model());
+    if (!sceneModel) return;
+
+    if (EntityNode *node = sceneModel->GetNodeFromIndex(topLeft))
+    {
+        node->SetName(newName);
+
+        Blainn::Entity entity = node->GetEntity();
+        if (entity && entity.HasComponent<Blainn::TagComponent>())
+        {
+            auto &tagComponent = entity.GetComponent<Blainn::TagComponent>();
+            tagComponent.Tag = ToEASTLString(newName);
+        }
+
+        BF_DEBUG("Entity {0} renamed to: {1}", entity.GetUUID().str(), ToString(newName));
+    }
+}
+
+
 } // namespace editor

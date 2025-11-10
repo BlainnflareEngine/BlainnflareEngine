@@ -76,6 +76,10 @@ import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info);
 
 std::string ToString(const QString &str);
 
+eastl::string ToEASTLString(const QString &str);
+
+QString ToQString(const eastl::string &str);
+
 void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir = QString());
 
 void SetValueYAML(const std::string &path, const std::string &name, const std::string &value);

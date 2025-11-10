@@ -11,6 +11,7 @@
 #include "aliases.h"
 #include "concurrentqueue.h"
 #include "entt/entt.hpp"
+#include "random.h"
 
 
 namespace Blainn
@@ -20,14 +21,15 @@ using EntityMap = eastl::unordered_map<uuid, Entity>;
 class Scene
 {
 public:
-    Scene(const eastl::string_view &name = "UntitledScene", bool isEditorScene = false) noexcept {
-    }; // TODO: @JSrct2324 wrote here empty {} change if needed
+    Scene(const eastl::string_view &name = "UntitledScene", uuid uid = Rand::getRandomUUID(),
+          bool isEditorScene = false) noexcept;
+    Scene(const YAML::Node &config);
     ~Scene() {}; // TODO: @JSrct2324 wrote here empty {} change if needed
     // I'm not sure we need to copy or move scenes so if needed add these functions
-    Scene(Scene &) = delete;
-    Scene &operator=(Scene &) = delete;
-    Scene(Scene &&) = delete;
-    Scene &operator=(Scene &&) = delete;
+    Scene(Scene &other) = delete;
+    Scene &operator=(Scene &other) = delete;
+    Scene(Scene &&other) = delete;
+    Scene &operator=(Scene &&other) = delete;
 
     // TODO: some deltatime should be passed to it, I'm confused about our times
     void UpdateRuntime(/*todo float deltatime*/);
@@ -48,6 +50,8 @@ public:
     {
         return m_ViewportHeight;
     }
+
+    void SaveScene();
 
     Entity CreateEntity(const eastl::string &name = "");
     Entity CreateChildEntity(Entity parent, const eastl::string &name = "");

@@ -181,19 +181,24 @@ void AssetManager::OpenScene(const Path &path)
 {
     // TODO: unload all from current scene
     YAML::Node scene;
+    Path absolute_path(Engine::GetContentDirectory() / path);
 
-    if (exists(path))
+    if (exists(absolute_path))
     {
-        scene = YAML::LoadFile(path.string());
+        scene = YAML::LoadFile(absolute_path.string());
         BF_DEBUG("Opening scene {0}", path.string());
     }
     else
     {
-        scene["SceneName"] = (Engine::GetContentDirectory() / path.string()).string();
+        scene["SceneName"] = path.string();
         BF_DEBUG("Opening scene {0}", path.filename().string());
-        std::ofstream fout(path.string());
+        std::ofstream fout(absolute_path);
         fout << scene;
     }
+
+    // TODO: parse scene
+
+    Engine::SetCurrentScene(eastl::make_shared<Scene>(scene));
 }
 
 

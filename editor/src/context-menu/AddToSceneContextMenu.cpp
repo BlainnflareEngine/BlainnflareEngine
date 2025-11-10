@@ -4,6 +4,7 @@
 
 #include "context-menu/AddToSceneContextMenu.h"
 
+#include "Engine.h"
 #include "SceneItemModel.h"
 #include "oclero/qlementine/widgets/Menu.hpp"
 #include "scene_hierarchy_widget.h"
@@ -57,11 +58,15 @@ void AddToSceneContextMenu::AddEntity(const QModelIndex &index)
 
     if (index.isValid())
     {
-        newIndex = m_treeView.GetSceneModel().addNewEntity(index);
+        // newIndex = m_treeView.GetSceneModel().AddNewEntity(index);
     }
     else
     {
-        newIndex = m_treeView.GetSceneModel().addNewEntity();
+        auto a = Blainn::Engine::GetActiveScene();
+        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Entity");
+
+        // TODO: mb use delegate for this
+        newIndex = m_treeView.GetSceneModel().AddNewEntity(entity);
     }
 
     if (newIndex.isValid())
