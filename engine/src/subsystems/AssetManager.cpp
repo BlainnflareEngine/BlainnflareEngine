@@ -179,7 +179,7 @@ Material &AssetManager::GetMaterialByHandle(const MaterialHandle &handle)
 
 void AssetManager::OpenScene(const Path &path)
 {
-    // TODO: unload all from current scene
+    // TODO: unload all from current scene?
     YAML::Node scene;
     Path absolute_path(Engine::GetContentDirectory() / path);
 

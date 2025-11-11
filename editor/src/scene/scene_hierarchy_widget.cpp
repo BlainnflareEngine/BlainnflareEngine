@@ -5,6 +5,7 @@
 
 #include "scene_hierarchy_widget.h"
 
+#include "Engine.h"
 #include "EntityDelegate.h"
 #include "FileSystemUtils.h"
 #include "SceneItemModel.h"
@@ -31,6 +32,12 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
     connect(this, &QTreeView::customContextMenuRequested, m_addToSceneMenu, &AddToSceneContextMenu::OnContextMenu);
 
     connect(m_sceneModel, &QAbstractItemModel::dataChanged, this, &scene_hierarchy_widget::OnItemDataChanged);
+
+
+    Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityCreated,
+                                    [this](const Blainn::SceneEventPointer &event) { this->OnEntityCreated(event); });
+    Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityDestroyed,
+                                    [this](const Blainn::SceneEventPointer &event) { this->OnEntityDestroyed(event); });
 }
 
 scene_hierarchy_widget::~scene_hierarchy_widget()
@@ -48,6 +55,35 @@ void scene_hierarchy_widget::OpenContextMenu(const QPoint &position)
 SceneItemModel &scene_hierarchy_widget::GetSceneModel() const
 {
     return *m_sceneModel;
+}
+
+
+void scene_hierarchy_widget::OnEntityCreated(const Blainn::SceneEventPointer &event)
+{
+    using namespace Blainn;
+    BF_DEBUG("OnEntityCreated");
+
+    // TODO: mb use delegate for this
+    const EntityCreatedEvent *entityEvent = static_cast<const EntityCreatedEvent *>(event.get());
+    auto newIndex = GetSceneModel().AddNewEntity(entityEvent->GetEntity());
+
+    if (newIndex.isValid())
+    {
+        setCurrentIndex(newIndex);
+
+        if (newIndex.isValid())
+        {
+            expand(newIndex);
+        }
+
+        edit(newIndex);
+    }
+}
+
+
+void scene_hierarchy_widget::OnEntityDestroyed(const Blainn::SceneEventPointer &event)
+{
+    BF_DEBUG("OnEntityDestroyed");
 }
 
 

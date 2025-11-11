@@ -86,7 +86,8 @@ void ContentContextMenu::CreateMaterial(const QString &dirPath) const
 
     if (materialDialog.exec() == QDialog::Accepted)
     {
-        QString filePath = dirPath + QDir::separator() + materialDialog.GetMaterialName() + "." + materialFormat;
+        QString filePath =
+            dirPath + QDir::separator() + materialDialog.GetMaterialName() + "." + formats::materialFormat;
 
         YAML::Node config;
         QDir dir(Blainn::Engine::GetContentDirectory());
@@ -121,7 +122,7 @@ void ContentContextMenu::CreateScene(const QString &dirPath) const
 
     if (inputDialog.exec() == QDialog::Accepted)
     {
-        QString filePath = dirPath + QDir::separator() + inputDialog.textValue() + "." + sceneFormat;
+        QString filePath = dirPath + QDir::separator() + inputDialog.textValue() + "." + formats::sceneFormat;
 
         YAML::Node scene;
         QDir dir(Blainn::Engine::GetContentDirectory());

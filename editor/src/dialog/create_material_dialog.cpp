@@ -95,37 +95,37 @@ QString create_material_dialog::GetShaderPath() const
 
 void create_material_dialog::OnSelectAlbedo()
 {
-    SelectFile(*ui->AlbedoPath, Filters::TextureFilter);
+    SelectFile(*ui->AlbedoPath, filters::TextureFilter);
 }
 
 
 void create_material_dialog::OnSelectNormal()
 {
-    SelectFile(*ui->NormaPath, Filters::TextureFilter);
+    SelectFile(*ui->NormaPath, filters::TextureFilter);
 }
 
 
 void create_material_dialog::OnSelectMetallic()
 {
-    SelectFile(*ui->MetallicPath, Filters::TextureFilter);
+    SelectFile(*ui->MetallicPath, filters::TextureFilter);
 }
 
 
 void create_material_dialog::OnSelectRoughness()
 {
-    SelectFile(*ui->RoughnessPath, Filters::TextureFilter);
+    SelectFile(*ui->RoughnessPath, filters::TextureFilter);
 }
 
 
 void create_material_dialog::OnSelectAO()
 {
-    SelectFile(*ui->AOPath, Filters::TextureFilter);
+    SelectFile(*ui->AOPath, filters::TextureFilter);
 }
 
 
 void create_material_dialog::OnSelectShader()
 {
-    SelectFile(*ui->ShaderPath, Filters::ShaderFilter);
+    SelectFile(*ui->ShaderPath, filters::ShaderFilter);
 }
 
 

@@ -26,9 +26,11 @@ public:
     static eastl::shared_ptr<Scene> GetActiveScene();
     static void SetCurrentScene(const eastl::shared_ptr<Scene> &scene);
 
+
+
 private:
-    static eastl::shared_ptr<vgjs::JobSystem> m_JobSystemPtr;
-    static eastl::shared_ptr<Scene> m_ActiveScene;
-    inline static Path m_contentDirectory;
+    static eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr;
+    static eastl::shared_ptr<Scene> s_ActiveScene;
+    inline static Path s_contentDirectory;
 };
 } // namespace Blainn

@@ -209,9 +209,9 @@ bool MoveRecursively(const QString &targetPath, const QString &srcPath)
         return false;
     }
 
-    if (supported3DFormats.contains(srcFile.suffix()))
+    if (formats::supported3DFormats.contains(srcFile.suffix()))
     {
-        if (!QFile::rename(srcPath + "." + metaFormat, destPath + "." + metaFormat))
+        if (!QFile::rename(srcPath + "." + formats::metaFormat, destPath + "." + formats::metaFormat))
         {
             BF_ERROR("Failed to move file {0} to {1}.", ToString(srcFile.fileName()), ToString(targetPath));
             return false;
@@ -239,7 +239,7 @@ bool WasInFolderBefore(const QString &filePath, const QString &contentFolderPath
 
 import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info)
 {
-    if (supported3DFormats.contains(QFileInfo(info.originalPath).suffix().toLower()))
+    if (formats::supported3DFormats.contains(QFileInfo(info.originalPath).suffix().toLower()))
     {
         BF_INFO("Showing model dialog.");
         return new import_model_dialog(info);

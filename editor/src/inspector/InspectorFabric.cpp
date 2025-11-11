@@ -28,7 +28,7 @@ inspector_content_base *InspectorFabric::GetInspector(const QString &file)
         return GetMaterialInspector(file);
     }
 
-    if (supported3DFormats.contains(fileInfo.suffix().toLower()))
+    if (formats::supported3DFormats.contains(fileInfo.suffix().toLower()))
     {
         return GetMeshInspector(file);
     }

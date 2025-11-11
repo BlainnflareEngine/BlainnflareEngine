@@ -7,12 +7,13 @@
 #include "EASTL/string_view.h"
 #include "EASTL/unordered_map.h"
 #include "Entity.h"
+#include "SceneEvent.h"
 #include "TransformComponent.h"
 #include "aliases.h"
 #include "concurrentqueue.h"
 #include "entt/entt.hpp"
+#include "eventpp/eventqueue.h"
 #include "random.h"
-
 
 namespace Blainn
 {
@@ -24,7 +25,7 @@ public:
     Scene(const eastl::string_view &name = "UntitledScene", uuid uid = Rand::getRandomUUID(),
           bool isEditorScene = false) noexcept;
     Scene(const YAML::Node &config);
-    ~Scene() {}; // TODO: @JSrct2324 wrote here empty {} change if needed
+    ~Scene(); // TODO: @JSrct2324 wrote here empty {} change if needed
     // I'm not sure we need to copy or move scenes so if needed add these functions
     Scene(Scene &other) = delete;
     Scene &operator=(Scene &other) = delete;
@@ -52,6 +53,13 @@ public:
     }
 
     void SaveScene();
+
+    static void ProcessEvents();
+    using EventHandle =
+        eventpp::internal_::CallbackListBase<void(const eastl::shared_ptr<SceneEvent> &), SceneEventPolicy>::Handle;
+    static EventHandle AddEventListener(const SceneEventType eventType,
+                                              eastl::function<void(const SceneEventPointer &)> listener);
+    static void RemoveEventListener(const SceneEventType eventType, const EventHandle &handle);
 
     Entity CreateEntity(const eastl::string &name = "");
     Entity CreateChildEntity(Entity parent, const eastl::string &name = "");
@@ -103,6 +111,10 @@ private:
     EntityMap m_EntityIdMap;
 
     moodycamel::ConcurrentQueue<eastl::function<void()>> m_PostUpdateQueue;
+
+    inline static eventpp::EventQueue<SceneEventType, void(const SceneEventPointer &), SceneEventPolicy>
+        s_sceneEventQueue;
+
 
     /*
      *      we would hold the lights here

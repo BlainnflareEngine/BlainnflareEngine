@@ -64,8 +64,8 @@ void AddToSceneContextMenu::AddEntity(const QModelIndex &index)
     {
         auto a = Blainn::Engine::GetActiveScene();
         auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Entity");
-
-        // TODO: mb use delegate for this
+    }
+        /*// TODO: mb use delegate for this
         newIndex = m_treeView.GetSceneModel().AddNewEntity(entity);
     }
 
@@ -79,6 +79,6 @@ void AddToSceneContextMenu::AddEntity(const QModelIndex &index)
         }
 
         m_treeView.edit(newIndex);
-    }
+    }*/
 }
 } // namespace editor

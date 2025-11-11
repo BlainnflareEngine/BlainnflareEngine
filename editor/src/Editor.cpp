@@ -112,6 +112,7 @@ std::shared_ptr<editor::EditorSink<std::mutex>> Editor::GetEditorSink() const
 void Editor::CreateDefaultEditorConfig()
 {
     using namespace std::filesystem;
+    using namespace editor;
 
     create_directory(m_editorConfigFolder);
 
@@ -119,10 +120,10 @@ void Editor::CreateDefaultEditorConfig()
     create_directory(current_path() / "Content");
 
     config["ContentDirectory"] = (current_path() / "Content").string();
-    config["DefaultScenePath"] = "Scene." + editor::ToString(editor::sceneFormat);
+    config["DefaultScenePath"] = "Scene." + ToString(formats::sceneFormat);
 
     AssetManager::GetInstance().OpenScene(
-        Path(m_editorConfigFolder / ("Scene." + editor::ToString(editor::sceneFormat))));
+        Path(m_editorConfigFolder / ("Scene." + ToString(formats::sceneFormat))));
     const path configFilePath = m_editorConfigFolder / "EditorConfig.yaml";
     std::ofstream fout(configFilePath.string());
     fout << config;

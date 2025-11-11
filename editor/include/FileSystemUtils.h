@@ -25,13 +25,8 @@ struct ImportAssetInfo
     QString destinationPath;
 };
 
-inline static const QStringList supported3DFormats = {
-    "obj",
-    "gltf",
-    "glb",
-    "fbx",
-};
-
+namespace formats
+{
 inline static const QString metaFormat = "blainn";
 
 inline static const QString materialFormat = "mat";
@@ -40,14 +35,24 @@ inline static const QString scriptFormat = "lua";
 
 inline static const QString sceneFormat = "scene";
 
-namespace Filters
+inline static const QStringList supportedTextureFormats = {"png", "jpg", "dds", "jpeg", "tga", "bmp"};
+
+
+inline static const QStringList supported3DFormats = {
+    "obj",
+    "gltf",
+    "glb",
+    "fbx",
+};
+} // namespace formats
+
+
+namespace filters
 {
 inline static QString ShaderFilter = "Shaders (*.cso);;All Files (*)";
 inline static QString TextureFilter = "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)";
-} // namespace Filters
+} // namespace filters
 
-
-inline static const QStringList supportedTextureFormats = {"png", "jpg", "dds", "jpeg", "tga", "bmp"};
 
 void OpenFileExternal(const QString &filePath);
 
@@ -84,6 +89,6 @@ void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir
 
 void SetValueYAML(const std::string &path, const std::string &name, const std::string &value);
 
-void ImportAsset(const QString& src,const QString& dest,const QUrl& url);
+void ImportAsset(const QString &src, const QString &dest, const QUrl &url);
 
 } // namespace editor

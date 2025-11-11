@@ -37,7 +37,7 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
     connect(ui->BrowseShader, &QPushButton::clicked, this,
             [&]()
             {
-                SelectFile(*ui->Shader, Filters::ShaderFilter,
+                SelectFile(*ui->Shader, filters::ShaderFilter,
                            QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
                 QDir dir(Blainn::Engine::GetContentDirectory());
                 SetValueYAML(ToString(m_file), "ShaderPath", ToString(dir.relativeFilePath(ui->Shader->text())));
@@ -46,7 +46,7 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
     connect(ui->BrowseAlbedo, &QPushButton::clicked, this,
             [&]()
             {
-                SelectFile(*ui->Albedo, Filters::TextureFilter,
+                SelectFile(*ui->Albedo, filters::TextureFilter,
                            QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
                 QDir dir(Blainn::Engine::GetContentDirectory());
                 SetValueYAML(ToString(m_file), "AlbedoPath", ToString(dir.relativeFilePath(ui->Albedo->text())));
@@ -55,7 +55,7 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
     connect(ui->BrowseNormal, &QPushButton::clicked, this,
             [&]()
             {
-                SelectFile(*ui->Normal, Filters::TextureFilter,
+                SelectFile(*ui->Normal, filters::TextureFilter,
                            QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
                 QDir dir(Blainn::Engine::GetContentDirectory());
                 SetValueYAML(ToString(m_file), "NormalPath", ToString(dir.relativeFilePath(ui->Normal->text())));
@@ -64,7 +64,7 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
     connect(ui->BrowseMetallic, &QPushButton::clicked, this,
             [&]()
             {
-                SelectFile(*ui->Metallic, Filters::TextureFilter,
+                SelectFile(*ui->Metallic, filters::TextureFilter,
                            QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
                 QDir dir(Blainn::Engine::GetContentDirectory());
                 SetValueYAML(ToString(m_file), "MetallicPath", ToString(dir.relativeFilePath(ui->Metallic->text())));
@@ -73,7 +73,7 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
     connect(ui->BrowseRoughness, &QPushButton::clicked, this,
             [&]()
             {
-                SelectFile(*ui->Roughness, Filters::TextureFilter,
+                SelectFile(*ui->Roughness, filters::TextureFilter,
                            QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
                 QDir dir(Blainn::Engine::GetContentDirectory());
                 SetValueYAML(ToString(m_file), "RoughnessPath", ToString(dir.relativeFilePath(ui->Roughness->text())));
@@ -82,7 +82,7 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
     connect(ui->BrowseAO, &QPushButton::clicked, this,
             [&]()
             {
-                SelectFile(*ui->AO, Filters::TextureFilter,
+                SelectFile(*ui->AO, filters::TextureFilter,
                            QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
                 QDir dir(Blainn::Engine::GetContentDirectory());
                 SetValueYAML(ToString(m_file), "AOPath", ToString(dir.relativeFilePath(ui->AO->text())));

@@ -36,6 +36,13 @@ Scene::Scene(const YAML::Node &config)
 }
 
 
+Scene::~Scene()
+{
+    s_sceneEventQueue.process();
+    s_sceneEventQueue.clearEvents();
+}
+
+
 void Scene::SaveScene()
 {
     BF_DEBUG("Saved scene {}", m_Name.c_str());
@@ -73,6 +80,28 @@ void Scene::SaveScene()
 }
 
 
+void Scene::ProcessEvents()
+{
+    s_sceneEventQueue.process();
+}
+
+
+/**
+ * You should store EventHandle if you want to remove this listener later
+ */
+Scene::EventHandle Scene::AddEventListener(const SceneEventType eventType,
+                                           eastl::function<void(const SceneEventPointer &)> listener)
+{
+    return s_sceneEventQueue.appendListener(eventType, listener);
+}
+
+
+void Scene::RemoveEventListener(const SceneEventType eventType, const EventHandle &handle)
+{
+    s_sceneEventQueue.removeListener(eventType, handle);
+}
+
+
 Entity Scene::CreateEntity(const eastl::string &name)
 {
     BF_DEBUG("Created entity! {0}", name.c_str());
@@ -99,6 +128,8 @@ Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name)
 
     SortEntities();
 
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity));
+
     return entity;
 }
 
@@ -119,6 +150,8 @@ Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool
     m_EntityIdMap[idComponent.ID] = entity;
 
     if (shouldSort) SortEntities();
+
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity));
 
     return entity;
 }
@@ -160,6 +193,8 @@ void Scene::DestroyEntity(Entity entity, bool excludeChildren, bool first)
     m_EntityIdMap.erase(id);
 
     SortEntities();
+
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity));
 }
 
 void Scene::DestroyEntity(const uuid &entityID, bool excludeChildren, bool first)

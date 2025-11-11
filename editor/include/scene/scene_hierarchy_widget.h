@@ -6,6 +6,7 @@
 
 
 #include "context-menu/AddToSceneContextMenu.h"
+#include "scene/SceneEvent.h"
 
 
 #include <QTreeView>
@@ -34,6 +35,9 @@ public:
 
     SceneItemModel &GetSceneModel() const;
 
+    //void OnSceneChanged(const Blainn::SceneEventPointer &event);
+    void OnEntityCreated(const Blainn::SceneEventPointer &event);
+    void OnEntityDestroyed(const Blainn::SceneEventPointer &event);
 
 public slots:
 
