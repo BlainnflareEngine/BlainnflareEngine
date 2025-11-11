@@ -191,6 +191,7 @@ void AssetManager::OpenScene(const Path &path)
     else
     {
         scene["SceneName"] = path.string();
+        scene["SceneID"] = Rand::getRandomUUID().str();
         BF_DEBUG("Opening scene {0}", path.filename().string());
         std::ofstream fout(absolute_path);
         fout << scene;

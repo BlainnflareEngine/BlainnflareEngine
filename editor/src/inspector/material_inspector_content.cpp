@@ -34,59 +34,13 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
     ui->Roughness->setText(GetPathString(node["RoughnessPath"].as<std::string>()));
     ui->AO->setText(GetPathString(node["AOPath"].as<std::string>()));
 
-    connect(ui->BrowseShader, &QPushButton::clicked, this,
-            [&]()
-            {
-                SelectFile(*ui->Shader, filters::ShaderFilter,
-                           QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
-                QDir dir(Blainn::Engine::GetContentDirectory());
-                SetValueYAML(ToString(m_file), "ShaderPath", ToString(dir.relativeFilePath(ui->Shader->text())));
-            });
-
-    connect(ui->BrowseAlbedo, &QPushButton::clicked, this,
-            [&]()
-            {
-                SelectFile(*ui->Albedo, filters::TextureFilter,
-                           QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
-                QDir dir(Blainn::Engine::GetContentDirectory());
-                SetValueYAML(ToString(m_file), "AlbedoPath", ToString(dir.relativeFilePath(ui->Albedo->text())));
-            });
-
-    connect(ui->BrowseNormal, &QPushButton::clicked, this,
-            [&]()
-            {
-                SelectFile(*ui->Normal, filters::TextureFilter,
-                           QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
-                QDir dir(Blainn::Engine::GetContentDirectory());
-                SetValueYAML(ToString(m_file), "NormalPath", ToString(dir.relativeFilePath(ui->Normal->text())));
-            });
-
-    connect(ui->BrowseMetallic, &QPushButton::clicked, this,
-            [&]()
-            {
-                SelectFile(*ui->Metallic, filters::TextureFilter,
-                           QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
-                QDir dir(Blainn::Engine::GetContentDirectory());
-                SetValueYAML(ToString(m_file), "MetallicPath", ToString(dir.relativeFilePath(ui->Metallic->text())));
-            });
-
-    connect(ui->BrowseRoughness, &QPushButton::clicked, this,
-            [&]()
-            {
-                SelectFile(*ui->Roughness, filters::TextureFilter,
-                           QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
-                QDir dir(Blainn::Engine::GetContentDirectory());
-                SetValueYAML(ToString(m_file), "RoughnessPath", ToString(dir.relativeFilePath(ui->Roughness->text())));
-            });
-
-    connect(ui->BrowseAO, &QPushButton::clicked, this,
-            [&]()
-            {
-                SelectFile(*ui->AO, filters::TextureFilter,
-                           QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
-                QDir dir(Blainn::Engine::GetContentDirectory());
-                SetValueYAML(ToString(m_file), "AOPath", ToString(dir.relativeFilePath(ui->AO->text())));
-            });
+    setupFileBrowse(ui->BrowseShader, ui->Shader, "ShaderPath", "Select Shader", filters::ShaderFilter);
+    setupFileBrowse(ui->BrowseAlbedo, ui->Albedo, "AlbedoPath", "Select Albedo Texture", filters::TextureFilter);
+    setupFileBrowse(ui->BrowseNormal, ui->Normal, "NormalPath", "Select Normal Map", filters::TextureFilter);
+    setupFileBrowse(ui->BrowseMetallic, ui->Metallic, "MetallicPath", "Select Metallic Map", filters::TextureFilter);
+    setupFileBrowse(ui->BrowseRoughness, ui->Roughness, "RoughnessPath", "Select Roughness Map",
+                    filters::TextureFilter);
+    setupFileBrowse(ui->BrowseAO, ui->AO, "AOPath", "Select Ambient Occlusion Map", filters::TextureFilter);
 }
 
 material_inspector_content::~material_inspector_content()
@@ -97,8 +51,32 @@ material_inspector_content::~material_inspector_content()
 
 QString material_inspector_content::GetPathString(const std::string &path)
 {
-    if (path.empty()) return "No texture";
+    if (path.empty()) return "No resource";
 
     return QString::fromStdString(path);
+}
+
+
+void material_inspector_content::setupFileBrowse(QPushButton *button, QLabel *label, const QString &yamlKey,
+                                                 const QString &dialogTitle, const QString &filter)
+{
+    connect(button, &QPushButton::clicked, this,
+            [this, label, yamlKey, dialogTitle, filter]()
+            {
+                QString currentText = label->text();
+                QString initialDir = currentText == "No resource" || currentText.isEmpty()
+                                         ? QString::fromStdString(Blainn::Engine::GetContentDirectory().string())
+                                         : QFileInfo(currentText).absolutePath();
+
+                SelectFileAsync(this, dialogTitle, initialDir, filter,
+                                [this, label, yamlKey](const QString &selectedFile)
+                                {
+                                    QDir contentDir(Blainn::Engine::GetContentDirectory());
+                                    QString relPath = contentDir.relativeFilePath(selectedFile);
+
+                                    label->setText(relPath);
+                                    SetValueYAML(ToString(m_file), yamlKey.toStdString(), ToString(relPath));
+                                });
+            });
 }
 } // namespace editor

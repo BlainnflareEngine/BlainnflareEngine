@@ -30,6 +30,7 @@ void AddToSceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index
     QAction *editAction = nullptr;
     QAction *deleteAction = nullptr;
 
+
     if (index.isValid())
     {
         editAction = menu->addAction("Edit");

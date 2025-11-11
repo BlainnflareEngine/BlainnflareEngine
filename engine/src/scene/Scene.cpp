@@ -30,7 +30,7 @@ Scene::Scene(const YAML::Node &config)
     assert(config.IsDefined());
 
     m_Name = config["SceneName"].as<std::string>().c_str();
-
+    m_SceneID.fromStr(config["SceneID"].as<std::string>().c_str());
     BF_DEBUG(m_Name.c_str());
     // TODO: parse all entities
 }

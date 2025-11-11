@@ -109,9 +109,8 @@ void editor_main::OpenAddToScene() const
 void editor_main::OnOpenSettings()
 {
     SettingsData data = SettingsData(Blainn::Engine::GetContentDirectory());
-    eastl::unique_ptr<editor_settings> settings = eastl::make_unique<editor_settings>(data, this);
+    editor_settings* settings = new editor_settings(data, this);
     settings->show();
-    settings->exec();
 }
 
 

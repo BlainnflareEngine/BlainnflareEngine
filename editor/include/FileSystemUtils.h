@@ -86,6 +86,8 @@ eastl::string ToEASTLString(const QString &str);
 QString ToQString(const eastl::string &str);
 
 void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir = QString());
+void SelectFileAsync(QWidget *parent, const QString &title, const QString &initialDir, const QString &nameFilter,
+                     std::function<void(const QString &selectedFile)> onAccepted);
 
 void SetValueYAML(const std::string &path, const std::string &name, const std::string &value);
 

@@ -26,8 +26,6 @@ public:
     static eastl::shared_ptr<Scene> GetActiveScene();
     static void SetCurrentScene(const eastl::shared_ptr<Scene> &scene);
 
-
-
 private:
     static eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr;
     static eastl::shared_ptr<Scene> s_ActiveScene;

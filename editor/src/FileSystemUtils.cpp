@@ -267,6 +267,9 @@ QString ToQString(const eastl::string &str)
 }
 
 
+/**
+ * This is depricated func, you should use SelectFileAsync instead
+ */
 void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir)
 {
     QString fileName = QFileDialog::getOpenFileName(
@@ -282,6 +285,31 @@ void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir
         label.setText(dir.relativeFilePath(fileName));
     }
 }
+
+
+void SelectFileAsync(QWidget *parent, const QString &title, const QString &initialDir, const QString &nameFilter,
+                     std::function<void(const QString &selectedFile)> onAccepted)
+{
+    QFileDialog *dialog = new QFileDialog(parent);
+    dialog->setWindowTitle(title);
+    dialog->setFileMode(QFileDialog::ExistingFile);
+    dialog->setNameFilter(nameFilter);
+    dialog->setDirectory(initialDir);
+
+    QObject::connect(dialog, &QFileDialog::finished, dialog,
+                     [dialog, onAccepted](int result)
+                     {
+                         if (result == QDialog::Accepted && !dialog->selectedFiles().isEmpty())
+                         {
+                             QString filePath = dialog->selectedFiles().first();
+                             if (onAccepted) onAccepted(filePath);
+                         }
+                         dialog->deleteLater();
+                     });
+
+    dialog->open();
+}
+
 
 void SetValueYAML(const std::string &path, const std::string &name, const std::string &value)
 {
