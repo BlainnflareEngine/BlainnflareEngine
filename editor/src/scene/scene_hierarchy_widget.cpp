@@ -115,4 +115,29 @@ void scene_hierarchy_widget::OnItemDataChanged(const QModelIndex &topLeft, const
 }
 
 
+void scene_hierarchy_widget::keyPressEvent(QKeyEvent *event)
+{
+    const auto currentIndex = this->currentIndex();
+
+    if (currentIndex.isValid())
+    {
+        if (event->key() == Qt::Key_Delete)
+        {
+            BF_DEBUG("Deleting entity via Delete key");
+
+            event->accept();
+            return;
+        }
+        else if (event->key() == Qt::Key_F2)
+        {
+            edit(currentIndex);
+            event->accept();
+            return;
+        }
+    }
+
+    QTreeView::keyPressEvent(event);
+}
+
+
 } // namespace editor

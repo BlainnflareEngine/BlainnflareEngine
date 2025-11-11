@@ -6,6 +6,7 @@
 #include "../content-browser/folder-content/ContentFilterProxyModel.h"
 
 
+#include <QKeyEvent>
 #include <QObject>
 
 

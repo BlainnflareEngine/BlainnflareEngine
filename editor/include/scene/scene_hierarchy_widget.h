@@ -35,7 +35,7 @@ public:
 
     SceneItemModel &GetSceneModel() const;
 
-    //void OnSceneChanged(const Blainn::SceneEventPointer &event);
+    // void OnSceneChanged(const Blainn::SceneEventPointer &event);
     void OnEntityCreated(const Blainn::SceneEventPointer &event);
     void OnEntityDestroyed(const Blainn::SceneEventPointer &event);
 
@@ -43,6 +43,8 @@ public slots:
 
     void OnItemDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
 
+protected:
+    void keyPressEvent(QKeyEvent *event) override;
 
 private:
     Ui::scene_hierarchy_widget *ui;
