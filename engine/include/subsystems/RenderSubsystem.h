@@ -5,6 +5,7 @@
 #include "Render/DXHelpers.h"
 #include "Render/Camera.h"
 
+
 namespace Blainn
 {
     class Renderer;
@@ -120,91 +121,62 @@ namespace Blainn
 
     private:
         static inline bool m_isInitialized = false;
+        bool m_useWarpDevice = false;
 
-        uint32_t m_width;
-        uint32_t m_height;
+        static inline const uint32_t SwapChainFrameCount = 2u;
+        static inline const DXGI_FORMAT BackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+        static inline const DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
-        float m_aspectRatio;
+        bool m_appPaused = false;        // is the application paused ?
+        bool m_minimized = false;        // is the application minimized ?
+        bool m_maximized = false;        // is the application maximized ?
+        bool m_resizing = false;         // are the resize bars being dragged ?
+        bool m_fullscreenState = false;  // fullscreen enabled
+        bool m_isWireframe = false;      // Fill mode
+        bool m_is4xMsaaState = false;
+        UINT m_4xMsaaQuality = 0u;
+
+        // Pipeline objects.
+        ComPtr<IDXGIFactory4> m_factory;
+        ComPtr<IDXGISwapChain3> m_swapChain;
+        ComPtr<ID3D12Device> m_device;
+        ComPtr<IDXGIAdapter1> m_hardwareAdapter;
+
+        eastl::unique_ptr<Renderer> m_renderer = nullptr;
+
+        ComPtr<ID3D12CommandQueue> m_commandQueue;
+        ComPtr<ID3D12CommandAllocator> m_commandAllocators[SwapChainFrameCount];
+        ComPtr<ID3D12GraphicsCommandList> m_commandList;
+
+        ComPtr<ID3D12Resource> m_renderTargets[SwapChainFrameCount];
+        ComPtr<ID3D12Resource> m_depthStencilBuffer;
+
+        // Synchronization objects.
+        UINT m_frameIndex = 0u; // keep track of front and back buffers (see SwapChainFrameCount)
+        ComPtr<ID3D12Fence> m_fence;
+        HANDLE m_fenceEvent;
+        UINT64 m_fenceValues[SwapChainFrameCount];
         
-        std::vector<std::unique_ptr<FrameResource>> m_frameResources;
-        FrameResource* m_currFrameResource = nullptr;
-        int m_currFrameResourceIndex = 0;
-
-        UINT m_passCbvOffset = 0;
-
-        float m_sunPhi = XM_PIDIV4;
-        float m_sunTheta = 1.25f * XM_PI;
+        ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
+        ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
+        ComPtr<ID3D12DescriptorHeap> m_cbvHeap;
         
-        ComPtr<ID3D12RootSignature> m_rootSignature;
+        UINT m_rtvDescriptorSize;       // see m_rtvHeap
+        UINT m_dsvDescriptorSize;       // see m_dsvHeap
+        UINT m_cbvSrvUavDescriptorSize; // see m_cbvHeap
 
-        ComPtr<ID3D12DescriptorHeap> m_cbvHeap; // Heap for constant buffer views
-        ComPtr<ID3D12DescriptorHeap> m_srvHeap; // Heap for textures
-    
-        std::unordered_map<EShaderType, ComPtr<ID3DBlob>> m_shaders;
-        std::unordered_map<EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
-
-        ObjectConstants m_perObjectCBData;
-        PassConstants m_shadowPassCBData;
-        PassConstants m_geometryPassCBData;
-        PassConstants m_mainPassCBData; // deferred color(light) pass
-        //PassConstants m_lightingPassCBData;
-        MaterialData m_perMaterialSBData;
-        // InstanceData m_perInstanceSBData;
-
-        // std::unordered_map<std::string, std::unique_ptr<MeshGeometry>> m_geometries;
-        // std::unordered_map<std::string, std::unique_ptr<Material>> m_materials;
-        // std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
-
-        // std::vector<std::unique_ptr<RenderItem>> m_renderItems;
-        // std::vector<std::unique_ptr<RenderItem>> m_pointLights;
-        // std::vector<RenderItem*> m_opaqueItems;
-
-        eastl::unique_ptr<Camera> m_camera;
-        // std::unique_ptr<ShadowMap> m_cascadeShadowMap;
-
-        // std::unique_ptr<MeshGeometry> m_fullQuad;
-
-    #pragma region DeferredRendering
-        // std::unique_ptr<GBuffer> m_GBuffer;
-
-        CD3DX12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowSrv;
-        CD3DX12_GPU_DESCRIPTOR_HANDLE m_GBufferTexturesSrv;
-        float m_shadowCascadeLevels[MaxCascades] = { 0.0f, 0.0f, 0.0f, 0.0f };
+        D3D12_VIEWPORT m_viewport;
+        D3D12_RECT m_scissorRect;
 
     private:
-        VOID LoadPipeline();
-        VOID Reset();
-        VOID CreateRtvAndDsvDescriptorHeaps();
-        
-        VOID LoadAssets();
-        VOID CreateRootSignature();
-        VOID CreateShaders();
-        VOID CreatePSO();
-        
-        VOID LoadScene();
-        VOID LoadTextures();
-        // Shapes
-        VOID CreateGeometry();
-        // Propertirs of shapes' surfaces to model light interaction
-        VOID CreateGeometryMaterials();
-        // Shapes could constist of some items to render
-        VOID CreateSceneObjects();
-        VOID CreateRenderItems();
-        VOID CreatePointLights();
-        VOID CreateFrameResources();
-        // Heaps are created if there are root descriptor tables in root signature 
-        VOID CreateDescriptorHeaps();
+        D3D12_CPU_DESCRIPTOR_HANDLE GetRTV()
+        {
+            return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_frameIndex, m_rtvDescriptorSize);
+        }
 
-        VOID PopulateCommandList();
-        VOID MoveToNextFrame();
-
-        std::array<const CD3DX12_STATIC_SAMPLER_DESC, 5> GetStaticSamplers();
-
-        std::pair<XMMATRIX, XMMATRIX> GetLightSpaceMatrix(const float nearPlane, const float farPlane);
-        // Doubt that't a good idea to return vector of matrices. Should rather pass vector as a parameter probalby and fill it inside function.
-        void GetLightSpaceMatrices(std::vector<std::pair<XMMATRIX, XMMATRIX>>& outMatrices);
-        void CreateShadowCascadeSplits();
-
-        std::vector<XMVECTOR> GetFrustumCornersWorldSpace(const XMMATRIX& view, const XMMATRIX& projection);
+        D3D12_CPU_DESCRIPTOR_HANDLE GetDSV()
+        {
+            return m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
+        }    
     };
 } // namespace Blainn
