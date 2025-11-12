@@ -4,15 +4,20 @@
 
 #pragma once
 
-#include "ContentFilterProxyModel.h"
+#include "FileSystemUtils.h"
 #include "scene/Entity.h"
 
 
 #include <QList>
-#include <QString>
 
-struct EntityNode
+namespace editor
 {
+struct EntityNode : QObject
+{
+private:
+    Q_OBJECT
+
+public:
     EntityNode(const Blainn::Entity &entity, EntityNode *parent = nullptr)
         : m_parent(parent)
         , m_entity(entity)
@@ -29,14 +34,18 @@ struct EntityNode
 
     void SetName(const QString &newName)
     {
-        name = newName;
-        // TODO: update entity name in engine
+        m_tag = newName;
+
+        emit OnTagChanged(m_tag);
+
+        if (m_entity && m_entity.HasComponent<Blainn::TagComponent>())
+            m_entity.GetComponent<Blainn::TagComponent>().Tag = ToEASTLString(newName);
     }
 
 
     const QString &GetName() const
     {
-        return name;
+        return m_tag;
     }
 
 
@@ -48,7 +57,11 @@ struct EntityNode
         return m_entity;
     }
 
+signals:
+    void OnTagChanged(const QString &newTag);
+
 private:
-    QString name;
+    QString m_tag;
     Blainn::Entity m_entity;
 };
+} // namespace editor

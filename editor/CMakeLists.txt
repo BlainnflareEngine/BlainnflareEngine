@@ -108,6 +108,9 @@ set(EDITOR_SOURCES
         include/scene/EntityDelegate.h
         src/TexturePreviewAsyncLoader.cpp
         include/TexturePreviewAsyncLoader.h
+        src/inspector/entity_inspector_content.cpp
+        include/inspector/entity_inspector_content.h
+        include/inspector/EntityInspectorData.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

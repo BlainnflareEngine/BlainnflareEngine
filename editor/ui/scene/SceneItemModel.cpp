@@ -187,7 +187,7 @@ Qt::ItemFlags editor::SceneItemModel::flags(const QModelIndex &index) const
 }
 
 
-EntityNode *editor::SceneItemModel::GetNodeFromIndex(const QModelIndex &index)
+editor::EntityNode *editor::SceneItemModel::GetNodeFromIndex(const QModelIndex &index)
 {
     if (index.isValid()) return static_cast<EntityNode *>(index.internalPointer());
 

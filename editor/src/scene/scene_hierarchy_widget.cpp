@@ -5,9 +5,11 @@
 
 #include "scene_hierarchy_widget.h"
 
+#include "Editor.h"
 #include "Engine.h"
 #include "EntityDelegate.h"
 #include "FileSystemUtils.h"
+#include "InspectorFabric.h"
 #include "SceneItemModel.h"
 #include "context-menu/AddToSceneContextMenu.h"
 #include "ui_scene_hierarchy_widget.h"
@@ -33,6 +35,8 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
 
     connect(m_sceneModel, &QAbstractItemModel::dataChanged, this, &scene_hierarchy_widget::OnItemDataChanged);
 
+    connect(this->selectionModel(), &QItemSelectionModel::selectionChanged, this,
+            &scene_hierarchy_widget::OnSelectionChanged);
 
     Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityCreated,
                                     [this](const Blainn::SceneEventPointer &event) { this->OnEntityCreated(event); });
@@ -121,16 +125,25 @@ void scene_hierarchy_widget::OnItemDataChanged(const QModelIndex &topLeft, const
     if (EntityNode *node = SceneItemModel::GetNodeFromIndex(topLeft))
     {
         node->SetName(newName);
-
-        Blainn::Entity entity = node->GetEntity();
-        if (entity && entity.HasComponent<Blainn::TagComponent>())
-        {
-            auto &tagComponent = entity.GetComponent<Blainn::TagComponent>();
-            tagComponent.Tag = ToEASTLString(newName);
-        }
-
-        BF_DEBUG("Entity {0} renamed to: {1}", entity.GetUUID().str(), ToString(newName));
     }
+}
+
+
+void scene_hierarchy_widget::OnSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
+{
+    QModelIndexList selectedIndexes = selected.indexes();
+
+    if (selectedIndexes.isEmpty()) return;
+
+    auto entity = SceneItemModel::GetNodeFromIndex(selectedIndexes.first());
+
+    InspectorFabric fabric;
+    EntityInspectorData data;
+    data.tag = entity->GetName();
+    data.node = entity;
+
+    auto inspector = fabric.GetEntityInspector(data);
+    Blainn::Editor::GetInstance().GetInspector().SetItem(inspector);
 }
 
 

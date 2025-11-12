@@ -25,7 +25,8 @@ public:
     Scene(const eastl::string_view &name = "UntitledScene", uuid uid = Rand::getRandomUUID(),
           bool isEditorScene = false) noexcept;
     Scene(const YAML::Node &config);
-    ~Scene(); // TODO: @JSrct2324 wrote here empty {} change if needed
+    ~Scene();
+    
     // I'm not sure we need to copy or move scenes so if needed add these functions
     Scene(Scene &other) = delete;
     Scene &operator=(Scene &other) = delete;
@@ -58,7 +59,7 @@ public:
     using EventHandle =
         eventpp::internal_::CallbackListBase<void(const eastl::shared_ptr<SceneEvent> &), SceneEventPolicy>::Handle;
     static EventHandle AddEventListener(const SceneEventType eventType,
-                                              eastl::function<void(const SceneEventPointer &)> listener);
+                                        eastl::function<void(const SceneEventPointer &)> listener);
     static void RemoveEventListener(const SceneEventType eventType, const EventHandle &handle);
 
     Entity CreateEntity(const eastl::string &name = "");
@@ -110,7 +111,7 @@ private:
 
     EntityMap m_EntityIdMap;
 
-     inline static moodycamel::ConcurrentQueue<eastl::function<void()>> s_postUpdateQueue;
+    inline static moodycamel::ConcurrentQueue<eastl::function<void()>> s_postUpdateQueue;
 
     inline static eventpp::EventQueue<SceneEventType, void(const SceneEventPointer &), SceneEventPolicy>
         s_sceneEventQueue;

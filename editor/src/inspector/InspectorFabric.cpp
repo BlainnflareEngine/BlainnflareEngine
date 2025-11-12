@@ -54,4 +54,13 @@ mesh_inspector_content *InspectorFabric::GetMeshInspector(const QString &file)
     inspector->adjustSize();
     return inspector;
 }
+
+
+entity_inspector_content *InspectorFabric::GetEntityInspector(const EntityInspectorData &data)
+{
+    auto inspector = new entity_inspector_content(data);
+    inspector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    inspector->adjustSize();
+    return inspector;
+}
 } // namespace editor

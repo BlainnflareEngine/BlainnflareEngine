@@ -43,6 +43,8 @@ public slots:
 
     void OnItemDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
 
+    void OnSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+
 protected:
     void keyPressEvent(QKeyEvent *event) override;
 
