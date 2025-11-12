@@ -15,6 +15,8 @@ void Blainn::RenderSubsystem::Init(HWND window)
     if (m_isInitialized) return;
     BF_INFO("RenderSubsystem::Init()");
     
+    m_hWND = window;
+
     RECT rect;
     GetClientRect(window, &rect);
 

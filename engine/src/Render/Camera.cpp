@@ -1,5 +1,5 @@
 #include "Render/Camera.h"
-#include "Render/MathHelper.h"
+#include "Render/FreyaMath.h"
 
 Blainn::Camera::Camera()
 	: m_nearZ(1.0f)

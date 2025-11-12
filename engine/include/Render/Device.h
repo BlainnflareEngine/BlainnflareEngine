@@ -8,6 +8,8 @@ struct ID3D12Device4;
 struct IDXGIFactory4;
 struct IDXGIAdapter1;
 
+using namespace Microsoft::WRL;
+
 namespace Blainn
 {
     class CommandQueue;

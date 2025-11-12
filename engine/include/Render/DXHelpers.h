@@ -4,8 +4,11 @@
 #include <dxgi.h>
 #include <dxgi1_4.h>
 #include <dxgi1_6.h>
+
 #include "DirectXTK12/Src/d3dx12.h"
+#include "d3dcompiler.h"
 #include "DirectXCollision.h"
+
 #include "FreyaCoreTypes.h"
 
 #include <EASTL/shared_ptr.h>

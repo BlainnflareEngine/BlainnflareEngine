@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Render/DXHelpers.h"
+#include "Render/FreyaUtil.h"
+
+using namespace Microsoft::WRL;
 
 namespace Blainn{
 
@@ -14,15 +16,18 @@ namespace Blainn{
         {
             m_elementByteSize = sizeof(T);
 
-            if (isConstantBuffer) m_elementByteSize = ScaldUtil::CalcConstantBufferByteSize(sizeof(T));
+            if (isConstantBuffer) m_elementByteSize = FreyaUtil::CalcConstantBufferByteSize(sizeof(T));
             
+            auto uploadHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+            auto buffer = CD3DX12_RESOURCE_DESC::Buffer(m_elementByteSize * elementCount);
+
             ThrowIfFailed(device->CreateCommittedResource(
-                &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+                &uploadHeap,
                 D3D12_HEAP_FLAG_NONE,
-			&CD3DX12_RESOURCE_DESC::Buffer(m_elementByteSize * elementCount),
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&m_uploadBuffer)));
+			    &buffer,
+			    D3D12_RESOURCE_STATE_GENERIC_READ,
+			    nullptr,
+			    IID_PPV_ARGS(&m_uploadBuffer)));
 
             ThrowIfFailed(m_uploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&m_mappedData)));
         }

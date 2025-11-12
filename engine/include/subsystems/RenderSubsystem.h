@@ -13,19 +13,6 @@ namespace Blainn
 
     class RenderSubsystem
     {
-    private:
-        RenderSubsystem() = default; 
-        RenderSubsystem(const RenderSubsystem&) = delete;
-        RenderSubsystem& operator=(const RenderSubsystem&) = delete; 
-        RenderSubsystem(const RenderSubsystem&&) = delete;
-        RenderSubsystem& operator=(const RenderSubsystem&&) = delete; 
-    public:
-        static RenderSubsystem &GetInstance();
-
-        void Init(HWND windowHandle);
-        void Render(float deltaTime);
-        void Destroy();
-        
     public:
         enum ERootParameter : UINT
         {
@@ -78,12 +65,48 @@ namespace Blainn
             NumShaders = 11U
         };
 
+    private:
+        RenderSubsystem() = default; 
+        RenderSubsystem(const RenderSubsystem&) = delete;
+        RenderSubsystem& operator=(const RenderSubsystem&) = delete; 
+        RenderSubsystem(const RenderSubsystem&&) = delete;
+        RenderSubsystem& operator=(const RenderSubsystem&&) = delete; 
+    public:
+        static RenderSubsystem &GetInstance();
+
+        void Init(HWND windowHandle);
+        void Render(float deltaTime);
+        void Destroy();
+        
+    private:
+        void InitializeD3D();
+
+#pragma region BoilerplateD3D12
+        VOID CreateDebugLayer();
+        VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter = false);
+        VOID SetCustomWindowText(LPCWSTR text) const;
+        VOID CreateDevice();
+        VOID CreateCommandObjects();
+        VOID CreateFence();
+        VOID CreateRtvAndDsvDescriptorHeaps();
+        VOID CreateSwapChain();
+        VOID WaitForGPU();
+        VOID MoveToNextFrame();
+        VOID Reset();
+#pragma endregion BoilerplateD3D12
+    
+        void LoadPipeline();
+
+        void CreateRootSignature();
+        void CreateShaders();
+
+        void OnResize(UINT newWidth, UINT newHeight);
     public:
         // Engine(UINT width, UINT height, const std::wstring& name, const std::wstring& className);
 
-        virtual void OnUpdate(float deltaTime);
-        virtual void OnRender(float deltaTime);
-        virtual void OnDestroy();
+        // virtual void OnUpdate(float deltaTime);
+        // virtual void OnRender(float deltaTime);
+        // virtual void OnDestroy();
 
         // virtual void OnMouseDown(WPARAM btnState, int x, int y) override;
         // virtual void OnMouseUp(WPARAM btnState, int x, int y) override;
@@ -120,6 +143,14 @@ namespace Blainn
         void DrawQuad(ID3D12GraphicsCommandList* cmdList);
 
     private:
+        UINT m_dxgiFactoryFlags = 0u;
+        
+        UINT m_width;
+        UINT m_height;
+        float aspectRatio;
+        
+        HWND m_hWND;
+
         static inline bool m_isInitialized = false;
         bool m_useWarpDevice = false;
 

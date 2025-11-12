@@ -5,20 +5,24 @@ ComPtr<ID3D12Resource> Blainn::FreyaUtil::CreateDefaultBuffer(ID3D12Device* devi
     {
         ComPtr<ID3D12Resource> defaultBuffer;
 
+        auto defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+        auto buffer = CD3DX12_RESOURCE_DESC::Buffer(byteSize);
         // Create the actual default buffer resource
         ThrowIfFailed(device->CreateCommittedResource(
-            &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+            &defaultHeap,
             D3D12_HEAP_FLAG_NONE,
-            &CD3DX12_RESOURCE_DESC::Buffer(byteSize),
+            &buffer,
             D3D12_RESOURCE_STATE_COMMON,
             nullptr,
             IID_PPV_ARGS(defaultBuffer.GetAddressOf())));
 
+
+        auto uploadHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         // In order to copy CPU memory data into out default buffer, we need to create an intermediate upload heap
         ThrowIfFailed(device->CreateCommittedResource(
-            &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+            &uploadHeap,
             D3D12_HEAP_FLAG_NONE,
-            &CD3DX12_RESOURCE_DESC::Buffer(byteSize),
+            &buffer,
             D3D12_RESOURCE_STATE_GENERIC_READ,
             nullptr,
             IID_PPV_ARGS(uploadBuffer.GetAddressOf())));
@@ -29,11 +33,13 @@ ComPtr<ID3D12Resource> Blainn::FreyaUtil::CreateDefaultBuffer(ID3D12Device* devi
         subResourceData.RowPitch = byteSize;                    // For buffers the size of the data we are copying in bytes.
         subResourceData.SlicePitch = subResourceData.RowPitch;  // For buffers the size of the data we are copying in bytes.
 
+        auto transition = CD3DX12_RESOURCE_BARRIER::Transition(defaultBuffer.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
         // Schedule to copy the data to the default buffer resource. At a high level, the helper function UpdateSubresources will copy the CPU memory
         // into the intermediate upload heap. Then, using ID3D12CommandList::CopySubresourceRegion, the intermediate upload heap data will be copied to mBuffer.
-        cmdList->ResourceBarrier(1u, &CD3DX12_RESOURCE_BARRIER::Transition(defaultBuffer.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST));
+        cmdList->ResourceBarrier(1u, &transition);
         UpdateSubresources<1>(cmdList, defaultBuffer.Get(), uploadBuffer.Get(), 0, 0u, 1u, &subResourceData);
-        cmdList->ResourceBarrier(1u, &CD3DX12_RESOURCE_BARRIER::Transition(defaultBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ));
+        transition = CD3DX12_RESOURCE_BARRIER::Transition(defaultBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ);
+        cmdList->ResourceBarrier(1u, &transition);
 
         // Note: uploadBuffer has to be kept alive after the above function calls because the command list has not been executed yet that performs the actual copy.
         // The caller can Release the uploadBuffer after it knows the copy has been executed.
