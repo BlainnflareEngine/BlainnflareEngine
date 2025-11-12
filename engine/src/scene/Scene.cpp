@@ -39,7 +39,7 @@ Scene::Scene(const YAML::Node &config)
 Scene::~Scene()
 {
     eastl::function<void()> fn;
-    while (m_PostUpdateQueue.try_dequeue(fn))
+    while (s_postUpdateQueue.try_dequeue(fn))
     {
         fn();
     }
@@ -89,7 +89,7 @@ void Scene::SaveScene()
 void Scene::ProcessEvents()
 {
     eastl::function<void()> fn;
-    while (m_PostUpdateQueue.try_dequeue(fn))
+    while (s_postUpdateQueue.try_dequeue(fn))
     {
         fn();
     }

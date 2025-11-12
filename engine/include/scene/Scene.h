@@ -96,7 +96,7 @@ private:
 
     template <typename Fn> void SubmitPostUpdateFunc(Fn &&func)
     {
-        m_PostUpdateQueue.enqueue(func);
+        s_postUpdateQueue.enqueue(func);
     }
 
 private:
@@ -110,7 +110,7 @@ private:
 
     EntityMap m_EntityIdMap;
 
-     inline static moodycamel::ConcurrentQueue<eastl::function<void()>> m_PostUpdateQueue;
+     inline static moodycamel::ConcurrentQueue<eastl::function<void()>> s_postUpdateQueue;
 
     inline static eventpp::EventQueue<SceneEventType, void(const SceneEventPointer &), SceneEventPolicy>
         s_sceneEventQueue;
