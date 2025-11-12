@@ -30,14 +30,20 @@ set(ENGINE_SOURCES
         include/Render/Device.h
         include/Render/DXHelpers.h
         include/Render/FreyaCoreTypes.h
-        include/Render/MathHelper.h
+        include/Render/FreyaUtil.h
+        include/Render/FreyaMath.h
         include/Render/PSO.h
         include/Render/RootSignature.h
         include/Render/Shader.h
         include/Render/FrameResource.h
+        include/Render/UploadBuffer.h
+        include/Render/Camera.h
         src/Render/Renderer.cpp
         src/Render/CommandQueue.cpp
         src/Render/Device.cpp
+        src/Render/FreyaUtil.cpp
+        src/Render/FrameResource.cpp
+        src/Render/Camera.cpp
         include/scene/Scene.h
         src/scene/Scene.cpp
         include/scene/Entity.h

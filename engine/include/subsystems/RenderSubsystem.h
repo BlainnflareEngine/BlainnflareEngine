@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include "Render/FrameResource.h"
 #include "Render/DXHelpers.h"
+#include "Render/Camera.h"
 
 namespace Blainn
 {
@@ -19,6 +20,7 @@ namespace Blainn
         RenderSubsystem& operator=(const RenderSubsystem&&) = delete; 
     public:
         static RenderSubsystem &GetInstance();
+
         void Init(HWND windowHandle);
         void Render(float deltaTime);
         void Destroy();
@@ -117,6 +119,13 @@ namespace Blainn
         void DrawQuad(ID3D12GraphicsCommandList* cmdList);
 
     private:
+        static inline bool m_isInitialized = false;
+
+        uint32_t m_width;
+        uint32_t m_height;
+
+        float m_aspectRatio;
+        
         std::vector<std::unique_ptr<FrameResource>> m_frameResources;
         FrameResource* m_currFrameResource = nullptr;
         int m_currFrameResourceIndex = 0;
@@ -150,7 +159,7 @@ namespace Blainn
         // std::vector<std::unique_ptr<RenderItem>> m_pointLights;
         // std::vector<RenderItem*> m_opaqueItems;
 
-        // std::unique_ptr<Camera> m_camera;
+        eastl::unique_ptr<Camera> m_camera;
         // std::unique_ptr<ShadowMap> m_cascadeShadowMap;
 
         // std::unique_ptr<MeshGeometry> m_fullQuad;

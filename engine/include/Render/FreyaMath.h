@@ -2,7 +2,7 @@
 
 namespace Blainn
 {
-    class MathHelper
+    class FreyaMath
     {
     public:
         template<typename T>
@@ -22,5 +22,11 @@ namespace Blainn
         {
 	        return Min(Max(value, min), max);
         }
+
+        static inline const XMVECTOR ForwardVector = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+        static inline const XMVECTOR RightVector = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+        static inline const XMVECTOR UpVector = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+        static inline const XMVECTOR ZeroVector = XMVectorZero();
+        static inline const XMVECTOR One = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
     };
 }
