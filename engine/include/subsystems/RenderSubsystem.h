@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Windows.h>
+#include "Render/FrameResource.h"
 #include "Render/DXHelpers.h"
-#include <EASTL/unique_ptr.h>
 
 namespace Blainn
 {
@@ -23,53 +23,179 @@ namespace Blainn
         void Render(float deltaTime);
         void Destroy();
         
+    public:
+        enum ERootParameter : UINT
+        {
+            PerObjectDataCB = 0,
+            PerPassDataCB,
+            MaterialDataSB,
+            PointLightsDataSB,
+            SpotLightsDataSB,
+            CascadedShadowMaps,
+            Textures,
+            GBufferTextures,
+
+            NumRootParameters = 8u
+        };
+
+        enum EPsoType : UINT
+        {
+            Opaque = 0,
+            WireframeOpaque,
+            Transparency,
+            CascadedShadowsOpaque,
+
+            DeferredGeometry,
+            DeferredDirectional,
+
+            DeferredPointWithinFrustum,
+            DeferredPointIntersectsFarPlane,
+            DeferredPointFullQuad,
+            
+            DeferredSpot,
+            
+            NumPipelineStates = 10u
+        };
+
+        enum EShaderType : UINT
+        {
+            DefaultVS = 0,
+            DefaultOpaquePS,
+            CascadedShadowsVS,
+            CascadedShadowsGS,
+
+            DeferredGeometryVS,
+            DeferredGeometryPS,
+            DeferredDirVS,
+            DeferredDirPS,
+            DeferredLightVolumesVS,
+            DeferredPointPS,
+            DeferredSpotPS,
+
+            NumShaders = 11U
+        };
+
+    public:
+        // Engine(UINT width, UINT height, const std::wstring& name, const std::wstring& className);
+
+        virtual void OnUpdate(float deltaTime);
+        virtual void OnRender(float deltaTime);
+        virtual void OnDestroy();
+
+        // virtual void OnMouseDown(WPARAM btnState, int x, int y) override;
+        // virtual void OnMouseUp(WPARAM btnState, int x, int y) override;
+        // virtual void OnMouseMove(WPARAM btnState, int x, int y) override;
+        // virtual void OnKeyDown(UINT8 key) override;
+        // virtual void OnKeyUp(UINT8 key) override;
+
     private:
-        void CreateDeviceResources();
-        void CreateSwapChain();
-        void CreateFence();
-        void WaitForGPU();
-        void MoveToNextFrame();
-        
-        static void LoadPipeline();
-
-        static void CreateRootSignature();
-        static void CreateShaders();
-
-        static void OnResize(UINT newWidth, UINT newHeight);
-        static void Reset();
+        void OnKeyboardInput(float deltaTime);
+        void UpdateObjectsCB(float deltaTime);
+        void UpdateMaterialBuffer(float deltaTime);
+        void UpdateLightsBuffer(float deltaTime);
+        void UpdateShadowTransform(float deltaTime);
+        void UpdateShadowPassCB(float deltaTime);
+        void UpdateGeometryPassCB(float deltaTime);
+        void UpdateMainPassCB(float deltaTime);
         
     private:
-        HWND m_hWND;
-        static inline bool m_isInitialized = false;
+    #pragma region Shadows
+        void RenderDepthOnlyPass();
+    #pragma endregion Shadows
+    #pragma region DeferredShading
+        void RenderGeometryPass();
+        void RenderLightingPass();
+        void RenderTransparencyPass();
 
-        static inline const uint32_t SwapChainFrameCount = 2u;
-        static inline const DXGI_FORMAT BackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-        static inline const DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+        void DeferredDirectionalLightPass();
+        void DeferredPointLightPass();
+        void DeferredSpotLightPass();
+    #pragma endregion DeferredShading
 
-        eastl::unique_ptr<Renderer> m_renderer = nullptr;
-        eastl::shared_ptr<Device> m_device = nullptr;
-        ComPtr<IDXGISwapChain3> m_swapChain;
+        // void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, std::vector<std::unique_ptr<RenderItem>>& renderItems);
+        // void DrawInstancedRenderItems(ID3D12GraphicsCommandList* cmdList, std::vector<std::unique_ptr<RenderItem>>& renderItems);
+        void DrawQuad(ID3D12GraphicsCommandList* cmdList);
 
-        // Synchronization objects.
-        UINT m_frameIndex = 0u; // keep track of front and back buffers (see SwapChainFrameCount)
-        ComPtr<ID3D12Fence> m_fence;
-        HANDLE m_fenceEvent;
-        UINT64 m_fenceValues[SwapChainFrameCount];
+    private:
+        std::vector<std::unique_ptr<FrameResource>> m_frameResources;
+        FrameResource* m_currFrameResource = nullptr;
+        int m_currFrameResourceIndex = 0;
+
+        UINT m_passCbvOffset = 0;
+
+        float m_sunPhi = XM_PIDIV4;
+        float m_sunTheta = 1.25f * XM_PI;
         
-        UINT m_width = 0u;
-        UINT m_height = 0u;
+        ComPtr<ID3D12RootSignature> m_rootSignature;
 
-        float m_aspectRatio;
+        ComPtr<ID3D12DescriptorHeap> m_cbvHeap; // Heap for constant buffer views
+        ComPtr<ID3D12DescriptorHeap> m_srvHeap; // Heap for textures
+    
+        std::unordered_map<EShaderType, ComPtr<ID3DBlob>> m_shaders;
+        std::unordered_map<EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
 
-        UINT m_rtvDescriptorSize;       // see m_rtvHeap
-        UINT m_dsvDescriptorSize;       // see m_dsvHeap
-        UINT m_cbvSrvUavDescriptorSize; // see m_cbvHeap
+        ObjectConstants m_perObjectCBData;
+        PassConstants m_shadowPassCBData;
+        PassConstants m_geometryPassCBData;
+        PassConstants m_mainPassCBData; // deferred color(light) pass
+        //PassConstants m_lightingPassCBData;
+        MaterialData m_perMaterialSBData;
+        // InstanceData m_perInstanceSBData;
 
-        ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
-        ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
-        ComPtr<ID3D12DescriptorHeap> m_cbvHeap;
+        // std::unordered_map<std::string, std::unique_ptr<MeshGeometry>> m_geometries;
+        // std::unordered_map<std::string, std::unique_ptr<Material>> m_materials;
+        // std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
 
-        D3D12_VIEWPORT m_viewport;
-        D3D12_RECT m_scissorRect;
+        // std::vector<std::unique_ptr<RenderItem>> m_renderItems;
+        // std::vector<std::unique_ptr<RenderItem>> m_pointLights;
+        // std::vector<RenderItem*> m_opaqueItems;
+
+        // std::unique_ptr<Camera> m_camera;
+        // std::unique_ptr<ShadowMap> m_cascadeShadowMap;
+
+        // std::unique_ptr<MeshGeometry> m_fullQuad;
+
+    #pragma region DeferredRendering
+        // std::unique_ptr<GBuffer> m_GBuffer;
+
+        CD3DX12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowSrv;
+        CD3DX12_GPU_DESCRIPTOR_HANDLE m_GBufferTexturesSrv;
+        float m_shadowCascadeLevels[MaxCascades] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+    private:
+        VOID LoadPipeline();
+        VOID Reset();
+        VOID CreateRtvAndDsvDescriptorHeaps();
+        
+        VOID LoadAssets();
+        VOID CreateRootSignature();
+        VOID CreateShaders();
+        VOID CreatePSO();
+        
+        VOID LoadScene();
+        VOID LoadTextures();
+        // Shapes
+        VOID CreateGeometry();
+        // Propertirs of shapes' surfaces to model light interaction
+        VOID CreateGeometryMaterials();
+        // Shapes could constist of some items to render
+        VOID CreateSceneObjects();
+        VOID CreateRenderItems();
+        VOID CreatePointLights();
+        VOID CreateFrameResources();
+        // Heaps are created if there are root descriptor tables in root signature 
+        VOID CreateDescriptorHeaps();
+
+        VOID PopulateCommandList();
+        VOID MoveToNextFrame();
+
+        std::array<const CD3DX12_STATIC_SAMPLER_DESC, 5> GetStaticSamplers();
+
+        std::pair<XMMATRIX, XMMATRIX> GetLightSpaceMatrix(const float nearPlane, const float farPlane);
+        // Doubt that't a good idea to return vector of matrices. Should rather pass vector as a parameter probalby and fill it inside function.
+        void GetLightSpaceMatrices(std::vector<std::pair<XMMATRIX, XMMATRIX>>& outMatrices);
+        void CreateShadowCascadeSplits();
+
+        std::vector<XMVECTOR> GetFrustumCornersWorldSpace(const XMMATRIX& view, const XMMATRIX& projection);
     };
 } // namespace Blainn

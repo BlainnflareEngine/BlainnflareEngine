@@ -34,6 +34,7 @@ set(ENGINE_SOURCES
         include/Render/PSO.h
         include/Render/RootSignature.h
         include/Render/Shader.h
+        include/Render/FrameResource.h
         src/Render/Renderer.cpp
         src/Render/CommandQueue.cpp
         src/Render/Device.cpp
