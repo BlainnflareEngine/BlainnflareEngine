@@ -1,12 +1,21 @@
-#include "subsystems/RenderSubsystem.h"
-#include "Render/FreyaMath.h"
-#include "Render/Renderer.h"
+#include "pch.h"
 
-#include "subsystems/Log.h"
-#include "tools/Profiler.h"
+#include "subsystems/RenderSubsystem.h"
 
 #include <cassert>
 #include <iostream>
+
+#include "Render/FreyaMath.h"
+#include "Render/Renderer.h"
+
+#include "components/MeshComponent.h"
+#include "components/RenderComponent.h"
+#include "file-system/Model.h"
+#include "handles/Handle.h"
+#include "scene/Scene.h"
+#include "subsystems/Log.h"
+#include "tools/Profiler.h"
+
 
 using namespace Blainn;
 
@@ -14,7 +23,7 @@ void Blainn::RenderSubsystem::Init(HWND window)
 {
     if (m_isInitialized) return;
     BF_INFO("RenderSubsystem::Init()");
-    
+
     m_hWND = window;
 
     RECT rect;
@@ -52,19 +61,31 @@ Blainn::RenderSubsystem& Blainn::RenderSubsystem::GetInstance()
 
 void Blainn::RenderSubsystem::Render(float deltaTime)
 {
-    //BLAINN_PROFILE_THREAD("Render thread");
+    // BLAINN_PROFILE_THREAD("Render thread");
     assert(m_isInitialized && "Freya subsystem not initialized");
 
     BLAINN_PROFILE_SCOPE_DYNAMIC("Render function");
     BF_INFO("RenderSubsystem::Render()");
 
     // Record all the commands we need to render the scene into the command list.
-    //m_renderer->PopulateCommandList();
-    
-    //m_renderer->ExecuteCommandLists();
-    
+    // m_renderer->PopulateCommandList();
+
+    Scene &scene = Engine::GetActiveScene(); // TODO: this function exists in physics branch
+    auto renderedEntities = scene.GetAllEntitiesWith<IDComponent, RenderComponent>();
+    for (auto entityComponents : renderedEntities.each())
+    {
+        IDComponent &idComponent = std::get<1>(entityComponents);
+        RenderComponent &renderComponent = std::get<2>(entityComponents);
+
+        if (!renderComponent.m_visible || !renderComponent.m_meshCanBeRendered) continue;
+
+        // TODO: render component
+    }
+
+    // m_renderer->ExecuteCommandLists();
+
     // Present the frame.
-    //ThrowIfFailed(m_swapChain->Present(1u, 0u));
+    // ThrowIfFailed(m_swapChain->Present(1u, 0u));
 
     MoveToNextFrame();
 }
@@ -411,7 +432,7 @@ void Blainn::RenderSubsystem::OnResize(UINT newWidth, UINT newHeight)
 VOID Blainn::RenderSubsystem::WaitForGPU()
 {
     // Schedule a Signal command in the queue.
-    ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), m_fenceValues[m_frameIndex]));
+    ThrowIfFailed(m_device->GetCommandQueue(ECommandQueueType::GFX)->Signal(m_fence.Get(), m_fenceValues[m_frameIndex]));
 
     // Wait until the fence has been processed.
     ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_fenceEvent));
@@ -460,4 +481,43 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
 void Blainn::RenderSubsystem::CreateShaders()
 {
 
+}
+void Blainn::RenderSubsystem::CreateAttachRenderComponent(Entity entity)
+{
+    RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
+    if (renderComponentPtr)
+    {
+        BF_ERROR("entity alrady has render component");
+        return;
+    }
+
+    entity.AddComponent<RenderComponent>(RenderComponent());
+
+    MeshComponent *meshComponentPtr = entity.TryGetComponent<MeshComponent>();
+    if (meshComponentPtr)
+    {
+        AddMeshToRenderComponent(entity, meshComponentPtr->m_meshHandle);
+    }
+}
+
+void Blainn::RenderSubsystem::AddMeshToRenderComponent(Entity entity, MeshHandle meshHandle)
+{
+    RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
+
+    if (!renderComponentPtr)
+    {
+        BF_ERROR("Render Subsystem :: entity does not have render component");
+        return;
+    }
+
+    renderComponentPtr->m_meshCanBeRendered = true;
+    renderComponentPtr->m_meshHandle = meshHandle;
+
+    eastl::vector<MeshData> meshDataVec = meshHandle.GetMesh().GetMeshes();
+    for (const auto &meshData : meshDataVec)
+    {
+        // TODO: create index and vertex buffer for gpu: create upload buffers and set commands in command list
+        // meshData.indices;
+        // meshData.vertices;
+    }
 }

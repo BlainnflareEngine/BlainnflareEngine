@@ -7,6 +7,11 @@
 #include "tools/Profiler.h"
 #include "tools/random.h"
 
+#include "components/MeshComponent.h"
+#include "components/RenderComponent.h"
+#include "subsystems/AssetManager.h"
+#include "subsystems/RenderSubsystem.h"
+
 using namespace Blainn;
 
 Entity Scene::CreateEntity(const eastl::string &name)
@@ -141,6 +146,35 @@ Entity Scene::TryGetDescendantEntityWithTag(Entity entity, const eastl::string &
     }
     return Entity{};
 }
+
+void Blainn::Scene::CreateAttachMeshComponent(Entity entity, const Path &path, const ImportMeshData &data)
+{
+    MeshComponent *meshComponentPtr = entity.TryGetComponent<MeshComponent>();
+    if (meshComponentPtr)
+    {
+        BF_ERROR("entity alrady has mesh component");
+        return;
+    }
+
+    eastl::shared_ptr<MeshHandle> handlePtr;
+    AssetManager &assetManagerInstance = AssetManager::GetInstance();
+    if (assetManagerInstance.MeshExists(path))
+    {
+        handlePtr = assetManagerInstance.GetMesh(path);
+    }
+    else
+    {
+        handlePtr = assetManagerInstance.LoadMesh(path, data);
+    }
+    entity.AddComponent<MeshData>(*handlePtr);
+
+    RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
+    if (renderComponentPtr)
+    {
+        RenderSubsystem::GetInstance().AddMeshToRenderComponent(entity, *handlePtr);
+    }
+}
+
 
 void Scene::ParentEntity(Entity entity, Entity parent)
 {

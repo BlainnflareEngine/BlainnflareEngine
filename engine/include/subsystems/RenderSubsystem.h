@@ -1,15 +1,18 @@
 #pragma once
 
-#include <Windows.h>
-#include "Render/FrameResource.h"
 #include "Render/DXHelpers.h"
+#include "Render/FrameResource.h"
+#include <Windows.h>
+
+#include "handles/Handle.h"
+#include "scene/Entity.h"
 #include "Render/Camera.h"
 
 
 namespace Blainn
 {
-    class Renderer;
-    class Device;
+class Renderer;
+class Device;
 
     class RenderSubsystem
     {
@@ -25,45 +28,45 @@ namespace Blainn
             Textures,
             GBufferTextures,
 
-            NumRootParameters = 8u
-        };
+        NumRootParameters = 8u
+    };
 
-        enum EPsoType : UINT
-        {
-            Opaque = 0,
-            WireframeOpaque,
-            Transparency,
-            CascadedShadowsOpaque,
+    enum EPsoType : UINT
+    {
+        Opaque = 0,
+        WireframeOpaque,
+        Transparency,
+        CascadedShadowsOpaque,
 
-            DeferredGeometry,
-            DeferredDirectional,
+        DeferredGeometry,
+        DeferredDirectional,
 
-            DeferredPointWithinFrustum,
-            DeferredPointIntersectsFarPlane,
-            DeferredPointFullQuad,
-            
-            DeferredSpot,
-            
-            NumPipelineStates = 10u
-        };
+        DeferredPointWithinFrustum,
+        DeferredPointIntersectsFarPlane,
+        DeferredPointFullQuad,
 
-        enum EShaderType : UINT
-        {
-            DefaultVS = 0,
-            DefaultOpaquePS,
-            CascadedShadowsVS,
-            CascadedShadowsGS,
+        DeferredSpot,
 
-            DeferredGeometryVS,
-            DeferredGeometryPS,
-            DeferredDirVS,
-            DeferredDirPS,
-            DeferredLightVolumesVS,
-            DeferredPointPS,
-            DeferredSpotPS,
+        NumPipelineStates = 10u
+    };
 
-            NumShaders = 11U
-        };
+    enum EShaderType : UINT
+    {
+        DefaultVS = 0,
+        DefaultOpaquePS,
+        CascadedShadowsVS,
+        CascadedShadowsGS,
+
+        DeferredGeometryVS,
+        DeferredGeometryPS,
+        DeferredDirVS,
+        DeferredDirPS,
+        DeferredLightVolumesVS,
+        DeferredPointPS,
+        DeferredSpotPS,
+
+        NumShaders = 11U
+    };
 
     private:
         RenderSubsystem() = default; 
@@ -77,6 +80,9 @@ namespace Blainn
         void Init(HWND windowHandle);
         void Render(float deltaTime);
         void Destroy();
+
+            void CreateAttachRenderComponent(Entity entity);
+    void AddMeshToRenderComponent(Entity entity, MeshHandle meshHandle);
         
     private:
         void InitializeD3D();
@@ -109,35 +115,35 @@ namespace Blainn
         // virtual void OnRender(float deltaTime);
         // virtual void OnDestroy();
 
-        // virtual void OnMouseDown(WPARAM btnState, int x, int y) override;
-        // virtual void OnMouseUp(WPARAM btnState, int x, int y) override;
-        // virtual void OnMouseMove(WPARAM btnState, int x, int y) override;
-        // virtual void OnKeyDown(UINT8 key) override;
-        // virtual void OnKeyUp(UINT8 key) override;
+    // virtual void OnMouseDown(WPARAM btnState, int x, int y) override;
+    // virtual void OnMouseUp(WPARAM btnState, int x, int y) override;
+    // virtual void OnMouseMove(WPARAM btnState, int x, int y) override;
+    // virtual void OnKeyDown(UINT8 key) override;
+    // virtual void OnKeyUp(UINT8 key) override;
 
-    private:
-        void OnKeyboardInput(float deltaTime);
-        void UpdateObjectsCB(float deltaTime);
-        void UpdateMaterialBuffer(float deltaTime);
-        void UpdateLightsBuffer(float deltaTime);
-        void UpdateShadowTransform(float deltaTime);
-        void UpdateShadowPassCB(float deltaTime);
-        void UpdateGeometryPassCB(float deltaTime);
-        void UpdateMainPassCB(float deltaTime);
-        
-    private:
-    #pragma region Shadows
-        void RenderDepthOnlyPass();
-    #pragma endregion Shadows
-    #pragma region DeferredShading
-        void RenderGeometryPass();
-        void RenderLightingPass();
-        void RenderTransparencyPass();
+private:
+    void OnKeyboardInput(float deltaTime);
+    void UpdateObjectsCB(float deltaTime);
+    void UpdateMaterialBuffer(float deltaTime);
+    void UpdateLightsBuffer(float deltaTime);
+    void UpdateShadowTransform(float deltaTime);
+    void UpdateShadowPassCB(float deltaTime);
+    void UpdateGeometryPassCB(float deltaTime);
+    void UpdateMainPassCB(float deltaTime);
 
-        void DeferredDirectionalLightPass();
-        void DeferredPointLightPass();
-        void DeferredSpotLightPass();
-    #pragma endregion DeferredShading
+private:
+#pragma region Shadows
+    void RenderDepthOnlyPass();
+#pragma endregion Shadows
+#pragma region DeferredShading
+    void RenderGeometryPass();
+    void RenderLightingPass();
+    void RenderTransparencyPass();
+
+    void DeferredDirectionalLightPass();
+    void DeferredPointLightPass();
+    void DeferredSpotLightPass();
+#pragma endregion DeferredShading
 
         //void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, std::vector<std::unique_ptr<RenderItem>>& renderItems);
         // void DrawInstancedRenderItems(ID3D12GraphicsCommandList* cmdList, std::vector<std::unique_ptr<RenderItem>>& renderItems);
