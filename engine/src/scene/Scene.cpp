@@ -38,6 +38,12 @@ Scene::Scene(const YAML::Node &config)
 
 Scene::~Scene()
 {
+    eastl::function<void()> fn;
+    while (m_PostUpdateQueue.try_dequeue(fn))
+    {
+        fn();
+    }
+
     s_sceneEventQueue.process();
     s_sceneEventQueue.clearEvents();
 }
@@ -82,6 +88,12 @@ void Scene::SaveScene()
 
 void Scene::ProcessEvents()
 {
+    eastl::function<void()> fn;
+    while (m_PostUpdateQueue.try_dequeue(fn))
+    {
+        fn();
+    }
+
     s_sceneEventQueue.process();
 }
 
@@ -188,13 +200,12 @@ void Scene::DestroyEntity(Entity entity, bool excludeChildren, bool first)
     }
 
     // before actually destroying remove components that might require ID of the entity
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity));
 
     m_Registry.destroy(entity);
     m_EntityIdMap.erase(id);
 
     SortEntities();
-
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity));
 }
 
 void Scene::DestroyEntity(const uuid &entityID, bool excludeChildren, bool first)

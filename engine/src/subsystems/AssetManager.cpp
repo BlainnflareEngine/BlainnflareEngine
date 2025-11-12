@@ -199,7 +199,7 @@ void AssetManager::OpenScene(const Path &path)
 
     // TODO: parse scene
 
-    Engine::SetCurrentScene(eastl::make_shared<Scene>(scene));
+    Engine::SetActiveScene(eastl::make_shared<Scene>(scene));
 }
 
 

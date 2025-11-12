@@ -84,11 +84,6 @@ void Engine::Update(float deltaTime)
 
     Input::ProcessEvents();
 
-    // TODO: maybe scene events should be processed after components update?
-    //if (s_ActiveScene) s_ActiveScene->ProcessEvents();
-    Scene::ProcessEvents();
-
-
     // test
     static float testAccumulator;
     testAccumulator += deltaTime;
@@ -106,6 +101,8 @@ void Engine::Update(float deltaTime)
     vgjs::schedule(&RenderSubsystem::Render);
 
     // TODO: wait for jobs to finish?
+
+    Scene::ProcessEvents();
 
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;
@@ -130,7 +127,7 @@ eastl::shared_ptr<Scene> Engine::GetActiveScene()
 }
 
 
-void Engine::SetCurrentScene(const eastl::shared_ptr<Scene> &scene)
+void Engine::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
 {
     // TODO: should trigger delegate?
     // TODO: should notify editor?

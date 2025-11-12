@@ -110,7 +110,7 @@ private:
 
     EntityMap m_EntityIdMap;
 
-    moodycamel::ConcurrentQueue<eastl::function<void()>> m_PostUpdateQueue;
+     inline static moodycamel::ConcurrentQueue<eastl::function<void()>> m_PostUpdateQueue;
 
     inline static eventpp::EventQueue<SceneEventType, void(const SceneEventPointer &), SceneEventPolicy>
         s_sceneEventQueue;

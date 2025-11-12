@@ -61,13 +61,10 @@ SceneItemModel &scene_hierarchy_widget::GetSceneModel() const
 void scene_hierarchy_widget::OnEntityCreated(const Blainn::SceneEventPointer &event)
 {
     using namespace Blainn;
-    BF_DEBUG("OnEntityCreated");
 
-    // TODO: mb use delegate for this
-    const EntityCreatedEvent *entityEvent = static_cast<const EntityCreatedEvent *>(event.get());
-    auto newIndex = GetSceneModel().AddNewEntity(entityEvent->GetEntity());
+    const auto entityEvent = static_cast<const EntityCreatedEvent *>(event.get());
 
-    if (newIndex.isValid())
+    if (QModelIndex newIndex = GetSceneModel().AddNewEntity(entityEvent->GetEntity()); newIndex.isValid())
     {
         setCurrentIndex(newIndex);
 
@@ -83,7 +80,32 @@ void scene_hierarchy_widget::OnEntityCreated(const Blainn::SceneEventPointer &ev
 
 void scene_hierarchy_widget::OnEntityDestroyed(const Blainn::SceneEventPointer &event)
 {
-    BF_DEBUG("OnEntityDestroyed");
+    using namespace Blainn;
+
+    const auto entityEvent = static_cast<const EntityDestroyedEvent *>(event.get());
+    Entity destroyedEntity = entityEvent->GetEntity();
+
+    SceneItemModel *model = qobject_cast<SceneItemModel *>(this->model());
+    if (!model)
+    {
+        return;
+    }
+
+    QModelIndex nodeIndex = SceneItemModel::FindIndexByEntity(model, destroyedEntity);
+
+    if (!nodeIndex.isValid())
+    {
+        BF_ERROR("Index not found for entity!");
+        return;
+    }
+
+    if (nodeIndex.row() >= model->rowCount(nodeIndex.parent()))
+    {
+        BF_ERROR("Row index out of bounds!");
+        return;
+    }
+
+    model->removeRow(nodeIndex.row(), nodeIndex.parent());
 }
 
 
@@ -96,10 +118,7 @@ void scene_hierarchy_widget::OnItemDataChanged(const QModelIndex &topLeft, const
     QString newName = topLeft.data(Qt::DisplayRole).toString();
     BF_DEBUG("Item renamed to: {0}", ToString(newName))
 
-    SceneItemModel *sceneModel = qobject_cast<SceneItemModel *>(model());
-    if (!sceneModel) return;
-
-    if (EntityNode *node = sceneModel->GetNodeFromIndex(topLeft))
+    if (EntityNode *node = SceneItemModel::GetNodeFromIndex(topLeft))
     {
         node->SetName(newName);
 
@@ -121,16 +140,18 @@ void scene_hierarchy_widget::keyPressEvent(QKeyEvent *event)
 
     if (currentIndex.isValid())
     {
-        if (event->key() == Qt::Key_Delete)
-        {
-            BF_DEBUG("Deleting entity via Delete key");
+        QKeySequence keySequence = QKeySequence(event->key() | event->modifiers());
 
+        if (keySequence == m_addToSceneMenu->GetDeleteKey())
+        {
+            m_addToSceneMenu->DeleteEntity(currentIndex);
             event->accept();
             return;
         }
-        else if (event->key() == Qt::Key_F2)
+
+        if (keySequence == m_addToSceneMenu->GetRenameKey())
         {
-            edit(currentIndex);
+            m_addToSceneMenu->RenameEntity(currentIndex);
             event->accept();
             return;
         }

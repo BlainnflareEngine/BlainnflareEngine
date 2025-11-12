@@ -26,13 +26,21 @@ public:
 
     void OpenMenu(const QPoint &pos, const QModelIndex &index = QModelIndex());
 
+    void AddEntity(const QModelIndex &index);
+    void RenameEntity(const QModelIndex &index) const;
+    void DeleteEntity(const QModelIndex &index);
+
+    QKeySequence &GetRenameKey();
+    QKeySequence &GetDeleteKey();
+
 public slots:
     void OnContextMenu(const QPoint &pos);
 
 private:
-    void AddEntity(const QModelIndex &index);
-
     scene_hierarchy_widget &m_treeView;
+
+    QKeySequence m_renameKey = QKeySequence(Qt::Key_F2);
+    QKeySequence m_deleteKey = QKeySequence(Qt::Key_Delete);
 };
 
 } // namespace editor

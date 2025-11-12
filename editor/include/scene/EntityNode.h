@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "ContentFilterProxyModel.h"
 #include "scene/Entity.h"
 
 
@@ -25,16 +26,19 @@ struct EntityNode
         qDeleteAll(children);
     }
 
+
     void SetName(const QString &newName)
     {
         name = newName;
         // TODO: update entity name in engine
     }
 
+
     const QString &GetName() const
     {
         return name;
     }
+
 
     QVector<EntityNode *> children = {}; // can't use smart ptr because qDeleteAll uses raw ptr
     EntityNode *m_parent = nullptr;

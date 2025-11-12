@@ -176,9 +176,14 @@ bool editor::SceneItemModel::IsNameDuplicate(const QString &name, const QModelIn
 
 Qt::ItemFlags editor::SceneItemModel::flags(const QModelIndex &index) const
 {
-    if (!index.isValid()) return Qt::NoItemFlags;
+    Qt::ItemFlags defaultFlags = QAbstractItemModel::flags(index);
 
-    return Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+    if (index.isValid())
+    {
+        return defaultFlags | Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+    }
+
+    return defaultFlags;
 }
 
 
@@ -187,4 +192,75 @@ EntityNode *editor::SceneItemModel::GetNodeFromIndex(const QModelIndex &index)
     if (index.isValid()) return static_cast<EntityNode *>(index.internalPointer());
 
     return nullptr;
+}
+
+
+QModelIndex editor::SceneItemModel::FindIndexByEntity(SceneItemModel *model, const Blainn::Entity &entity)
+{
+    // TODO: recursive deletion will have bad performance in future
+    // This is future Ivan problem :)
+    return FindIndexByEntityRecursive(model, QModelIndex(), entity);
+}
+
+
+bool editor::SceneItemModel::removeRows(int row, int count, const QModelIndex &parent)
+{
+    if (row < 0 || row + count > rowCount(parent))
+    {
+        return false;
+    }
+
+    beginRemoveRows(parent, row, row + count - 1);
+
+    if (parent.isValid())
+    {
+        EntityNode *parentNode = GetNodeFromIndex(parent);
+        if (!parentNode)
+        {
+            endRemoveRows();
+            return false;
+        }
+
+        for (int i = row + count - 1; i >= row; --i)
+        {
+            EntityNode *nodeToRemove = parentNode->children.takeAt(i);
+            delete nodeToRemove;
+        }
+    }
+    else
+    {
+        for (int i = row + count - 1; i >= row; --i)
+        {
+            EntityNode *nodeToRemove = m_rootNodes.takeAt(i);
+            delete nodeToRemove;
+        }
+    }
+
+    endRemoveRows();
+    return true;
+}
+
+
+QModelIndex editor::SceneItemModel::FindIndexByEntityRecursive(SceneItemModel *model, const QModelIndex &parent,
+                                                               const Blainn::Entity &entity)
+{
+    for (int row = 0; row < model->rowCount(parent); ++row)
+    {
+        QModelIndex currentIndex = model->index(row, 0, parent);
+        if (!currentIndex.isValid()) continue;
+
+        EntityNode *node = GetNodeFromIndex(currentIndex);
+
+        if (node && node->GetEntity() == entity)
+        {
+            return currentIndex;
+        }
+
+        if (auto foundIndex = FindIndexByEntityRecursive(model, currentIndex, entity); foundIndex.isValid())
+        {
+            return foundIndex;
+        }
+    }
+
+    return QModelIndex();
 }

@@ -24,7 +24,7 @@ public:
     static void SetContentDirectory(const Path &contentDirectory);
 
     static eastl::shared_ptr<Scene> GetActiveScene();
-    static void SetCurrentScene(const eastl::shared_ptr<Scene> &scene);
+    static void SetActiveScene(const eastl::shared_ptr<Scene> &scene);
 
 private:
     static eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr;

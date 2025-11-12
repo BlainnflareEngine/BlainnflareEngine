@@ -34,9 +34,16 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
-    static EntityNode * GetNodeFromIndex(const QModelIndex& index);
+    static EntityNode *GetNodeFromIndex(const QModelIndex &index);
+
+    static QModelIndex FindIndexByEntity(SceneItemModel *model, const Blainn::Entity &entity);
+
+    bool removeRows(int row, int count, const QModelIndex &parent) override;
 
 private:
     QVector<EntityNode *> m_rootNodes;
+
+    static QModelIndex FindIndexByEntityRecursive(SceneItemModel *model, const QModelIndex &parent,
+                                                  const Blainn::Entity &entity);
 };
 } // namespace editor
