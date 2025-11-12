@@ -8,6 +8,9 @@
 
 #include "FreyaCoreTypes.h"
 
+#include <EASTL/shared_ptr.h>
+#include <EASTL/unique_ptr.h>
+
 using Microsoft::WRL::ComPtr;
 
 inline std::string HrToString(HRESULT hr)

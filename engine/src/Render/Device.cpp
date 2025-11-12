@@ -1,24 +1,17 @@
 #pragma once
 
-#include "Render/DXHelpers.h"
 #include "Render/Device.h"
+#include "Render/CommandQueue.h"
+#include "Render/DXHelpers.h"
+#include "subsystems/Log.h"
 
 Blainn::Device::Device()
     : m_useWarpDevice(false)
 {
-    Create();
-}
-
-Blainn::Device::~Device()
-{
-    Destroy();
-}
-
-void Blainn::Device::Create(/* some description would be good */)
-{
     // HRESULT check
-    ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(&m_factory)));
-    
+    HRESULT hr = (CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(&m_factory)));
+    ThrowIfFailed(hr);
+
     if (m_useWarpDevice)
     {
         ComPtr<IDXGIAdapter> warpAdapter;
@@ -36,9 +29,8 @@ void Blainn::Device::Create(/* some description would be good */)
     }
 }
 
-void Blainn::Device::Destroy()
+Blainn::Device::~Device()
 {
-    
 }
 
 void Blainn::Device::CreateDebugLayer()
@@ -114,4 +106,57 @@ _Use_decl_annotations_ void Blainn::Device::GetHardwareAdapter(IDXGIFactory1 *pF
     }
 
     *ppAdapter = adapter.Detach();
+}
+
+ID3D12CommandQueue* Blainn::Device::GetCommandQueue(ECommandQueueType queueType)
+{
+    return m_renderingCmdQueues[static_cast<int>(queueType)]->Get();
+}
+
+ComPtr<IDXGISwapChain4> Blainn::Device::CreateSwapChain(DXGI_SWAP_CHAIN_DESC1 &desc, DXGI_SWAP_CHAIN_FULLSCREEN_DESC &fullScreenDesc, HWND window)
+{
+    ComPtr<IDXGISwapChain4> swapChain;
+
+    ComPtr<IDXGISwapChain1> swapChain1;
+    ThrowIfFailed(m_factory->CreateSwapChainForHwnd(
+        GetCommandQueue(ECommandQueueType::GFX), // Swap chain needs the queue so that it can force a flush on it.
+        window,
+        &desc,
+        &fullScreenDesc,
+        nullptr,
+        &swapChain1));
+
+    // This sample does not support fullscreen transitions.
+    ThrowIfFailed(m_factory->MakeWindowAssociation(window, DXGI_MWA_NO_ALT_ENTER));
+
+    ThrowIfFailed(swapChain1.As(&swapChain));
+    
+    return swapChain;
+}
+
+static D3D12_COMMAND_LIST_TYPE QueueTypeToCommandListType(const Blainn::ECommandQueueType queueType)
+{
+    using namespace Blainn;
+
+    switch (queueType)
+    {
+    case ECommandQueueType::GFX:
+        return D3D12_COMMAND_LIST_TYPE_DIRECT;
+    case ECommandQueueType::COMPUTE:
+        return D3D12_COMMAND_LIST_TYPE_COMPUTE;
+    case ECommandQueueType::COPY:
+        return D3D12_COMMAND_LIST_TYPE_COPY;
+    case ECommandQueueType::NUM_COMMAND_QUEUE_TYPES:
+        break;
+    }
+    return D3D12_COMMAND_LIST_TYPE_DIRECT;
+}
+
+void Blainn::Device::CreateCommandQueues()
+{
+    auto device = eastl::shared_ptr<Device>(this);
+    for (UINT i = 0; i != static_cast<UINT>(ECommandQueueType::NUM_COMMAND_QUEUE_TYPES); ++i)
+    {
+        m_renderingCmdQueues[i] = eastl::make_shared<CommandQueue>(device, QueueTypeToCommandListType(static_cast<ECommandQueueType>(i)));
+    }
 }

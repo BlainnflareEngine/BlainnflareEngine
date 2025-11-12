@@ -1,25 +1,23 @@
 #pragma once
 
+#include "Render/Device.h"
+#include "DXHelpers.h"
+
 struct ID3D12CommandQueue;
-struct ID3D12Device;
+struct ID3D12Fence;
 
 namespace Blainn
 {
-    enum ECommandQueueType
-    {
-        GFX = 0,
-        COMPUTE,
-        COPY,
-
-        NUM_COMMAND_QUEUE_TYPES = 3
-    };
-
     class CommandQueue
     {
     public:
-        void Create(ID3D12Device *pDevice, ECommandQueueType type, const char *name = nullptr);
-        void Destroy();
+        CommandQueue(eastl::shared_ptr<Device>, D3D12_COMMAND_LIST_TYPE type);
+        ~CommandQueue();
 
-        ID3D12CommandQueue *m_commandQueue = nullptr;
+        ID3D12CommandQueue *Get() const;
+
+    private:
+
+        ComPtr<ID3D12CommandQueue> m_commandQueue = nullptr;
     };
 } // namespace Blainn

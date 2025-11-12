@@ -19,31 +19,42 @@ namespace Blainn
         RenderSubsystem& operator=(const RenderSubsystem&&) = delete; 
     public:
         static RenderSubsystem &GetInstance();
-        void Init();
+        void Init(HWND windowHandle);
         void Render(float deltaTime);
         void Destroy();
-
+        
     private:
-    #pragma region GoingDirectX
-        static void InitializeDirect3D();
-    
+        void CreateDeviceResources();
+        void CreateSwapChain();
+        void CreateFence();
+        void WaitForGPU();
+        void MoveToNextFrame();
+        
         static void LoadPipeline();
 
         static void CreateRootSignature();
-        static void CreateShaders();   
-        static void CreatePSO();
+        static void CreateShaders();
 
         static void OnResize(UINT newWidth, UINT newHeight);
         static void Reset();
-        
-        #pragma endregion GoingDirectX
         
     private:
         HWND m_hWND;
         static inline bool m_isInitialized = false;
 
+        static inline const uint32_t SwapChainFrameCount = 2u;
+        static inline const DXGI_FORMAT BackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+        static inline const DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
         eastl::unique_ptr<Renderer> m_renderer = nullptr;
-        eastl::unique_ptr<Device> m_device = nullptr;
+        eastl::shared_ptr<Device> m_device = nullptr;
+        ComPtr<IDXGISwapChain3> m_swapChain;
+
+        // Synchronization objects.
+        UINT m_frameIndex = 0u; // keep track of front and back buffers (see SwapChainFrameCount)
+        ComPtr<ID3D12Fence> m_fence;
+        HANDLE m_fenceEvent;
+        UINT64 m_fenceValues[SwapChainFrameCount];
         
         UINT m_width = 0u;
         UINT m_height = 0u;
@@ -53,8 +64,6 @@ namespace Blainn
         UINT m_rtvDescriptorSize;       // see m_rtvHeap
         UINT m_dsvDescriptorSize;       // see m_dsvHeap
         UINT m_cbvSrvUavDescriptorSize; // see m_cbvHeap
-
-        ComPtr<IDXGISwapChain3> m_swapChain;
 
         ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
         ComPtr<ID3D12DescriptorHeap> m_dsvHeap;

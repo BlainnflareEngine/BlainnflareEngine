@@ -31,7 +31,7 @@ void Engine::InitRenderSubsystem(HWND windowHandle)
 {
     auto &renderInst = RenderSubsystem::GetInstance();
 
-    renderInst.Init();
+    renderInst.Init(windowHandle);
     m_renderFunc = std::bind(&RenderSubsystem::Render, &renderInst, std::placeholders::_1);
 }
 
@@ -115,13 +115,15 @@ HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winT
         winStyle,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
-        width, height, 
+        windowRect.right - windowRect.left,
+        windowRect.bottom - windowRect.top, 
         nullptr, 
         nullptr, 
         wc.hInstance,
         nullptr);
 
     ShowWindow(hWnd, SW_SHOW);
+    UpdateWindow(hWnd);
 
     return hWnd;
 }

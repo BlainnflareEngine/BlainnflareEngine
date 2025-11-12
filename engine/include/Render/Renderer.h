@@ -16,35 +16,35 @@ namespace Blainn
     {
     public:
         Renderer() = default;
-        Renderer(Device* pDevice, uint32_t width, uint32_t height);
+        Renderer(eastl::shared_ptr<Device> pDevice, uint32_t width, uint32_t height);
         ~Renderer();
         
         void Init();
+        void CreateCommandObjects();
+        
+    public:
+        /*virtual*/ void Update(float deltaTime) /*override*/;
+        /*virtual*/ void RenderScene(void) /*override*/;
+
+        void PopulateCommandList();
+        void ExecuteCommandLists();
 
     public:
         inline ID3D12Device* GetDevicePtr() const { return m_device->GetDevicePtr(); }
-        inline CommandQueue* GetCommandQueue(ECommandQueueType eType) { return m_renderingCmdQueues[(int)eType]; }
+        inline ID3D12CommandQueue* GetRenderCommandQueue() const { return m_device->GetCommandQueue(ECommandQueueType::GFX); } 
         
     private:
-        void CreateCommandQueues();
-        void CreateCommandAllocators();
-        void CreateCommandLists();
-
-        void CreateSwapChain();
         void CreateRtvAndDsvDescriptorHeaps();
+        void CreateRootSignature();
+        void CreatePipelineStateObjects();
+        void CreateShaders();
 
     private:
         // no ownership
-        Device* m_device = nullptr;
+        eastl::shared_ptr<Device> m_device;
         uint32_t m_width;
         uint32_t m_height;
         
-        bool m_is4xMsaaState = false;
-        UINT m_4xMsaaQuality = 0u;
-
-        // command queue should be associated with its fence object
-        CommandQueue* m_renderingCmdQueues[ECommandQueueType::NUM_COMMAND_QUEUE_TYPES];
-
         static inline const uint32_t SwapChainFrameCount = 2u;
         static inline const DXGI_FORMAT BackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
         static inline const DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;

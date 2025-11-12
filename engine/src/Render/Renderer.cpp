@@ -1,6 +1,6 @@
 #include "Render/Renderer.h"
 
-Blainn::Renderer::Renderer(Device* device, uint32_t width, uint32_t height)
+Blainn::Renderer::Renderer(eastl::shared_ptr<Device> device, uint32_t width, uint32_t height)
     : m_device(device)
     , m_width(width)
     , m_height(height)
@@ -9,69 +9,64 @@ Blainn::Renderer::Renderer(Device* device, uint32_t width, uint32_t height)
 
 Blainn::Renderer::~Renderer()
 {
-    m_device = nullptr;
 }
 
 void Blainn::Renderer::Init()
 {    
-    CreateCommandQueues();
-    CreateCommandAllocators();
-    CreateCommandLists();
+    CreateCommandObjects();
 }
 
-void Blainn::Renderer::CreateCommandQueues()
+void Blainn::Renderer::CreateCommandObjects()
+{
+    ThrowIfFailed(GetDevicePtr()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                                         IID_PPV_ARGS(&m_commandAllocators[m_frameIndex])));
+
+    // Create the command list.
+    ThrowIfFailed(
+        GetDevicePtr()->CreateCommandList(0u /*Single GPU*/, D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                          m_commandAllocators[m_frameIndex].Get() /*Must match the command list type*/,
+                                          nullptr, IID_PPV_ARGS(&m_commandList)));
+
+    // Command lists are created in the recording state, but there is nothing
+    // to record yet. The main loop expects it to be closed, so close it now.
+    ThrowIfFailed(m_commandList->Close());
+}
+
+void Blainn::Renderer::Update(float deltaTime)
+{
+    
+}
+
+void Blainn::Renderer::RenderScene(void)
 {
 
 }
 
-void Blainn::Renderer::CreateCommandAllocators()
+void Blainn::Renderer::PopulateCommandList()
 {
 
 }
 
-void Blainn::Renderer::CreateCommandLists()
+void Blainn::Renderer::ExecuteCommandLists()
 {
-
-}
-
-void Blainn::Renderer::CreateSwapChain()
-{
-    // // Describe and create the swap chain.
-    // //DXGI_SWAP_CHAIN_DESC sd;
-    // DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-    // swapChainDesc.Width = m_width;
-    // swapChainDesc.Height = m_height;
-    // swapChainDesc.Format = BackBufferFormat; // Back buffer format
-    // swapChainDesc.SampleDesc.Count = m_is4xMsaaState ? 4u : 1u; // MSAA
-    // swapChainDesc.SampleDesc.Quality = m_is4xMsaaState ? (m_4xMsaaQuality - 1u) : 0u; // MSAA
-    // swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    // swapChainDesc.BufferCount = SwapChainFrameCount;
-    // swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    // swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-    // DXGI_SWAP_CHAIN_FULLSCREEN_DESC swapChainFullScreenDesc = {};
-    // swapChainFullScreenDesc.RefreshRate.Numerator = 60u;
-    // swapChainFullScreenDesc.RefreshRate.Denominator = 1u;
-    // swapChainFullScreenDesc.Windowed = TRUE;
-
-    // ComPtr<IDXGISwapChain1> swapChain;
-    // ThrowIfFailed(m_factory->CreateSwapChainForHwnd(
-    //     m_commandQueue.Get(),        // Swap chain needs the queue so that it can force a flush on it.
-    //     Win32App::GetHwnd(),
-    //     &swapChainDesc,
-    //     &swapChainFullScreenDesc,
-    //     nullptr,
-    //     &swapChain
-    // ));
-
-    // This sample does not support fullscreen transitions.
-    // ThrowIfFailed(m_factory->MakeWindowAssociation(Win32App::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
-
-    // ThrowIfFailed(swapChain.As(&m_swapChain));
-    // m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+    ID3D12CommandList *ppCommandLists[] = { m_commandList.Get() };
+    GetRenderCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 }
 
 void Blainn::Renderer::CreateRtvAndDsvDescriptorHeaps()
+{
+
+}
+
+void Blainn::Renderer::CreateRootSignature()
+{
+}
+
+void Blainn::Renderer::CreatePipelineStateObjects()
+{
+}
+
+void Blainn::Renderer::CreateShaders()
 {
 
 }
