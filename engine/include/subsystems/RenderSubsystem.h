@@ -45,8 +45,7 @@ namespace Blainn
         void CreateShaders();
 
         void OnResize(UINT newWidth, UINT newHeight);
-        void Reset();
-        
+                
     private:
         UINT m_dxgiFactoryFlags = 0u;
         

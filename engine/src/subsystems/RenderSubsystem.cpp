@@ -27,8 +27,8 @@ void Blainn::RenderSubsystem::Init(HWND window)
 #endif
     InitializeD3D();
 
-    m_renderer = eastl::make_unique<Renderer>(m_device, m_width, m_height);
-    m_renderer->Init();
+    // m_renderer = eastl::make_unique<Renderer>(m_device, m_width, m_height);
+    // m_renderer->Init();
 
     m_isInitialized = true;
 }
@@ -353,8 +353,9 @@ VOID Blainn::RenderSubsystem::Reset()
         optClear.DepthStencil.Depth = 1.0f;
         optClear.DepthStencil.Stencil = 0u;
 
+        auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT /* Once created and never changed (from CPU) */);
         ThrowIfFailed(m_device->CreateCommittedResource(
-            &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT /* Once created and never changed (from CPU) */),
+            &heapProp,
             D3D12_HEAP_FLAG_NONE,
             &depthStencilDesc,
             D3D12_RESOURCE_STATE_COMMON,
@@ -373,7 +374,8 @@ VOID Blainn::RenderSubsystem::Reset()
     }
 
     // Transition the resource from its initial state to be used as a depth buffer.
-    m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+    m_commandList->ResourceBarrier(1, &transition);
 
     // Execute the resize commands. 
     ThrowIfFailed(m_commandList->Close());
