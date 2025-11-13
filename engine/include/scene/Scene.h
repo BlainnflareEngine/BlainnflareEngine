@@ -7,6 +7,7 @@
 #include "EASTL/string_view.h"
 #include "EASTL/unordered_map.h"
 #include "Entity.h"
+#include "TransformComponent.h"
 #include "ImportAssetData.h"
 #include "aliases.h"
 #include "concurrentqueue.h"
@@ -73,6 +74,11 @@ public:
     void UnparentEntity(Entity entity, bool convertToWorldSpace = true);
 
     Entity DuplicateEntity(Entity entity);
+
+    void ConvertToLocalSpace(Entity entity);
+    void ConvertToWorldSpace(Entity entity);
+    Mat4 GetWorldSpaceTransformMatrix(Entity entity);
+    TransformComponent GetWorldSpaceTransform(Entity entity);
 
     // prefabs would be cool
     // Entity CreatePrefabEntity(Entity entity, Entity parent /* and so on */);

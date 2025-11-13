@@ -43,6 +43,7 @@ add_executable(${PROJECT_NAME} main.cpp
         common/MeshData.h
         common/ImportAssetData.h
         common/helpers.h
+        engine/include/subsystems/Input/KeyboardEvents.h
 )
 
 add_subdirectory(libs/EASTL)
@@ -125,6 +126,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${uuid_v4_DIR}"
         "${Entt_DIR}/single_include"
         $<TARGET_PROPERTY:assimp::assimp,INTERFACE_INCLUDE_DIRECTORIES>
+        "${LIBS_DIR}/eventpp/include"
 )
 
 

@@ -199,8 +199,7 @@ void Scene::ParentEntity(Entity entity, Entity parent)
     entity.SetParentUUID(parent.GetUUID());
     parent.Children().push_back(entity.GetUUID());
 
-    // TODO: convert to local spce
-    // ConvertToLocalSpace(entity);
+    ConvertToLocalSpace(entity);
 }
 
 void Scene::UnparentEntity(Entity entity, bool convertToWorldSpace)
@@ -212,9 +211,8 @@ void Scene::UnparentEntity(Entity entity, bool convertToWorldSpace)
     parentChildren.erase(std::remove(parentChildren.begin(), parentChildren.end(), entity.GetUUID()),
                          parentChildren.end());
 
-    // TODO
-    // if (convertToWorldSpace)
-    //     ConvertToWorldSpace(entity);
+    if (convertToWorldSpace)
+         ConvertToWorldSpace(entity);
 
     entity.SetParentUUID(0);
 }
@@ -223,6 +221,49 @@ Entity Scene::DuplicateEntity(Entity entity)
 {
     // this one is tough, and I'm not sure we need it   :-)
     return Entity{};
+}
+
+void Scene::ConvertToLocalSpace(Entity entity)
+{
+    Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
+
+    if (!parent) return;
+
+    auto& transform = entity.Transform();
+    auto parentTransform = GetWorldSpaceTransformMatrix(parent);
+    auto localTransform = parentTransform.Invert() * transform.GetTransform();
+    transform.SetTransform(localTransform);
+}
+
+void Scene::ConvertToWorldSpace(Entity entity)
+{
+    Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
+
+    if (!parent) return;
+
+    Mat4 transform = GetWorldSpaceTransformMatrix(entity);
+    auto& entityTransform = entity.Transform();
+    entityTransform.SetTransform(transform);
+}
+
+Mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
+{
+    Mat4 transform = Mat4::Identity;
+
+    Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
+
+    if (parent)
+        return GetWorldSpaceTransformMatrix(parent);
+
+    return transform * entity.Transform().GetTransform();
+}
+
+TransformComponent Scene::GetWorldSpaceTransform(Entity entity)
+{
+    Mat4 transform = GetWorldSpaceTransformMatrix(entity);
+    TransformComponent transformComponent;
+    transformComponent.SetTransform(transform);
+    return transformComponent;
 }
 
 void Scene::SortEntities()

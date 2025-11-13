@@ -3,6 +3,8 @@
 #include "VGJS.h"
 
 #include "aliases.h"
+#include "Input/InputSubsystem.h"
+#include "Input/KeyboardEvents.h"
 #include "scene/Scene.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
@@ -25,6 +27,19 @@ void Engine::Init()
 
     // TODO: -- remove --  test asset manager
     auto a = AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), TextureType::ALBEDO);
+
+    // TODO: -- remove -- test input
+    Input::AddEventListener(InputEventType::KeyPressed, [](const InputEventPointer& event)
+    {
+        const KeyPressedEvent* keyEvent = static_cast<const KeyPressedEvent*>(event.get());
+        BF_INFO("Key {} was pressed", static_cast<int>(keyEvent->GetKey()));
+    });
+
+    Input::AddEventListener(InputEventType::KeyReleased, [](const InputEventPointer& event)
+    {
+        const KeyReleasedEvent* keyEvent = static_cast<const KeyReleasedEvent*>(event.get());
+        BF_INFO("Key {} was released", static_cast<int>(keyEvent->GetKey()));
+    });
 }
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
@@ -49,6 +64,9 @@ void Engine::Destroy()
 
 void Engine::Update(float deltaTime)
 {
+    // this trace doesn't make sense, it exactly matches the frame
+    BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop");
+
     /// ----- TEST SCRIPTING -----
     // Entity entity = sc.CreateEntity();
     // entity.AddComponent<ScriptingComponent>();
@@ -63,8 +81,7 @@ void Engine::Update(float deltaTime)
     // ScriptingSubsystem::UnloadScript(scriptUuid);
     /// ----- END TEST SCRIPTING -----
 
-    // this trace doesn't make sense, it exactly matches the frame
-    BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop");
+    Input::ProcessEvents();
 
     // test
     static float testAccumulator;
@@ -72,6 +89,11 @@ void Engine::Update(float deltaTime)
     if (testAccumulator >= 1000.0f)
     {
         std::cout << "Engine second" << std::endl;
+
+        // TODO: -- remove -- test input
+        Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Pressed);
+        Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Released);
+
         testAccumulator = 0.0f;
     }
 
@@ -82,9 +104,6 @@ void Engine::Update(float deltaTime)
 
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;
-
-
-    // TODO: wait for jobs to finish?
 }
 
 HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle, const std::string &winClassTitle, HINSTANCE hInst)
