@@ -8,6 +8,7 @@
 #include "Render/FreyaMath.h"
 #include "Render/Renderer.h"
 
+#include "Engine.h"
 #include "components/MeshComponent.h"
 #include "components/RenderComponent.h"
 #include "file-system/Model.h"
@@ -53,7 +54,7 @@ void Blainn::RenderSubsystem::Destroy()
     BF_INFO("RenderSubsystem::Destroy()");
 }
 
-Blainn::RenderSubsystem& Blainn::RenderSubsystem::GetInstance()
+Blainn::RenderSubsystem &Blainn::RenderSubsystem::GetInstance()
 {
     static RenderSubsystem render;
     return render;
@@ -70,7 +71,7 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     // Record all the commands we need to render the scene into the command list.
     // m_renderer->PopulateCommandList();
 
-    Scene &scene = Engine::GetActiveScene(); // TODO: this function exists in physics branch
+    Scene &scene = Engine::GetActiveScene();
     auto renderedEntities = scene.GetAllEntitiesWith<IDComponent, RenderComponent>();
     for (auto entityComponents : renderedEntities.each())
     {
@@ -107,7 +108,7 @@ VOID Blainn::RenderSubsystem::CreateDebugLayer()
     if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
     {
         debugController->EnableDebugLayer();
-        
+
         // Enable additional debug layers.
         m_dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
     }
@@ -115,10 +116,9 @@ VOID Blainn::RenderSubsystem::CreateDebugLayer()
 
 // Helper function for acquiring the first available hardware adapter that supports Direct3D 12.
 // If no such adapter can be found, *ppAdapter will be set to nullptr.
-_Use_decl_annotations_ void Blainn::RenderSubsystem::GetHardwareAdapter(
-    IDXGIFactory1* pFactory,
-    IDXGIAdapter1** ppAdapter,
-    bool requestHighPerformanceAdapter)
+_Use_decl_annotations_ void Blainn::RenderSubsystem::GetHardwareAdapter(IDXGIFactory1 *pFactory,
+                                                                        IDXGIAdapter1 **ppAdapter,
+                                                                        bool requestHighPerformanceAdapter)
 {
     *ppAdapter = nullptr;
 
@@ -127,13 +127,12 @@ _Use_decl_annotations_ void Blainn::RenderSubsystem::GetHardwareAdapter(
     ComPtr<IDXGIFactory6> factory6;
     if (SUCCEEDED(pFactory->QueryInterface(IID_PPV_ARGS(&factory6))))
     {
-        for (
-            UINT adapterIndex = 0;
-            SUCCEEDED(factory6->EnumAdapterByGpuPreference(
-                adapterIndex,
-                requestHighPerformanceAdapter == true ? DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE : DXGI_GPU_PREFERENCE_UNSPECIFIED,
-                IID_PPV_ARGS(&adapter)));
-                ++adapterIndex)
+        for (UINT adapterIndex = 0; SUCCEEDED(factory6->EnumAdapterByGpuPreference(
+                 adapterIndex,
+                 requestHighPerformanceAdapter == true ? DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE
+                                                       : DXGI_GPU_PREFERENCE_UNSPECIFIED,
+                 IID_PPV_ARGS(&adapter)));
+             ++adapterIndex)
         {
             DXGI_ADAPTER_DESC1 desc;
             adapter->GetDesc1(&desc);
@@ -216,18 +215,18 @@ VOID Blainn::RenderSubsystem::CreateCommandObjects()
     queueDesc.NodeMask;
     // If we have multiple command queues, we can write a resource only from one queue at the same time.
     // Before it can be accessed by another queue, it must transition to read or common state.
-    // In a read state resource can be read from multiple command queues simultaneously, including across processes, based on its read state.
+    // In a read state resource can be read from multiple command queues simultaneously, including across processes,
+    // based on its read state.
     ThrowIfFailed(m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)));
 
-    ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocators[m_frameIndex])));
+    ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                                   IID_PPV_ARGS(&m_commandAllocators[m_frameIndex])));
 
     // Create the command list.
-    ThrowIfFailed(m_device->CreateCommandList(
-        0u /*Single GPU*/,
-        D3D12_COMMAND_LIST_TYPE_DIRECT,
-        m_commandAllocators[m_frameIndex].Get() /*Must match the command list type*/,
-        nullptr,
-        IID_PPV_ARGS(&m_commandList)));
+    ThrowIfFailed(
+        m_device->CreateCommandList(0u /*Single GPU*/, D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                    m_commandAllocators[m_frameIndex].Get() /*Must match the command list type*/,
+                                    nullptr, IID_PPV_ARGS(&m_commandList)));
 
     // Command lists are created in the recording state, but there is nothing
     // to record yet. The main loop expects it to be closed, so close it now.
@@ -238,7 +237,8 @@ VOID Blainn::RenderSubsystem::CreateFence()
 {
     // Create synchronization objects and wait until assets have been uploaded to the GPU.
     {
-        ThrowIfFailed(m_device->CreateFence(m_fenceValues[m_frameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
+        ThrowIfFailed(
+            m_device->CreateFence(m_fenceValues[m_frameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
 
         m_fenceValues[m_frameIndex]++;
         // Create an event handle to use for frame synchronization.
@@ -247,8 +247,8 @@ VOID Blainn::RenderSubsystem::CreateFence()
         {
             ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
         }
-        // Wait for the command list to execute; we are reusing the same command 
-        // list in our main loop but for now, we just want to wait for setup to 
+        // Wait for the command list to execute; we are reusing the same command
+        // list in our main loop but for now, we just want to wait for setup to
         // complete before continuing.
         WaitForGPU();
     }
@@ -282,12 +282,12 @@ VOID Blainn::RenderSubsystem::CreateRtvAndDsvDescriptorHeaps()
 VOID Blainn::RenderSubsystem::CreateSwapChain()
 {
     // Describe and create the swap chain.
-    //DXGI_SWAP_CHAIN_DESC sd;
+    // DXGI_SWAP_CHAIN_DESC sd;
     DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
     swapChainDesc.Width = m_width;
     swapChainDesc.Height = m_height;
-    swapChainDesc.Format = BackBufferFormat; // Back buffer format
-    swapChainDesc.SampleDesc.Count = m_is4xMsaaState ? 4u : 1u; // MSAA
+    swapChainDesc.Format = BackBufferFormat;                                          // Back buffer format
+    swapChainDesc.SampleDesc.Count = m_is4xMsaaState ? 4u : 1u;                       // MSAA
     swapChainDesc.SampleDesc.Quality = m_is4xMsaaState ? (m_4xMsaaQuality - 1u) : 0u; // MSAA
     swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swapChainDesc.BufferCount = SwapChainFrameCount;
@@ -301,13 +301,8 @@ VOID Blainn::RenderSubsystem::CreateSwapChain()
 
     ComPtr<IDXGISwapChain1> swapChain;
     ThrowIfFailed(m_factory->CreateSwapChainForHwnd(
-        m_commandQueue.Get(),        // Swap chain needs the queue so that it can force a flush on it.
-        m_hWND,
-        &swapChainDesc,
-        &swapChainFullScreenDesc,
-        nullptr,
-        &swapChain
-    ));
+        m_commandQueue.Get(), // Swap chain needs the queue so that it can force a flush on it.
+        m_hWND, &swapChainDesc, &swapChainFullScreenDesc, nullptr, &swapChain));
 
     // This sample does not support fullscreen transitions.
     ThrowIfFailed(m_factory->MakeWindowAssociation(m_hWND, DXGI_MWA_NO_ALT_ENTER));
@@ -322,7 +317,7 @@ VOID Blainn::RenderSubsystem::Reset()
     assert(m_swapChain);
 
     // Before making any changes
-    //FlushCommandQueue();
+    // FlushCommandQueue();
 
     ThrowIfFailed(m_commandList->Reset(m_commandAllocators[m_frameIndex].Get(), nullptr));
 
@@ -333,12 +328,8 @@ VOID Blainn::RenderSubsystem::Reset()
     m_depthStencilBuffer.Reset();
 
     // Resize the swap chain
-    ThrowIfFailed(m_swapChain->ResizeBuffers(
-        SwapChainFrameCount,
-        m_width,
-        m_height,
-        BackBufferFormat,
-        DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH));
+    ThrowIfFailed(m_swapChain->ResizeBuffers(SwapChainFrameCount, m_width, m_height, BackBufferFormat,
+                                             DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH));
 
     m_frameIndex = 0u;
 
@@ -354,7 +345,8 @@ VOID Blainn::RenderSubsystem::Reset()
             rtvHeapHandle.Offset(1, m_rtvDescriptorSize);
 
             // Create command allocator for every back buffer
-            ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocators[i])));
+            ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                                           IID_PPV_ARGS(&m_commandAllocators[i])));
         }
 
         // Create the depth/stencil view.
@@ -378,14 +370,11 @@ VOID Blainn::RenderSubsystem::Reset()
         optClear.DepthStencil.Depth = 1.0f;
         optClear.DepthStencil.Stencil = 0u;
 
-        auto heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT /* Once created and never changed (from CPU) */);
-        ThrowIfFailed(m_device->CreateCommittedResource(
-            &heapProp,
-            D3D12_HEAP_FLAG_NONE,
-            &depthStencilDesc,
-            D3D12_RESOURCE_STATE_COMMON,
-            &optClear,
-            IID_PPV_ARGS(m_depthStencilBuffer.GetAddressOf())));
+        auto heapProp =
+            CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT /* Once created and never changed (from CPU) */);
+        ThrowIfFailed(m_device->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &depthStencilDesc,
+                                                        D3D12_RESOURCE_STATE_COMMON, &optClear,
+                                                        IID_PPV_ARGS(m_depthStencilBuffer.GetAddressOf())));
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
 
@@ -399,16 +388,17 @@ VOID Blainn::RenderSubsystem::Reset()
     }
 
     // Transition the resource from its initial state to be used as a depth buffer.
-    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_COMMON,
+                                                           D3D12_RESOURCE_STATE_DEPTH_WRITE);
     m_commandList->ResourceBarrier(1, &transition);
 
-    // Execute the resize commands. 
+    // Execute the resize commands.
     ThrowIfFailed(m_commandList->Close());
-    ID3D12CommandList* cmdLists[] = { m_commandList.Get() };
+    ID3D12CommandList *cmdLists[] = {m_commandList.Get()};
     m_commandQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
 
     // Wait until resize is complete.
-    //FlushCommandQueue();
+    // FlushCommandQueue();
 
     m_viewport.TopLeftX = 0.0f;
     m_viewport.TopLeftY = 0.0f;
@@ -432,7 +422,7 @@ void Blainn::RenderSubsystem::OnResize(UINT newWidth, UINT newHeight)
 VOID Blainn::RenderSubsystem::WaitForGPU()
 {
     // Schedule a Signal command in the queue.
-    ThrowIfFailed(m_device->GetCommandQueue(ECommandQueueType::GFX)->Signal(m_fence.Get(), m_fenceValues[m_frameIndex]));
+    ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), m_fenceValues[m_frameIndex]));
 
     // Wait until the fence has been processed.
     ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_fenceEvent));
@@ -470,17 +460,14 @@ void Blainn::RenderSubsystem::LoadPipeline()
 
 void Blainn::RenderSubsystem::CreateRootSignature()
 {
-
 }
 
 void Blainn::RenderSubsystem::CreatePipelineStateObjects()
 {
-
 }
 
 void Blainn::RenderSubsystem::CreateShaders()
 {
-
 }
 void Blainn::RenderSubsystem::CreateAttachRenderComponent(Entity entity)
 {

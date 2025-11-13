@@ -1,10 +1,10 @@
 #include "Engine.h"
-#include "pch.h"
 #include "VGJS.h"
+#include "pch.h"
 
-#include "aliases.h"
 #include "Input/InputSubsystem.h"
 #include "Input/KeyboardEvents.h"
+#include "aliases.h"
 #include "scene/Scene.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
@@ -29,17 +29,19 @@ void Engine::Init()
     auto a = AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), TextureType::ALBEDO);
 
     // TODO: -- remove -- test input
-    Input::AddEventListener(InputEventType::KeyPressed, [](const InputEventPointer& event)
-    {
-        const KeyPressedEvent* keyEvent = static_cast<const KeyPressedEvent*>(event.get());
-        BF_INFO("Key {} was pressed", static_cast<int>(keyEvent->GetKey()));
-    });
+    Input::AddEventListener(InputEventType::KeyPressed,
+                            [](const InputEventPointer &event)
+                            {
+                                const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent *>(event.get());
+                                BF_INFO("Key {} was pressed", static_cast<int>(keyEvent->GetKey()));
+                            });
 
-    Input::AddEventListener(InputEventType::KeyReleased, [](const InputEventPointer& event)
-    {
-        const KeyReleasedEvent* keyEvent = static_cast<const KeyReleasedEvent*>(event.get());
-        BF_INFO("Key {} was released", static_cast<int>(keyEvent->GetKey()));
-    });
+    Input::AddEventListener(InputEventType::KeyReleased,
+                            [](const InputEventPointer &event)
+                            {
+                                const KeyReleasedEvent *keyEvent = static_cast<const KeyReleasedEvent *>(event.get());
+                                BF_INFO("Key {} was released", static_cast<int>(keyEvent->GetKey()));
+                            });
 }
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
@@ -54,12 +56,11 @@ void Engine::Destroy()
 {
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
-    
+
     m_JobSystemPtr->terminate();
 
     RenderSubsystem::GetInstance().Destroy();
     Log::Destroy();
-
 }
 
 void Engine::Update(float deltaTime)
@@ -97,32 +98,35 @@ void Engine::Update(float deltaTime)
         testAccumulator = 0.0f;
     }
 
-    vgjs::schedule([deltaTime]() -> void
-        {
-            m_renderFunc(deltaTime);
-        });
+    vgjs::schedule([deltaTime]() -> void { m_renderFunc(deltaTime); });
 
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;
 }
 
-HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle, const std::string &winClassTitle, HINSTANCE hInst)
+Scene &Blainn::Engine::GetActiveScene()
+{
+    return m_activeScene;
+}
+
+HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle, const std::string &winClassTitle,
+                                HINSTANCE hInst)
 {
     DWORD winStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
 
     //// Load the icon
-    //HANDLE icon = LoadImageA(nullptr, _PROJECT_DIR_ "\\nvidia.ico", IMAGE_ICON, 0, 0,
-    //                         LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_SHARED);
+    // HANDLE icon = LoadImageA(nullptr, _PROJECT_DIR_ "\\nvidia.ico", IMAGE_ICON, 0, 0,
+    //                          LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_SHARED);
 
     // Register the window class
-    WNDCLASSEX wc = { 0 };
+    WNDCLASSEX wc = {0};
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInst;
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.lpszClassName = winClassTitle.c_str();
-    //wc.hIcon = (HICON)icon;
+    // wc.hIcon = (HICON)icon;
 
     RegisterClassEx(&wc);
 
@@ -130,18 +134,9 @@ HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winT
     AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
     // create the window
-    HWND hWnd = CreateWindow(
-        wc.lpszClassName, 
-        winTitle.c_str(),
-        winStyle,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        windowRect.right - windowRect.left,
-        windowRect.bottom - windowRect.top, 
-        nullptr, 
-        nullptr, 
-        wc.hInstance,
-        nullptr);
+    HWND hWnd = CreateWindow(wc.lpszClassName, winTitle.c_str(), winStyle, CW_USEDEFAULT, CW_USEDEFAULT,
+                             windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, nullptr, nullptr,
+                             wc.hInstance, nullptr);
 
     ShowWindow(hWnd, SW_SHOW);
     UpdateWindow(hWnd);

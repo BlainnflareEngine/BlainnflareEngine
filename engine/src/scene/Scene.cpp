@@ -166,7 +166,7 @@ void Blainn::Scene::CreateAttachMeshComponent(Entity entity, const Path &path, c
     {
         handlePtr = assetManagerInstance.LoadMesh(path, data);
     }
-    entity.AddComponent<MeshData>(*handlePtr);
+    entity.AddComponent<MeshComponent>(*handlePtr);
 
     RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
     if (renderComponentPtr)
@@ -211,8 +211,7 @@ void Scene::UnparentEntity(Entity entity, bool convertToWorldSpace)
     parentChildren.erase(std::remove(parentChildren.begin(), parentChildren.end(), entity.GetUUID()),
                          parentChildren.end());
 
-    if (convertToWorldSpace)
-         ConvertToWorldSpace(entity);
+    if (convertToWorldSpace) ConvertToWorldSpace(entity);
 
     entity.SetParentUUID(0);
 }
@@ -229,7 +228,7 @@ void Scene::ConvertToLocalSpace(Entity entity)
 
     if (!parent) return;
 
-    auto& transform = entity.Transform();
+    auto &transform = entity.Transform();
     auto parentTransform = GetWorldSpaceTransformMatrix(parent);
     auto localTransform = parentTransform.Invert() * transform.GetTransform();
     transform.SetTransform(localTransform);
@@ -242,7 +241,7 @@ void Scene::ConvertToWorldSpace(Entity entity)
     if (!parent) return;
 
     Mat4 transform = GetWorldSpaceTransformMatrix(entity);
-    auto& entityTransform = entity.Transform();
+    auto &entityTransform = entity.Transform();
     entityTransform.SetTransform(transform);
 }
 
@@ -252,8 +251,7 @@ Mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
 
     Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
 
-    if (parent)
-        return GetWorldSpaceTransformMatrix(parent);
+    if (parent) return GetWorldSpaceTransformMatrix(parent);
 
     return transform * entity.Transform().GetTransform();
 }
