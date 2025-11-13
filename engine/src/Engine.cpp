@@ -39,10 +39,12 @@ void Engine::Destroy()
 {
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
-    Log::Destroy();
-    RenderSubsystem::GetInstance().Destroy();
     
     m_JobSystemPtr->terminate();
+
+    RenderSubsystem::GetInstance().Destroy();
+    Log::Destroy();
+
 }
 
 void Engine::Update(float deltaTime)
