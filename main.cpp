@@ -25,37 +25,37 @@ int main(int argc, char **argv)
     BF_WARN("This is warn!");
     BF_TRACE("This is trace!");
 
-//#if !defined(BLAINN_INCLUDE_EDITOR)
+#if !defined(BLAINN_INCLUDE_EDITOR)
     strcpy_s(WindowTitle, "Blainnflare Engine");
     strcpy_s(WindowClass, "D3D12SampleClass");
 
     WindowWidth = 1280;
     WindowHeight = 720;
-//#endif
+#endif
 
     Blainn::Engine::Init();
     HWND hwnd = NULL;
 
-//#if defined(BLAINN_INCLUDE_EDITOR)
-//    // needed for qt to generate resources (icons etc.)
-//    Q_INIT_RESOURCE(sources);
-//
-//    Blainn::Editor::GetInstance().Init(argc, argv);
-//    Blainn::Editor::GetInstance().Show();
-//    
-//    hwnd = Blainn::Editor::GetInstance().GetViewportHWND();
-//#else
+#if defined(BLAINN_INCLUDE_EDITOR)
+    // needed for qt to generate resources (icons etc.)
+    Q_INIT_RESOURCE(sources);
+
+    Blainn::Editor::GetInstance().Init(argc, argv);
+    Blainn::Editor::GetInstance().Show();
+
+    hwnd = Blainn::Editor::GetInstance().GetViewportHWND();
+#else
     hwnd = Blainn::Engine::CreateBlainnWindow(WindowWidth, WindowHeight, WindowTitle, WindowClass, HInstance());
-    //#endif
-    
+#endif
+
     Blainn::Engine::InitRenderSubsystem(hwnd);
 
     bool isRunning = true;
-   
+
     MSG msg = {0};
     Blainn::Timeline<eastl::chrono::milliseconds> mainTimeline;
     mainTimeline.Start();
-    
+
     while (isRunning)
     {
         // Process any messages in the queue.
@@ -68,27 +68,17 @@ int main(int argc, char **argv)
         {
             // fps stats could be added
             float mainTimelineDeltaTime = mainTimeline.Tick();
-            
-            //if (!m_appPaused)
-            {
-                Blainn::Engine::Update(mainTimelineDeltaTime);
-// #if defined(BLAINN_INCLUDE_EDITOR)
-                // Blainn::Editor::GetInstance().Update();
-// #endif
-            }
-            //else
-            {
 
-            }
+            Blainn::Engine::Update(mainTimelineDeltaTime);
+#if defined(BLAINN_INCLUDE_EDITOR)
+            Blainn::Editor::GetInstance().Update();
+#endif
 
             if (msg.message == WM_QUIT)
             {
                 isRunning = false;
             }
-
         }
-
-
     }
 
     Blainn::Editor::GetInstance().Destroy();
