@@ -111,6 +111,9 @@ set(EDITOR_SOURCES
         src/inspector/entity_inspector_content.cpp
         include/inspector/entity_inspector_content.h
         include/inspector/EntityInspectorData.h
+        include/inspector/entity/add_component_button.h
+        src/inspector/entity/add_component_button.cpp
+        ../engine/include/scene/SceneParser.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

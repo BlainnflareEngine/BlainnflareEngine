@@ -67,17 +67,17 @@ void scene_hierarchy_widget::OnEntityCreated(const Blainn::SceneEventPointer &ev
     using namespace Blainn;
 
     const auto entityEvent = static_cast<const EntityCreatedEvent *>(event.get());
+    QModelIndex newIndex = GetSceneModel().AddNewEntity(entityEvent->GetEntity());
 
-    if (QModelIndex newIndex = GetSceneModel().AddNewEntity(entityEvent->GetEntity()); newIndex.isValid())
+    if (newIndex.isValid())
     {
-        setCurrentIndex(newIndex);
+        if (newIndex.isValid()) expand(newIndex);
 
-        if (newIndex.isValid())
+        if (!entityEvent->IsSceneChanged())
         {
-            expand(newIndex);
+            setCurrentIndex(newIndex);
+            edit(newIndex);
         }
-
-        edit(newIndex);
     }
 }
 

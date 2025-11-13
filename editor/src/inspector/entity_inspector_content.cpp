@@ -5,6 +5,7 @@
 #include "entity_inspector_content.h"
 
 #include "LabelsUtils.h"
+#include "entity/add_component_button.h"
 
 namespace editor
 {
@@ -22,6 +23,8 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     separator->setFrameShape(QFrame::HLine);
     layout()->addWidget(separator);
 
+    auto *addButton = new add_component_button(data.node->GetEntity(), this);
+    layout()->addWidget(addButton);
 
     connect(m_data.node, &EntityNode::OnTagChanged, this, &entity_inspector_content::SetTag);
     // TODO: get all components of this entity and create component widget for each

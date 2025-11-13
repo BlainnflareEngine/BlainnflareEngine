@@ -24,8 +24,9 @@ eastl::shared_ptr<Blainn::Scene> Blainn::SceneChangedEvent::GetScene() const
 }
 
 
-Blainn::EntityEvent::EntityEvent(const Entity &entity)
+Blainn::EntityEvent::EntityEvent(const Entity &entity, bool sceneChanged)
     : m_entity(entity)
+    , m_isSceneChanged(sceneChanged)
 {
 }
 
@@ -36,8 +37,14 @@ Blainn::Entity Blainn::EntityEvent::GetEntity() const
 }
 
 
-Blainn::EntityCreatedEvent::EntityCreatedEvent(const Entity &entity)
-    : EntityEvent(entity)
+bool Blainn::EntityEvent::IsSceneChanged() const
+{
+    return m_isSceneChanged;
+}
+
+
+Blainn::EntityCreatedEvent::EntityCreatedEvent(const Entity &entity, bool sceneChanged)
+    : EntityEvent(entity, sceneChanged)
 {
 }
 
@@ -48,8 +55,8 @@ Blainn::SceneEventType Blainn::EntityCreatedEvent::GetEventType()
 }
 
 
-Blainn::EntityDestroyedEvent::EntityDestroyedEvent(const Entity &entity)
-    : EntityEvent(entity)
+Blainn::EntityDestroyedEvent::EntityDestroyedEvent(const Entity &entity, bool sceneChanged)
+    : EntityEvent(entity, sceneChanged)
 {
 }
 

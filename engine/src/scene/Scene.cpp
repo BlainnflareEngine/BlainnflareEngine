@@ -7,6 +7,7 @@
 #include "Engine.h"
 #include "Serializer.h"
 #include "ozz/base/containers/string.h"
+#include "scene/SceneParser.h"
 
 #include "sol/types.hpp"
 #include "tools/Profiler.h"
@@ -31,16 +32,23 @@ Scene::Scene(const YAML::Node &config)
 
     m_Name = config["SceneName"].as<std::string>().c_str();
     m_SceneID.fromStr(config["SceneID"].as<std::string>().c_str());
-    BF_DEBUG(m_Name.c_str());
-    // TODO: parse all entities
+
+    if (config["Entities"] && config["Entities"].IsSequence()) CreateEntities(config["Entities"], true);
 }
 
 
 Scene::~Scene()
 {
     eastl::function<void()> fn;
+
+    for (auto entity : m_EntityIdMap)
+    {
+        SubmitToDestroyEntity(entity.second);
+    }
+
     while (s_postUpdateQueue.try_dequeue(fn))
     {
+        BF_DEBUG("Destroying entity!");
         fn();
     }
 
@@ -114,13 +122,13 @@ void Scene::RemoveEventListener(const SceneEventType eventType, const EventHandl
 }
 
 
-Entity Scene::CreateEntity(const eastl::string &name)
+Entity Scene::CreateEntity(const eastl::string &name, bool onSceneChanged)
 {
     BF_DEBUG("Created entity! {0}", name.c_str());
-    return CreateChildEntity({}, name);
+    return CreateChildEntity({}, name, onSceneChanged);
 }
 
-Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name)
+Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name, bool onSceneChanged)
 {
     BLAINN_PROFILE_FUNC();
 
@@ -140,12 +148,12 @@ Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name)
 
     SortEntities();
 
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity));
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
 
     return entity;
 }
 
-Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool shouldSort)
+Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool shouldSort, bool onSceneChanged)
 {
     BLAINN_PROFILE_FUNC();
 
@@ -163,9 +171,31 @@ Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool
 
     if (shouldSort) SortEntities();
 
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity));
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
 
     return entity;
+}
+
+
+void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged)
+{
+    if (!entitiesNode || !entitiesNode.IsSequence())
+    {
+        BF_WARN("Entities node is not a sequence or is empty");
+        return;
+    }
+
+    BF_DEBUG("Loading {0} entities from YAML", entitiesNode.size());
+
+    for (const auto &entityNode : entitiesNode)
+    {
+        uuid entityID = GetID(entityNode);
+        eastl::string tag = GetTag(entityNode);
+
+        Entity entity = CreateEntityWithID(entityID, tag, false, onSceneChanged);
+
+        // TODO: make hierarchy
+    }
 }
 
 void Scene::SubmitToDestroyEntity(Entity entity)

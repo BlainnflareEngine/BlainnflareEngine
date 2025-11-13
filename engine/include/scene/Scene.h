@@ -26,7 +26,7 @@ public:
           bool isEditorScene = false) noexcept;
     Scene(const YAML::Node &config);
     ~Scene();
-    
+
     // I'm not sure we need to copy or move scenes so if needed add these functions
     Scene(Scene &other) = delete;
     Scene &operator=(Scene &other) = delete;
@@ -62,9 +62,10 @@ public:
                                         eastl::function<void(const SceneEventPointer &)> listener);
     static void RemoveEventListener(const SceneEventType eventType, const EventHandle &handle);
 
-    Entity CreateEntity(const eastl::string &name = "");
-    Entity CreateChildEntity(Entity parent, const eastl::string &name = "");
-    Entity CreateEntityWithID(const uuid &id, const eastl::string &name = "", bool shouldSort = true);
+    Entity CreateEntity(const eastl::string &name = "", bool onSceneChanged = false);
+    Entity CreateChildEntity(Entity parent, const eastl::string &name = "", bool onSceneChanged = false);
+    Entity CreateEntityWithID(const uuid &id, const eastl::string &name = "", bool shouldSort = true, bool onSceneChanged = false);
+    void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false);
     void SubmitToDestroyEntity(Entity entity);
     void DestroyEntity(Entity entity, bool excludeChildren = false, bool first = true);
     void DestroyEntity(const uuid &entityID, bool excludeChildren = false, bool first = true);

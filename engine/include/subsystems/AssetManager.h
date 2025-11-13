@@ -50,7 +50,9 @@ public:
     Material &GetMaterialByIndex(unsigned int index);
     Material &GetMaterialByHandle(const MaterialHandle &handle);
 
-    void OpenScene(const Path &path);
+    static bool SceneExists(const Path &relativePath);
+    static void OpenScene(const Path &relativePath);
+    static void CreateScene(const Path &relativePath);
 
 private:
     AssetManager() = default;

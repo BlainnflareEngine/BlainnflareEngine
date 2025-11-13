@@ -57,7 +57,10 @@ void Editor::Init(int argc, char **argv)
 
     Log::AddSink(GetEditorSink());
 
-    AssetManager::GetInstance().OpenScene(config["DefaultScenePath"].as<std::string>());
+    std::string defaultScene = config["DefaultScenePath"].as<std::string>();
+    if (!AssetManager::SceneExists(defaultScene)) AssetManager::CreateScene(defaultScene);
+
+    AssetManager::OpenScene(defaultScene);
 }
 
 
@@ -122,8 +125,7 @@ void Editor::CreateDefaultEditorConfig()
     config["ContentDirectory"] = (current_path() / "Content").string();
     config["DefaultScenePath"] = "Scene." + ToString(formats::sceneFormat);
 
-    AssetManager::GetInstance().OpenScene(
-        Path(m_editorConfigFolder / ("Scene." + ToString(formats::sceneFormat))));
+    AssetManager::GetInstance().OpenScene(Path(m_editorConfigFolder / ("Scene." + ToString(formats::sceneFormat))));
     const path configFilePath = m_editorConfigFolder / "EditorConfig.yaml";
     std::ofstream fout(configFilePath.string());
     fout << config;

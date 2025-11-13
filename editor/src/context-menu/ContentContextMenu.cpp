@@ -6,6 +6,7 @@
 
 #include "../../include/content-browser/folder-content/ContentFilterProxyModel.h"
 #include "../../include/dialog/create_material_dialog.h"
+#include "AssetManager.h"
 #include "Editor.h"
 #include "Engine.h"
 #include "FileSystemUtils.h"
@@ -165,23 +166,13 @@ void ContentContextMenu::CreateScene(const QString &dirPath) const
             {
                 if (result == QDialog::Accepted)
                 {
+                    using namespace Blainn;
+                    // absolute
                     QString filePath =
                         dirPath + QDir::separator() + inputDialog->textValue() + "." + formats::sceneFormat;
 
-                    YAML::Node scene;
-                    QDir contentDir(Blainn::Engine::GetContentDirectory());
-
-                    Blainn::Path configFilePath(ToString(filePath));
-                    std::ofstream fout(configFilePath.string());
-                    if (fout.is_open())
-                    {
-                        fout << scene;
-                        fout.close();
-                    }
-                    else
-                    {
-                        QMessageBox::warning(&m_parent, "Error", "Failed to create scene file");
-                    }
+                    Path relativePath = std::filesystem::relative(ToString(filePath), Engine::GetContentDirectory());
+                    AssetManager::CreateScene(relativePath);
                 }
 
                 inputDialog->deleteLater();

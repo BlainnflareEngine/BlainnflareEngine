@@ -43,20 +43,22 @@ private:
 class EntityEvent : public SceneEvent
 {
 public:
-    EntityEvent(const Entity &entity);
+    EntityEvent(const Entity &entity, bool sceneChanged = false);
 
     ~EntityEvent() override {};
 
     [[nodiscard]] Entity GetEntity() const;
+    [[nodiscard]] bool IsSceneChanged() const;
 
-private:
+protected:
     Entity m_entity;
+    bool m_isSceneChanged = false;
 };
 
 class EntityCreatedEvent : public EntityEvent
 {
 public:
-    EntityCreatedEvent(const Entity &entity);
+    EntityCreatedEvent(const Entity &entity, bool sceneChanged = false);
 
     ~EntityCreatedEvent() override {};
 
@@ -66,7 +68,7 @@ public:
 class EntityDestroyedEvent : public EntityEvent
 {
 public:
-    EntityDestroyedEvent(const Entity &entity);
+    EntityDestroyedEvent(const Entity &entity, bool sceneChanged = false);
 
     ~EntityDestroyedEvent() override {};
 

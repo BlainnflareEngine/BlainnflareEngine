@@ -177,29 +177,43 @@ Material &AssetManager::GetMaterialByHandle(const MaterialHandle &handle)
 }
 
 
-void AssetManager::OpenScene(const Path &path)
+bool AssetManager::SceneExists(const Path &relativePath)
 {
-    // TODO: unload all from current scene?
+    return exists(Engine::GetContentDirectory() / relativePath);
+}
+
+
+void AssetManager::OpenScene(const Path &relativePath)
+{
     YAML::Node scene;
-    Path absolute_path(Engine::GetContentDirectory() / path);
+    Path absolute_path(Engine::GetContentDirectory() / relativePath);
 
     if (exists(absolute_path))
     {
         scene = YAML::LoadFile(absolute_path.string());
-        BF_DEBUG("Opening scene {0}", path.string());
-    }
-    else
-    {
-        scene["SceneName"] = path.string();
-        scene["SceneID"] = Rand::getRandomUUID().str();
-        BF_DEBUG("Opening scene {0}", path.filename().string());
-        std::ofstream fout(absolute_path);
-        fout << scene;
     }
 
     // TODO: parse scene
 
     Engine::SetActiveScene(eastl::make_shared<Scene>(scene));
+}
+
+
+void AssetManager::CreateScene(const Path &relativePath)
+{
+    YAML::Node scene;
+    Path absolute_path(Engine::GetContentDirectory() / relativePath);
+
+    if (exists(absolute_path))
+    {
+        return;
+    }
+
+    scene["SceneName"] = relativePath.string();
+    scene["SceneID"] = Rand::getRandomUUID().str();
+    BF_DEBUG("Opening scene {0}", relativePath.filename().string());
+    std::ofstream fout(absolute_path);
+    fout << scene;
 }
 
 
