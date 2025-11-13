@@ -1,6 +1,10 @@
-#include "Engine.h"
-#include "VGJS.h"
 #include "pch.h"
+
+#include "Engine.h"
+
+#include <VGJS.h>
+
+#include <semaphore>
 
 #include "Input/InputSubsystem.h"
 #include "Input/KeyboardEvents.h"
@@ -54,13 +58,15 @@ void Engine::InitRenderSubsystem(HWND windowHandle)
 
 void Engine::Destroy()
 {
+    vgjs::wait_for_termination();
+
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
 
-    m_JobSystemPtr->terminate();
-
     RenderSubsystem::GetInstance().Destroy();
     Log::Destroy();
+
+    m_JobSystemPtr->terminate();
 }
 
 void Engine::Update(float deltaTime)
@@ -82,6 +88,9 @@ void Engine::Update(float deltaTime)
     // ScriptingSubsystem::UnloadScript(scriptUuid);
     /// ----- END TEST SCRIPTING -----
 
+    std::counting_semaphore<1> updateDoneSem(0);
+
+
     Input::ProcessEvents();
 
     // test
@@ -98,7 +107,18 @@ void Engine::Update(float deltaTime)
         testAccumulator = 0.0f;
     }
 
-    vgjs::schedule([deltaTime]() -> void { m_renderFunc(deltaTime); });
+    vgjs::schedule(
+        [deltaTime, &updateDoneSem]() -> void
+        {
+            m_renderFunc(deltaTime);
+            // std::cout << "render update" << std::endl;
+            updateDoneSem.release();
+        },
+        vgjs::tag_t{1});
+    vgjs::schedule(vgjs::tag_t{1});
+
+    updateDoneSem.acquire();
+    // std::cout << "loop done" << std::endl;
 
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;
