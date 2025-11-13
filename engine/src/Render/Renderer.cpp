@@ -1,4 +1,5 @@
 #include "Render/Renderer.h"
+#include "RenderSubsystem.h"
 
 Blainn::Renderer::Renderer(eastl::shared_ptr<Device> device, uint32_t width, uint32_t height)
     : m_device(device)
@@ -54,19 +55,6 @@ void Blainn::Renderer::ExecuteCommandLists()
 }
 
 void Blainn::Renderer::CreateRtvAndDsvDescriptorHeaps()
-{
-
-}
-
-void Blainn::Renderer::CreateRootSignature()
-{
-}
-
-void Blainn::Renderer::CreatePipelineStateObjects()
-{
-}
-
-void Blainn::Renderer::CreateShaders()
 {
 
 }

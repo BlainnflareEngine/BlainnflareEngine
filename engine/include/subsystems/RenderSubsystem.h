@@ -94,13 +94,14 @@ namespace Blainn
         VOID MoveToNextFrame();
         VOID Reset();
 #pragma endregion BoilerplateD3D12
+        void OnResize(UINT newWidth, UINT newHeight);
     
         void LoadPipeline();
 
         void CreateRootSignature();
+        void CreatePipelineStateObjects();
         void CreateShaders();
 
-        void OnResize(UINT newWidth, UINT newHeight);
     public:
         // Engine(UINT width, UINT height, const std::wstring& name, const std::wstring& className);
 
@@ -138,7 +139,7 @@ namespace Blainn
         void DeferredSpotLightPass();
     #pragma endregion DeferredShading
 
-        // void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, std::vector<std::unique_ptr<RenderItem>>& renderItems);
+        //void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, std::vector<std::unique_ptr<RenderItem>>& renderItems);
         // void DrawInstancedRenderItems(ID3D12GraphicsCommandList* cmdList, std::vector<std::unique_ptr<RenderItem>>& renderItems);
         void DrawQuad(ID3D12GraphicsCommandList* cmdList);
 

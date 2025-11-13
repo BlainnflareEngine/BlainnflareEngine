@@ -36,11 +36,12 @@ void Blainn::RenderSubsystem::Init(HWND window)
     m_isInitialized = true;
 }
 
-
 void Blainn::RenderSubsystem::Destroy()
 {
     WaitForGPU();
     CloseHandle(m_fenceEvent);
+    m_isInitialized = false;
+    BF_INFO("RenderSubsystem::Destroy()");
 }
 
 Blainn::RenderSubsystem& Blainn::RenderSubsystem::GetInstance()
@@ -65,7 +66,7 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     // Present the frame.
     //ThrowIfFailed(m_swapChain->Present(1u, 0u));
 
-    //MoveToNextFrame();
+    MoveToNextFrame();
 }
 
 VOID Blainn::RenderSubsystem::InitializeD3D()
@@ -399,7 +400,12 @@ VOID Blainn::RenderSubsystem::Reset()
     m_scissorRect.top = 0L;
     m_scissorRect.right = static_cast<LONG>(m_width);
     m_scissorRect.bottom = static_cast<LONG>(m_height);
+}
 
+void Blainn::RenderSubsystem::OnResize(UINT newWidth, UINT newHeight)
+{
+    // To recreate resources demanding width and height (shadow maps, G buffer etc.)
+    // m_renderer->OnResize(newWidth, newHeight);
 }
 
 VOID Blainn::RenderSubsystem::WaitForGPU()
@@ -412,4 +418,46 @@ VOID Blainn::RenderSubsystem::WaitForGPU()
     WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
 
     m_fenceValues[m_frameIndex]++;
+}
+
+VOID Blainn::RenderSubsystem::MoveToNextFrame()
+{
+    // Schedule a Signal command in the queue.
+    const UINT64 currentFenceValue = m_fenceValues[m_frameIndex];
+    ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), currentFenceValue));
+
+    // Update the frame index.
+    m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+    // If the next frame is not ready to be rendered yet, wait until it is ready.
+    if (m_fence->GetCompletedValue() < m_fenceValues[m_frameIndex])
+    {
+        ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_fenceEvent));
+        WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
+    }
+
+    // Set the fence value for the next frame.
+    m_fenceValues[m_frameIndex] = currentFenceValue + 1;
+}
+
+
+void Blainn::RenderSubsystem::LoadPipeline()
+{
+    CreateRootSignature();
+    CreatePipelineStateObjects();
+}
+
+void Blainn::RenderSubsystem::CreateRootSignature()
+{
+
+}
+
+void Blainn::RenderSubsystem::CreatePipelineStateObjects()
+{
+
+}
+
+void Blainn::RenderSubsystem::CreateShaders()
+{
+
 }
