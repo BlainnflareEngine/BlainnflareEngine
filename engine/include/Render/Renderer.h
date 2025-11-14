@@ -1,37 +1,27 @@
 #pragma once
 
 #include "Render/DXHelpers.h"
-#include "Render/CommandQueue.h"
-#include "Render/Device.h"
-#include <DirectXTK12/Src/d3dx12.h>
 
 using namespace Microsoft::WRL;
 
 namespace Blainn
 {
-    class CommandQueue;
-    class Device;
-    
     class Renderer
     {
     public:
         Renderer() = default;
-        Renderer(eastl::shared_ptr<Device> pDevice, uint32_t width, uint32_t height);
+        Renderer(ID3D12Device* device, uint32_t width, uint32_t height);
         ~Renderer();
         
         void Init();
         void CreateCommandObjects();
         
     public:
-        /*virtual*/ void Update(float deltaTime) /*override*/;
-        /*virtual*/ void RenderScene(void) /*override*/;
+        void Update(float deltaTime);
+        void RenderScene(void);
 
         void PopulateCommandList();
         void ExecuteCommandLists();
-
-    public:
-        inline ID3D12Device* GetDevicePtr() const { return m_device->GetDevicePtr(); }
-        inline ID3D12CommandQueue* GetRenderCommandQueue() const { return m_device->GetCommandQueue(ECommandQueueType::GFX); } 
         
     private:
         void CreateRtvAndDsvDescriptorHeaps();
@@ -41,7 +31,8 @@ namespace Blainn
 
     private:
         // no ownership
-        eastl::shared_ptr<Device> m_device;
+        ID3D12Device* m_device = nullptr;
+
         uint32_t m_width;
         uint32_t m_height;
         
