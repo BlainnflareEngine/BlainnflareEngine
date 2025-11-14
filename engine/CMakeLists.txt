@@ -60,6 +60,9 @@ set(ENGINE_SOURCES
         include/subsystems/input/KeyCodes.h
         src/subsystems/InputSubsystem.cpp
         include/scene/TransformComponent.h
+        include/tools/Serializer.h
+        include/scene/SceneEvent.h
+        src/scene/SceneEvent.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})

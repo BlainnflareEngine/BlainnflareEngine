@@ -7,6 +7,7 @@
 #include "folder_content_list_view.h"
 
 #include "Editor.h"
+#include "Engine.h"
 #include "FileSystemUtils.h"
 #include "import_asset_dialog.h"
 #include "ui_folder_content_list_view.h"
@@ -93,7 +94,7 @@ void folder_content_list_view::dropEvent(QDropEvent *event)
         if (url.isEmpty()) continue;
 
         QString srcPath = url.toLocalFile();
-        QString contentDir = QString::fromStdString(Blainn::Editor::GetInstance().GetContentDirectory().string());
+        QString contentDir = QString::fromStdString(Blainn::Engine::GetContentDirectory().string());
 
         if (!WasInFolderBefore(srcPath, contentDir))
         {

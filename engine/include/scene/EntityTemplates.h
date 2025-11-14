@@ -79,7 +79,7 @@ void Entity::RemoveComponent()
     return m_Scene->m_Registry.erase<T>(m_EntityHandle);
 }
 template<typename T>
-void Entity::RemoveComponentIfExists()
+bool Entity::RemoveComponentIfExists()
 {
     assert(IsValid());
     return m_Scene->m_Registry.remove<T>(m_EntityHandle);

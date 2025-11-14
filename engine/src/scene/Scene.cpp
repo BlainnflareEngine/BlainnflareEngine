@@ -4,17 +4,131 @@
 
 #include "scene/Scene.h"
 
+#include "Engine.h"
+#include "Serializer.h"
+#include "ozz/base/containers/string.h"
+#include "scene/SceneParser.h"
+
+#include "sol/types.hpp"
 #include "tools/Profiler.h"
 #include "tools/random.h"
 
+#include <fstream>
+
 using namespace Blainn;
 
-Entity Scene::CreateEntity(const eastl::string &name)
+
+Scene::Scene(const eastl::string_view &name, uuid uid, bool isEditorScene) noexcept
+    : m_SceneID(uid)
+    , m_Name(name)
+    , m_IsEditorScene(isEditorScene)
 {
-    return CreateChildEntity({}, name);
 }
 
-Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name)
+
+Scene::Scene(const YAML::Node &config)
+{
+    assert(config.IsDefined());
+
+    m_Name = config["SceneName"].as<std::string>().c_str();
+    m_SceneID.fromStr(config["SceneID"].as<std::string>().c_str());
+
+    if (config["Entities"] && config["Entities"].IsSequence()) CreateEntities(config["Entities"], true);
+}
+
+
+Scene::~Scene()
+{
+    eastl::function<void()> fn;
+
+    for (auto entity : m_EntityIdMap)
+    {
+        SubmitToDestroyEntity(entity.second);
+    }
+
+    while (s_postUpdateQueue.try_dequeue(fn))
+    {
+        BF_DEBUG("Destroying entity!");
+        fn();
+    }
+
+    s_sceneEventQueue.process();
+    s_sceneEventQueue.clearEvents();
+}
+
+
+void Scene::SaveScene()
+{
+    BF_DEBUG("Saved scene {}", m_Name.c_str());
+
+    YAML::Emitter out;
+    out << YAML::BeginMap; // Root
+
+    out << YAML::Key << "SceneName" << YAML::Value << m_Name.c_str();
+    out << YAML::Key << "SceneID" << YAML::Value << m_SceneID.str();
+
+    out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq; // Entities
+
+    auto view = m_Registry.view<IDComponent>();
+    for (auto entity : view)
+    {
+        Entity e = {entity, this};
+        if (!e) continue;
+
+        out << YAML::BeginMap; // begin for every entity
+
+        Serializer::Default(e, out);
+        Serializer::Tag(e, out);
+        Serializer::Transform(e, out);
+        Serializer::Relationship(e, out);
+
+        out << YAML::EndMap; // end for every entity
+    }
+
+    out << YAML::EndSeq; // Entities
+    out << YAML::EndMap; // Root
+
+    std::string filepath = (Engine::GetContentDirectory() / std::string(m_Name.c_str())).string();
+    std::ofstream fout(filepath);
+    fout << out.c_str();
+}
+
+
+void Scene::ProcessEvents()
+{
+    eastl::function<void()> fn;
+    while (s_postUpdateQueue.try_dequeue(fn))
+    {
+        fn();
+    }
+
+    s_sceneEventQueue.process();
+}
+
+
+/**
+ * You should store EventHandle if you want to remove this listener later
+ */
+Scene::EventHandle Scene::AddEventListener(const SceneEventType eventType,
+                                           eastl::function<void(const SceneEventPointer &)> listener)
+{
+    return s_sceneEventQueue.appendListener(eventType, listener);
+}
+
+
+void Scene::RemoveEventListener(const SceneEventType eventType, const EventHandle &handle)
+{
+    s_sceneEventQueue.removeListener(eventType, handle);
+}
+
+
+Entity Scene::CreateEntity(const eastl::string &name, bool onSceneChanged)
+{
+    BF_DEBUG("Created entity! {0}", name.c_str());
+    return CreateChildEntity({}, name, onSceneChanged);
+}
+
+Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name, bool onSceneChanged)
 {
     BLAINN_PROFILE_FUNC();
 
@@ -34,10 +148,12 @@ Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name)
 
     SortEntities();
 
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
+
     return entity;
 }
 
-Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool shouldSort)
+Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool shouldSort, bool onSceneChanged)
 {
     BLAINN_PROFILE_FUNC();
 
@@ -55,7 +171,31 @@ Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool
 
     if (shouldSort) SortEntities();
 
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
+
     return entity;
+}
+
+
+void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged)
+{
+    if (!entitiesNode || !entitiesNode.IsSequence())
+    {
+        BF_WARN("Entities node is not a sequence or is empty");
+        return;
+    }
+
+    BF_DEBUG("Loading {0} entities from YAML", entitiesNode.size());
+
+    for (const auto &entityNode : entitiesNode)
+    {
+        uuid entityID = GetID(entityNode);
+        eastl::string tag = GetTag(entityNode);
+
+        Entity entity = CreateEntityWithID(entityID, tag, false, onSceneChanged);
+
+        // TODO: make hierarchy
+    }
 }
 
 void Scene::SubmitToDestroyEntity(Entity entity)
@@ -90,6 +230,7 @@ void Scene::DestroyEntity(Entity entity, bool excludeChildren, bool first)
     }
 
     // before actually destroying remove components that might require ID of the entity
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity));
 
     m_Registry.destroy(entity);
     m_EntityIdMap.erase(id);
@@ -177,8 +318,7 @@ void Scene::UnparentEntity(Entity entity, bool convertToWorldSpace)
     parentChildren.erase(std::remove(parentChildren.begin(), parentChildren.end(), entity.GetUUID()),
                          parentChildren.end());
 
-    if (convertToWorldSpace)
-         ConvertToWorldSpace(entity);
+    if (convertToWorldSpace) ConvertToWorldSpace(entity);
 
     entity.SetParentUUID(0);
 }
@@ -195,7 +335,7 @@ void Scene::ConvertToLocalSpace(Entity entity)
 
     if (!parent) return;
 
-    auto& transform = entity.Transform();
+    auto &transform = entity.Transform();
     auto parentTransform = GetWorldSpaceTransformMatrix(parent);
     auto localTransform = parentTransform.Invert() * transform.GetTransform();
     transform.SetTransform(localTransform);
@@ -208,7 +348,7 @@ void Scene::ConvertToWorldSpace(Entity entity)
     if (!parent) return;
 
     Mat4 transform = GetWorldSpaceTransformMatrix(entity);
-    auto& entityTransform = entity.Transform();
+    auto &entityTransform = entity.Transform();
     entityTransform.SetTransform(transform);
 }
 
@@ -218,8 +358,7 @@ Mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
 
     Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
 
-    if (parent)
-        return GetWorldSpaceTransformMatrix(parent);
+    if (parent) return GetWorldSpaceTransformMatrix(parent);
 
     return transform * entity.Transform().GetTransform();
 }

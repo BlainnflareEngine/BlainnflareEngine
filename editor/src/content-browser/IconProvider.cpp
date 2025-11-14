@@ -29,15 +29,15 @@ QIcon IconProvider::icon(const QFileInfo &file_info) const
 
     QString suffix = file_info.suffix().toLower();
 
-    if (supportedTextureFormats.contains(suffix)) return QIcon(":/icons/image.png");
+    if (formats::supportedTextureFormats.contains(suffix)) return QIcon(":/icons/image.png");
 
-    if (suffix == scriptFormat) return QIcon(":/icons/lua.png");
+    if (suffix == formats::scriptFormat) return QIcon(":/icons/lua.png");
 
-    if (suffix == materialFormat) return QIcon(":/icons/material.png");
+    if (suffix == formats::materialFormat) return QIcon(":/icons/material.png");
 
-    if (supported3DFormats.contains(suffix)) return QIcon(":/icons/model.png");
+    if (formats::supported3DFormats.contains(suffix)) return QIcon(":/icons/model.png");
 
-    if (suffix == sceneFormat) return QIcon(":/icons/scene.png");
+    if (suffix == formats::sceneFormat) return QIcon(":/icons/scene.png");
 
     return QIcon(":/icons/file.png");
 }

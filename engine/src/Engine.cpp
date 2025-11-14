@@ -4,9 +4,9 @@
 
 #include "VGJS.h"
 
-#include "aliases.h"
 #include "Input/InputSubsystem.h"
 #include "Input/KeyboardEvents.h"
+#include "aliases.h"
 #include "scene/Scene.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
@@ -17,12 +17,13 @@
 
 using namespace Blainn;
 
-eastl::shared_ptr<vgjs::JobSystem> Engine::m_JobSystemPtr = nullptr;
+eastl::shared_ptr<vgjs::JobSystem> Engine::s_JobSystemPtr = nullptr;
+eastl::shared_ptr<Scene> Engine::s_ActiveScene = nullptr;
 
 void Engine::Init()
 {
     vgjs::thread_count_t jobSystemThreadCount{8};
-    m_JobSystemPtr = eastl::make_shared<vgjs::JobSystem>(vgjs::JobSystem(jobSystemThreadCount));
+    s_JobSystemPtr = eastl::make_shared<vgjs::JobSystem>(vgjs::JobSystem(jobSystemThreadCount));
 
     Log::Init();
     AssetManager::GetInstance().Init();
@@ -32,17 +33,19 @@ void Engine::Init()
     auto a = AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), TextureType::ALBEDO);
 
     // TODO: -- remove -- test input
-    Input::AddEventListener(InputEventType::KeyPressed, [](const InputEventPointer& event)
-    {
-        const KeyPressedEvent* keyEvent = static_cast<const KeyPressedEvent*>(event.get());
-        BF_INFO("Key {} was pressed", static_cast<int>(keyEvent->GetKey()));
-    });
+    Input::AddEventListener(InputEventType::KeyPressed,
+                            [](const InputEventPointer &event)
+                            {
+                                const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent *>(event.get());
+                                BF_INFO("Key {} was pressed", static_cast<int>(keyEvent->GetKey()));
+                            });
 
-    Input::AddEventListener(InputEventType::KeyReleased, [](const InputEventPointer& event)
-    {
-        const KeyReleasedEvent* keyEvent = static_cast<const KeyReleasedEvent*>(event.get());
-        BF_INFO("Key {} was released", static_cast<int>(keyEvent->GetKey()));
-    });
+    Input::AddEventListener(InputEventType::KeyReleased,
+                            [](const InputEventPointer &event)
+                            {
+                                const KeyReleasedEvent *keyEvent = static_cast<const KeyReleasedEvent *>(event.get());
+                                BF_INFO("Key {} was released", static_cast<int>(keyEvent->GetKey()));
+                            });
 }
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
@@ -57,7 +60,7 @@ void Engine::Destroy()
     AssetManager::GetInstance().Destroy();
     Log::Destroy();
 
-    m_JobSystemPtr->terminate();
+    s_JobSystemPtr->terminate();
 }
 
 void Engine::Update(float deltaTime)
@@ -99,6 +102,35 @@ void Engine::Update(float deltaTime)
 
     // TODO: wait for jobs to finish?
 
+    Scene::ProcessEvents();
+
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;
+}
+
+
+Path &Engine::GetContentDirectory()
+{
+    return s_contentDirectory;
+}
+
+
+void Engine::SetContentDirectory(const Path &contentDirectory)
+{
+    s_contentDirectory = contentDirectory;
+}
+
+
+eastl::shared_ptr<Scene> Engine::GetActiveScene()
+{
+    return s_ActiveScene;
+}
+
+
+void Engine::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
+{
+    // TODO: should trigger delegate?
+    // TODO: should notify editor?
+
+    s_ActiveScene = scene;
 }

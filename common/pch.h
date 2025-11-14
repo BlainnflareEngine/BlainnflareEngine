@@ -64,3 +64,4 @@ inline eastl::string ToEASTLString(const std::string &s)
 {
     return eastl::string(s.c_str());
 }
+

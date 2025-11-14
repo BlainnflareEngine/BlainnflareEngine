@@ -4,33 +4,64 @@
 
 #pragma once
 
-#include <QList>
-#include <QString>
+#include "FileSystemUtils.h"
+#include "scene/Entity.h"
 
-struct EntityNode
+
+#include <QList>
+
+namespace editor
 {
+struct EntityNode : QObject
+{
+private:
+    Q_OBJECT
+
+public:
+    EntityNode(const Blainn::Entity &entity, EntityNode *parent = nullptr)
+        : m_parent(parent)
+        , m_entity(entity)
+    {
+        children.reserve(4);
+    }
+
+
     ~EntityNode()
     {
         qDeleteAll(children);
     }
 
+
     void SetName(const QString &newName)
     {
-        name = newName;
-        // TODO: update entity name in engine
+        m_tag = newName;
+
+        emit OnTagChanged(m_tag);
+
+        if (m_entity && m_entity.HasComponent<Blainn::TagComponent>())
+            m_entity.GetComponent<Blainn::TagComponent>().Tag = ToEASTLString(newName);
     }
+
 
     const QString &GetName() const
     {
-        return name;
+        return m_tag;
     }
 
-    QVector<EntityNode *> children;
-    EntityNode *parent = nullptr;
+
+    QVector<EntityNode *> children = {}; // can't use smart ptr because qDeleteAll uses raw ptr
+    EntityNode *m_parent = nullptr;
+
+    Blainn::Entity &GetEntity()
+    {
+        return m_entity;
+    }
+
+signals:
+    void OnTagChanged(const QString &newTag);
 
 private:
-    QString name;
-
-    // Should we have a reference?
-    // Blainn::Entity entity;
+    QString m_tag;
+    Blainn::Entity m_entity;
 };
+} // namespace editor

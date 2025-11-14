@@ -21,7 +21,7 @@ public slots:
     void OnContextMenu(const QPoint &pos) const;
 
 private:
-    void CreateFolder(QString dirPath) const;
+    void CreateFolder(const QString& dirPath) const;
     void CreateScript(const QString &dirPath) const;
     void CreateMaterial(const QString &dirPath) const;
     void CreateScene(const QString &dirPath) const;
