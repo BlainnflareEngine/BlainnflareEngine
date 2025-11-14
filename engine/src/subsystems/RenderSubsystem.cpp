@@ -6,7 +6,10 @@
 #include <iostream>
 
 #include "Render/FreyaMath.h"
+#include "Render/FreyaUtil.h"
 #include "Render/Renderer.h"
+#include "Render/FrameResource.h"
+#include "VertexTypes.h"
 
 #include "Engine.h"
 #include "components/MeshComponent.h"
@@ -16,7 +19,6 @@
 #include "scene/Scene.h"
 #include "subsystems/Log.h"
 #include "tools/Profiler.h"
-
 
 using namespace Blainn;
 
@@ -33,15 +35,24 @@ void Blainn::RenderSubsystem::Init(HWND window)
     m_width = rect.right - rect.left;
     m_height = rect.bottom - rect.top;
 
+    m_aspectRatio = static_cast<float>(m_width) / m_height;
+
+    BF_DEBUG("Width: {0}", m_width);
+    BF_DEBUG("Height: {0}", m_height);
+
 #if defined(_DEBUG)
     // Enable the debug layer (requires the Graphics Tools "optional feature").
     // NOTE: Enabling the debug layer after device creation will invalidate the active device.
     CreateDebugLayer();
 #endif
+    m_camera = eastl::make_unique<Camera>();
+
     InitializeD3D();
 
-    // m_renderer = eastl::make_unique<Renderer>(m_device, m_width, m_height);
-    // m_renderer->Init();
+    m_renderer = eastl::make_unique<Renderer>(m_device.Get(), m_width, m_height);
+    m_renderer->Init();
+
+    //LoadPipeline();
 
     m_isInitialized = true;
 }
@@ -68,8 +79,27 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     BLAINN_PROFILE_SCOPE_DYNAMIC("Render function");
     BF_INFO("RenderSubsystem::Render()");
 
+#pragma region UpdateStage
+    m_camera->Update(deltaTime);
+
+    // Cycle through the circular frame resource array.
+    /*m_currFrameResourceIndex = (m_currFrameResourceIndex + 1) % gNumFrameResources;
+    m_currFrameResource = m_frameResources[m_currFrameResourceIndex].get();*/
+
+    //UpdateObjectsCB(deltaTime);
+    //UpdateMaterialBuffer(deltaTime);
+    //UpdateLightsBuffer(deltaTime);
+
+    //UpdateShadowTransform(deltaTime);
+    //UpdateShadowPassCB(deltaTime);   // pass
+
+    //UpdateGeometryPassCB(deltaTime); // pass
+    //UpdateMainPassCB(deltaTime);     // pass
+#pragma endregion UpdateStage
+
+#pragma region RenderStage
     // Record all the commands we need to render the scene into the command list.
-    // m_renderer->PopulateCommandList();
+    //m_renderer->PopulateCommandList();
 
     Scene &scene = Engine::GetActiveScene();
     auto renderedEntities = scene.GetAllEntitiesWith<IDComponent, RenderComponent>();
@@ -86,7 +116,8 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     // m_renderer->ExecuteCommandLists();
 
     // Present the frame.
-    // ThrowIfFailed(m_swapChain->Present(1u, 0u));
+    //ThrowIfFailed(m_swapChain->Present(1u, 0u));
+#pragma endregion RenderStage
 
     MoveToNextFrame();
 }
@@ -100,6 +131,8 @@ VOID Blainn::RenderSubsystem::InitializeD3D()
     CreateSwapChain();
 
     Reset();
+
+    BF_INFO("D3D initialized!");
 }
 
 VOID Blainn::RenderSubsystem::CreateDebugLayer()
@@ -385,6 +418,8 @@ VOID Blainn::RenderSubsystem::Reset()
         dsvDesc.Texture2D.MipSlice = 0u;
 
         m_device->CreateDepthStencilView(m_depthStencilBuffer.Get(), &dsvDesc, dsvHandle);
+
+        m_camera->Reset(75.0f, m_aspectRatio, 1.0f, 250.0f);
     }
 
     // Transition the resource from its initial state to be used as a depth buffer.
@@ -454,21 +489,319 @@ VOID Blainn::RenderSubsystem::MoveToNextFrame()
 
 void Blainn::RenderSubsystem::LoadPipeline()
 {
+    ThrowIfFailed(m_commandList->Reset(m_commandAllocators[m_frameIndex].Get(), nullptr));
+
+    CreateFrameResources();
+    CreateDescriptorHeaps();
     CreateRootSignature();
+
+    CreateShaders();
     CreatePipelineStateObjects();
+}
+
+void Blainn::RenderSubsystem::CreateFrameResources()
+{
+    for (int i = 0; i < gNumFrameResources; i++)
+    {
+        /*m_frameResources.push_back(eastl::make_unique<FrameResource>(m_device.Get(), static_cast<UINT>(EPassType::NumPasses),
+                                            (UINT)m_renderItems.size(), (UINT)m_materials.size(), MaxPointLights));*/
+    }
+}
+
+void Blainn::RenderSubsystem::CreateDescriptorHeaps()
+{
+    D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+    ZeroMemory(&srvHeapDesc, sizeof(srvHeapDesc));
+    srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    // textures + csm + GBuffer
+    srvHeapDesc.NumDescriptors = /*(UINT)m_textures.size()*/ +1u + 5u;
+    srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    srvHeapDesc.NodeMask = 0u;
+    ThrowIfFailed(m_device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(m_srvHeap.GetAddressOf())));
+
+    m_cbvSrvUavDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
 void Blainn::RenderSubsystem::CreateRootSignature()
 {
-}
+    CD3DX12_DESCRIPTOR_RANGE cascadeShadowSrv;
+    cascadeShadowSrv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1u, 0u);
 
-void Blainn::RenderSubsystem::CreatePipelineStateObjects()
-{
+    CD3DX12_DESCRIPTOR_RANGE texTable;
+
+    /*
+    * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    * texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, (UINT)m_textures.size(), 2u, 0u);
+    */
+
+    CD3DX12_DESCRIPTOR_RANGE gBufferTable;
+    gBufferTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, (UINT)GBuffer::EGBufferLayer::MAX, 2u, 1u);
+
+    // Root parameter can be a table, root descriptor or root constants.
+    CD3DX12_ROOT_PARAMETER slotRootParameter[ERootParameter::NumRootParameters];
+
+    // Perfomance TIP: Order from most frequent to least frequent.
+    slotRootParameter[ERootParameter::PerObjectDataCB].InitAsConstantBufferView(
+        0u, 0u,
+        D3D12_SHADER_VISIBILITY_ALL /* gMaterialIndex used in both shaders */); // a root descriptor for objects' CBVs.
+    slotRootParameter[ERootParameter::PerPassDataCB].InitAsConstantBufferView(
+        1u, 0u, D3D12_SHADER_VISIBILITY_ALL); // a root descriptor for Pass CBV.
+    slotRootParameter[ERootParameter::MaterialDataSB].InitAsShaderResourceView(
+        1u, 0u, D3D12_SHADER_VISIBILITY_ALL /* gMaterialData used in both shaders */); // a srv for structured buffer
+                                                                                       // with materials' data
+    slotRootParameter[ERootParameter::PointLightsDataSB].InitAsShaderResourceView(
+        0u, 1u, D3D12_SHADER_VISIBILITY_ALL /* gMaterialData used in both shaders */); // a srv for structured buffer
+                                                                                       // with materials' data
+    slotRootParameter[ERootParameter::SpotLightsDataSB].InitAsShaderResourceView(
+        1u, 1u, D3D12_SHADER_VISIBILITY_ALL /* gMaterialData used in both shaders */); // a srv for structured buffer
+                                                                                       // with materials' data
+    slotRootParameter[ERootParameter::CascadedShadowMaps].InitAsDescriptorTable(
+        1u, &cascadeShadowSrv, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for shadow maps array.
+    slotRootParameter[ERootParameter::Textures].InitAsDescriptorTable(
+        1u, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for textures
+    slotRootParameter[ERootParameter::GBufferTextures].InitAsDescriptorTable(
+        1u, &gBufferTable, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for GBuffer
+
+    auto staticSamplers = GetStaticSamplers();
+
+    // Root signature is an array of root parameters
+    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+    rootSignatureDesc.Init(ARRAYSIZE(slotRootParameter), slotRootParameter, (UINT)staticSamplers.size(),
+                           staticSamplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+    ComPtr<ID3DBlob> signature = nullptr;
+    ComPtr<ID3DBlob> error = nullptr;
+    ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+    ThrowIfFailed(m_device->CreateRootSignature(0u, signature->GetBufferPointer(), signature->GetBufferSize(),
+                                                IID_PPV_ARGS(&m_rootSignature)));
 }
 
 void Blainn::RenderSubsystem::CreateShaders()
 {
+    // auto pixelShaderPath = GetAssetFullPath(L"./PixelShader.hlsl").c_str();
+
+    const D3D_SHADER_MACRO fogDefines[] = {"FOG", "1", NULL, NULL};
+
+    const D3D_SHADER_MACRO alphaTestDefines[] = {"ALPHA_TEST", "1", "FOG", "1", NULL, NULL};
+
+    const D3D_SHADER_MACRO shadowDebugDefines[] = {"SHADOW_DEBUG", "1", NULL, NULL};
+
+    /*m_shaders[EShaderType::DefaultVS] =
+        FreyaUtil::CompileShader(L"./Content/Shaders/VertexShader.hlsl", nullptr, "main", "vs_5_1");
+    m_shaders[EShaderType::DefaultOpaquePS] =
+        FreyaUtil::CompileShader(L"./Content/Shaders/PixelShader.hlsl", fogDefines, "main", "ps_5_1");
+
+    m_shaders[EShaderType::CascadedShadowsVS] =
+        FreyaUtil::CompileShader(L"./Content/Shaders/ShadowVertexShader.hlsl", nullptr, "main", "vs_5_1");
+    m_shaders[EShaderType::CascadedShadowsGS] =
+        FreyaUtil::CompileShader(L"./Content/Shaders/GeometryShader.hlsl", nullptr, "main", "gs_5_1");
+
+#pragma region DeferredShading
+    m_shaders[EShaderType::DeferredGeometryVS] =
+        FreyaUtil::CompileShader(L"./Content/Shaders/GBufferPassVS.hlsl", nullptr, "main", "vs_5_1");
+    m_shaders[EShaderType::DeferredGeometryPS] =
+        FreyaUtil::CompileShader(L"./Content/Shaders/GBufferPassPS.hlsl", nullptr, "main", "ps_5_1");
+
+    m_shaders[EShaderType::DeferredDirVS] =
+        FreyaUtil::CompileShader(L"./Content/Shaders/DeferredDirectionalLightVS.hlsl", nullptr, "main", "vs_5_1");
+    m_shaders[EShaderType::DeferredDirPS] =
+        FreyaUtil::CompileShader(L"./Content/Shaders/DeferredDirectionalLightPS.hlsl", nullptr, "main", "ps_5_1");
+
+    m_shaders[EShaderType::DeferredLightVolumesVS] =
+        FreyaUtil::CompileShader(L"./Content/Shaders/LightVolumesVS.hlsl", nullptr, "main", "vs_5_1");
+    m_shaders[EShaderType::DeferredPointPS] =
+        FreyaUtil::CompileShader(L"./Content/Shaders/DeferredPointLightPS.hlsl", nullptr, "main", "ps_5_1");
+    m_shaders[EShaderType::DeferredSpotPS] =
+        FreyaUtil::CompileShader(L"./Content/Shaders/DeferredSpotLightPS.hlsl", nullptr, "main", "ps_5_1");*/
+#pragma endregion DeferredShading
 }
+
+void Blainn::RenderSubsystem::CreatePipelineStateObjects()
+{
+//#pragma region DefaultOpaqueAndWireframe
+//    // Describe and create the graphics pipeline state object (PSO).
+//    D3D12_GRAPHICS_PIPELINE_STATE_DESC opaquePsoDesc = {};
+//    ZeroMemory(&opaquePsoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+//    opaquePsoDesc.pRootSignature = m_rootSignature.Get();
+//    opaquePsoDesc.VS =
+//        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DefaultVS)->GetBufferPointer()),
+//                               m_shaders.at(EShaderType::DefaultVS)->GetBufferSize()});
+//    opaquePsoDesc.PS =
+//        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DefaultOpaquePS)->GetBufferPointer()),
+//                               m_shaders.at(EShaderType::DefaultOpaquePS)->GetBufferSize()});
+//    opaquePsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT); // Blend state is disable
+//    opaquePsoDesc.SampleMask = UINT_MAX;
+//    opaquePsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+//    opaquePsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+//    opaquePsoDesc.InputLayout = VertexPositionNormalTangentBitangentUV::InputLayout;
+//    opaquePsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+//    opaquePsoDesc.NumRenderTargets = 1u;
+//    opaquePsoDesc.RTVFormats[0] = BackBufferFormat;
+//    opaquePsoDesc.DSVFormat = DepthStencilFormat;
+//    // Do not use multisampling
+//    // This should match the setting of the render target we are using (check swapChainDesc)
+//    opaquePsoDesc.SampleDesc.Count = 1u;
+//    opaquePsoDesc.SampleDesc.Quality = 0u;
+//    ThrowIfFailed(
+//        m_device->CreateGraphicsPipelineState(&opaquePsoDesc, IID_PPV_ARGS(&m_pipelineStates[EPsoType::Opaque])));
+//
+//    D3D12_GRAPHICS_PIPELINE_STATE_DESC opaqueWireframe = opaquePsoDesc;
+//    opaqueWireframe.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+//    ThrowIfFailed(m_device->CreateGraphicsPipelineState(&opaqueWireframe,
+//                                                        IID_PPV_ARGS(&m_pipelineStates[EPsoType::WireframeOpaque])));
+//#pragma endregion DefaultOpaqueAndWireframe
+//
+//#pragma region Transparency
+//    D3D12_GRAPHICS_PIPELINE_STATE_DESC transparentPsoDesc = opaquePsoDesc;
+//
+//    // C = C(src) * F(src) + C(dst) * F(dst)
+//
+//    D3D12_RENDER_TARGET_BLEND_DESC transparencyBlendDesc = {};
+//    ZeroMemory(&transparencyBlendDesc, sizeof(transparencyBlendDesc));
+//    transparencyBlendDesc.BlendEnable = TRUE;
+//    transparencyBlendDesc.LogicOpEnable = FALSE;
+//    transparencyBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+//    transparencyBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+//    transparencyBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
+//    transparencyBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+//    transparencyBlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
+//    transparencyBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+//    transparencyBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+//    transparencyBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+//
+//    transparentPsoDesc.BlendState.AlphaToCoverageEnable = FALSE;
+//    transparentPsoDesc.BlendState.IndependentBlendEnable = FALSE;
+//    transparentPsoDesc.BlendState.RenderTarget[0] = transparencyBlendDesc;
+//    // since we can see through transparent objects, we have to see their back faces
+//    transparentPsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+//    ThrowIfFailed(m_device->CreateGraphicsPipelineState(&transparentPsoDesc,
+//                                                        IID_PPV_ARGS(&m_pipelineStates[EPsoType::Transparency])));
+//#pragma endregion Transparency
+//
+//#pragma region CascadeShadowsDepthPass
+//    D3D12_GRAPHICS_PIPELINE_STATE_DESC cascadeShadowPsoDesc = {};
+//    ZeroMemory(&cascadeShadowPsoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
+//    cascadeShadowPsoDesc.pRootSignature = m_rootSignature.Get();
+//    cascadeShadowPsoDesc.VS = D3D12_SHADER_BYTECODE(
+//        {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::CascadedShadowsVS)->GetBufferPointer()),
+//         m_shaders.at(EShaderType::CascadedShadowsVS)->GetBufferSize()});
+//    cascadeShadowPsoDesc.GS = D3D12_SHADER_BYTECODE(
+//        {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::CascadedShadowsGS)->GetBufferPointer()),
+//         m_shaders.at(EShaderType::CascadedShadowsGS)->GetBufferSize()});
+//    cascadeShadowPsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT); // Blend state is disable
+//    cascadeShadowPsoDesc.SampleMask = UINT_MAX;
+//    cascadeShadowPsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+//    cascadeShadowPsoDesc.RasterizerState.DepthBias = 10000;
+//    cascadeShadowPsoDesc.RasterizerState.DepthClipEnable = (BOOL)0.0f;
+//    cascadeShadowPsoDesc.RasterizerState.SlopeScaledDepthBias = 1.0f;
+//    cascadeShadowPsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+//    cascadeShadowPsoDesc.InputLayout = VertexPosition::InputLayout;
+//    cascadeShadowPsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+//    cascadeShadowPsoDesc.NumRenderTargets = 0u;
+//    cascadeShadowPsoDesc.RTVFormats[0] = DXGI_FORMAT_UNKNOWN;
+//    cascadeShadowPsoDesc.DSVFormat = DepthStencilFormat;
+//    cascadeShadowPsoDesc.SampleDesc.Count = 1u;
+//    cascadeShadowPsoDesc.SampleDesc.Quality = 0u;
+//    ThrowIfFailed(m_device->CreateGraphicsPipelineState(
+//        &cascadeShadowPsoDesc, IID_PPV_ARGS(&m_pipelineStates[EPsoType::CascadedShadowsOpaque])));
+//#pragma endregion CascadeShadowsDepthPass
+//
+//#pragma region DeferredShading
+//
+//    D3D12_GRAPHICS_PIPELINE_STATE_DESC GBufferPsoDesc = opaquePsoDesc;
+//    GBufferPsoDesc.VS = D3D12_SHADER_BYTECODE(
+//        {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredGeometryVS)->GetBufferPointer()),
+//         m_shaders.at(EShaderType::DeferredGeometryVS)->GetBufferSize()});
+//    GBufferPsoDesc.PS = D3D12_SHADER_BYTECODE(
+//        {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredGeometryPS)->GetBufferPointer()),
+//         m_shaders.at(EShaderType::DeferredGeometryPS)->GetBufferSize()});
+//    GBufferPsoDesc.NumRenderTargets = static_cast<UINT>(GBuffer::EGBufferLayer::MAX) - 1u;
+//    GBufferPsoDesc.RTVFormats[0] = m_GBuffer->GetBufferTextureFormat(GBuffer::EGBufferLayer::DIFFUSE_ALBEDO);
+//    GBufferPsoDesc.RTVFormats[1] = m_GBuffer->GetBufferTextureFormat(GBuffer::EGBufferLayer::AMBIENT_OCCLUSION);
+//    GBufferPsoDesc.RTVFormats[2] = m_GBuffer->GetBufferTextureFormat(GBuffer::EGBufferLayer::NORMAL);
+//    GBufferPsoDesc.RTVFormats[3] = m_GBuffer->GetBufferTextureFormat(GBuffer::EGBufferLayer::SPECULAR);
+//    GBufferPsoDesc.DSVFormat = DepthStencilFormat; // corresponds to default format
+//    ThrowIfFailed(m_device->CreateGraphicsPipelineState(&GBufferPsoDesc,
+//                                                        IID_PPV_ARGS(&m_pipelineStates[EPsoType::DeferredGeometry])));
+//
+//    D3D12_GRAPHICS_PIPELINE_STATE_DESC dirLightPsoDesc = opaquePsoDesc;
+//    dirLightPsoDesc.VS =
+//        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredDirVS)->GetBufferPointer()),
+//                               m_shaders.at(EShaderType::DeferredDirVS)->GetBufferSize()});
+//    dirLightPsoDesc.PS =
+//        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredDirPS)->GetBufferPointer()),
+//                               m_shaders.at(EShaderType::DeferredDirPS)->GetBufferSize()});
+//    dirLightPsoDesc.InputLayout = VertexPosition::InputLayout;
+//    dirLightPsoDesc.NumRenderTargets = 1u;
+//    dirLightPsoDesc.RTVFormats[0] = BackBufferFormat;
+//    dirLightPsoDesc.DSVFormat = DepthStencilFormat;
+//    ThrowIfFailed(m_device->CreateGraphicsPipelineState(
+//        &dirLightPsoDesc, IID_PPV_ARGS(&m_pipelineStates[EPsoType::DeferredDirectional])));
+//
+//#pragma region DeferredPointLight
+//    // Still needs to be configured
+//    // Hack with DSS and RS
+//    D3D12_GRAPHICS_PIPELINE_STATE_DESC pointLightIntersectsFarPlanePsoDesc = dirLightPsoDesc;
+//
+//    D3D12_RENDER_TARGET_BLEND_DESC RTBlendDesc = {};
+//    ZeroMemory(&RTBlendDesc, sizeof(D3D12_RENDER_TARGET_BLEND_DESC));
+//    RTBlendDesc.BlendEnable = TRUE;
+//    RTBlendDesc.LogicOpEnable = FALSE;
+//    RTBlendDesc.SrcBlend = D3D12_BLEND_ONE;
+//    RTBlendDesc.DestBlend = D3D12_BLEND_ONE;
+//    RTBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
+//    RTBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+//    RTBlendDesc.DestBlendAlpha = D3D12_BLEND_ONE;
+//    RTBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+//    RTBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+//    RTBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+//
+//    pointLightIntersectsFarPlanePsoDesc.BlendState.AlphaToCoverageEnable = FALSE;
+//    pointLightIntersectsFarPlanePsoDesc.BlendState.IndependentBlendEnable = FALSE;
+//    pointLightIntersectsFarPlanePsoDesc.BlendState.RenderTarget[0] = RTBlendDesc;
+//
+//    pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+//    pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthEnable = FALSE;
+//    pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+//    pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+//    pointLightIntersectsFarPlanePsoDesc.DepthStencilState.StencilEnable = FALSE;
+//    pointLightIntersectsFarPlanePsoDesc.DepthStencilState.StencilReadMask = 0xFF;
+//    pointLightIntersectsFarPlanePsoDesc.DepthStencilState.StencilWriteMask = 0xFF;
+//    pointLightIntersectsFarPlanePsoDesc.VS = D3D12_SHADER_BYTECODE(
+//        {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredLightVolumesVS)->GetBufferPointer()),
+//         m_shaders.at(EShaderType::DeferredLightVolumesVS)->GetBufferSize()});
+//    pointLightIntersectsFarPlanePsoDesc.PS =
+//        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredPointPS)->GetBufferPointer()),
+//                               m_shaders.at(EShaderType::DeferredPointPS)->GetBufferSize()});
+//    ThrowIfFailed(m_device->CreateGraphicsPipelineState(
+//        &pointLightIntersectsFarPlanePsoDesc,
+//        IID_PPV_ARGS(&m_pipelineStates[EPsoType::DeferredPointIntersectsFarPlane])));
+//
+//    D3D12_GRAPHICS_PIPELINE_STATE_DESC pointLightWithinFrustumPsoDesc = pointLightIntersectsFarPlanePsoDesc;
+//    pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT; // ???
+//    pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
+//    pointLightIntersectsFarPlanePsoDesc.InputLayout = VertexPosition::InputLayout;
+//    ThrowIfFailed(m_device->CreateGraphicsPipelineState(
+//        &pointLightWithinFrustumPsoDesc, IID_PPV_ARGS(&m_pipelineStates[EPsoType::DeferredPointWithinFrustum])));
+//
+//#pragma endregion DeferredPointLight
+//
+//#pragma region DeferredSpotLight
+//    D3D12_GRAPHICS_PIPELINE_STATE_DESC spotLightPsoDesc = pointLightIntersectsFarPlanePsoDesc;
+//    spotLightPsoDesc.PS =
+//        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredSpotPS)->GetBufferPointer()),
+//                               m_shaders.at(EShaderType::DeferredSpotPS)->GetBufferSize()});
+//    ThrowIfFailed(m_device->CreateGraphicsPipelineState(&spotLightPsoDesc,
+//                                                        IID_PPV_ARGS(&m_pipelineStates[EPsoType::DeferredSpot])));
+//#pragma endregion DeferredSpotLight
+//
+//#pragma endregion DeferredShading
+}
+
+/*
+* Relation with Render component 
+*/ 
+
 void Blainn::RenderSubsystem::CreateAttachRenderComponent(Entity entity)
 {
     RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
@@ -507,4 +840,123 @@ void Blainn::RenderSubsystem::AddMeshToRenderComponent(Entity entity, MeshHandle
         // meshData.indices;
         // meshData.vertices;
     }
+}
+
+eastl::array<const CD3DX12_STATIC_SAMPLER_DESC, 5> Blainn::RenderSubsystem::GetStaticSamplers()
+{
+    const CD3DX12_STATIC_SAMPLER_DESC pointWrap(
+        0u, // shaderRegister
+        D3D12_FILTER_MIN_MAG_MIP_POINT, // filter
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP); // addressW
+
+    const CD3DX12_STATIC_SAMPLER_DESC linearWrap(
+        1u, // shaderRegister
+        D3D12_FILTER_MIN_MAG_MIP_LINEAR, // filter
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP); // addressW
+
+    const CD3DX12_STATIC_SAMPLER_DESC anisotropicWrap(
+        2u, // shaderRegister
+        D3D12_FILTER_ANISOTROPIC, // filter
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressW
+        0.0f,                             // mipLODBias
+        8u);                              // maxAnisotropy
+
+    const CD3DX12_STATIC_SAMPLER_DESC shadowSampler(
+        3u,
+        D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        0.0f,
+        16u
+        );
+
+    const CD3DX12_STATIC_SAMPLER_DESC shadowComparison(
+        4u,
+        D3D12_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR,
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        0.0f,
+        16u,
+        D3D12_COMPARISON_FUNC_LESS_EQUAL,
+        D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK
+    );
+
+    return { pointWrap, linearWrap, anisotropicWrap, shadowSampler, shadowComparison };
+}
+
+eastl::pair<XMMATRIX, XMMATRIX> Blainn::RenderSubsystem::GetLightSpaceMatrix(const float nearPlane, const float farPlane)
+{
+    return eastl::pair<XMMATRIX, XMMATRIX>();
+}
+
+void Blainn::RenderSubsystem::GetLightSpaceMatrices(eastl::vector<eastl::pair<XMMATRIX, XMMATRIX>> &outMatrices)
+{
+    for (UINT i = 0; i < MaxCascades; ++i)
+    {
+        if (i == 0)
+        {
+            outMatrices.push_back(GetLightSpaceMatrix(m_camera->GetNearZ(), m_shadowCascadeLevels[i]));
+        }
+        else if (i < MaxCascades - 1)
+        {
+            outMatrices.push_back(GetLightSpaceMatrix(m_shadowCascadeLevels[i - 1], m_shadowCascadeLevels[i]));
+        }
+        else
+        {
+            outMatrices.push_back(GetLightSpaceMatrix(m_shadowCascadeLevels[i - 1], m_shadowCascadeLevels[i]));
+        }
+    }
+}
+
+void Blainn::RenderSubsystem::CreateShadowCascadeSplits()
+{
+    const float minZ = m_camera->GetNearZ();
+    const float maxZ = m_camera->GetFarZ();
+
+    const float range = maxZ - minZ;
+    const float ratio = maxZ / minZ;
+
+    for (int i = 0; i < MaxCascades; i++)
+    {
+        float p = (i + 1) / (float)(MaxCascades);
+        float log = (float)(minZ * pow(ratio, p));
+        float uniform = minZ + range * p;
+        float d = 0.95f * (log - uniform) + uniform; // 0.95f - idk, just magic value
+        m_shadowCascadeLevels[i] = ((d - minZ) / range) * maxZ;
+    }
+
+}
+
+eastl::vector<XMVECTOR> Blainn::RenderSubsystem::GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection)
+{
+    const auto viewProj = view * projection;
+
+    XMVECTOR det = XMMatrixDeterminant(viewProj);
+    const auto invViewProj = XMMatrixInverse(&det, viewProj);
+
+    eastl::vector<XMVECTOR> frustumCorners;
+    frustumCorners.reserve(8);
+
+    for (UINT x = 0; x < 2; ++x)
+    {
+        for (UINT y = 0; y < 2; ++y)
+        {
+            for (UINT z = 0; z < 2; ++z)
+            {
+                // translate NDC coords to world space
+                const XMVECTOR pt =
+                    XMVector4Transform(XMVectorSet(2.0f * x - 1.0f, 2.0f * y - 1.0f, (float)z, 1.0f), invViewProj);
+                frustumCorners.push_back(pt / XMVectorGetW(pt));
+            }
+        }
+    }
+    return frustumCorners;
 }

@@ -1,21 +1,23 @@
 #pragma once
 
+#include <Windows.h>
 #include "Render/DXHelpers.h"
 #include "Render/FrameResource.h"
-#include <Windows.h>
 
 #include "handles/Handle.h"
 #include "scene/Entity.h"
 #include "Render/Camera.h"
-
+#include "Render/GBuffer.h"
+#include "Render/CascadeShadowMap.h"
 
 namespace Blainn
 {
-class Renderer;
-class Device;
+    const int gNumFrameResources = 3;
 
     class RenderSubsystem
     {
+        friend class Renderer;
+        
     public:
         enum ERootParameter : UINT
         {
@@ -28,45 +30,45 @@ class Device;
             Textures,
             GBufferTextures,
 
-        NumRootParameters = 8u
+            NumRootParameters = 8u
     };
 
-    enum EPsoType : UINT
-    {
-        Opaque = 0,
-        WireframeOpaque,
-        Transparency,
-        CascadedShadowsOpaque,
+        enum EPsoType : UINT
+        {
+            Opaque = 0,
+            WireframeOpaque,
+            Transparency,
+            CascadedShadowsOpaque,
 
-        DeferredGeometry,
-        DeferredDirectional,
+            DeferredGeometry,
+            DeferredDirectional,
 
-        DeferredPointWithinFrustum,
-        DeferredPointIntersectsFarPlane,
-        DeferredPointFullQuad,
+            DeferredPointWithinFrustum,
+            DeferredPointIntersectsFarPlane,
+            DeferredPointFullQuad,
 
-        DeferredSpot,
+            DeferredSpot,
 
-        NumPipelineStates = 10u
-    };
+            NumPipelineStates = 10u
+        };
 
-    enum EShaderType : UINT
-    {
-        DefaultVS = 0,
-        DefaultOpaquePS,
-        CascadedShadowsVS,
-        CascadedShadowsGS,
+        enum EShaderType : UINT
+        {
+            DefaultVS = 0,
+            DefaultOpaquePS,
+            CascadedShadowsVS,
+            CascadedShadowsGS,
 
-        DeferredGeometryVS,
-        DeferredGeometryPS,
-        DeferredDirVS,
-        DeferredDirPS,
-        DeferredLightVolumesVS,
-        DeferredPointPS,
-        DeferredSpotPS,
+            DeferredGeometryVS,
+            DeferredGeometryPS,
+            DeferredDirVS,
+            DeferredDirPS,
+            DeferredLightVolumesVS,
+            DeferredPointPS,
+            DeferredSpotPS,
 
-        NumShaders = 11U
-    };
+            NumShaders = 11U
+        };
 
     private:
         RenderSubsystem() = default; 
@@ -81,8 +83,8 @@ class Device;
         void Render(float deltaTime);
         void Destroy();
 
-            void CreateAttachRenderComponent(Entity entity);
-    void AddMeshToRenderComponent(Entity entity, MeshHandle meshHandle);
+        void CreateAttachRenderComponent(Entity entity);
+        void AddMeshToRenderComponent(Entity entity, MeshHandle meshHandle);
         
     private:
         void InitializeD3D();
@@ -104,9 +106,11 @@ class Device;
     
         void LoadPipeline();
 
+        void CreateFrameResources();
+        void CreateDescriptorHeaps();
         void CreateRootSignature();
-        void CreatePipelineStateObjects();
         void CreateShaders();
+        void CreatePipelineStateObjects();
 
     public:
         // Engine(UINT width, UINT height, const std::wstring& name, const std::wstring& className);
@@ -115,46 +119,56 @@ class Device;
         // virtual void OnRender(float deltaTime);
         // virtual void OnDestroy();
 
-    // virtual void OnMouseDown(WPARAM btnState, int x, int y) override;
-    // virtual void OnMouseUp(WPARAM btnState, int x, int y) override;
-    // virtual void OnMouseMove(WPARAM btnState, int x, int y) override;
-    // virtual void OnKeyDown(UINT8 key) override;
-    // virtual void OnKeyUp(UINT8 key) override;
+        // virtual void OnMouseDown(WPARAM btnState, int x, int y) override;
+        // virtual void OnMouseUp(WPARAM btnState, int x, int y) override;
+        // virtual void OnMouseMove(WPARAM btnState, int x, int y) override;
+        // virtual void OnKeyDown(UINT8 key) override;
+        // virtual void OnKeyUp(UINT8 key) override;
 
-private:
-    void OnKeyboardInput(float deltaTime);
-    void UpdateObjectsCB(float deltaTime);
-    void UpdateMaterialBuffer(float deltaTime);
-    void UpdateLightsBuffer(float deltaTime);
-    void UpdateShadowTransform(float deltaTime);
-    void UpdateShadowPassCB(float deltaTime);
-    void UpdateGeometryPassCB(float deltaTime);
-    void UpdateMainPassCB(float deltaTime);
+    private:
+        void OnKeyboardInput(float deltaTime);
+        void UpdateObjectsCB(float deltaTime);
+        void UpdateMaterialBuffer(float deltaTime);
+        void UpdateLightsBuffer(float deltaTime);
+        void UpdateShadowTransform(float deltaTime);
+        void UpdateShadowPassCB(float deltaTime);
+        void UpdateGeometryPassCB(float deltaTime);
+        void UpdateMainPassCB(float deltaTime);
 
-private:
+    private:
 #pragma region Shadows
-    void RenderDepthOnlyPass();
+        void RenderDepthOnlyPass();
 #pragma endregion Shadows
 #pragma region DeferredShading
-    void RenderGeometryPass();
-    void RenderLightingPass();
-    void RenderTransparencyPass();
+        void RenderGeometryPass();
+        void RenderLightingPass();
+        void RenderTransparencyPass();
 
-    void DeferredDirectionalLightPass();
-    void DeferredPointLightPass();
-    void DeferredSpotLightPass();
+        void DeferredDirectionalLightPass();
+        void DeferredPointLightPass();
+        void DeferredSpotLightPass();
 #pragma endregion DeferredShading
 
         //void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, std::vector<std::unique_ptr<RenderItem>>& renderItems);
         // void DrawInstancedRenderItems(ID3D12GraphicsCommandList* cmdList, std::vector<std::unique_ptr<RenderItem>>& renderItems);
         void DrawQuad(ID3D12GraphicsCommandList* cmdList);
 
+        eastl::array<const CD3DX12_STATIC_SAMPLER_DESC, 5> GetStaticSamplers();
+
+        eastl::pair<XMMATRIX, XMMATRIX> GetLightSpaceMatrix(const float nearPlane, const float farPlane);
+        // Doubt that't a good idea to return vector of matrices. Should rather pass vector as a parameter probalby and
+        // fill it inside function.
+        void GetLightSpaceMatrices(eastl::vector<eastl::pair<XMMATRIX, XMMATRIX>> &outMatrices);
+        void CreateShadowCascadeSplits();
+
+        eastl::vector<XMVECTOR> GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection);
+
     private:
         UINT m_dxgiFactoryFlags = 0u;
         
         UINT m_width;
         UINT m_height;
-        float aspectRatio;
+        float m_aspectRatio;
         
         HWND m_hWND;
 
@@ -174,6 +188,7 @@ private:
         bool m_is4xMsaaState = false;
         UINT m_4xMsaaQuality = 0u;
 
+    private:
         // Pipeline objects.
         ComPtr<IDXGIFactory4> m_factory;
         ComPtr<IDXGISwapChain3> m_swapChain;
@@ -194,10 +209,14 @@ private:
         ComPtr<ID3D12Fence> m_fence;
         HANDLE m_fenceEvent;
         UINT64 m_fenceValues[SwapChainFrameCount];
-        
+
+        ComPtr<ID3D12RootSignature> m_rootSignature;
+        eastl::unordered_map<EShaderType, ComPtr<ID3DBlob>> m_shaders;
+        eastl::unordered_map<EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
+
         ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
         ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
-        ComPtr<ID3D12DescriptorHeap> m_cbvHeap;
+        ComPtr<ID3D12DescriptorHeap> m_srvHeap;
         
         UINT m_rtvDescriptorSize;       // see m_rtvHeap
         UINT m_dsvDescriptorSize;       // see m_dsvHeap
@@ -205,6 +224,22 @@ private:
 
         D3D12_VIEWPORT m_viewport;
         D3D12_RECT m_scissorRect;
+
+        eastl::vector<eastl::unique_ptr<FrameResource>> m_frameResources;
+        FrameResource* m_currFrameResource = nullptr;
+        int m_currFrameResourceIndex = 0;
+
+        eastl::unique_ptr<Camera> m_camera;
+
+#pragma region DeferredShading
+        eastl::unique_ptr<GBuffer> m_GBuffer;
+#pragma endregion DeferredShading
+
+#pragma region CascadedShadows
+        CD3DX12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowSrv;
+        CD3DX12_GPU_DESCRIPTOR_HANDLE m_GBufferTexturesSrv;
+        float m_shadowCascadeLevels[MaxCascades] = {0.0f, 0.0f, 0.0f, 0.0f};
+#pragma endregion CascadedShadows
 
     private:
         D3D12_CPU_DESCRIPTOR_HANDLE GetRTV()
