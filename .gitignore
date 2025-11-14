@@ -54,5 +54,7 @@ libs/lua/*
 logs/*
 .idea/
 CMakeFiles/
+# client local machine's specific file
+CMakeSettings.json
 /out
 cmake-build-debug
