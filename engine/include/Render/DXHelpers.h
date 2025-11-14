@@ -13,6 +13,9 @@
 
 #include <EASTL/shared_ptr.h>
 #include <EASTL/unique_ptr.h>
+#include <EASTL/unordered_map.h>
+
+using Microsoft::WRL::ComPtr;
 
 inline std::string HrToString(HRESULT hr)
 {
