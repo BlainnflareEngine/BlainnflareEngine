@@ -38,12 +38,18 @@ set(ENGINE_SOURCES
         include/Render/FrameResource.h
         include/Render/UploadBuffer.h
         include/Render/Camera.h
+        include/Render/GBuffer.h
+        include/Render/ShadowMap.h
+        include/Render/CascadeShadowMap.h
         src/Render/Renderer.cpp
         src/Render/CommandQueue.cpp
         src/Render/Device.cpp
         src/Render/FreyaUtil.cpp
         src/Render/FrameResource.cpp
         src/Render/Camera.cpp
+        src/Render/GBuffer.cpp
+        src/Render/ShadowMap.cpp
+        src/Render/CascadeShadowMap.cpp
         include/scene/Scene.h
         src/scene/Scene.cpp
         include/scene/Entity.h
