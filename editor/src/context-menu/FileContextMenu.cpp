@@ -4,9 +4,8 @@
 
 #include "context-menu/FileContextMenu.h"
 
-#include "../../include/content-browser/folder-content/ContentFilterProxyModel.h"
-#include "EASTL/unique_ptr.h"
 #include "FileSystemUtils.h"
+#include "folder-content/ContentFilterProxyModel.h"
 
 #include <QFileSystemModel>
 #include <QMenu>
@@ -25,41 +24,50 @@ FileContextMenu::FileContextMenu(QAbstractItemView &parent, const eastl::vector<
 
 void FileContextMenu::FileContext(const QPoint &pos, const QString &path) const
 {
-    QMenu menu;
+    QMenu *menu = new QMenu(nullptr);
 
-    QAction *openAction = menu.addAction("Open");
-    QAction *deleteAction = menu.addAction("Delete");
-    menu.addSeparator();
-    QAction *showExplorerAction = menu.addAction("Show in explorer");
+    QAction *openAction = menu->addAction("Open");
+    QAction *deleteAction = menu->addAction("Delete");
+    menu->addSeparator();
+    QAction *showExplorerAction = menu->addAction("Show in explorer");
 
-    if (QAction *selectedAction = menu.exec(m_parent.viewport()->mapToGlobal(pos)))
-    {
-        if (selectedAction == openAction) OpenFileExternal(path);
-        else if (selectedAction == deleteAction) BDeleteFile(path);
-        else if (selectedAction == showExplorerAction) OpenFileExplorer(path);
-    }
+    if (openAction) connect(openAction, &QAction::triggered, [path]() { OpenFileExternal(path); });
+
+
+    if (deleteAction) connect(deleteAction, &QAction::triggered, [path]() { BDeleteFile(path); });
+
+
+    if (showExplorerAction) connect(showExplorerAction, &QAction::triggered, [path]() { OpenFileExplorer(path); });
+
+
+    connect(menu, &QMenu::aboutToHide, menu, &QMenu::deleteLater);
+
+    menu->popup(m_parent.viewport()->mapToGlobal(pos));
 }
 
 
 void FileContextMenu::DirectoryContext(const QPoint &pos, const QString &path) const
 {
-    QMenu menu;
+    QMenu *menu = new QMenu(nullptr);
 
-    QAction *openAction = menu.QWidget::addAction("Open");
-    QAction *deleteAction = menu.QWidget::addAction("Delete");
-    menu.addSeparator();
-    QAction *explorerAction = menu.QWidget::addAction("Show in explorer");
-    menu.adjustSize();
+    QAction *openAction = menu->addAction("Open");
+    QAction *deleteAction = menu->addAction("Delete");
+    menu->addSeparator();
+    QAction *explorerAction = menu->addAction("Show in explorer");
 
     eastl::vector<QAbstractItemView *> itemViews = m_additionalViews;
     itemViews.push_back(&m_parent);
 
-    if (QAction *selectedAction = menu.exec(m_parent.viewport()->mapToGlobal(pos)))
-    {
-        if (openAction == selectedAction) OpenFolder(path, itemViews);
-        else if (selectedAction == deleteAction) DeleteFolder(path);
-        else if (selectedAction == explorerAction) OpenFolderExplorer(path);
-    }
+    if (openAction) connect(openAction, &QAction::triggered, [path, itemViews]() { OpenFolder(path, itemViews); });
+
+    if (deleteAction) connect(deleteAction, &QAction::triggered, [path]() { DeleteFolder(path); });
+
+    if (explorerAction) connect(explorerAction, &QAction::triggered, [path]() { OpenFolderExplorer(path); });
+
+
+    connect(menu, &QMenu::aboutToHide, menu, &QMenu::deleteLater);
+
+    menu->popup(m_parent.viewport()->mapToGlobal(pos));
 }
 
 

@@ -134,3 +134,9 @@ void Engine::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
 
     s_ActiveScene = scene;
 }
+
+
+void Engine::ClearActiveScene()
+{
+    s_ActiveScene.reset();
+}

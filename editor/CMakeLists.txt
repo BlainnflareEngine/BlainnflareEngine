@@ -114,6 +114,11 @@ set(EDITOR_SOURCES
         include/inspector/entity/add_component_button.h
         src/inspector/entity/add_component_button.cpp
         ../engine/include/scene/SceneParser.h
+        src/inspector/entity/transform_widget.cpp
+        include/inspector/entity/transform_widget.h
+        include/inspector/entity/FieldValidation.h
+        src/inspector/float_input_field.cpp
+        include/inspector/float_input_field.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
