@@ -61,13 +61,13 @@ ComPtr<ID3DBlob> Blainn::FreyaUtil::CompileShader(const std::wstring& fileName, 
     ComPtr<ID3DBlob> byteCode = nullptr;
     ComPtr<ID3DBlob> errors;
 
-    /*hr = D3DCompileFromFile(fileName.c_str(), defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+    hr = D3DCompileFromFile(fileName.c_str(), defines, D3D_COMPILE_STANDARD_FILE_INCLUDE,
         entrypoint.c_str(), target.c_str(), compileFlags, 0u, &byteCode, &errors);
 
     if (errors != nullptr)
         OutputDebugStringA((char*)errors->GetBufferPointer());
 
-    ThrowIfFailed(hr);*/
+    ThrowIfFailed(hr);
 
     return byteCode;
 }

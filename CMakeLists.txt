@@ -91,7 +91,7 @@ target_link_libraries(pch INTERFACE
         TracyClient
         yaml-cpp
         DirectXTK12
-	D3D12MemoryAllocator)
+	    D3D12MemoryAllocator)
 
 target_include_directories(pch INTERFACE
         "${CMAKE_SOURCE_DIR}/libs/uuid_v4"
@@ -113,6 +113,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         pch
         ENGINE
         EDITOR)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
+        d3d12.lib
+        d3dcompiler.lib)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         "${ENGINE_DIR}"
