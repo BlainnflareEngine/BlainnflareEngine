@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include <pch.h>
+
 #include "aliases.h"
 #include <d3d12.h>
 
