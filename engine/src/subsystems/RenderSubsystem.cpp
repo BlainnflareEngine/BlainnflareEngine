@@ -76,7 +76,7 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     assert(m_isInitialized && "Freya subsystem not initialized");
 
     BLAINN_PROFILE_SCOPE_DYNAMIC("Render function");
-    BF_INFO("RenderSubsystem::Render()");
+    // BF_INFO("RenderSubsystem::Render()");
 
 #pragma region UpdateStage
     m_camera->Update(deltaTime);
@@ -85,20 +85,20 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     m_currFrameResourceIndex = (m_currFrameResourceIndex + 1) % gNumFrameResources;
     m_currFrameResource = m_frameResources[m_currFrameResourceIndex].get();
 
-    //UpdateObjectsCB(deltaTime);
-    //UpdateMaterialBuffer(deltaTime);
-    //UpdateLightsBuffer(deltaTime);
+    // UpdateObjectsCB(deltaTime);
+    // UpdateMaterialBuffer(deltaTime);
+    // UpdateLightsBuffer(deltaTime);
 
-    //UpdateShadowTransform(deltaTime);
-    //UpdateShadowPassCB(deltaTime);   // pass
+    // UpdateShadowTransform(deltaTime);
+    // UpdateShadowPassCB(deltaTime);   // pass
 
-    //UpdateGeometryPassCB(deltaTime); // pass
-    //UpdateMainPassCB(deltaTime);     // pass
+    // UpdateGeometryPassCB(deltaTime); // pass
+    // UpdateMainPassCB(deltaTime);     // pass
 #pragma endregion UpdateStage
 
 #pragma region RenderStage
     // Record all the commands we need to render the scene into the command list.
-    //m_renderer->PopulateCommandList();
+    // m_renderer->PopulateCommandList();
     PopulateCommandList();
 
     Scene &scene = Engine::GetActiveScene();
@@ -133,7 +133,7 @@ void Blainn::RenderSubsystem::PopulateCommandList()
     ThrowIfFailed(m_commandList->Reset(currentCmdAlloc, m_pipelineStates.at(EPsoType::DeferredGeometry).Get()));
 
     m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-    
+
     // Access for setting and using root descriptor table
     ID3D12DescriptorHeap *descriptorHeaps[] = {m_srvHeap.Get()};
     m_commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
@@ -385,7 +385,8 @@ VOID Blainn::RenderSubsystem::Reset()
     m_depthStencilBuffer.Reset();
 
     // Resize the swap chain
-    ThrowIfFailed(m_swapChain->ResizeBuffers(SwapChainFrameCount, m_width, m_height, BackBufferFormat, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH));
+    ThrowIfFailed(m_swapChain->ResizeBuffers(SwapChainFrameCount, m_width, m_height, BackBufferFormat,
+                                             DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH));
 
     m_frameIndex = 0u;
 
@@ -398,8 +399,8 @@ VOID Blainn::RenderSubsystem::Reset()
         rtvHeapHandle.Offset(1, m_rtvDescriptorSize);
 
         // Create command allocator for every back buffer
-        ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                                        IID_PPV_ARGS(&m_commandAllocators[i])));
+        ThrowIfFailed(
+            m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocators[i])));
     }
 
     // Create the depth/stencil view.
@@ -523,8 +524,9 @@ void Blainn::RenderSubsystem::CreateFrameResources()
 {
     for (int i = 0; i < gNumFrameResources; i++)
     {
-        m_frameResources.push_back(eastl::make_unique<FrameResource>(m_device.Get(), static_cast<UINT>(EPassType::NumPasses),
-                                            0u/*(UINT)m_renderItems.size()*/, 0u/*(UINT)m_materials.size()*/, 0u/*MaxPointLights*/));
+        m_frameResources.push_back(eastl::make_unique<FrameResource>(
+            m_device.Get(), static_cast<UINT>(EPassType::NumPasses), 0u /*(UINT)m_renderItems.size()*/,
+            0u /*(UINT)m_materials.size()*/, 0u /*MaxPointLights*/));
     }
 }
 
@@ -548,7 +550,8 @@ void Blainn::RenderSubsystem::CreateRootSignature()
     cascadeShadowSrv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1u, 0u);
 
     CD3DX12_DESCRIPTOR_RANGE texTable;
-    texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, /*magic test number (supposed to be the number of materials/textures*/6u, 2u, 0u);
+    texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                  /*magic test number (supposed to be the number of materials/textures*/ 6u, 2u, 0u);
 
     CD3DX12_DESCRIPTOR_RANGE gBufferTable;
     gBufferTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, (UINT)GBuffer::EGBufferLayer::MAX, 2u, 1u);
@@ -557,14 +560,24 @@ void Blainn::RenderSubsystem::CreateRootSignature()
     CD3DX12_ROOT_PARAMETER slotRootParameter[ERootParameter::NumRootParameters];
 
     // Perfomance TIP: Order from most frequent to least frequent.
-    slotRootParameter[ERootParameter::PerObjectDataCB].InitAsConstantBufferView(0u, 0u, D3D12_SHADER_VISIBILITY_ALL /* gMaterialIndex used in both shaders */); // a root descriptor for objects' CBVs.
-    slotRootParameter[ERootParameter::PerPassDataCB].InitAsConstantBufferView(1u, 0u, D3D12_SHADER_VISIBILITY_ALL); // a root descriptor for Pass CBV.
-    slotRootParameter[ERootParameter::MaterialDataSB].InitAsShaderResourceView(1u, 0u, D3D12_SHADER_VISIBILITY_ALL /* gMaterialData used in both shaders */); // a srv for structured buffer with materials' data
-    slotRootParameter[ERootParameter::PointLightsDataSB].InitAsShaderResourceView(0u, 1u, D3D12_SHADER_VISIBILITY_ALL /* gMaterialData used in both shaders */); // a srv for structured buffer
-    slotRootParameter[ERootParameter::SpotLightsDataSB].InitAsShaderResourceView(1u, 1u, D3D12_SHADER_VISIBILITY_ALL /* gMaterialData used in both shaders */); // a srv for structured buffer
-    slotRootParameter[ERootParameter::CascadedShadowMaps].InitAsDescriptorTable(1u, &cascadeShadowSrv, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for shadow maps array.
-    slotRootParameter[ERootParameter::Textures].InitAsDescriptorTable(1u, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for textures
-    slotRootParameter[ERootParameter::GBufferTextures].InitAsDescriptorTable(1u, &gBufferTable, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for GBuffer
+    slotRootParameter[ERootParameter::PerObjectDataCB].InitAsConstantBufferView(
+        0u, 0u,
+        D3D12_SHADER_VISIBILITY_ALL /* gMaterialIndex used in both shaders */); // a root descriptor for objects' CBVs.
+    slotRootParameter[ERootParameter::PerPassDataCB].InitAsConstantBufferView(
+        1u, 0u, D3D12_SHADER_VISIBILITY_ALL); // a root descriptor for Pass CBV.
+    slotRootParameter[ERootParameter::MaterialDataSB].InitAsShaderResourceView(
+        1u, 0u, D3D12_SHADER_VISIBILITY_ALL /* gMaterialData used in both shaders */); // a srv for structured buffer
+                                                                                       // with materials' data
+    slotRootParameter[ERootParameter::PointLightsDataSB].InitAsShaderResourceView(
+        0u, 1u, D3D12_SHADER_VISIBILITY_ALL /* gMaterialData used in both shaders */); // a srv for structured buffer
+    slotRootParameter[ERootParameter::SpotLightsDataSB].InitAsShaderResourceView(
+        1u, 1u, D3D12_SHADER_VISIBILITY_ALL /* gMaterialData used in both shaders */); // a srv for structured buffer
+    slotRootParameter[ERootParameter::CascadedShadowMaps].InitAsDescriptorTable(
+        1u, &cascadeShadowSrv, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for shadow maps array.
+    slotRootParameter[ERootParameter::Textures].InitAsDescriptorTable(
+        1u, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for textures
+    slotRootParameter[ERootParameter::GBufferTextures].InitAsDescriptorTable(
+        1u, &gBufferTable, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for GBuffer
 
     auto staticSamplers = GetStaticSamplers();
 
@@ -576,7 +589,8 @@ void Blainn::RenderSubsystem::CreateRootSignature()
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
     ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
-    ThrowIfFailed(m_device->CreateRootSignature(0u, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
+    ThrowIfFailed(m_device->CreateRootSignature(0u, signature->GetBufferPointer(), signature->GetBufferSize(),
+                                                IID_PPV_ARGS(&m_rootSignature)));
 }
 
 void Blainn::RenderSubsystem::CreateShaders()
@@ -759,8 +773,8 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
 }
 
 /*
-* Relation with Render component 
-*/ 
+ * Relation with Render component
+ */
 
 void Blainn::RenderSubsystem::CreateAttachRenderComponent(Entity entity)
 {
@@ -807,7 +821,8 @@ void Blainn::RenderSubsystem::RenderDepthOnlyPass()
     m_commandList->RSSetViewports(1u, &m_viewport);
     m_commandList->RSSetScissorRects(1u, &m_scissorRect);
 
-    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(
+        m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
     m_commandList->ResourceBarrier(1u, &transition);
 
     auto rtvHandle = GetRTV();
@@ -816,18 +831,18 @@ void Blainn::RenderSubsystem::RenderDepthOnlyPass()
     const float *clearColor = DirectX::Colors::Yellow;
     m_commandList->OMSetRenderTargets(1u, &rtvHandle, TRUE, &dsvHandle);
     m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0u, nullptr);
-    m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u, nullptr);
+    m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u,
+                                         nullptr);
 
     m_commandList->SetPipelineState(m_pipelineStates.at(EPsoType::CascadedShadowsOpaque).Get());
-    
-    transition = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+
+    transition = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(),
+                                                      D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
     m_commandList->ResourceBarrier(1u, &transition);
 }
 
 void Blainn::RenderSubsystem::RenderGeometryPass()
 {
-
-
 }
 
 void Blainn::RenderSubsystem::RenderLightingPass()
@@ -856,52 +871,36 @@ void Blainn::RenderSubsystem::DrawQuad(ID3D12GraphicsCommandList *cmdList)
 
 eastl::array<const CD3DX12_STATIC_SAMPLER_DESC, 5> Blainn::RenderSubsystem::GetStaticSamplers()
 {
-    const CD3DX12_STATIC_SAMPLER_DESC pointWrap(
-        0u, // shaderRegister
-        D3D12_FILTER_MIN_MAG_MIP_POINT, // filter
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP); // addressW
+    const CD3DX12_STATIC_SAMPLER_DESC pointWrap(0u,                               // shaderRegister
+                                                D3D12_FILTER_MIN_MAG_MIP_POINT,   // filter
+                                                D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
+                                                D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
+                                                D3D12_TEXTURE_ADDRESS_MODE_WRAP); // addressW
 
-    const CD3DX12_STATIC_SAMPLER_DESC linearWrap(
-        1u, // shaderRegister
-        D3D12_FILTER_MIN_MAG_MIP_LINEAR, // filter
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP); // addressW
+    const CD3DX12_STATIC_SAMPLER_DESC linearWrap(1u,                               // shaderRegister
+                                                 D3D12_FILTER_MIN_MAG_MIP_LINEAR,  // filter
+                                                 D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
+                                                 D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
+                                                 D3D12_TEXTURE_ADDRESS_MODE_WRAP); // addressW
 
-    const CD3DX12_STATIC_SAMPLER_DESC anisotropicWrap(
-        2u, // shaderRegister
-        D3D12_FILTER_ANISOTROPIC, // filter
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressW
-        0.0f,                             // mipLODBias
-        8u);                              // maxAnisotropy
+    const CD3DX12_STATIC_SAMPLER_DESC anisotropicWrap(2u,                              // shaderRegister
+                                                      D3D12_FILTER_ANISOTROPIC,        // filter
+                                                      D3D12_TEXTURE_ADDRESS_MODE_WRAP, // addressU
+                                                      D3D12_TEXTURE_ADDRESS_MODE_WRAP, // addressV
+                                                      D3D12_TEXTURE_ADDRESS_MODE_WRAP, // addressW
+                                                      0.0f,                            // mipLODBias
+                                                      8u);                             // maxAnisotropy
 
     const CD3DX12_STATIC_SAMPLER_DESC shadowSampler(
-        3u,
-        D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
-        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
-        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
-        0.0f,
-        16u
-        );
+        3u, D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_BORDER, D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER, 0.0f, 16u);
 
     const CD3DX12_STATIC_SAMPLER_DESC shadowComparison(
-        4u,
-        D3D12_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR,
-        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
-        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
-        D3D12_TEXTURE_ADDRESS_MODE_BORDER,
-        0.0f,
-        16u,
-        D3D12_COMPARISON_FUNC_LESS_EQUAL,
-        D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK
-    );
+        4u, D3D12_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+        D3D12_TEXTURE_ADDRESS_MODE_BORDER, D3D12_TEXTURE_ADDRESS_MODE_BORDER, 0.0f, 16u,
+        D3D12_COMPARISON_FUNC_LESS_EQUAL, D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK);
 
-    return { pointWrap, linearWrap, anisotropicWrap, shadowSampler, shadowComparison };
+    return {pointWrap, linearWrap, anisotropicWrap, shadowSampler, shadowComparison};
 }
 
 eastl::pair<XMMATRIX, XMMATRIX> Blainn::RenderSubsystem::GetLightSpaceMatrix(const float nearZ, const float farZ)
@@ -989,7 +988,8 @@ void Blainn::RenderSubsystem::CreateShadowCascadeSplits()
     }
 }
 
-eastl::vector<XMVECTOR> Blainn::RenderSubsystem::GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection)
+eastl::vector<XMVECTOR> Blainn::RenderSubsystem::GetFrustumCornersWorldSpace(const XMMATRIX &view,
+                                                                             const XMMATRIX &projection)
 {
     const auto viewProj = view * projection;
 

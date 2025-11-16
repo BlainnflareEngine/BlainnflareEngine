@@ -91,7 +91,7 @@ public:
     template <typename... T> bool HasAll() const;
 
     template <typename T> void RemoveComponent();
-    template <typename T> void RemoveComponentIfExists();
+    template <typename T> bool RemoveComponentIfExists();
 
 #pragma endregion
 

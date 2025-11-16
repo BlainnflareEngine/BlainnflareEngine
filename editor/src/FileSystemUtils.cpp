@@ -209,9 +209,9 @@ bool MoveRecursively(const QString &targetPath, const QString &srcPath)
         return false;
     }
 
-    if (supported3DFormats.contains(srcFile.suffix()))
+    if (formats::supported3DFormats.contains(srcFile.suffix()))
     {
-        if (!QFile::rename(srcPath + "." + metaFormat, destPath + "." + metaFormat))
+        if (!QFile::rename(srcPath + "." + formats::metaFormat, destPath + "." + formats::metaFormat))
         {
             BF_ERROR("Failed to move file {0} to {1}.", ToString(srcFile.fileName()), ToString(targetPath));
             return false;
@@ -239,7 +239,7 @@ bool WasInFolderBefore(const QString &filePath, const QString &contentFolderPath
 
 import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info)
 {
-    if (supported3DFormats.contains(QFileInfo(info.originalPath).suffix().toLower()))
+    if (formats::supported3DFormats.contains(QFileInfo(info.originalPath).suffix().toLower()))
     {
         BF_INFO("Showing model dialog.");
         return new import_model_dialog(info);
@@ -255,6 +255,21 @@ std::string ToString(const QString &str)
 }
 
 
+eastl::string ToEASTLString(const QString &str)
+{
+    return str.toUtf8().constData();
+}
+
+
+QString ToQString(const eastl::string &str)
+{
+    return QString(str.c_str());
+}
+
+
+/**
+ * This is depricated func, you should use SelectFileAsync instead
+ */
 void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir)
 {
     QString fileName = QFileDialog::getOpenFileName(
@@ -270,6 +285,31 @@ void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir
         label.setText(dir.relativeFilePath(fileName));
     }
 }
+
+
+void SelectFileAsync(QWidget *parent, const QString &title, const QString &initialDir, const QString &nameFilter,
+                     std::function<void(const QString &selectedFile)> onAccepted)
+{
+    QFileDialog *dialog = new QFileDialog(parent);
+    dialog->setWindowTitle(title);
+    dialog->setFileMode(QFileDialog::ExistingFile);
+    dialog->setNameFilter(nameFilter);
+    dialog->setDirectory(initialDir);
+
+    QObject::connect(dialog, &QFileDialog::finished, dialog,
+                     [dialog, onAccepted](int result)
+                     {
+                         if (result == QDialog::Accepted && !dialog->selectedFiles().isEmpty())
+                         {
+                             QString filePath = dialog->selectedFiles().first();
+                             if (onAccepted) onAccepted(filePath);
+                         }
+                         dialog->deleteLater();
+                     });
+
+    dialog->open();
+}
+
 
 void SetValueYAML(const std::string &path, const std::string &name, const std::string &value)
 {

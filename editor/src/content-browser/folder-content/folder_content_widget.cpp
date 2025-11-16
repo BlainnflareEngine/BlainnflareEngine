@@ -5,9 +5,11 @@
 
 #include "folder_content_widget.h"
 
+#include "AssetManager.h"
 #include "ContentDelegate.h"
 #include "ContentFilterProxyModel.h"
 #include "Editor.h"
+#include "Engine.h"
 #include "FileSystemUtils.h"
 #include "IconProvider.h"
 #include "InspectorFabric.h"
@@ -104,6 +106,8 @@ void folder_content_widget::OnFolderSelectedPath(const QString &newPath)
 
 void folder_content_widget::OnEntrySelectedIndex(const QModelIndex &index)
 {
+    using namespace Blainn;
+
     QModelIndex sourceIndex = m_proxyModel->mapToSource(index);
 
     if (m_fileSystemModel->isDir(sourceIndex))
@@ -112,8 +116,19 @@ void folder_content_widget::OnEntrySelectedIndex(const QModelIndex &index)
 
         emit FolderSelected(path);
         SetContentDirectory(path);
+        return;
     }
-    else if (m_fileSystemModel->fileInfo(sourceIndex).isFile())
+
+    auto fileInfo = m_fileSystemModel->fileInfo(sourceIndex);
+    auto a = fileInfo.filePath();
+    if (fileInfo.isFile() && fileInfo.suffix() == formats::sceneFormat)
+    {
+        Path path = std::filesystem::relative(ToString(fileInfo.filePath()), Engine::GetContentDirectory());
+        AssetManager::GetInstance().OpenScene(path);
+        return;
+    }
+
+    if (m_fileSystemModel->fileInfo(sourceIndex).isFile())
     {
         OpenFileExternal(m_fileSystemModel->fileInfo(sourceIndex).filePath());
     }

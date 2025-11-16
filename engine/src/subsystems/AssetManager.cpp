@@ -31,8 +31,7 @@ void AssetManager::Init()
     m_meshes.reserve(64);
 
     // TODO: create default texture
-    m_textures.emplace(
-        m_loader->LoadTexture(std::filesystem::current_path() / "Default.png", TextureType::ALBEDO));
+    m_textures.emplace(m_loader->LoadTexture(std::filesystem::current_path() / "Default.png", TextureType::ALBEDO));
 
     // TODO: create default material
     Material material = Material(std::filesystem::current_path() / "Default.mat", "Default");
@@ -175,6 +174,46 @@ Material &AssetManager::GetMaterialByHandle(const MaterialHandle &handle)
     }
 
     return *m_materials[index];
+}
+
+
+bool AssetManager::SceneExists(const Path &relativePath)
+{
+    return exists(Engine::GetContentDirectory() / relativePath);
+}
+
+
+void AssetManager::OpenScene(const Path &relativePath)
+{
+    YAML::Node scene;
+    Path absolute_path(Engine::GetContentDirectory() / relativePath);
+
+    if (exists(absolute_path))
+    {
+        scene = YAML::LoadFile(absolute_path.string());
+    }
+
+    // TODO: parse scene
+
+    Engine::SetActiveScene(eastl::make_shared<Scene>(scene));
+}
+
+
+void AssetManager::CreateScene(const Path &relativePath)
+{
+    YAML::Node scene;
+    Path absolute_path(Engine::GetContentDirectory() / relativePath);
+
+    if (exists(absolute_path))
+    {
+        return;
+    }
+
+    scene["SceneName"] = relativePath.string();
+    scene["SceneID"] = Rand::getRandomUUID().str();
+    BF_DEBUG("Opening scene {0}", relativePath.filename().string());
+    std::ofstream fout(absolute_path);
+    fout << scene;
 }
 
 

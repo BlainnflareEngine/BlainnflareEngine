@@ -26,7 +26,6 @@ public:
     void Update() const;
 
     HWND GetViewportHWND();
-    Path &GetContentDirectory();
 
     editor::inspector_widget &GetInspector() const;
 
@@ -35,10 +34,9 @@ public:
     std::shared_ptr<editor::EditorSink<std::mutex>> GetEditorSink() const;
 
 private:
-    QApplication *m_app;
-    editor::editor_main *m_editorMain;
+    QApplication *m_app = nullptr;
+    editor::editor_main *m_editorMain = nullptr;
     Path m_editorConfigFolder;
-    Path m_contentDirectory;
 
     Editor() = default;
     Editor(const Editor &) = delete;

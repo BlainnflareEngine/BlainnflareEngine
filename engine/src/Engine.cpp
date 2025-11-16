@@ -18,12 +18,13 @@
 
 using namespace Blainn;
 
-eastl::shared_ptr<vgjs::JobSystem> Engine::m_JobSystemPtr = nullptr;
+eastl::shared_ptr<vgjs::JobSystem> Engine::s_JobSystemPtr = nullptr;
+eastl::shared_ptr<Scene> Engine::s_ActiveScene = nullptr;
 
 void Engine::Init()
 {
     vgjs::thread_count_t jobSystemThreadCount{8};
-    m_JobSystemPtr = eastl::make_shared<vgjs::JobSystem>(vgjs::JobSystem(jobSystemThreadCount));
+    s_JobSystemPtr = eastl::make_shared<vgjs::JobSystem>(vgjs::JobSystem(jobSystemThreadCount));
 
     Log::Init();
     AssetManager::GetInstance().Init();
@@ -66,7 +67,7 @@ void Engine::Destroy()
     RenderSubsystem::GetInstance().Destroy();
     Log::Destroy();
 
-    m_JobSystemPtr->terminate();
+    s_JobSystemPtr->terminate();
 }
 
 void Engine::Update(float deltaTime)
@@ -107,6 +108,8 @@ void Engine::Update(float deltaTime)
         testAccumulator = 0.0f;
     }
 
+    Scene::ProcessEvents();
+    
     vgjs::schedule(
         [deltaTime, &updateDoneSem]() -> void
         {
@@ -124,9 +127,31 @@ void Engine::Update(float deltaTime)
     BLAINN_PROFILE_MARK_FRAME;
 }
 
-Scene &Blainn::Engine::GetActiveScene()
+
+Path &Engine::GetContentDirectory()
 {
-    return m_activeScene;
+    return s_contentDirectory;
+}
+
+
+void Engine::SetContentDirectory(const Path &contentDirectory)
+{
+    s_contentDirectory = contentDirectory;
+}
+
+
+eastl::shared_ptr<Scene> Engine::GetActiveScene()
+{
+    return s_ActiveScene;
+}
+
+
+void Engine::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
+{
+    // TODO: should trigger delegate?
+    // TODO: should notify editor?
+
+    s_ActiveScene = scene;
 }
 
 HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle, const std::string &winClassTitle,

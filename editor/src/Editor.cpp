@@ -3,6 +3,10 @@
 //
 
 #include "Editor.h"
+
+#include "AssetManager.h"
+#include "Engine.h"
+#include "FileSystemUtils.h"
 #include "ui_editor_main.h"
 
 #include <QApplication>
@@ -33,7 +37,6 @@ void Editor::Init(int argc, char **argv)
 
     auto *style = new oclero::qlementine::QlementineStyle(m_app);
     style->setThemeJsonPath(":/themes/dark.json");
-    style->animationsEnabled();
     QApplication::setStyle(style);
 
     m_editorMain = new editor::editor_main();
@@ -45,16 +48,19 @@ void Editor::Init(int argc, char **argv)
     {
         CreateDefaultEditorConfig();
     }
-    else
-    {
-        YAML::Node config = YAML::LoadFile((m_editorConfigFolder / "EditorConfig.yaml").string());
-        m_contentDirectory = config["ContentDirectory"].as<std::string>();
-    }
 
-    BF_DEBUG("Content directory - " + m_contentDirectory.string());
-    m_editorMain->SetContentDirectory(QString::fromStdString(m_contentDirectory.string()));
+    YAML::Node config = YAML::LoadFile((m_editorConfigFolder / "EditorConfig.yaml").string());
+    Engine::SetContentDirectory(config["ContentDirectory"].as<std::string>());
+
+    BF_DEBUG("Content directory - " + Engine::GetContentDirectory().string());
+    m_editorMain->SetContentDirectory(QString::fromStdString(Engine::GetContentDirectory().string()));
 
     Log::AddSink(GetEditorSink());
+
+    std::string defaultScene = config["DefaultScenePath"].as<std::string>();
+    if (!AssetManager::SceneExists(defaultScene)) AssetManager::CreateScene(defaultScene);
+
+    AssetManager::OpenScene(defaultScene);
 }
 
 
@@ -85,24 +91,18 @@ void Editor::Update() const
 }
 
 
-Path &Editor::GetContentDirectory()
-{
-    return m_contentDirectory;
-}
-
-
 editor::inspector_widget &Editor::GetInspector() const
 {
     return m_editorMain->GetInspectorWidget();
 }
 
 
-void Editor::SetContentDirectory(const std::filesystem::path &path)
+void Editor::SetContentDirectory(const Path &path)
 {
     YAML::Node config = YAML::LoadFile((m_editorConfigFolder / "EditorConfig.yaml").string());
     config["ContentDirectory"] = path.string();
-    m_contentDirectory = path;
-    m_editorMain->SetContentDirectory(QString::fromStdString(m_contentDirectory.string()));
+    Engine::SetContentDirectory(path);
+    m_editorMain->SetContentDirectory(QString::fromStdString(path.string()));
 }
 
 
@@ -115,14 +115,17 @@ std::shared_ptr<editor::EditorSink<std::mutex>> Editor::GetEditorSink() const
 void Editor::CreateDefaultEditorConfig()
 {
     using namespace std::filesystem;
+    using namespace editor;
 
     create_directory(m_editorConfigFolder);
 
     YAML::Node config;
-    m_contentDirectory = current_path() / "Content";
-    create_directory(m_contentDirectory);
+    create_directory(current_path() / "Content");
 
-    config["ContentDirectory"] = m_contentDirectory.string();
+    config["ContentDirectory"] = (current_path() / "Content").string();
+    config["DefaultScenePath"] = "Scene." + ToString(formats::sceneFormat);
+
+    AssetManager::GetInstance().OpenScene(Path(m_editorConfigFolder / ("Scene." + ToString(formats::sceneFormat))));
     const path configFilePath = m_editorConfigFolder / "EditorConfig.yaml";
     std::ofstream fout(configFilePath.string());
     fout << config;
