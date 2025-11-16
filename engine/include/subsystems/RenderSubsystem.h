@@ -31,14 +31,11 @@ namespace Blainn
             GBufferTextures,
 
             NumRootParameters = 8u
-    };
+        };
 
         enum EPsoType : UINT
         {
-            Opaque = 0,
-            WireframeOpaque,
-            Transparency,
-            CascadedShadowsOpaque,
+            CascadedShadowsOpaque = 0u,
 
             DeferredGeometry,
             DeferredDirectional,
@@ -49,14 +46,12 @@ namespace Blainn
 
             DeferredSpot,
 
-            NumPipelineStates = 10u
+            NumPipelineStates = 7u
         };
 
         enum EShaderType : UINT
         {
-            DefaultVS = 0,
-            DefaultOpaquePS,
-            CascadedShadowsVS,
+            CascadedShadowsVS = 0u,
             CascadedShadowsGS,
 
             DeferredGeometryVS,
@@ -67,7 +62,7 @@ namespace Blainn
             DeferredPointPS,
             DeferredSpotPS,
 
-            NumShaders = 11U
+            NumShaders = 9U
         };
 
     private:
@@ -155,7 +150,7 @@ namespace Blainn
 
         eastl::array<const CD3DX12_STATIC_SAMPLER_DESC, 5> GetStaticSamplers();
 
-        eastl::pair<XMMATRIX, XMMATRIX> GetLightSpaceMatrix(const float nearPlane, const float farPlane);
+        eastl::pair<XMMATRIX, XMMATRIX> GetLightSpaceMatrix(const float nearZ, const float farZ);
         // Doubt that't a good idea to return vector of matrices. Should rather pass vector as a parameter probalby and
         // fill it inside function.
         void GetLightSpaceMatrices(eastl::vector<eastl::pair<XMMATRIX, XMMATRIX>> &outMatrices);
@@ -186,8 +181,7 @@ namespace Blainn
         bool m_fullscreenState = false;  // fullscreen enabled
         bool m_isWireframe = false;      // Fill mode
         bool m_is4xMsaaState = false;
-        UINT m_4xMsaaQuality = 0u;
-
+        
     private:
         // Pipeline objects.
         ComPtr<IDXGIFactory4> m_factory;
@@ -204,6 +198,8 @@ namespace Blainn
         ComPtr<ID3D12Resource> m_renderTargets[SwapChainFrameCount];
         ComPtr<ID3D12Resource> m_depthStencilBuffer;
 
+        UINT m_4xMsaaQuality = 0u;
+
         // Synchronization objects.
         UINT m_frameIndex = 0u; // keep track of front and back buffers (see SwapChainFrameCount)
         ComPtr<ID3D12Fence> m_fence;
@@ -213,6 +209,14 @@ namespace Blainn
         ComPtr<ID3D12RootSignature> m_rootSignature;
         eastl::unordered_map<EShaderType, ComPtr<ID3DBlob>> m_shaders;
         eastl::unordered_map<EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
+
+        ObjectConstants m_perObjectCBData;
+        PassConstants m_shadowPassCBData;
+        PassConstants m_geometryPassCBData;
+        PassConstants m_mainPassCBData; // deferred color(light) pass
+        // PassConstants m_lightingPassCBData;
+        MaterialData m_perMaterialSBData;
+        InstanceData m_perInstanceSBData;
 
         ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
         ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
@@ -225,9 +229,9 @@ namespace Blainn
         D3D12_VIEWPORT m_viewport;
         D3D12_RECT m_scissorRect;
 
+        int m_currFrameResourceIndex = 0;
         eastl::vector<eastl::unique_ptr<FrameResource>> m_frameResources;
         FrameResource* m_currFrameResource = nullptr;
-        int m_currFrameResourceIndex = 0;
 
         eastl::unique_ptr<Camera> m_camera;
 
