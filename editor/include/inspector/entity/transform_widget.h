@@ -3,8 +3,8 @@
 //
 
 #pragma once
+#include "component_widget_base.h"
 #include "scene/Entity.h"
-#include "themed_panel.h"
 
 
 #include <QFrame>
@@ -19,26 +19,23 @@ class QLabel;
 namespace editor
 {
 
-class transform_widget : public themed_panel
+class transform_widget : public component_widget_base
 {
     Q_OBJECT
 
 public:
     explicit transform_widget(const Blainn::Entity &entity, QWidget *parent = nullptr);
 
-private slots:
+protected slots:
     void OnPositionChanged();
     void OnRotationChanged();
     void OnScaleChanged();
-    void OnUpdate();
+
+protected:
+    virtual void OnUpdate() override;
+    virtual void DeleteComponent() override;
 
 private:
-    Blainn::Entity m_entity;
-
-    QTimer *m_updateTimer;
-
-    QLabel *m_label;
-
     float_input_field *m_positionX = nullptr;
     float_input_field *m_positionY = nullptr;
     float_input_field *m_positionZ = nullptr;

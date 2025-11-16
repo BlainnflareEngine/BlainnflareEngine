@@ -3,6 +3,7 @@
 //
 
 #include "entity/transform_widget.h"
+#include "scene/EntityTemplates.h"
 
 #include "LabelsUtils.h"
 #include "float_input_field.h"
@@ -17,23 +18,8 @@
 namespace editor
 {
 transform_widget::transform_widget(const Blainn::Entity &entity, QWidget *parent)
-    : themed_panel(parent)
-    , m_entity(entity)
+    : component_widget_base(entity, "Transform", parent)
 {
-    setLayout(new QVBoxLayout());
-    layout()->setSpacing(5);
-    layout()->setContentsMargins(15, 15, 15, 15);
-    layout()->setAlignment(Qt::AlignLeft);
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-    m_label = new QLabel(ToHeader2("Transform"), this);
-    m_label->setTextFormat(Qt::MarkdownText);
-    layout()->addWidget(m_label);
-
-    auto separator = new QFrame(this);
-    separator->setFrameShape(HLine);
-    layout()->addWidget(separator);
-
     CreateTransformFields();
     LoadTransformValues();
     ConnectSignals();
@@ -42,12 +28,7 @@ transform_widget::transform_widget(const Blainn::Entity &entity, QWidget *parent
 
 void transform_widget::OnPositionChanged()
 {
-    BF_DEBUG("Editing changed!");
-
-    if (!m_entity.HasComponent<Blainn::TransformComponent>())
-    {
-        return;
-    }
+    if (!m_entity.HasComponent<Blainn::TransformComponent>()) return;
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
     transform.Translation.x = m_positionX->GetValue();
@@ -58,10 +39,7 @@ void transform_widget::OnPositionChanged()
 
 void transform_widget::OnRotationChanged()
 {
-    if (!m_entity.HasComponent<Blainn::TransformComponent>())
-    {
-        return;
-    }
+    if (!m_entity.HasComponent<Blainn::TransformComponent>()) return;
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
 
@@ -71,10 +49,7 @@ void transform_widget::OnRotationChanged()
 
 void transform_widget::OnScaleChanged()
 {
-    if (!m_entity.HasComponent<Blainn::TransformComponent>())
-    {
-        return;
-    }
+    if (!m_entity.HasComponent<Blainn::TransformComponent>()) return;
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
     transform.Scale.x = m_scaleX->GetValue();
@@ -85,9 +60,18 @@ void transform_widget::OnScaleChanged()
 
 void transform_widget::OnUpdate()
 {
+    component_widget_base::OnUpdate();
+
     if (!m_entity.IsValid()) return;
 
     LoadTransformValues();
+}
+
+
+void transform_widget::DeleteComponent()
+{
+    m_entity.RemoveComponent<Blainn::TransformComponent>();
+    deleteLater();
 }
 
 
@@ -142,10 +126,6 @@ void transform_widget::ConnectSignals()
     connect(m_scaleX, &float_input_field::EditingFinished, this, &transform_widget::OnScaleChanged);
     connect(m_scaleY, &float_input_field::EditingFinished, this, &transform_widget::OnScaleChanged);
     connect(m_scaleZ, &float_input_field::EditingFinished, this, &transform_widget::OnScaleChanged);
-
-    m_updateTimer = new QTimer(this);
-    m_updateTimer->connect(m_updateTimer, &QTimer::timeout, this, &transform_widget::OnUpdate);
-    m_updateTimer->start(16);
 }
 
 

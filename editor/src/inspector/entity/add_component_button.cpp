@@ -38,6 +38,9 @@ void add_component_button::OnClicked()
 
 void add_component_button::OnTransformAction()
 {
+    if (!m_entity.IsValid()) return;
+    if (m_entity.HasComponent<Blainn::TransformComponent>()) return;
+
     m_entity.AddComponent<Blainn::TransformComponent>();
     auto transform = new transform_widget(m_entity, this);
     m_layout->addWidget(transform);

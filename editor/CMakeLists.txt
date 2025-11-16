@@ -121,6 +121,8 @@ set(EDITOR_SOURCES
         include/inspector/float_input_field.h
         include/themed_panel.h
         src/themed_panel.cpp
+        src/inspector/entity/component_widget_base.cpp
+        include/inspector/entity/component_widget_base.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

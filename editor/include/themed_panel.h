@@ -12,9 +12,10 @@ class themed_panel : public QFrame
 {
     Q_OBJECT
 
-protected:
-    explicit themed_panel(QWidget *parent);
+public:
+    explicit themed_panel(QWidget *parent = nullptr);
 
+protected:
     void paintEvent(QPaintEvent *event) override;
 };
 
