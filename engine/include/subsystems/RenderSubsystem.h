@@ -81,6 +81,7 @@ namespace Blainn
         void CreateAttachRenderComponent(Entity entity);
         void AddMeshToRenderComponent(Entity entity, MeshHandle meshHandle);
         
+        void PopulateCommandList();
     private:
         void InitializeD3D();
 

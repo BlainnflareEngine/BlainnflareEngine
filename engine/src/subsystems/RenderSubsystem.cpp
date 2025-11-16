@@ -82,8 +82,8 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     m_camera->Update(deltaTime);
 
     // Cycle through the circular frame resource array.
-    /*m_currFrameResourceIndex = (m_currFrameResourceIndex + 1) % gNumFrameResources;
-    m_currFrameResource = m_frameResources[m_currFrameResourceIndex].get();*/
+    m_currFrameResourceIndex = (m_currFrameResourceIndex + 1) % gNumFrameResources;
+    m_currFrameResource = m_frameResources[m_currFrameResourceIndex].get();
 
     //UpdateObjectsCB(deltaTime);
     //UpdateMaterialBuffer(deltaTime);
@@ -99,6 +99,7 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
 #pragma region RenderStage
     // Record all the commands we need to render the scene into the command list.
     //m_renderer->PopulateCommandList();
+    PopulateCommandList();
 
     Scene &scene = Engine::GetActiveScene();
     auto renderedEntities = scene.GetAllEntitiesWith<IDComponent, RenderComponent>();
@@ -113,12 +114,36 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     }
 
     // m_renderer->ExecuteCommandLists();
+    ID3D12CommandList *ppCommandLists[] = {m_commandList.Get()};
+    m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
     // Present the frame.
-    //ThrowIfFailed(m_swapChain->Present(1u, 0u));
+    ThrowIfFailed(m_swapChain->Present(1u, 0u));
 #pragma endregion RenderStage
 
     MoveToNextFrame();
+}
+
+void Blainn::RenderSubsystem::PopulateCommandList()
+{
+    auto currentCmdAlloc = m_currFrameResource->commandAllocator.Get();
+
+    ThrowIfFailed(currentCmdAlloc->Reset());
+
+    ThrowIfFailed(m_commandList->Reset(currentCmdAlloc, m_pipelineStates.at(EPsoType::DeferredGeometry).Get()));
+
+    m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+    
+    // Access for setting and using root descriptor table
+    ID3D12DescriptorHeap *descriptorHeaps[] = {m_srvHeap.Get()};
+    m_commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+    RenderDepthOnlyPass();
+    /*RenderGeometryPass();
+    RenderLightingPass();
+    RenderTransparencyPass();*/
+
+    ThrowIfFailed(m_commandList->Close());
 }
 
 VOID Blainn::RenderSubsystem::InitializeD3D()
@@ -488,14 +513,18 @@ void Blainn::RenderSubsystem::LoadPipeline()
 
     CreateShaders();
     CreatePipelineStateObjects();
+
+    m_commandList->Close();
+    ID3D12CommandList *cmdLists[] = {m_commandList.Get()};
+    m_commandQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
 }
 
 void Blainn::RenderSubsystem::CreateFrameResources()
 {
     for (int i = 0; i < gNumFrameResources; i++)
     {
-        /*m_frameResources.push_back(eastl::make_unique<FrameResource>(m_device.Get(), static_cast<UINT>(EPassType::NumPasses),
-                                            (UINT)m_renderItems.size(), (UINT)m_materials.size(), MaxPointLights));*/
+        m_frameResources.push_back(eastl::make_unique<FrameResource>(m_device.Get(), static_cast<UINT>(EPassType::NumPasses),
+                                            0u/*(UINT)m_renderItems.size()*/, 0u/*(UINT)m_materials.size()*/, 0u/*MaxPointLights*/));
     }
 }
 
@@ -775,10 +804,30 @@ void Blainn::RenderSubsystem::AddMeshToRenderComponent(Entity entity, MeshHandle
 
 void Blainn::RenderSubsystem::RenderDepthOnlyPass()
 {
+    m_commandList->RSSetViewports(1u, &m_viewport);
+    m_commandList->RSSetScissorRects(1u, &m_scissorRect);
+
+    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    m_commandList->ResourceBarrier(1u, &transition);
+
+    auto rtvHandle = GetRTV();
+    auto dsvHandle = GetDSV();
+
+    const float *clearColor = DirectX::Colors::Yellow;
+    m_commandList->OMSetRenderTargets(1u, &rtvHandle, TRUE, &dsvHandle);
+    m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0u, nullptr);
+    m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u, nullptr);
+
+    m_commandList->SetPipelineState(m_pipelineStates.at(EPsoType::CascadedShadowsOpaque).Get());
+    
+    transition = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+    m_commandList->ResourceBarrier(1u, &transition);
 }
 
 void Blainn::RenderSubsystem::RenderGeometryPass()
 {
+
+
 }
 
 void Blainn::RenderSubsystem::RenderLightingPass()
