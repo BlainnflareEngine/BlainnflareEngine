@@ -4,6 +4,7 @@
 
 #pragma once
 #include "scene/Entity.h"
+#include "themed_panel.h"
 
 
 #include <QFrame>
@@ -18,7 +19,7 @@ class QLabel;
 namespace editor
 {
 
-class transform_widget : public QFrame
+class transform_widget : public themed_panel
 {
     Q_OBJECT
 

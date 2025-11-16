@@ -119,6 +119,8 @@ set(EDITOR_SOURCES
         include/inspector/entity/FieldValidation.h
         src/inspector/float_input_field.cpp
         include/inspector/float_input_field.h
+        include/themed_panel.h
+        src/themed_panel.cpp
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

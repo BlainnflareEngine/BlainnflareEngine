@@ -5,26 +5,25 @@
 #include "entity/transform_widget.h"
 
 #include "LabelsUtils.h"
-#include "entity/FieldValidation.h"
 #include "float_input_field.h"
 
 #include <QKeyEvent>
 #include <QLabel>
 
-#include <QLineEdit>
 #include <QSpinBox>
 #include <QVBoxLayout>
-#include <qvalidator.h>
 
 namespace editor
 {
 transform_widget::transform_widget(const Blainn::Entity &entity, QWidget *parent)
-    : QFrame(parent)
+    : themed_panel(parent)
     , m_entity(entity)
 {
     setLayout(new QVBoxLayout());
     layout()->setSpacing(5);
-    layout()->setContentsMargins(15, 0, 0, 0);
+    layout()->setContentsMargins(15, 15, 15, 15);
+    layout()->setAlignment(Qt::AlignLeft);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     m_label = new QLabel(ToHeader2("Transform"), this);
     m_label->setTextFormat(Qt::MarkdownText);
@@ -33,9 +32,6 @@ transform_widget::transform_widget(const Blainn::Entity &entity, QWidget *parent
     auto separator = new QFrame(this);
     separator->setFrameShape(HLine);
     layout()->addWidget(separator);
-
-    QSpinBox *sp = new QSpinBox(this);
-    layout()->addWidget(sp);
 
     CreateTransformFields();
     LoadTransformValues();
@@ -183,7 +179,7 @@ QWidget *transform_widget::CreateVector3(const QString &title, float_input_field
     QString xColor = "#FF4444";
     QString yColor = "#44FF44";
     QString zColor = "#4444FF";
-    int fieldSize = 70;
+    QSize fieldSize{70, 20};
 
     auto xLabel = new QLabel("X", group);
     xLabel->setAlignment(Qt::AlignCenter);
@@ -196,7 +192,8 @@ QWidget *transform_widget::CreateVector3(const QString &title, float_input_field
     gridLayout->addWidget(xLabel, 1, 0);
 
     xField = new float_input_field(group);
-    xField->setFixedWidth(fieldSize);
+    xField->setMinimumSize(fieldSize);
+    xField->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(xField, 2, 0);
 
     auto yLabel = new QLabel("Y", group);
@@ -210,7 +207,8 @@ QWidget *transform_widget::CreateVector3(const QString &title, float_input_field
     gridLayout->addWidget(yLabel, 1, 1);
 
     yField = new float_input_field(group);
-    yField->setFixedWidth(fieldSize);
+    yField->setMinimumSize(fieldSize);
+    yField->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(yField, 2, 1);
 
     auto zLabel = new QLabel("Z", group);
@@ -224,7 +222,8 @@ QWidget *transform_widget::CreateVector3(const QString &title, float_input_field
     gridLayout->addWidget(zLabel, 1, 2);
 
     zField = new float_input_field(group);
-    zField->setFixedWidth(fieldSize);
+    zField->setMinimumSize(fieldSize);
+    zField->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(zField, 2, 2);
 
     return group;
