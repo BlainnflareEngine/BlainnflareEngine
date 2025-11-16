@@ -18,9 +18,6 @@
 
 using namespace Blainn;
 
-eastl::shared_ptr<vgjs::JobSystem> Engine::s_JobSystemPtr = nullptr;
-eastl::shared_ptr<Scene> Engine::s_ActiveScene = nullptr;
-
 void Engine::Init()
 {
     vgjs::thread_count_t jobSystemThreadCount{8};
@@ -109,7 +106,7 @@ void Engine::Update(float deltaTime)
     }
 
     Scene::ProcessEvents();
-    
+
     vgjs::schedule(
         [deltaTime, &updateDoneSem]() -> void
         {
@@ -142,7 +139,7 @@ void Engine::SetContentDirectory(const Path &contentDirectory)
 
 eastl::shared_ptr<Scene> Engine::GetActiveScene()
 {
-    return s_ActiveScene;
+    return s_activeScene;
 }
 
 
@@ -151,7 +148,7 @@ void Engine::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
     // TODO: should trigger delegate?
     // TODO: should notify editor?
 
-    s_ActiveScene = scene;
+    s_activeScene = scene;
 }
 
 HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle, const std::string &winClassTitle,

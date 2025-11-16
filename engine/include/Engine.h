@@ -35,7 +35,7 @@ public:
 
 private:
     static inline eastl::function<void(float)> m_renderFunc = nullptr;
-    static eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr;
+    static inline eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr = nullptr;
     static inline eastl::shared_ptr<Scene> s_activeScene{};
     inline static Path s_contentDirectory;
 };

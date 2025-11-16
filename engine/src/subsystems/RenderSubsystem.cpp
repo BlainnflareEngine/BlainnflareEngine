@@ -101,8 +101,8 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     // m_renderer->PopulateCommandList();
     PopulateCommandList();
 
-    Scene &scene = Engine::GetActiveScene();
-    auto renderedEntities = scene.GetAllEntitiesWith<IDComponent, RenderComponent>();
+    eastl::shared_ptr<Scene> scene = Engine::GetActiveScene();
+    auto renderedEntities = scene->GetAllEntitiesWith<IDComponent, RenderComponent>();
     for (auto entityComponents : renderedEntities.each())
     {
         IDComponent &idComponent = std::get<1>(entityComponents);
