@@ -30,10 +30,12 @@ private slots:
     void OnPositionChanged();
     void OnRotationChanged();
     void OnScaleChanged();
-
+    void OnUpdate();
 
 private:
     Blainn::Entity m_entity;
+
+    QTimer *m_updateTimer;
 
     QLabel *m_label;
 

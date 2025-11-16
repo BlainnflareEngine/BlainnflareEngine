@@ -11,6 +11,7 @@
 #include <QLabel>
 
 #include <QSpinBox>
+#include <QTimer>
 #include <QVBoxLayout>
 
 namespace editor
@@ -82,6 +83,14 @@ void transform_widget::OnScaleChanged()
 }
 
 
+void transform_widget::OnUpdate()
+{
+    if (!m_entity.IsValid()) return;
+
+    LoadTransformValues();
+}
+
+
 void transform_widget::CreateTransformFields()
 {
     auto position = CreateVector3("Position", m_positionX, m_positionY, m_positionZ);
@@ -133,6 +142,10 @@ void transform_widget::ConnectSignals()
     connect(m_scaleX, &float_input_field::EditingFinished, this, &transform_widget::OnScaleChanged);
     connect(m_scaleY, &float_input_field::EditingFinished, this, &transform_widget::OnScaleChanged);
     connect(m_scaleZ, &float_input_field::EditingFinished, this, &transform_widget::OnScaleChanged);
+
+    m_updateTimer = new QTimer(this);
+    m_updateTimer->connect(m_updateTimer, &QTimer::timeout, this, &transform_widget::OnUpdate);
+    m_updateTimer->start(16);
 }
 
 
