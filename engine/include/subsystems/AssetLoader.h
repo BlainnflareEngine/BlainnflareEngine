@@ -5,8 +5,6 @@
 #pragma once
 #include "file-system/Texture.h"
 
-
-
 namespace std::filesystem
 {
 class path;
@@ -46,8 +44,8 @@ private:
     AssetLoader(const AssetLoader &&) = delete;
     AssetLoader &operator=(const AssetLoader &&) = delete;
 
-    void ProcessNode(const Path &path, const aiNode &node, const aiScene &scene, const Mat4 &parentMatrix,
-                     Model &model);
+    void ProcessNode(const Path &path, const aiNode &node, const aiScene &scene, const Mat4 &parentMatrix, Model &model);
+
     MeshData ProcessMesh(const Path &path, const aiMesh &mesh, const aiScene &scene, const aiNode &node,
                          const Mat4 &parentMatrix, Model &model);
 

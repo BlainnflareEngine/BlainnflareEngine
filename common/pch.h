@@ -4,6 +4,8 @@
 
 #pragma once
 
+#define NOMINMAX
+
 #pragma region EASTL common includes
 
 #include <EASTL/algorithm.h>

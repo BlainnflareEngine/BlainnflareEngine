@@ -2,7 +2,9 @@
 
 #include "Engine.h"
 
-#include "VGJS.h"
+#include <VGJS.h>
+
+#include <semaphore>
 
 #include "Input/InputSubsystem.h"
 #include "Input/KeyboardEvents.h"
@@ -14,11 +16,7 @@
 #include "subsystems/ScriptingSubsystem.h"
 #include "tools/Profiler.h"
 
-
 using namespace Blainn;
-
-eastl::shared_ptr<vgjs::JobSystem> Engine::s_JobSystemPtr = nullptr;
-eastl::shared_ptr<Scene> Engine::s_ActiveScene = nullptr;
 
 void Engine::Init()
 {
@@ -50,14 +48,20 @@ void Engine::Init()
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
 {
-    RenderSubsystem::Init();
+    auto &renderInst = RenderSubsystem::GetInstance();
+
+    renderInst.Init(windowHandle);
+    m_renderFunc = std::bind(&RenderSubsystem::Render, &renderInst, std::placeholders::_1);
 }
 
 void Engine::Destroy()
 {
-    RenderSubsystem::Destroy();
+    vgjs::wait_for_termination();
+
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
+
+    RenderSubsystem::GetInstance().Destroy();
     Log::Destroy();
 
     s_JobSystemPtr->terminate();
@@ -82,6 +86,9 @@ void Engine::Update(float deltaTime)
     // ScriptingSubsystem::UnloadScript(scriptUuid);
     /// ----- END TEST SCRIPTING -----
 
+    std::counting_semaphore<1> updateDoneSem(0);
+
+
     Input::ProcessEvents();
 
     // test
@@ -98,11 +105,20 @@ void Engine::Update(float deltaTime)
         testAccumulator = 0.0f;
     }
 
-    vgjs::schedule(&RenderSubsystem::Render);
-
-    // TODO: wait for jobs to finish?
-
     Scene::ProcessEvents();
+
+    vgjs::schedule(
+        [deltaTime, &updateDoneSem]() -> void
+        {
+            m_renderFunc(deltaTime);
+            // std::cout << "render update" << std::endl;
+            updateDoneSem.release();
+        },
+        vgjs::tag_t{1});
+    vgjs::schedule(vgjs::tag_t{1});
+
+    updateDoneSem.acquire();
+    // std::cout << "loop done" << std::endl;
 
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;
@@ -123,7 +139,7 @@ void Engine::SetContentDirectory(const Path &contentDirectory)
 
 eastl::shared_ptr<Scene> Engine::GetActiveScene()
 {
-    return s_ActiveScene;
+    return s_activeScene;
 }
 
 
@@ -132,7 +148,68 @@ void Engine::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
     // TODO: should trigger delegate?
     // TODO: should notify editor?
 
-    s_ActiveScene = scene;
+    s_activeScene = scene;
+}
+
+
+HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle, const std::string &winClassTitle,
+                                HINSTANCE hInst)
+{
+    DWORD winStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
+
+    //// Load the icon
+    // HANDLE icon = LoadImageA(nullptr, _PROJECT_DIR_ "\\nvidia.ico", IMAGE_ICON, 0, 0,
+    //                          LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_SHARED);
+
+    // Register the window class
+    WNDCLASSEX wc = {0};
+    wc.cbSize = sizeof(WNDCLASSEX);
+    wc.style = CS_HREDRAW | CS_VREDRAW;
+    wc.lpfnWndProc = WindowProc;
+    wc.hInstance = hInst;
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.lpszClassName = winClassTitle.c_str();
+    // wc.hIcon = (HICON)icon;
+
+    RegisterClassEx(&wc);
+
+    RECT windowRect = {0, 0, static_cast<LONG>(width), static_cast<LONG>(height)};
+    AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
+
+    // create the window
+    HWND hWnd = CreateWindow(wc.lpszClassName, winTitle.c_str(), winStyle, CW_USEDEFAULT, CW_USEDEFAULT,
+                             windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, nullptr, nullptr,
+                             wc.hInstance, nullptr);
+
+    ShowWindow(hWnd, SW_SHOW);
+    UpdateWindow(hWnd);
+
+    return hWnd;
+}
+
+
+LRESULT CALLBACK Engine::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg)
+    {
+    case WM_CLOSE:
+        DestroyWindow(hwnd);
+        return 0;
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        return 0;
+    case WM_KEYDOWN:
+        if (wParam == VK_ESCAPE) PostQuitMessage(0);
+        return 0;
+    default:
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+}
+
+
+void Engine::ClearActiveScene()
+{
+    s_ActiveScene.reset();
 }
 
 

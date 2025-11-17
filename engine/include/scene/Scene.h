@@ -9,6 +9,7 @@
 #include "Entity.h"
 #include "SceneEvent.h"
 #include "TransformComponent.h"
+#include "ImportAssetData.h"
 #include "aliases.h"
 #include "concurrentqueue.h"
 #include "entt/entt.hpp"
@@ -17,6 +18,7 @@
 
 namespace Blainn
 {
+class MeshComponent;
 
 using EntityMap = eastl::unordered_map<uuid, Entity>;
 class Scene
@@ -74,6 +76,8 @@ public:
     Entity TryGetEntityWithUUID(const uuid &id) const;
     Entity TryGetEntityWithTag(const eastl::string &tag);
     Entity TryGetDescendantEntityWithTag(Entity entity, const eastl::string &tag) const;
+
+    void CreateAttachMeshComponent(Entity entity, const Path &path, const ImportMeshData &data);
 
     template <typename... Components> auto GetAllEntitiesWith()
     {

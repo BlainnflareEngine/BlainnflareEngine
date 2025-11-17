@@ -25,6 +25,31 @@ set(ENGINE_SOURCES
         src/components/PhysicsComponent.cpp
         include/physics/ShapeFactory.h
         src/physics/ShapeFactory.cpp
+        include/Render/Renderer.h
+        include/Render/CommandQueue.h
+        include/Render/Device.h
+        include/Render/DXHelpers.h
+        include/Render/FreyaCoreTypes.h
+        include/Render/FreyaUtil.h
+        include/Render/FreyaMath.h
+        include/Render/PSO.h
+        include/Render/RootSignature.h
+        include/Render/Shader.h
+        include/Render/FrameResource.h
+        include/Render/UploadBuffer.h
+        include/Render/Camera.h
+        include/Render/GBuffer.h
+        include/Render/ShadowMap.h
+        include/Render/CascadeShadowMap.h
+        src/Render/Renderer.cpp
+        src/Render/CommandQueue.cpp
+        src/Render/Device.cpp
+        src/Render/FreyaUtil.cpp
+        src/Render/FrameResource.cpp
+        src/Render/Camera.cpp
+        src/Render/GBuffer.cpp
+        src/Render/ShadowMap.cpp
+        src/Render/CascadeShadowMap.cpp
         include/scene/Scene.h
         src/scene/Scene.cpp
         include/scene/Entity.h

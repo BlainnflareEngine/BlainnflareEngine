@@ -39,7 +39,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 
 add_executable(${PROJECT_NAME} main.cpp
-        common/Vertex.h
+        common/VertexTypes.h
         common/MeshData.h
         common/ImportAssetData.h
         common/helpers.h
@@ -53,6 +53,7 @@ add_subdirectory(libs/tracy)
 add_subdirectory(libs/yaml-cpp)
 add_subdirectory(libs/qlementine)
 add_subdirectory(libs/sol2)
+add_subdirectory(libs/D3D12MemoryAllocator)
 
 set (BUILD_TESTING OFF)
 add_subdirectory(libs/DIRECTXTK12)
@@ -89,7 +90,8 @@ target_link_libraries(pch INTERFACE
         spdlog
         TracyClient
         yaml-cpp
-        DirectXTK12)
+        DirectXTK12
+	    D3D12MemoryAllocator)
 
 target_include_directories(pch INTERFACE
         "${CMAKE_SOURCE_DIR}/libs/uuid_v4"
@@ -111,6 +113,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         pch
         ENGINE
         EDITOR)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
+        d3d12.lib
+        d3dcompiler.lib)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         "${ENGINE_DIR}"

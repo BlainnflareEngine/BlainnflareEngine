@@ -66,7 +66,7 @@ editor_main::~editor_main()
 
 HWND editor_main::GetViewportHWND() const
 {
-    return reinterpret_cast<HWND>(ui->sceneTab->winId());
+    return reinterpret_cast<HWND>(ui->viewportTab->winId());
 }
 
 

@@ -1,7 +1,9 @@
 #pragma once
+
 #include <Windows.h>
 
 #include "scene/Scene.h"
+#include <functional>
 
 namespace vgjs
 {
@@ -27,9 +29,15 @@ public:
     static void SetActiveScene(const eastl::shared_ptr<Scene> &scene);
     static void ClearActiveScene();
 
+public:
+    static HWND CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle,
+                                   const std::string &winClassTitle, HINSTANCE hInst);
+    static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
 private:
-    static eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr;
-    static eastl::shared_ptr<Scene> s_ActiveScene;
+    static inline eastl::function<void(float)> m_renderFunc = nullptr;
+    static inline eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr = nullptr;
+    static inline eastl::shared_ptr<Scene> s_activeScene{};
     inline static Path s_contentDirectory;
 };
 } // namespace Blainn

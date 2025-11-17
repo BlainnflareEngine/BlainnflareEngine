@@ -3,7 +3,6 @@
 #include <uuid_v4.h>
 
 #include "DirectXTK12/inc/SimpleMath.h"
-
 #include <filesystem>
 
 namespace Blainn

@@ -71,6 +71,14 @@ Blainn::MeshHandle::MeshHandle(const unsigned int index, AssetManager &manager)
     manager.IncreaseMeshRefCount(index);
 }
 
+Blainn::MeshHandle &Blainn::MeshHandle::operator=(const MeshHandle &other)
+{
+    m_manager.DecreaseMeshRefCount(m_index);
+    id = other.id;
+    m_index = other.m_index;
+    m_manager.IncreaseMeshRefCount(m_index);
+    return *this;
+}
 
 Blainn::MeshHandle::~MeshHandle()
 {
