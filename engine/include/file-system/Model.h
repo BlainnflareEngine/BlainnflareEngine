@@ -12,7 +12,9 @@ namespace Blainn
 class Model : public FileSystemObject
 {
 public:
-    Model(const Path& path);
+    Model(const Path &absolutPath);
+    Model(const Model &other, const Path &absolutPath);
+    Model(Model &&other, const Path &absolutPath) noexcept;
     ~Model() override;
 
     virtual void Copy() override;

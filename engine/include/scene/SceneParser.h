@@ -76,4 +76,39 @@ inline TransformComponent GetTransform(const YAML::Node &node)
 
     return transform;
 }
+
+inline bool HasMesh(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["MeshComponent"]) return true;
+
+    return false;
+}
+
+
+inline MeshComponent GetMesh(const YAML::Node &node)
+{
+    MeshComponent mesh = MeshComponent(AssetManager::GetDefaultMesh());
+
+    if (!node || node.IsNull())
+    {
+        BF_ERROR("Failed to parse transform component. Not found in .scene!");
+        return mesh;
+    }
+
+    if (node["Path"])
+    {
+        Path relativePath = node["Path"].as<std::string>();
+        Path absolutPath = Engine::GetContentDirectory() / relativePath;
+
+        if (!std::filesystem::is_regular_file(absolutPath)) return mesh;
+
+        return AssetManager::GetInstance().HasMesh(relativePath)
+                   ? AssetManager::GetInstance().GetMesh(relativePath)
+                   : AssetManager::GetInstance().LoadMesh(relativePath, ImportMeshData::GetMeshData(absolutPath));
+    }
+
+    return mesh;
+}
 } // namespace Blainn

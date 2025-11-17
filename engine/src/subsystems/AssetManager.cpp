@@ -38,7 +38,7 @@ void AssetManager::Init()
     m_materials.emplace(eastl::make_shared<Material>(material));
 
     // TODO: create default mesh
-    // m_meshes.emplace_back();
+    m_meshes.emplace(eastl::make_shared<Model>(Engine::GetContentDirectory()));
 }
 
 
@@ -49,41 +49,46 @@ void AssetManager::Destroy()
 }
 
 
-bool AssetManager::MeshExists(const Path &path)
+bool AssetManager::HasMesh(const Path &relativePath)
 {
-    auto it = m_meshPaths.find(ToEASTLString(path.string()));
-    return it != m_meshPaths.end();
+    return m_meshPaths.contains(ToEASTLString(relativePath.string()));
 }
 
 
-eastl::shared_ptr<MeshHandle> AssetManager::GetMesh(const Path &path)
+eastl::shared_ptr<MeshHandle> AssetManager::GetMesh(const Path &relativePath)
 {
-    eastl::string pathStr = path.string().c_str();
+    eastl::string pathStr = relativePath.string().c_str();
     if (auto it = m_meshPaths.find(pathStr); it != m_meshPaths.end())
     {
         return eastl::make_shared<MeshHandle>(it->second.index);
     }
 
-    BF_ERROR("This model doesn't imported yet. You should import it first. {0}", path.string());
+    BF_ERROR("This model doesn't imported yet. You should import it first. {0}", relativePath.string());
 
     // TODO: return default mesh
-    return eastl::shared_ptr<MeshHandle>(0);
+    return eastl::make_shared<MeshHandle>(0);
 }
 
 
-eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &path, const ImportMeshData &data)
+eastl::shared_ptr<MeshHandle> AssetManager::GetDefaultMesh()
+{
+    return eastl::make_shared<MeshHandle>(0);
+}
+
+
+eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &relativePath, const ImportMeshData &data)
 {
     unsigned int index = m_meshes.size();
-    m_meshPaths[ToEASTLString(path.string())] = AssetData{index, 1};
+    m_meshPaths[ToEASTLString(relativePath.string())] = AssetData{index, 1};
 
 
     BF_INFO("I don't have such model yet, here is default one, "
             "i will place your model to your index later. Index - {0}",
             index);
 
-    m_meshes.emplace(eastl::make_shared<Model>(GetDefaultModel()));
+    m_meshes.emplace(eastl::make_shared<Model>(GetDefaultModel(), relativePath));
 
-    auto model = m_loader->ImportModel(path, data);
+    vgjs::schedule([=]() { AddMeshWhenLoaded(relativePath, index, data); });
     return eastl::make_shared<MeshHandle>(index);
 }
 
@@ -100,6 +105,12 @@ Model &AssetManager::GetMeshByHandle(const MeshHandle &handle)
 }
 
 
+Path AssetManager::GetMeshPath(const MeshHandle &handle)
+{
+    return m_meshes[handle.GetIndex()]->GetPath();
+}
+
+
 bool AssetManager::HasTexture(const Path &path)
 {
     return m_texturePaths.find(ToEASTLString(path.string())) != m_texturePaths.end();
@@ -112,7 +123,7 @@ eastl::shared_ptr<TextureHandle> AssetManager::GetTexture(const Path &path)
         return eastl::make_shared<TextureHandle>(it->second.index);
 
     BF_ERROR("Texture doesn't exist. You should load it first. Texture - {0}", path.string());
-    return eastl::shared_ptr<TextureHandle>(0);
+    return eastl::make_shared<TextureHandle>(0);
 }
 
 
@@ -137,7 +148,7 @@ eastl::shared_ptr<MaterialHandle> AssetManager::GetMaterial(const Path &path)
         return eastl::make_shared<MaterialHandle>(it->second.index);
 
     BF_ERROR("Material doesn't exist. You should load it first. Path - {0}", path.string());
-    return eastl::shared_ptr<MaterialHandle>(0);
+    return eastl::make_shared<MaterialHandle>(0);
 }
 
 
@@ -192,8 +203,6 @@ void AssetManager::OpenScene(const Path &relativePath)
     {
         scene = YAML::LoadFile(absolute_path.string());
     }
-
-    // TODO: parse scene
 
     Engine::ClearActiveScene();
     Engine::SetActiveScene(eastl::make_shared<Scene>(scene));
@@ -255,10 +264,10 @@ void AssetManager::AddMaterialWhenLoaded(const Path &path, const unsigned int in
 }
 
 
-void AssetManager::AddModelWhenLoaded(const Path &path, const unsigned int index, const ImportMeshData data)
+void AssetManager::AddMeshWhenLoaded(const Path &relativePath, const unsigned int index, const ImportMeshData data)
 {
     BF_INFO("Started loading model.");
-    m_meshes[index] = m_loader->ImportModel(path, data);
+    m_meshes[index] = m_loader->ImportModel(relativePath, data);
     auto str = "Placing model to index " + std::to_string(index);
     BF_INFO(str);
 }

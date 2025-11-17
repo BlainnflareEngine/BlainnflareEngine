@@ -22,12 +22,14 @@ public:
 public slots:
     void OnClicked();
     void OnTransformAction();
+    void OnMeshAction();
 
 private:
     Blainn::Entity m_entity;
     QLayout *m_layout;
     QMenu *m_menu = nullptr;
     QAction *m_transformAction = nullptr;
+    QAction *m_meshAction = nullptr;
 };
 
 } // namespace editor

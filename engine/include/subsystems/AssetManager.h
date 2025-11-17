@@ -32,11 +32,13 @@ public:
     void Init();
     void Destroy();
 
-    bool MeshExists(const Path &path);
-    eastl::shared_ptr<MeshHandle> GetMesh(const Path &path);
-    eastl::shared_ptr<MeshHandle> LoadMesh(const Path &path, const ImportMeshData &data);
+    bool HasMesh(const Path &relativePath);
+    eastl::shared_ptr<MeshHandle> GetMesh(const Path &relativePath);
+    static eastl::shared_ptr<MeshHandle> GetDefaultMesh();
+    eastl::shared_ptr<MeshHandle> LoadMesh(const Path &relativePath, const ImportMeshData &data);
     Model &GetMeshByIndex(unsigned int index);
     Model &GetMeshByHandle(const MeshHandle &handle);
+    Path GetMeshPath(const MeshHandle &handle);
 
     bool HasTexture(const Path &path);
     eastl::shared_ptr<TextureHandle> GetTexture(const Path &path);
@@ -65,7 +67,7 @@ private:
 
     void AddTextureWhenLoaded(const Path &path, const unsigned int index, const TextureType type);
     void AddMaterialWhenLoaded(const Path &path, const unsigned int index);
-    void AddModelWhenLoaded(const Path &path, const unsigned int index, const ImportMeshData data);
+    void AddMeshWhenLoaded(const Path &relativePath, const unsigned int index, const ImportMeshData data);
 
     Texture &GetDefaultTexture();
     Material &GetDefaultMaterial();

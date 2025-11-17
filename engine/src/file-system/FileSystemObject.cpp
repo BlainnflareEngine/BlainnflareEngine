@@ -4,12 +4,14 @@
 
 #include "file-system/FileSystemObject.h"
 
+#include "Engine.h"
+
 namespace Blainn
 {
 
 
-FileSystemObject::FileSystemObject(const Path &path)
-    : m_path(path)
+FileSystemObject::FileSystemObject(const Path &absolutPath)
+    : m_path(std::filesystem::relative(absolutPath, Engine::GetContentDirectory()))
 {
 }
 
