@@ -209,11 +209,5 @@ LRESULT CALLBACK Engine::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 
 void Engine::ClearActiveScene()
 {
-    s_ActiveScene.reset();
-}
-
-
-void Engine::ClearActiveScene()
-{
-    s_ActiveScene.reset();
+    s_activeScene.reset();
 }
