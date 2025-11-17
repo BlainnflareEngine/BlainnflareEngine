@@ -40,24 +40,16 @@ void AddToSceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index
         deleteAction->setShortcut(m_deleteKey);
     }
 
-    connect(menu, &QMenu::triggered, this,
-            [this, menu, index, createEntityAction, editAction, deleteAction](QAction *selectedAction)
-            {
-                if (selectedAction == createEntityAction)
-                {
-                    AddEntity(index);
-                }
-                else if (editAction && selectedAction == editAction)
-                {
-                    RenameEntity(index);
-                }
-                else if (deleteAction && selectedAction == deleteAction)
-                {
-                    DeleteEntity(index);
-                }
 
-                menu->deleteLater();
-            });
+    if (createEntityAction)
+        connect(createEntityAction, &QAction::triggered, this, [this, index]() { AddEntity(index); });
+
+
+    if (editAction) connect(editAction, &QAction::triggered, this, [this, index]() { RenameEntity(index); });
+
+
+    if (deleteAction) connect(deleteAction, &QAction::triggered, this, [this, index]() { DeleteEntity(index); });
+
 
     connect(menu, &QMenu::aboutToHide, menu, &QMenu::deleteLater);
 

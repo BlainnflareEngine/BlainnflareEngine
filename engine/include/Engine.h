@@ -27,6 +27,7 @@ public:
 
     static eastl::shared_ptr<Scene> GetActiveScene();
     static void SetActiveScene(const eastl::shared_ptr<Scene> &scene);
+    static void ClearActiveScene();
 
 public:
     static HWND CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle,

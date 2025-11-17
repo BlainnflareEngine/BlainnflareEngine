@@ -74,9 +74,10 @@ void Scene::SaveScene()
     out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq; // Entities
 
     auto view = m_Registry.view<IDComponent>();
-    for (auto entity : view)
+
+    for (auto it = view.rbegin(); it != view.rend(); ++it)
     {
-        Entity e = {entity, this};
+        Entity e = {*it, this};
         if (!e) continue;
 
         out << YAML::BeginMap; // begin for every entity
@@ -150,7 +151,7 @@ Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name, bool o
 
     m_EntityIdMap[idComponent.ID] = entity;
 
-    SortEntities();
+    // SortEntities();
 
     s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
 
@@ -173,7 +174,7 @@ Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool
 
     m_EntityIdMap[idComponent.ID] = entity;
 
-    if (shouldSort) SortEntities();
+    // if (shouldSort) SortEntities();
 
     s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
 
@@ -197,6 +198,11 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged)
         eastl::string tag = GetTag(entityNode);
 
         Entity entity = CreateEntityWithID(entityID, tag, false, onSceneChanged);
+
+        if (HasTransform(entityNode))
+        {
+            entity.AddComponent<TransformComponent>(GetTransform(entityNode["TransformComponent"]));
+        }
 
         // TODO: make hierarchy
     }
@@ -239,7 +245,7 @@ void Scene::DestroyEntity(Entity entity, bool excludeChildren, bool first)
     m_Registry.destroy(entity);
     m_EntityIdMap.erase(id);
 
-    SortEntities();
+    // SortEntities();
 }
 
 void Scene::DestroyEntity(const uuid &entityID, bool excludeChildren, bool first)

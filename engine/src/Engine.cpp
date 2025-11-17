@@ -151,6 +151,7 @@ void Engine::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
     s_activeScene = scene;
 }
 
+
 HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle, const std::string &winClassTitle,
                                 HINSTANCE hInst)
 {
@@ -186,6 +187,7 @@ HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winT
     return hWnd;
 }
 
+
 LRESULT CALLBACK Engine::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
@@ -202,4 +204,16 @@ LRESULT CALLBACK Engine::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
     default:
         return DefWindowProc(hwnd, msg, wParam, lParam);
     }
+}
+
+
+void Engine::ClearActiveScene()
+{
+    s_ActiveScene.reset();
+}
+
+
+void Engine::ClearActiveScene()
+{
+    s_ActiveScene.reset();
 }

@@ -17,16 +17,17 @@ class add_component_button : public QPushButton
 {
     Q_OBJECT
 public:
-    add_component_button(const Blainn::Entity &entity, QWidget *parent = nullptr);
+    add_component_button(const Blainn::Entity &entity, QLayout *layout, QWidget *parent);
 
 public slots:
     void OnClicked();
-
+    void OnTransformAction();
 
 private:
     Blainn::Entity m_entity;
-
+    QLayout *m_layout;
     QMenu *m_menu = nullptr;
+    QAction *m_transformAction = nullptr;
 };
 
 } // namespace editor

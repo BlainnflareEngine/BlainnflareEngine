@@ -91,5 +91,6 @@
 
   "animationDuration": 200,
   "focusAnimationDuration": 200,
-  "sliderAnimationDuration": 200
+  "sliderAnimationDuration": 200,
+  "borderRadius": 5
 }
