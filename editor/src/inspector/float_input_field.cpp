@@ -50,7 +50,7 @@ void float_input_field::OnEditingFinished()
 void float_input_field::Initialize()
 {
     setButtonSymbols(QAbstractSpinBox::NoButtons);
-
+    setLocale(QLocale::c());
     setRange(m_minValue, m_maxValue);
     setDecimals(m_decimals);
     setSingleStep(0.01);

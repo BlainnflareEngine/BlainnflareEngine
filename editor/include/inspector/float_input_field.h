@@ -26,11 +26,12 @@ signals:
     void EditingFinished();
 
 private:
-    float m_minValue = -10000.0f;
-    float m_maxValue = 10000.0f;
-    int m_decimals = 3;
-    float m_dragSensitivity = 0.1f;
+    float m_minValue = -100000.0f;
+    float m_maxValue = 100000.0f;
+    int m_decimals = 1;
 
+    // TODO: make drag
+    float m_dragSensitivity = 0.1f;
     bool m_dragging = false;
     QPoint m_lastMousePos;
     double m_dragStartValue = 0.0;

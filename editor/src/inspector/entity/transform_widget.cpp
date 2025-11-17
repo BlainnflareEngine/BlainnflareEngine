@@ -64,7 +64,11 @@ void transform_widget::OnUpdate()
 
     if (!m_entity.IsValid()) return;
 
-    LoadTransformValues();
+    bool anyFieldFocused = m_positionX->hasFocus() || m_positionY->hasFocus() || m_positionZ->hasFocus()
+                           || m_rotationX->hasFocus() || m_rotationY->hasFocus() || m_rotationZ->hasFocus()
+                           || m_scaleX->hasFocus() || m_scaleY->hasFocus() || m_scaleZ->hasFocus();
+
+    if (!anyFieldFocused) LoadTransformValues();
 }
 
 
