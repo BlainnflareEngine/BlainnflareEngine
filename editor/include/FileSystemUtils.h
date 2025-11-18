@@ -51,6 +51,9 @@ namespace filters
 {
 inline static QString ShaderFilter = "Shaders (*.cso);;All Files (*)";
 inline static QString TextureFilter = "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)";
+inline static const QString supported3DFormatsFilter =
+    "3D Files (*.obj *.gltf *.glb *.fbx);;Wavefront OBJ (*.obj);;glTF (*.gltf);;glTF Binary (*.glb);;Autodesk FBX "
+    "(*.fbx);;All Files (*)";
 } // namespace filters
 
 

@@ -64,9 +64,9 @@ void transform_widget::OnUpdate()
 
     if (!m_entity.IsValid()) return;
 
-    bool anyFieldFocused = m_positionX->hasFocus() || m_positionY->hasFocus() || m_positionZ->hasFocus()
-                           || m_rotationX->hasFocus() || m_rotationY->hasFocus() || m_rotationZ->hasFocus()
-                           || m_scaleX->hasFocus() || m_scaleY->hasFocus() || m_scaleZ->hasFocus();
+    bool anyFieldFocused = m_positionX->HasFocus() || m_positionY->HasFocus() || m_positionZ->HasFocus()
+                           || m_rotationX->HasFocus() || m_rotationY->HasFocus() || m_rotationZ->HasFocus()
+                           || m_scaleX->HasFocus() || m_scaleY->HasFocus() || m_scaleZ->HasFocus();
 
     if (!anyFieldFocused) LoadTransformValues();
 }
@@ -166,59 +166,32 @@ QWidget *transform_widget::CreateVector3(const QString &title, float_input_field
     auto group = new QWidget(this);
     auto gridLayout = new QGridLayout(group);
     gridLayout->setContentsMargins(0, 5, 0, 5);
-    gridLayout->setVerticalSpacing(5);
+    gridLayout->setVerticalSpacing(10);
     gridLayout->setHorizontalSpacing(10);
 
-    auto titleLabel = new QLabel(title, group);
+    auto titleLabel = new QLabel(ToHeader3(title), group);
+    titleLabel->setTextFormat(Qt::MarkdownText);
     titleLabel->setStyleSheet("font-weight: bold;");
     gridLayout->addWidget(titleLabel, 0, 0, 1, 3, Qt::AlignLeft);
 
-    QString xColor = "#FF4444";
-    QString yColor = "#44FF44";
-    QString zColor = "#4444FF";
+    QColor xColor = QColor::fromRgb(255, 68, 68);
+    QColor yColor = QColor::fromRgb(68, 255, 68);
+    QColor zColor = QColor::fromRgb(68, 68, 255);
+
     QSize fieldSize{70, 20};
 
-    auto xLabel = new QLabel("X", group);
-    xLabel->setAlignment(Qt::AlignCenter);
-    xLabel->setStyleSheet(QString("QLabel {"
-                                  "    color: %1;"
-                                  "    font-weight: bold;"
-                                  "    font-size: 9pt;"
-                                  "}")
-                              .arg(xColor));
-    gridLayout->addWidget(xLabel, 1, 0);
-
-    xField = new float_input_field(group);
+    xField = new float_input_field("X", 0, group, xColor);
     xField->setMinimumSize(fieldSize);
     xField->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(xField, 2, 0);
 
-    auto yLabel = new QLabel("Y", group);
-    yLabel->setAlignment(Qt::AlignCenter);
-    yLabel->setStyleSheet(QString("QLabel {"
-                                  "    color: %1;"
-                                  "    font-weight: bold;"
-                                  "    font-size: 9pt;"
-                                  "}")
-                              .arg(yColor));
-    gridLayout->addWidget(yLabel, 1, 1);
 
-    yField = new float_input_field(group);
+    yField = new float_input_field("Y", 0, group, yColor);
     yField->setMinimumSize(fieldSize);
     yField->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(yField, 2, 1);
 
-    auto zLabel = new QLabel("Z", group);
-    zLabel->setAlignment(Qt::AlignCenter);
-    zLabel->setStyleSheet(QString("QLabel {"
-                                  "    color: %1;"
-                                  "    font-weight: bold;"
-                                  "    font-size: 9pt;"
-                                  "}")
-                              .arg(zColor));
-    gridLayout->addWidget(zLabel, 1, 2);
-
-    zField = new float_input_field(group);
+    zField = new float_input_field("Z", 0, group, zColor);
     zField->setMinimumSize(fieldSize);
     zField->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(zField, 2, 2);
