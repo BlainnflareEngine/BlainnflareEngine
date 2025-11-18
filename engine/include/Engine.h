@@ -24,6 +24,7 @@ public:
 
     static Path &GetContentDirectory();
     static void SetContentDirectory(const Path &contentDirectory);
+    static void SetDefaultContentDirectory();
 
     static eastl::shared_ptr<Scene> GetActiveScene();
     static void SetActiveScene(const eastl::shared_ptr<Scene> &scene);

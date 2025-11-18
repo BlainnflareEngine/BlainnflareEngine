@@ -8,10 +8,24 @@ namespace Blainn
 {
 
 
-Model::Model(const Path &path)
-    : FileSystemObject(path)
+Model::Model(const Path &absolutPath)
+    : FileSystemObject(absolutPath)
 {
     m_meshes.reserve(4);
+}
+
+
+Model::Model(const Model &other, const Path &absolutPath)
+    : FileSystemObject(absolutPath)
+{
+    m_meshes = other.m_meshes;
+}
+
+
+Model::Model(Model &&other, const Path &absolutPath) noexcept
+    : FileSystemObject(absolutPath)
+{
+    m_meshes = std::move(other.m_meshes);
 }
 
 

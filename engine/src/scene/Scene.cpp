@@ -3,6 +3,7 @@
 //
 #include <fstream>
 
+#include "scene/EntityTemplates.h"
 #include "scene/Scene.h"
 
 #include "Engine.h"
@@ -86,6 +87,7 @@ void Scene::SaveScene()
         Serializer::Tag(e, out);
         Serializer::Transform(e, out);
         Serializer::Relationship(e, out);
+        Serializer::Mesh(e, out);
 
         out << YAML::EndMap; // end for every entity
     }
@@ -204,6 +206,13 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged)
             entity.AddComponent<TransformComponent>(GetTransform(entityNode["TransformComponent"]));
         }
 
+        if (HasMesh(entityNode))
+        {
+            entity.AddComponent<MeshComponent>(GetMesh(entityNode["MeshComponent"]));
+        }
+
+        //if ()
+
         // TODO: make hierarchy
     }
 }
@@ -304,7 +313,7 @@ void Blainn::Scene::CreateAttachMeshComponent(Entity entity, const Path &path, c
 
     eastl::shared_ptr<MeshHandle> handlePtr;
     AssetManager &assetManagerInstance = AssetManager::GetInstance();
-    if (assetManagerInstance.MeshExists(path))
+    if (assetManagerInstance.HasMesh(path))
     {
         handlePtr = assetManagerInstance.GetMesh(path);
     }
@@ -312,7 +321,7 @@ void Blainn::Scene::CreateAttachMeshComponent(Entity entity, const Path &path, c
     {
         handlePtr = assetManagerInstance.LoadMesh(path, data);
     }
-    entity.AddComponent<MeshComponent>(*handlePtr);
+    entity.AddComponent<MeshComponent>(eastl::move(handlePtr));
 
     RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
     if (renderComponentPtr)

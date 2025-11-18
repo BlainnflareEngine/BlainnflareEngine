@@ -5,8 +5,8 @@
 #include "entity/transform_widget.h"
 #include "scene/EntityTemplates.h"
 
+#include "../../../include/inspector/input-widgets/float_input_field.h"
 #include "LabelsUtils.h"
-#include "float_input_field.h"
 
 #include <QKeyEvent>
 #include <QLabel>

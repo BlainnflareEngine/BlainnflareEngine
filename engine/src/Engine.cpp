@@ -23,6 +23,8 @@ void Engine::Init()
     vgjs::thread_count_t jobSystemThreadCount{8};
     s_JobSystemPtr = eastl::make_shared<vgjs::JobSystem>(vgjs::JobSystem(jobSystemThreadCount));
 
+    SetDefaultContentDirectory();
+
     Log::Init();
     AssetManager::GetInstance().Init();
     ScriptingSubsystem::Init();
@@ -137,6 +139,12 @@ void Engine::SetContentDirectory(const Path &contentDirectory)
 }
 
 
+void Engine::SetDefaultContentDirectory()
+{
+    SetContentDirectory(std::filesystem::current_path() / "Content");
+}
+
+
 eastl::shared_ptr<Scene> Engine::GetActiveScene()
 {
     return s_activeScene;
@@ -145,9 +153,6 @@ eastl::shared_ptr<Scene> Engine::GetActiveScene()
 
 void Engine::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
 {
-    // TODO: should trigger delegate?
-    // TODO: should notify editor?
-
     s_activeScene = scene;
 }
 

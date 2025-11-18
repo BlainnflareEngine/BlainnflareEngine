@@ -5,8 +5,9 @@
 #include "subsystems/AssetLoader.h"
 
 #include "AssetManager.h"
-#include "MeshData.h"
+#include "Engine.h"
 #include "ImportAssetData.h"
+#include "MeshData.h"
 #include "file-system/Material.h"
 #include "file-system/Model.h"
 #include "file-system/Texture.h"
@@ -33,18 +34,19 @@ void AssetLoader::Destroy()
 }
 
 
-eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &path, const ImportMeshData &data)
+eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, const ImportMeshData &data)
 {
-    if (path.empty())
+    Path absolutePath = Engine::GetContentDirectory() / relativePath;
+    if (absolutePath.empty())
     {
         BF_ERROR("AssetLoader ImportModel: path is empty");
     }
 
-    Model model = Model(path);
+    Model model = Model(absolutePath);
     Assimp::Importer importer;
-    const aiScene *scene =
-        importer.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace
-                                             | aiProcess_FixInfacingNormals | aiProcess_ConvertToLeftHanded);
+    const aiScene *scene = importer.ReadFile(absolutePath.string(),
+                                             aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace
+                                                 | aiProcess_FixInfacingNormals | aiProcess_ConvertToLeftHanded);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -52,7 +54,7 @@ eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &path, const Import
         return eastl::make_shared<Model>(model);
     }
 
-    ProcessNode(path, *scene->mRootNode, *scene, Mat4::Identity, model);
+    ProcessNode(relativePath, *scene->mRootNode, *scene, Mat4::Identity, model);
 
     return eastl::make_shared<Model>(model);
 }
@@ -78,7 +80,7 @@ void AssetLoader::ProcessNode(const std::filesystem::path &path, const aiNode &n
 
 
 MeshData AssetLoader::ProcessMesh(const Path &path, const aiMesh &mesh, const aiScene &scene, const aiNode &node,
-                         const Mat4 &parentMatrix, Model &model)
+                                  const Mat4 &parentMatrix, Model &model)
 {
     MeshData result_mesh = MeshData();
     result_mesh.parentMatrix = parentMatrix;
@@ -177,16 +179,13 @@ eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &path)
 
     auto material = eastl::make_shared<Material>(path, ToEASTLString(shaderPath));
 
-    if (!albedo.empty())
-        material->SetTexture(AssetManager::GetInstance().GetTexture(albedo), TextureType::ALBEDO);
-    if (!normal.empty())
-        material->SetTexture(AssetManager::GetInstance().GetTexture(normal), TextureType::NORMAL);
+    if (!albedo.empty()) material->SetTexture(AssetManager::GetInstance().GetTexture(albedo), TextureType::ALBEDO);
+    if (!normal.empty()) material->SetTexture(AssetManager::GetInstance().GetTexture(normal), TextureType::NORMAL);
     if (!metallic.empty())
         material->SetTexture(AssetManager::GetInstance().GetTexture(metallic), TextureType::METALLIC);
     if (!roughness.empty())
         material->SetTexture(AssetManager::GetInstance().GetTexture(roughness), TextureType::ROUGHNESS);
-    if (!ambient.empty())
-        material->SetTexture(AssetManager::GetInstance().GetTexture(ambient), TextureType::AO);
+    if (!ambient.empty()) material->SetTexture(AssetManager::GetInstance().GetTexture(ambient), TextureType::AO);
 
     return material;
 }

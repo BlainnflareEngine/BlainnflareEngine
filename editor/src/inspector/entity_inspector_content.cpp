@@ -5,7 +5,9 @@
 #include "entity_inspector_content.h"
 
 #include "LabelsUtils.h"
+#include "components/MeshComponent.h"
 #include "entity/add_component_button.h"
+#include "entity/mesh_widget.h"
 #include "entity/transform_widget.h"
 
 namespace editor
@@ -40,7 +42,12 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     {
         auto transform = new transform_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(transform);
-        // TODO: connect
+    }
+
+    if (entity.HasComponent<Blainn::MeshComponent>())
+    {
+        auto mesh = new mesh_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(mesh);
     }
 
     auto *addButton = new add_component_button(data.node->GetEntity(), layout(), this);

@@ -6,10 +6,16 @@ namespace Blainn
 {
 struct MeshComponent
 {
-    MeshComponent(MeshHandle meshHandle)
+    MeshComponent(const eastl::shared_ptr<MeshHandle> &meshHandle)
         : m_meshHandle(meshHandle)
     {
     }
-    MeshHandle m_meshHandle;
+
+    MeshComponent(eastl::shared_ptr<MeshHandle> &&meshHandle)
+        : m_meshHandle(eastl::move(meshHandle))
+    {
+    }
+
+    eastl::shared_ptr<MeshHandle> m_meshHandle;
 };
 } // namespace Blainn

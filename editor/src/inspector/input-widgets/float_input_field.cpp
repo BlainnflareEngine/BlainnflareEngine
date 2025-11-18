@@ -1,4 +1,4 @@
-﻿#include "float_input_field.h"
+﻿#include "../../../include/inspector/input-widgets/float_input_field.h"
 
 #include "oclero/qlementine/widgets/LineEdit.hpp"
 

@@ -4,6 +4,8 @@
 
 #include "entity/add_component_button.h"
 
+#include "components/MeshComponent.h"
+#include "entity/mesh_widget.h"
 #include "entity/transform_widget.h"
 #include "scene/EntityTemplates.h"
 
@@ -20,12 +22,14 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QLayout
     m_menu = new QMenu();
 
     m_transformAction = m_menu->addAction("Transform");
+    m_meshAction = m_menu->addAction("Mesh");
 
     setText("Add component");
 
     connect(this, &QPushButton::clicked, this, &add_component_button::OnClicked);
 
     connect(m_transformAction, &QAction::triggered, this, &add_component_button::OnTransformAction);
+    connect(m_meshAction, &QAction::triggered, this, &add_component_button::OnMeshAction);
 }
 
 
@@ -44,5 +48,16 @@ void add_component_button::OnTransformAction()
     m_entity.AddComponent<Blainn::TransformComponent>();
     auto transform = new transform_widget(m_entity, this);
     m_layout->addWidget(transform);
+}
+
+
+void add_component_button::OnMeshAction()
+{
+    if (!m_entity.IsValid()) return;
+    if (m_entity.HasComponent<Blainn::MeshComponent>()) return;
+
+    m_entity.AddComponent<Blainn::MeshComponent>(eastl::move(Blainn::AssetManager::GetDefaultMesh()));
+    auto mesh = new mesh_widget(m_entity, this);
+    m_layout->addWidget(mesh);
 }
 } // namespace editor
