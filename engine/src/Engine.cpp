@@ -75,12 +75,20 @@ void Engine::Update(float deltaTime)
     BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop");
 
     /// ----- TEST SCRIPTING -----
-    // Entity entity = sc.CreateEntity();
-    // entity.AddComponent<ScriptingComponent>();
+
+    static bool one;
+    if (!one)
+    { // TODO: remove script testing
+        Entity entity = s_activeScene->CreateEntity();
+        entity.AddComponent<ScriptingComponent>();
+        ScriptingSubsystem::LoadScript(entity, "test2.lua").value();
+        one = true;
+    }
+
     // uuid scriptUuid = ScriptingSubsystem::LoadScript(entity, "test1.lua").value();
-    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "abobus");
-    // ScriptingSubsystem::UnloadScript(scriptUuid);
-    // scriptUuid = ScriptingSubsystem::LoadScript(entity, "test2.lua").value();
+    //  ScriptingSubsystem::CallScriptFunction(scriptUuid, "abobus");
+    //  ScriptingSubsystem::UnloadScript(scriptUuid);
+
     // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnUpdate", 16.67f);
     // int b = 42;
     // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnCustomCall", eastl::ref(b));
@@ -108,6 +116,8 @@ void Engine::Update(float deltaTime)
     }
 
     Scene::ProcessEvents();
+
+    ScriptingSubsystem::Update(*s_activeScene, deltaTime);
 
     vgjs::schedule(
         [deltaTime, &updateDoneSem]() -> void
