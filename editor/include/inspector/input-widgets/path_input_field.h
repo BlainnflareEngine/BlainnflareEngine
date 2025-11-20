@@ -4,18 +4,23 @@
 
 #pragma once
 
-#include <QLineEdit>
 
+#include <QWidget>
+
+
+class QPushButton;
+class QLabel;
+class QLineEdit;
 namespace editor
 {
 
-class path_input_field : public QLineEdit
+class path_input_field : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit path_input_field(QWidget *parent = nullptr);
-    explicit path_input_field(const QStringList &acceptedExtensions, QWidget *parent = nullptr);
+    explicit path_input_field(const QString &name, const QStringList &acceptedExtensions = {},
+                              QWidget *parent = nullptr);
 
     void SetExtensions(const QStringList &extensions);
     QStringList GetExtensions() const;
@@ -27,6 +32,10 @@ public:
 signals:
     void PathChanged(const QString &path);
 
+private slots:
+    void OnBrowse();
+    void OnDelete();
+
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dragMoveEvent(QDragMoveEvent *event) override;
@@ -36,6 +45,10 @@ protected:
 private:
     bool IsFileAccepted(const QString &filePath) const;
 
+    QLineEdit *m_input;
+    QLabel *m_name;
+    QPushButton *m_browse;
+    QPushButton *m_delete;
 
     QStringList m_acceptedExtensions;
 };

@@ -2,37 +2,60 @@
 // Created by gorev on 17.11.2025.
 //
 
-#include "../../../include/inspector/input-widgets/path_input_field.h"
+#include "input-widgets/path_input_field.h"
 
 #include "Engine.h"
 #include "FileSystemUtils.h"
-#include "Log.h"
 
-#include <QDir>
 #include <QFileDialog>
+#include <QLabel>
+#include <QLineEdit>
 #include <QMimeData>
+#include <QPushButton>
+#include <QVBoxLayout>
 #include <qevent.h>
 #include <qfileinfo.h>
 
 namespace editor
 {
-path_input_field::path_input_field(QWidget *parent)
-    : QLineEdit(parent)
+
+path_input_field::path_input_field(const QString &name, const QStringList &acceptedExtensions, QWidget *parent)
 {
     setAcceptDrops(true);
-    setPlaceholderText("Empty");
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    setBaseSize(80, 25);
-}
 
+    setLayout(new QHBoxLayout());
+    layout()->setContentsMargins(0, 0, 0, 0);
+    layout()->setSpacing(10);
+    layout()->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
-path_input_field::path_input_field(const QStringList &acceptedExtensions, QWidget *parent)
-{
-    setAcceptDrops(true);
-    setPlaceholderText("Empty");
+    m_name = new QLabel(name, this);
+    m_name->setStyleSheet("QLabel {"
+                          "    font-weight: bold;"
+                          "}");
+    m_name->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    m_name->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_name->adjustSize();
+    layout()->addWidget(m_name);
+
+    m_input = new QLineEdit(this);
+
+    m_input->setPlaceholderText("Empty");
+    m_input->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    m_input->setBaseSize(80, 25);
     SetExtensions(acceptedExtensions);
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    setBaseSize(80, 25);
+    layout()->addWidget(m_input);
+
+    m_browse = new QPushButton("", this);
+    m_browse->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_browse->setIcon(QIcon(QPixmap(":/icons/folder.png")));
+    connect(m_browse, &QPushButton::clicked, this, &path_input_field::OnBrowse);
+    layout()->addWidget(m_browse);
+
+    m_delete = new QPushButton("", this);
+    m_delete->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_delete->setIcon(QIcon(QPixmap(":/icons/delete.png")));
+    connect(m_delete, &QPushButton::clicked, this, &path_input_field::OnDelete);
+    layout()->addWidget(m_delete);
 }
 
 
@@ -50,13 +73,13 @@ QStringList path_input_field::GetExtensions() const
 
 QString path_input_field::GetPath() const
 {
-    return text();
+    return m_input->text();
 }
 
 
 QString path_input_field::GetAbsolutePath() const
 {
-    QString currentText = text();
+    QString currentText = m_input->text();
     if (currentText.isEmpty())
     {
         return currentText;
@@ -74,35 +97,61 @@ QString path_input_field::GetAbsolutePath() const
 
 void path_input_field::SetPath(const QString &relativePath)
 {
+    if (m_input->text() == relativePath) return;
+
     if (relativePath.isEmpty())
     {
-        if (text() != relativePath)
+        if (m_input->text() != relativePath)
         {
-            setText(relativePath);
+            m_input->setText(relativePath);
             emit PathChanged(relativePath);
         }
+
         return;
     }
 
-    /*if (!relativePath.startsWith(".") && !relativePath.startsWith("..") && !relativePath.isEmpty())
-    {
-        if (text() != relativePath)
-        {
-            setText(relativePath);
-            emit PathChanged(relativePath);
-        }
-        return;
-    }*/
 
-    if (text() != relativePath)
+    if (m_input->text() != relativePath)
     {
-        setText(relativePath);
+        m_input->setText(relativePath);
         emit PathChanged(relativePath);
         return;
     }
 
-    setText("");
+    m_input->setText("");
     emit PathChanged("");
+}
+
+
+void path_input_field::OnBrowse()
+{
+    QStringList patterns;
+    for (const QString &ext : m_acceptedExtensions)
+    {
+        patterns << ("*." + ext.toLower());
+    }
+
+    QString filter = QString("Supported Files (%1)").arg(patterns.join(" "));
+
+    filter += ";;All Files (*)";
+
+    SelectFileAsync(this, "Select File", QString::fromStdString(Blainn::Engine::GetContentDirectory().string()), filter,
+                    [this](const QString &selectedFile)
+                    {
+                        if (!selectedFile.isEmpty())
+                        {
+                            QDir contentDir =
+                                QDir(QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
+
+                            SetPath(contentDir.relativeFilePath(selectedFile));
+                        }
+                    });
+}
+
+
+void path_input_field::OnDelete()
+{
+    SetPath("");
 }
 
 
@@ -140,7 +189,10 @@ void path_input_field::dropEvent(QDropEvent *event)
             QString filePath = urls[0].toLocalFile();
             if (IsFileAccepted(filePath))
             {
-                SetPath(filePath);
+                QDir contentDir = QDir(QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
+                QDir path = QDir(filePath);
+                auto a = contentDir.relativeFilePath(path.path());
+                SetPath(contentDir.relativeFilePath(path.path()));
                 event->acceptProposedAction();
                 return;
             }
@@ -188,7 +240,7 @@ void path_input_field::mousePressEvent(QMouseEvent *event)
                         });
     }
 
-    QLineEdit::mousePressEvent(event);
+    QWidget::mousePressEvent(event);
 }
 
 
