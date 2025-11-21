@@ -26,7 +26,7 @@ public:
     explicit import_model_dialog(const ImportAssetInfo &info, QWidget *parent = nullptr);
     ~import_model_dialog() override;
 
-    Blainn::ImportMeshData &GetData();
+    //Blainn::ImportMeshData &GetData();
 
 protected:
     void OnConfirm() override;

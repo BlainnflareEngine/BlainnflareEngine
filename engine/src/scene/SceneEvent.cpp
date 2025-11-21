@@ -67,6 +67,18 @@ Blainn::SceneEventType Blainn::EntityDestroyedEvent::GetEventType()
 }
 
 
+Blainn::EntityChangedEvent::EntityChangedEvent(const Entity &entity, bool sceneChanged)
+    : EntityEvent(entity, sceneChanged)
+{
+}
+
+
+Blainn::SceneEventType Blainn::EntityChangedEvent::GetEventType()
+{
+    return SceneEventType::EntityChanged;
+}
+
+
 Blainn::SceneEventType Blainn::SceneEventPolicy::getEvent(const SceneEventPointer &sceneEvent)
 {
     return sceneEvent->GetEventType();

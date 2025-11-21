@@ -5,7 +5,10 @@
 #include "entity_inspector_content.h"
 
 #include "LabelsUtils.h"
+#include "components/MeshComponent.h"
 #include "entity/add_component_button.h"
+#include "entity/mesh_widget.h"
+#include "entity/transform_widget.h"
 
 namespace editor
 {
@@ -13,6 +16,15 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     : inspector_content_base(parent)
     , m_data(data)
 {
+    auto entity = m_data.node->GetEntity();
+    auto name = m_data.node->GetName();
+
+    if (!entity.IsValid())
+    {
+        deleteLater();
+        return;
+    }
+
     setLayout(new QVBoxLayout());
 
     m_tag = new QLabel(ToHeader2(m_data.tag), this);
@@ -23,11 +35,23 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     separator->setFrameShape(QFrame::HLine);
     layout()->addWidget(separator);
 
-    auto *addButton = new add_component_button(data.node->GetEntity(), this);
-    layout()->addWidget(addButton);
-
     connect(m_data.node, &EntityNode::OnTagChanged, this, &entity_inspector_content::SetTag);
     // TODO: get all components of this entity and create component widget for each
+
+    if (entity.HasComponent<Blainn::TransformComponent>())
+    {
+        auto transform = new transform_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(transform);
+    }
+
+    if (entity.HasComponent<Blainn::MeshComponent>())
+    {
+        auto mesh = new mesh_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(mesh);
+    }
+
+    auto *addButton = new add_component_button(data.node->GetEntity(), layout(), this);
+    layout()->addWidget(addButton);
 }
 
 

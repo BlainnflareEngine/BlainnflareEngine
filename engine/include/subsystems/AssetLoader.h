@@ -32,7 +32,7 @@ public:
     void Init();
     void Destroy();
 
-    eastl::shared_ptr<Model> ImportModel(const Path &path, const ImportMeshData &data);
+    eastl::shared_ptr<Model> ImportModel(const Path &relativePath, const ImportMeshData &data);
 
     eastl::shared_ptr<Texture> LoadTexture(const Path &path, TextureType type);
 

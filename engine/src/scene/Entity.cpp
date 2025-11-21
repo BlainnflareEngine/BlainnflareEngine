@@ -10,7 +10,7 @@ using namespace Blainn;
 
 bool Entity::IsValid() const
 {
-    return (m_EntityHandle != entt::null)
+    return m_EntityHandle != entt::null
         && m_Scene
         && m_Scene->m_Registry.valid(m_EntityHandle);
 }

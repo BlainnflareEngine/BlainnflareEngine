@@ -114,6 +114,19 @@ set(EDITOR_SOURCES
         include/inspector/entity/add_component_button.h
         src/inspector/entity/add_component_button.cpp
         ../engine/include/scene/SceneParser.h
+        src/inspector/entity/transform_widget.cpp
+        include/inspector/entity/transform_widget.h
+        src/inspector/input-widgets/float_input_field.cpp
+        include/inspector/input-widgets/float_input_field.h
+        include/themed_panel.h
+        src/themed_panel.cpp
+        src/inspector/entity/component_widget_base.cpp
+        include/inspector/entity/component_widget_base.h
+        src/inspector/entity/mesh_widget.cpp
+        include/inspector/entity/mesh_widget.h
+        src/inspector/input-widgets/path_input_field.cpp
+        include/inspector/input-widgets/path_input_field.h
+        include/inspector/input-widgets/NumericInputWidget.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

@@ -23,6 +23,8 @@ void Engine::Init()
     vgjs::thread_count_t jobSystemThreadCount{8};
     s_JobSystemPtr = eastl::make_shared<vgjs::JobSystem>(vgjs::JobSystem(jobSystemThreadCount));
 
+    SetDefaultContentDirectory();
+
     Log::Init();
     AssetManager::GetInstance().Init();
     ScriptingSubsystem::Init();
@@ -137,6 +139,12 @@ void Engine::SetContentDirectory(const Path &contentDirectory)
 }
 
 
+void Engine::SetDefaultContentDirectory()
+{
+    SetContentDirectory(std::filesystem::current_path() / "Content");
+}
+
+
 eastl::shared_ptr<Scene> Engine::GetActiveScene()
 {
     return s_activeScene;
@@ -145,11 +153,9 @@ eastl::shared_ptr<Scene> Engine::GetActiveScene()
 
 void Engine::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
 {
-    // TODO: should trigger delegate?
-    // TODO: should notify editor?
-
     s_activeScene = scene;
 }
+
 
 HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle, const std::string &winClassTitle,
                                 HINSTANCE hInst)
@@ -186,6 +192,7 @@ HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winT
     return hWnd;
 }
 
+
 LRESULT CALLBACK Engine::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
@@ -202,4 +209,10 @@ LRESULT CALLBACK Engine::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
     default:
         return DefWindowProc(hwnd, msg, wParam, lParam);
     }
+}
+
+
+void Engine::ClearActiveScene()
+{
+    s_activeScene.reset();
 }

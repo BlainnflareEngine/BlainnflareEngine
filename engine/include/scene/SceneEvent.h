@@ -14,8 +14,8 @@ enum class SceneEventType
 {
     EntityCreated,
     EntityDestroyed,
+    EntityChanged,
     SceneChanged,
-    // TODO: reparent mb?
 };
 
 class SceneEvent
@@ -71,6 +71,16 @@ public:
     EntityDestroyedEvent(const Entity &entity, bool sceneChanged = false);
 
     ~EntityDestroyedEvent() override {};
+
+    SceneEventType GetEventType() override;
+};
+
+class EntityChangedEvent : public EntityEvent
+{
+public:
+    EntityChangedEvent(const Entity &entity, bool sceneChanged = false);
+
+    ~EntityChangedEvent() override {};
 
     SceneEventType GetEventType() override;
 };

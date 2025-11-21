@@ -295,6 +295,7 @@ void SelectFileAsync(QWidget *parent, const QString &title, const QString &initi
     dialog->setFileMode(QFileDialog::ExistingFile);
     dialog->setNameFilter(nameFilter);
     dialog->setDirectory(initialDir);
+    dialog->setOption(QFileDialog::DontUseNativeDialog, true);
 
     QObject::connect(dialog, &QFileDialog::finished, dialog,
                      [dialog, onAccepted](int result)
