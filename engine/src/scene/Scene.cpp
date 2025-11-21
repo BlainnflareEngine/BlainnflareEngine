@@ -39,6 +39,8 @@ Scene::Scene(const YAML::Node &config)
     m_SceneID.fromStr(config["SceneID"].as<std::string>().c_str());
 
     if (config["Entities"] && config["Entities"].IsSequence()) CreateEntities(config["Entities"], true);
+
+    s_sceneEventQueue.enqueue(eastl::make_shared<SceneChangedEvent>(m_Name));
 }
 
 
@@ -153,7 +155,7 @@ Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name, bool o
 
     m_EntityIdMap[idComponent.ID] = entity;
 
-    // SortEntities();
+    SortEntities();
 
     s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
 
@@ -176,7 +178,7 @@ Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool
 
     m_EntityIdMap[idComponent.ID] = entity;
 
-    // if (shouldSort) SortEntities();
+    if (shouldSort) SortEntities();
 
     s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
 
@@ -211,7 +213,7 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged)
             entity.AddComponent<MeshComponent>(GetMesh(entityNode["MeshComponent"]));
         }
 
-        //if ()
+        // if ()
 
         // TODO: make hierarchy
     }
@@ -254,7 +256,7 @@ void Scene::DestroyEntity(Entity entity, bool excludeChildren, bool first)
     m_Registry.destroy(entity);
     m_EntityIdMap.erase(id);
 
-    // SortEntities();
+    SortEntities();
 }
 
 void Scene::DestroyEntity(const uuid &entityID, bool excludeChildren, bool first)

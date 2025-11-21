@@ -26,7 +26,7 @@ void FileContextMenu::FileContext(const QPoint &pos, const QString &path) const
 {
     QMenu *menu = new QMenu(nullptr);
 
-    QAction *openAction = menu->addAction("Open");
+    QAction *openAction = menu->addAction("Open external");
     QAction *deleteAction = menu->addAction("Delete");
     menu->addSeparator();
     QAction *showExplorerAction = menu->addAction("Show in explorer");

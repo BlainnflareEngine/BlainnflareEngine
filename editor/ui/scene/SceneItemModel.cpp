@@ -4,6 +4,8 @@
 
 #include "SceneItemModel.h"
 
+#include "EASTL/sort.h"
+#include "EntityNodeComparator .h"
 #include "FileSystemUtils.h"
 
 #include <QMessageBox>
@@ -241,6 +243,30 @@ bool editor::SceneItemModel::removeRows(int row, int count, const QModelIndex &p
 }
 
 
+void editor::SceneItemModel::SortAccordingToMeta(eastl::shared_ptr<SceneMeta> &meta)
+{
+    if (!meta)
+    {
+        BF_WARN("No meta data found.");
+        return;
+    }
+
+    beginResetModel();
+
+    EntityNodeComparator comparator(meta);
+    eastl::sort(m_rootNodes.begin(), m_rootNodes.end(), comparator);
+
+    for (EntityNode *rootNode : m_rootNodes)
+    {
+        SortNodeChildren(rootNode, meta);
+    }
+
+    endResetModel();
+
+    BF_INFO("Scene model sorted according to meta data");
+}
+
+
 QModelIndex editor::SceneItemModel::FindIndexByEntityRecursive(SceneItemModel *model, const QModelIndex &parent,
                                                                const Blainn::Entity &entity)
 {
@@ -263,4 +289,18 @@ QModelIndex editor::SceneItemModel::FindIndexByEntityRecursive(SceneItemModel *m
     }
 
     return QModelIndex();
+}
+
+
+void editor::SceneItemModel::SortNodeChildren(EntityNode *node, const eastl::shared_ptr<SceneMeta> &meta)
+{
+    if (!node || node->children.empty()) return;
+
+    EntityNodeComparator comparator(meta);
+    eastl::sort(node->children.begin(), node->children.end(), comparator);
+
+    for (EntityNode *child : node->children)
+    {
+        SortNodeChildren(child, meta);
+    }
 }

@@ -10,9 +10,11 @@
 #include <qstring.h>
 
 
+class QFileSystemModel;
 class QLabel;
 namespace editor
 {
+class ContentFilterProxyModel;
 class import_asset_dialog;
 namespace Ui
 {
@@ -64,6 +66,12 @@ void OpenFileExplorer(const QString &filePath);
 void OpenFolderExplorer(const QString &path);
 
 void OpenFolder(const QString &path, QAbstractItemView &itemView);
+
+void OpenFolderWithProxy(const QString &path, QAbstractItemView &itemView, const ContentFilterProxyModel &proxyModel);
+
+void OpenFolderWithoutProxy(const QString &path, QAbstractItemView &itemView, QFileSystemModel &fileModel);
+
+void ApplyViewSettings(QAbstractItemView &itemView, const QModelIndex &rootIndex, const QModelIndex &currentIndex);
 
 void OpenFolder(const QString &path, const eastl::vector<QAbstractItemView *> &itemViews);
 

@@ -6,8 +6,8 @@
 #include "scene/Entity.h"
 
 
-Blainn::SceneChangedEvent::SceneChangedEvent(const eastl::shared_ptr<Scene> &scene)
-    : m_scene(scene)
+Blainn::SceneChangedEvent::SceneChangedEvent(const eastl::string &name)
+    : m_name(name)
 {
 }
 
@@ -18,9 +18,9 @@ Blainn::SceneEventType Blainn::SceneChangedEvent::GetEventType()
 }
 
 
-eastl::shared_ptr<Blainn::Scene> Blainn::SceneChangedEvent::GetScene() const
+eastl::string &Blainn::SceneChangedEvent::GetName()
 {
-    return m_scene;
+    return m_name;
 }
 
 
