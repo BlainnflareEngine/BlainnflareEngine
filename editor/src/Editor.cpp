@@ -44,7 +44,7 @@ void Editor::Init(int argc, char **argv)
     BF_DEBUG("Current working directory - " + current_path().string());
     m_editorConfigFolder = current_path() / "Config";
 
-    if (!exists(m_editorConfigFolder))
+    if (!exists(m_editorConfigFolder) || !exists(m_editorConfigFolder / "EditorConfig.yaml"))
     {
         CreateDefaultEditorConfig();
     }
@@ -125,7 +125,15 @@ void Editor::CreateDefaultEditorConfig()
     config["ContentDirectory"] = (current_path() / "Content").string();
     config["DefaultScenePath"] = "Scene." + ToString(formats::sceneFormat);
 
-    AssetManager::GetInstance().OpenScene(Path(m_editorConfigFolder / ("Scene." + ToString(formats::sceneFormat))));
+    if (AssetManager::GetInstance().SceneExists(config["DefaultScenePath"].as<std::string>()))
+    {
+        AssetManager::GetInstance().OpenScene(config["DefaultScenePath"].as<std::string>());
+    }
+    else
+    {
+        AssetManager::GetInstance().CreateScene(config["DefaultScenePath"].as<std::string>());
+    }
+
     const path configFilePath = m_editorConfigFolder / "EditorConfig.yaml";
     std::ofstream fout(configFilePath.string());
     fout << config;
