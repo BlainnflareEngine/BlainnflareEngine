@@ -6,6 +6,8 @@
 #include "EntityNode.h"
 #include <QAbstractItemModel>
 
+namespace editor
+{
 class SceneItemModel : public QAbstractItemModel
 {
     Q_OBJECT
@@ -14,7 +16,7 @@ public:
     explicit SceneItemModel(QObject *parent = nullptr);
     ~SceneItemModel() override;
 
-    QModelIndex addNewEntity(const QModelIndex &parentIndex = QModelIndex());
+    QModelIndex AddNewEntity(const Blainn::Entity &entity, const QModelIndex &parentIndex = QModelIndex());
 
     QModelIndex index(int row, int column, const QModelIndex &parent) const override;
 
@@ -28,10 +30,20 @@ public:
 
     bool setData(const QModelIndex &index, const QVariant &value, int role) override;
 
-    bool IsNameDuplicate(const QString& name, const QModelIndex& excludeIndex) const;
+    bool IsNameDuplicate(const QString &name, const QModelIndex &excludeIndex) const;
 
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
+    static EntityNode *GetNodeFromIndex(const QModelIndex &index);
+
+    static QModelIndex FindIndexByEntity(SceneItemModel *model, const Blainn::Entity &entity);
+
+    bool removeRows(int row, int count, const QModelIndex &parent) override;
+
 private:
     QVector<EntityNode *> m_rootNodes;
+
+    static QModelIndex FindIndexByEntityRecursive(SceneItemModel *model, const QModelIndex &parent,
+                                                  const Blainn::Entity &entity);
 };
+} // namespace editor

@@ -28,7 +28,7 @@ inspector_content_base *InspectorFabric::GetInspector(const QString &file)
         return GetMaterialInspector(file);
     }
 
-    if (supported3DFormats.contains(fileInfo.suffix().toLower()))
+    if (formats::supported3DFormats.contains(fileInfo.suffix().toLower()))
     {
         return GetMeshInspector(file);
     }
@@ -50,6 +50,15 @@ material_inspector_content *InspectorFabric::GetMaterialInspector(const QString 
 mesh_inspector_content *InspectorFabric::GetMeshInspector(const QString &file)
 {
     auto inspector = new mesh_inspector_content(file);
+    inspector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+    inspector->adjustSize();
+    return inspector;
+}
+
+
+entity_inspector_content *InspectorFabric::GetEntityInspector(const EntityInspectorData &data)
+{
+    auto inspector = new entity_inspector_content(data);
     inspector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     inspector->adjustSize();
     return inspector;

@@ -7,12 +7,14 @@
 #include "EASTL/string_view.h"
 #include "EASTL/unordered_map.h"
 #include "Entity.h"
+#include "SceneEvent.h"
 #include "TransformComponent.h"
 #include "ImportAssetData.h"
 #include "aliases.h"
 #include "concurrentqueue.h"
 #include "entt/entt.hpp"
-
+#include "eventpp/eventqueue.h"
+#include "random.h"
 
 namespace Blainn
 {
@@ -22,14 +24,16 @@ using EntityMap = eastl::unordered_map<uuid, Entity>;
 class Scene
 {
 public:
-    Scene(const eastl::string_view &name = "UntitledScene", bool isEditorScene = false) noexcept {
-    }; // TODO: @JSrct2324 wrote here empty {} change if needed
-    ~Scene() {}; // TODO: @JSrct2324 wrote here empty {} change if needed
+    Scene(const eastl::string_view &name = "UntitledScene", uuid uid = Rand::getRandomUUID(),
+          bool isEditorScene = false) noexcept;
+    Scene(const YAML::Node &config);
+    ~Scene();
+
     // I'm not sure we need to copy or move scenes so if needed add these functions
-    Scene(Scene &) = delete;
-    Scene &operator=(Scene &) = delete;
-    Scene(Scene &&) = delete;
-    Scene &operator=(Scene &&) = delete;
+    Scene(Scene &other) = delete;
+    Scene &operator=(Scene &other) = delete;
+    Scene(Scene &&other) = delete;
+    Scene &operator=(Scene &&other) = delete;
 
     // TODO: some deltatime should be passed to it, I'm confused about our times
     void UpdateRuntime(/*todo float deltatime*/);
@@ -51,9 +55,19 @@ public:
         return m_ViewportHeight;
     }
 
-    Entity CreateEntity(const eastl::string &name = "");
-    Entity CreateChildEntity(Entity parent, const eastl::string &name = "");
-    Entity CreateEntityWithID(const uuid &id, const eastl::string &name = "", bool shouldSort = true);
+    void SaveScene();
+
+    static void ProcessEvents();
+    using EventHandle =
+        eventpp::internal_::CallbackListBase<void(const eastl::shared_ptr<SceneEvent> &), SceneEventPolicy>::Handle;
+    static EventHandle AddEventListener(const SceneEventType eventType,
+                                        eastl::function<void(const SceneEventPointer &)> listener);
+    static void RemoveEventListener(const SceneEventType eventType, const EventHandle &handle);
+
+    Entity CreateEntity(const eastl::string &name = "", bool onSceneChanged = false);
+    Entity CreateChildEntity(Entity parent, const eastl::string &name = "", bool onSceneChanged = false);
+    Entity CreateEntityWithID(const uuid &id, const eastl::string &name = "", bool shouldSort = true, bool onSceneChanged = false);
+    void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false);
     void SubmitToDestroyEntity(Entity entity);
     void DestroyEntity(Entity entity, bool excludeChildren = false, bool first = true);
     void DestroyEntity(const uuid &entityID, bool excludeChildren = false, bool first = true);
@@ -88,7 +102,7 @@ private:
 
     template <typename Fn> void SubmitPostUpdateFunc(Fn &&func)
     {
-        m_PostUpdateQueue.enqueue(func);
+        s_postUpdateQueue.enqueue(func);
     }
 
 private:
@@ -102,7 +116,11 @@ private:
 
     EntityMap m_EntityIdMap;
 
-    moodycamel::ConcurrentQueue<eastl::function<void()>> m_PostUpdateQueue;
+    inline static moodycamel::ConcurrentQueue<eastl::function<void()>> s_postUpdateQueue;
+
+    inline static eventpp::EventQueue<SceneEventType, void(const SceneEventPointer &), SceneEventPolicy>
+        s_sceneEventQueue;
+
 
     /*
      *      we would hold the lights here

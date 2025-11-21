@@ -22,7 +22,11 @@ public:
     static void Destroy();
     static void Update(float deltaTime);
 
-    static Scene &GetActiveScene();
+    static Path &GetContentDirectory();
+    static void SetContentDirectory(const Path &contentDirectory);
+
+    static eastl::shared_ptr<Scene> GetActiveScene();
+    static void SetActiveScene(const eastl::shared_ptr<Scene> &scene);
 
 public:
     static HWND CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle,
@@ -31,7 +35,8 @@ public:
 
 private:
     static inline eastl::function<void(float)> m_renderFunc = nullptr;
-    static eastl::shared_ptr<vgjs::JobSystem> m_JobSystemPtr;
-    static inline Scene m_activeScene{}; // TODO: make shared?
+    static inline eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr = nullptr;
+    static inline eastl::shared_ptr<Scene> s_activeScene{};
+    inline static Path s_contentDirectory;
 };
 } // namespace Blainn

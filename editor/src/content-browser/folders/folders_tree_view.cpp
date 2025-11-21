@@ -6,6 +6,7 @@
 #include "folders_tree_view.h"
 
 #include "Editor.h"
+#include "Engine.h"
 #include "FileSystemUtils.h"
 #include "ui_folders_tree_view.h"
 
@@ -74,7 +75,7 @@ void folders_tree_view::dropEvent(QDropEvent *event)
         if (url.isEmpty()) continue;
         
         QString srcPath = url.toLocalFile();
-        QString contentDir = QString::fromStdString(Blainn::Editor::GetInstance().GetContentDirectory().string());
+        QString contentDir = QString::fromStdString(Blainn::Engine::GetContentDirectory().string());
 
         if (!WasInFolderBefore(srcPath, contentDir))
         {

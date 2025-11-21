@@ -7,6 +7,9 @@
 
 #include "browser_item_inspector_content.h"
 
+
+class QLabel;
+class QPushButton;
 namespace editor
 {
 QT_BEGIN_NAMESPACE
@@ -28,5 +31,8 @@ private:
     Ui::material_inspector_content *ui;
 
     static QString GetPathString(const std::string &path);
+
+    void setupFileBrowse(QPushButton* button, QLabel* label, const QString& yamlKey,
+                         const QString& dialogTitle, const QString& filter);
 };
 } // namespace editor

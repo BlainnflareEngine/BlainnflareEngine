@@ -4,6 +4,7 @@
 
 #pragma once
 
+
 #include <QMutex>
 #include <QPlainTextEdit>
 

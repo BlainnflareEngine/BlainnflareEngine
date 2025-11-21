@@ -34,13 +34,28 @@ editor_settings::~editor_settings()
 
 void editor_settings::OnSetDirectoryPressed()
 {
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Set directory"), "",
-                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    QFileDialog *dialog = new QFileDialog(this);
+    dialog->setFileMode(QFileDialog::Directory);
+    dialog->setOption(QFileDialog::ShowDirsOnly, true);
+    dialog->setOption(QFileDialog::DontResolveSymlinks, true);
+    dialog->setWindowTitle(tr("Set directory"));
 
+    QString currentDir = ui->ContentFolderPath->text();
+    if (!currentDir.isEmpty() && QDir(currentDir).exists()) dialog->setDirectory(currentDir);
 
-    if (dir.isEmpty()) return;
+    connect(dialog, &QFileDialog::finished, this,
+            [this, dialog](int result)
+            {
+                if (result == Accepted && !dialog->selectedFiles().isEmpty())
+                {
+                    QString dir = dialog->selectedFiles().first();
+                    ui->ContentFolderPath->setText(dir);
+                    Blainn::Editor::GetInstance().SetContentDirectory(dir.toStdString());
+                }
 
-    ui->ContentFolderPath->setText(dir);
-    Blainn::Editor::GetInstance().SetContentDirectory(dir.toStdString());
+                dialog->deleteLater();
+            });
+
+    dialog->open();
 }
 } // namespace editor

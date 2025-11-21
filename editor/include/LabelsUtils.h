@@ -19,10 +19,12 @@ inline QString ToHeader1(const QString &str)
 }
 
 
+/*
 inline void ToHeader2(QString &str)
 {
     str.prepend("## ");
 }
+*/
 
 
 inline QString ToHeader2(const QString &str)
