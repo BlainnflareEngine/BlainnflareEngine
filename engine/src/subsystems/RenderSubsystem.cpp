@@ -134,17 +134,17 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
     pCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
     #pragma region SceneRendering
-    Scene &scene = Engine::GetActiveScene();
-    auto renderedEntities = scene.GetAllEntitiesWith<IDComponent, RenderComponent>();
-    for (auto entityComponents : renderedEntities.each())
-    {
-        IDComponent &idComponent = std::get<1>(entityComponents);
-        RenderComponent &renderComponent = std::get<2>(entityComponents);
+    //Scene &scene = Engine::GetActiveScene();
+    //auto renderedEntities = scene.GetAllEntitiesWith<IDComponent, RenderComponent>();
+    //for (auto entityComponents : renderedEntities.each())
+    //{
+    //    IDComponent &idComponent = std::get<1>(entityComponents);
+    //    RenderComponent &renderComponent = std::get<2>(entityComponents);
 
-        if (!renderComponent.m_visible || !renderComponent.m_meshCanBeRendered) continue;
+    //    if (!renderComponent.m_visible || !renderComponent.m_meshCanBeRendered) continue;
 
-        // TODO: render component
-    }
+    //    // TODO: render component
+    //}
 #pragma endregion SceneRendering
 
     RenderDepthOnlyPass(pCommandList);
