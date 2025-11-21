@@ -118,3 +118,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         lua
 )
 
+target_link_libraries(${PROJECT_NAME} PUBLIC
+        d3d12.lib
+        d3dcompiler.lib)
