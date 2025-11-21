@@ -109,7 +109,7 @@ void editor_main::OpenAddToScene() const
 void editor_main::OnOpenSettings()
 {
     SettingsData data = SettingsData(Blainn::Engine::GetContentDirectory());
-    editor_settings* settings = new editor_settings(data, this);
+    editor_settings *settings = new editor_settings(data, this);
     settings->show();
 }
 
@@ -117,6 +117,7 @@ void editor_main::OnOpenSettings()
 void editor_main::OnSaveScene()
 {
     Blainn::Engine::GetActiveScene()->SaveScene();
+    ui->Entities->SaveCurrentMeta();
 }
 
 } // namespace editor

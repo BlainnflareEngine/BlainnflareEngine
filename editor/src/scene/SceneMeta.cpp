@@ -21,7 +21,7 @@ SceneMeta::SceneMeta(const QString &relativeScenePath)
 
     if (QFile::exists(m_filePath))
     {
-        m_meta = YAML::LoadFile(m_filePath.toStdString());
+        m_meta = YAML::LoadFile(ToString(m_filePath));
     }
     else
     {
@@ -94,7 +94,32 @@ void SceneMeta::Save()
 }
 
 
-int SceneMeta::GetEntityPosition(Blainn::Entity &entity) const
+void SceneMeta::GetEditorOrder(eastl::vector<Blainn::uuid> &vector) const
+{
+    vector.clear();
+
+    if (!m_entityNodes.empty())
+    {
+        vector.reserve(m_entityNodes.size());
+        for (const auto &entityNode : m_entityNodes)
+        {
+            std::string uuidStr = entityNode["ID"].as<std::string>();
+            vector.emplace_back(uuidStr);
+        }
+    }
+}
+
+
+int SceneMeta::GetPositionInEditorOrder(const Blainn::uuid &entityID) const
+{
+    eastl::vector<Blainn::uuid> vector = {};
+    GetEditorOrder(vector);
+    auto it = eastl::find(vector.begin(), vector.end(), entityID);
+    return it != vector.end() ? std::distance(vector.begin(), it) : -1;
+}
+
+
+/*int SceneMeta::GetEntityPosition(Blainn::Entity &entity) const
 {
     Blainn::uuid ID = entity.GetUUID();
     auto it = eastl::find_if(m_entityNodes.begin(), m_entityNodes.end(),
@@ -105,7 +130,7 @@ int SceneMeta::GetEntityPosition(Blainn::Entity &entity) const
         return eastl::distance(m_entityNodes.begin(), it);
     }
     return -1;
-}
+}*/
 
 
 } // namespace editor

@@ -4,6 +4,8 @@
 
 #pragma once
 #include "EntityNode.h"
+#include "SceneMeta.h"
+
 #include <QAbstractItemModel>
 
 namespace editor
@@ -40,10 +42,14 @@ public:
 
     bool removeRows(int row, int count, const QModelIndex &parent) override;
 
+    void SortAccordingToMeta(eastl::shared_ptr<SceneMeta> &meta);
+
 private:
     QVector<EntityNode *> m_rootNodes;
 
     static QModelIndex FindIndexByEntityRecursive(SceneItemModel *model, const QModelIndex &parent,
                                                   const Blainn::Entity &entity);
+
+    static void SortNodeChildren(EntityNode *node, const eastl::shared_ptr<SceneMeta> &meta);
 };
 } // namespace editor

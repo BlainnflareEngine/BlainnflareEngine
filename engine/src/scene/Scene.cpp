@@ -39,6 +39,8 @@ Scene::Scene(const YAML::Node &config)
     m_SceneID.fromStr(config["SceneID"].as<std::string>().c_str());
 
     if (config["Entities"] && config["Entities"].IsSequence()) CreateEntities(config["Entities"], true);
+
+    s_sceneEventQueue.enqueue(eastl::make_shared<SceneChangedEvent>(m_Name));
 }
 
 

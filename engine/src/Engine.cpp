@@ -101,8 +101,8 @@ void Engine::Update(float deltaTime)
         std::cout << "Engine second" << std::endl;
 
         // TODO: -- remove -- test input
-        Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Pressed);
-        Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Released);
+        //Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Pressed);
+        //Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Released);
 
         testAccumulator = 0.0f;
     }

@@ -26,10 +26,12 @@ public:
     void RemoveEntity(Blainn::uuid ID);
     void SetEntityPosition(Blainn::Entity &entity, int position);
 
-
     void Save();
     bool HasEntity(Blainn::Entity &entity) const;
-    int GetEntityPosition(Blainn::Entity &entity) const;
+    // int GetEntityPosition(Blainn::Entity &entity) const;
+
+    void GetEditorOrder(eastl::vector<Blainn::uuid> &vector) const;
+    int GetPositionInEditorOrder(const Blainn::uuid &entityID) const;
 
 private:
     QString m_filePath;
