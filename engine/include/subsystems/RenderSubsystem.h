@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include "Render/DXHelpers.h"
 #include "Render/FrameResource.h"
+#include "Render/CommandQueue.h"
 
 #include "handles/Handle.h"
 #include "scene/Entity.h"
@@ -81,22 +82,24 @@ namespace Blainn
         void CreateAttachRenderComponent(Entity entity);
         void AddMeshToRenderComponent(Entity entity, MeshHandle meshHandle);
         
-        void PopulateCommandList();
+        void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
     private:
         void InitializeD3D();
 
 #pragma region BoilerplateD3D12
-        VOID CreateDebugLayer();
         VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter = false);
         VOID SetCustomWindowText(LPCWSTR text) const;
+        
+        VOID CreateDebugLayer();
+        
         VOID CreateDevice();
-        VOID CreateCommandObjects();
-        VOID CreateFence();
+        VOID CreateCommandObjectsAndInternalFence();
         VOID CreateRtvAndDsvDescriptorHeaps();
         VOID CreateSwapChain();
-        VOID WaitForGPU();
-        VOID MoveToNextFrame();
+        
         VOID Reset();
+
+        VOID Present();
 #pragma endregion BoilerplateD3D12
         void OnResize(UINT newWidth, UINT newHeight);
     
@@ -109,12 +112,6 @@ namespace Blainn
         void CreatePipelineStateObjects();
 
     public:
-        // Engine(UINT width, UINT height, const std::wstring& name, const std::wstring& className);
-
-        // virtual void OnUpdate(float deltaTime);
-        // virtual void OnRender(float deltaTime);
-        // virtual void OnDestroy();
-
         // virtual void OnMouseDown(WPARAM btnState, int x, int y) override;
         // virtual void OnMouseUp(WPARAM btnState, int x, int y) override;
         // virtual void OnMouseMove(WPARAM btnState, int x, int y) override;
@@ -133,21 +130,21 @@ namespace Blainn
 
     private:
 #pragma region Shadows
-        void RenderDepthOnlyPass();
+        void RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pCommandList);
 #pragma endregion Shadows
 #pragma region DeferredShading
-        void RenderGeometryPass();
-        void RenderLightingPass();
-        void RenderTransparencyPass();
+        void RenderGeometryPass(ID3D12GraphicsCommandList2 *pCommandList);
+        void RenderLightingPass(ID3D12GraphicsCommandList2 *pCommandList);
+        void RenderTransparencyPass(ID3D12GraphicsCommandList2 *pCommandList);
 
-        void DeferredDirectionalLightPass();
-        void DeferredPointLightPass();
-        void DeferredSpotLightPass();
+        void DeferredDirectionalLightPass(ID3D12GraphicsCommandList2 *pCommandList);
+        void DeferredPointLightPass(ID3D12GraphicsCommandList2 *pCommandList);
+        void DeferredSpotLightPass(ID3D12GraphicsCommandList2 *pCommandList);
 #pragma endregion DeferredShading
 
         //void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, std::vector<std::unique_ptr<RenderItem>>& renderItems);
         // void DrawInstancedRenderItems(ID3D12GraphicsCommandList* cmdList, std::vector<std::unique_ptr<RenderItem>>& renderItems);
-        void DrawQuad(ID3D12GraphicsCommandList* cmdList);
+        void DrawQuad(ID3D12GraphicsCommandList2 *pCommandList);
 
         eastl::array<const CD3DX12_STATIC_SAMPLER_DESC, 5> GetStaticSamplers();
 
@@ -187,14 +184,14 @@ namespace Blainn
         // Pipeline objects.
         ComPtr<IDXGIFactory4> m_factory;
         ComPtr<IDXGISwapChain3> m_swapChain;
-        ComPtr<ID3D12Device> m_device;
+        ComPtr<ID3D12Device2> m_device;
         ComPtr<IDXGIAdapter1> m_hardwareAdapter;
 
         eastl::unique_ptr<Renderer> m_renderer = nullptr;
 
-        ComPtr<ID3D12CommandQueue> m_commandQueue;
-        ComPtr<ID3D12CommandAllocator> m_commandAllocators[SwapChainFrameCount];
-        ComPtr<ID3D12GraphicsCommandList> m_commandList;
+        eastl::shared_ptr<CommandQueue> m_commandQueue = nullptr;
+        // Temporary allocator that is needed only for initialization stage (but could be used for smth else)
+        ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;
 
         ComPtr<ID3D12Resource> m_renderTargets[SwapChainFrameCount];
         ComPtr<ID3D12Resource> m_depthStencilBuffer;
@@ -202,9 +199,7 @@ namespace Blainn
         UINT m_4xMsaaQuality = 0u;
 
         // Synchronization objects.
-        UINT m_frameIndex = 0u; // keep track of front and back buffers (see SwapChainFrameCount)
-        ComPtr<ID3D12Fence> m_fence;
-        HANDLE m_fenceEvent;
+        UINT m_currBackBuffer = 0u; // keep track of front and back buffers (see SwapChainFrameCount)
         UINT64 m_fenceValues[SwapChainFrameCount];
 
         ComPtr<ID3D12RootSignature> m_rootSignature;
@@ -249,7 +244,7 @@ namespace Blainn
     private:
         D3D12_CPU_DESCRIPTOR_HANDLE GetRTV()
         {
-            return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_frameIndex, m_rtvDescriptorSize);
+            return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_currBackBuffer, m_rtvDescriptorSize);
         }
 
         D3D12_CPU_DESCRIPTOR_HANDLE GetDSV()

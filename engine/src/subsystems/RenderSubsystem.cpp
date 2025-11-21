@@ -39,7 +39,7 @@ void Blainn::RenderSubsystem::Init(HWND window)
     BF_DEBUG("Width: {0}", m_width);
     BF_DEBUG("Height: {0}", m_height);
 
-#if defined(_DEBUG)
+#if defined(DEBUG) || defined(_DEBUG)
     // Enable the debug layer (requires the Graphics Tools "optional feature").
     // NOTE: Enabling the debug layer after device creation will invalidate the active device.
     CreateDebugLayer();
@@ -58,8 +58,6 @@ void Blainn::RenderSubsystem::Init(HWND window)
 
 void Blainn::RenderSubsystem::Destroy()
 {
-    WaitForGPU();
-    CloseHandle(m_fenceEvent);
     m_isInitialized = false;
     BF_INFO("RenderSubsystem::Destroy()");
 }
@@ -85,6 +83,13 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     m_currFrameResourceIndex = (m_currFrameResourceIndex + 1) % gNumFrameResources;
     m_currFrameResource = m_frameResources[m_currFrameResourceIndex].get();
 
+    // Has the GPU finished processing the commands of the current frame resource?
+    // If not, wait until the GPU has completed commands up to this fence point.
+    if (m_currFrameResource->Fence != 0 /*&& !m_commandQueue->IsFenceComplete(m_currFrameResource->Fence)*/)
+    {
+        m_commandQueue->WaitForFenceValue(m_currFrameResource->Fence);
+    }
+
     //UpdateObjectsCB(deltaTime);
     //UpdateMaterialBuffer(deltaTime);
     //UpdateLightsBuffer(deltaTime);
@@ -94,12 +99,24 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
 
     //UpdateGeometryPassCB(deltaTime); // pass
     //UpdateMainPassCB(deltaTime);     // pass
+
 #pragma endregion UpdateStage
 
 #pragma region RenderStage
-    // Record all the commands we need to render the scene into the command list.
-    //m_renderer->PopulateCommandList();
-    PopulateCommandList();
+    // Get the current frame resource command allocator
+    // Command list allocators can only be reset when the associated command lists have finished execution on the GPU; apps should use fences to determine GPU execution progress.
+    auto currCmdAlloc = m_currFrameResource->commandAllocator.Get();
+
+#if defined(DEBUG) || defined(_DEBUG)
+    wchar_t name[32] = {};
+    UINT size = sizeof(name);
+    currCmdAlloc->GetPrivateData(WKPDID_D3DDebugObjectNameW, &size, name);
+#endif
+
+    auto commandList = m_commandQueue->GetCommandList(currCmdAlloc);
+    commandList->Close(); // We could get new created command list, so it needs to be closed before reset
+    ThrowIfFailed(commandList->Reset(currCmdAlloc, nullptr));
+    PopulateCommandList(commandList.Get()); // Record all the commands we need to render the scene into the command list.
 
     Scene &scene = Engine::GetActiveScene();
     auto renderedEntities = scene.GetAllEntitiesWith<IDComponent, RenderComponent>();
@@ -113,44 +130,32 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
         // TODO: render component
     }
 
-    // m_renderer->ExecuteCommandLists();
-    ID3D12CommandList *ppCommandLists[] = {m_commandList.Get()};
-    m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    m_commandQueue->ExecuteCommandList(commandList);
+    Present();
+    m_currBackBuffer = (m_currBackBuffer + 1u) % SwapChainFrameCount;
 
-    // Present the frame.
-    ThrowIfFailed(m_swapChain->Present(1u, 0u));
+    m_currFrameResource->Fence = m_commandQueue->Signal(); // Advance the fence value to mark commands up to this fence point.
 #pragma endregion RenderStage
-
-    MoveToNextFrame();
 }
 
-void Blainn::RenderSubsystem::PopulateCommandList()
+void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList)
 {
-    auto currentCmdAlloc = m_currFrameResource->commandAllocator.Get();
-
-    ThrowIfFailed(currentCmdAlloc->Reset());
-
-    ThrowIfFailed(m_commandList->Reset(currentCmdAlloc, m_pipelineStates.at(EPsoType::DeferredGeometry).Get()));
-
-    m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+    pCommandList->SetGraphicsRootSignature(m_rootSignature.Get());
     
     // Access for setting and using root descriptor table
     ID3D12DescriptorHeap *descriptorHeaps[] = {m_srvHeap.Get()};
-    m_commandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+    pCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-    RenderDepthOnlyPass();
-    /*RenderGeometryPass();
-    RenderLightingPass();
-    RenderTransparencyPass();*/
-
-    ThrowIfFailed(m_commandList->Close());
+    RenderDepthOnlyPass(pCommandList);
+    /*RenderGeometryPass(pCommandList);
+    RenderLightingPass(pCommandList);
+    RenderTransparencyPass(pCommandList);*/
 }
 
 VOID Blainn::RenderSubsystem::InitializeD3D()
 {
     CreateDevice();
-    CreateCommandObjects();
-    CreateFence();
+    CreateCommandObjectsAndInternalFence();
     CreateRtvAndDsvDescriptorHeaps();
     CreateSwapChain();
 
@@ -261,54 +266,15 @@ VOID Blainn::RenderSubsystem::CreateDevice()
     }
 }
 
-VOID Blainn::RenderSubsystem::CreateCommandObjects()
+VOID Blainn::RenderSubsystem::CreateCommandObjectsAndInternalFence()
 {
-    // Describe and create the command queue.
-    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-    // the most often used are direct, compute and copy
-    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-    queueDesc.Priority;
-    queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    queueDesc.NodeMask;
     // If we have multiple command queues, we can write a resource only from one queue at the same time.
     // Before it can be accessed by another queue, it must transition to read or common state.
     // In a read state resource can be read from multiple command queues simultaneously, including across processes,
     // based on its read state.
-    ThrowIfFailed(m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)));
+    m_commandQueue = eastl::make_shared<CommandQueue>(m_device, D3D12_COMMAND_LIST_TYPE_DIRECT);
 
-    ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                                   IID_PPV_ARGS(&m_commandAllocators[m_frameIndex])));
-
-    // Create the command list.
-    ThrowIfFailed(
-        m_device->CreateCommandList(0u /*Single GPU*/, D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                    m_commandAllocators[m_frameIndex].Get() /*Must match the command list type*/,
-                                    nullptr, IID_PPV_ARGS(&m_commandList)));
-
-    // Command lists are created in the recording state, but there is nothing
-    // to record yet. The main loop expects it to be closed, so close it now.
-    ThrowIfFailed(m_commandList->Close());
-}
-
-VOID Blainn::RenderSubsystem::CreateFence()
-{
-    // Create synchronization objects and wait until assets have been uploaded to the GPU.
-    {
-        ThrowIfFailed(
-            m_device->CreateFence(m_fenceValues[m_frameIndex], D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
-
-        m_fenceValues[m_frameIndex]++;
-        // Create an event handle to use for frame synchronization.
-        m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-        if (m_fenceEvent == nullptr)
-        {
-            ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
-        }
-        // Wait for the command list to execute; we are reusing the same command
-        // list in our main loop but for now, we just want to wait for setup to
-        // complete before continuing.
-        WaitForGPU();
-    }
+    m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator));
 }
 
 VOID Blainn::RenderSubsystem::CreateRtvAndDsvDescriptorHeaps()
@@ -358,25 +324,26 @@ VOID Blainn::RenderSubsystem::CreateSwapChain()
 
     ComPtr<IDXGISwapChain1> swapChain;
     ThrowIfFailed(m_factory->CreateSwapChainForHwnd(
-        m_commandQueue.Get(), // Swap chain needs the queue so that it can force a flush on it.
+        m_commandQueue->GetCommandQueue().Get(), // Swap chain needs the queue so that it can force a flush on it.
         m_hWND, &swapChainDesc, &swapChainFullScreenDesc, nullptr, &swapChain));
 
     // This sample does not support fullscreen transitions.
     ThrowIfFailed(m_factory->MakeWindowAssociation(m_hWND, DXGI_MWA_NO_ALT_ENTER));
 
     ThrowIfFailed(swapChain.As(&m_swapChain));
-    m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 }
 
 VOID Blainn::RenderSubsystem::Reset()
 {
     assert(m_device);
     assert(m_swapChain);
+    assert(m_commandQueue);
+    assert(m_commandAllocator);
 
     // Before making any changes
-    // FlushCommandQueue();
+    m_commandQueue->Flush();
 
-    ThrowIfFailed(m_commandList->Reset(m_commandAllocators[m_frameIndex].Get(), nullptr));
+    auto commandList = m_commandQueue->GetCommandList(m_commandAllocator.Get());
 
     for (UINT i = 0; i < SwapChainFrameCount; i++)
     {
@@ -387,7 +354,7 @@ VOID Blainn::RenderSubsystem::Reset()
     // Resize the swap chain
     ThrowIfFailed(m_swapChain->ResizeBuffers(SwapChainFrameCount, m_width, m_height, BackBufferFormat, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH));
 
-    m_frameIndex = 0u;
+    m_currBackBuffer = 0u;
 
     // Create/recreate frame resources.
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
@@ -397,9 +364,8 @@ VOID Blainn::RenderSubsystem::Reset()
         m_device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHeapHandle);
         rtvHeapHandle.Offset(1, m_rtvDescriptorSize);
 
-        // Create command allocator for every back buffer
-        ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                                        IID_PPV_ARGS(&m_commandAllocators[i])));
+        /*eastl::wstring name = L"Backbuffer[" + eastl::to_wstring(i) + L"]";
+        m_renderTargets[i]->SetName(name.c_str());*/
     }
 
     // Create the depth/stencil view.
@@ -435,21 +401,21 @@ VOID Blainn::RenderSubsystem::Reset()
     dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
     dsvDesc.Texture2D.MipSlice = 0u;
     m_device->CreateDepthStencilView(m_depthStencilBuffer.Get(), &dsvDesc, dsvHandle);
+    m_device->CreateDepthStencilView(m_depthStencilBuffer.Get(), &dsvDesc, dsvHandle);
+    m_depthStencilBuffer->SetName(L"DepthStencilBuffer");
 
     m_camera->Reset(75.0f, m_aspectRatio, 1.0f, 250.0f);
 
     // Transition the resource from its initial state to be used as a depth buffer.
     auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_COMMON,
                                                            D3D12_RESOURCE_STATE_DEPTH_WRITE);
-    m_commandList->ResourceBarrier(1, &transition);
+    commandList->ResourceBarrier(1, &transition);
 
     // Execute the resize commands.
-    ThrowIfFailed(m_commandList->Close());
-    ID3D12CommandList *cmdLists[] = {m_commandList.Get()};
-    m_commandQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
+    m_commandQueue->ExecuteCommandList(commandList);
 
     // Wait until resize is complete.
-    // FlushCommandQueue();
+    m_commandQueue->Flush();
 
     m_viewport.TopLeftX = 0.0f;
     m_viewport.TopLeftY = 0.0f;
@@ -464,48 +430,23 @@ VOID Blainn::RenderSubsystem::Reset()
     m_scissorRect.bottom = static_cast<LONG>(m_height);
 }
 
+VOID Blainn::RenderSubsystem::Present()
+{
+    /*UINT syncInterval = m_VSync ? 1 : 0;
+    UINT presentFlags = m_IsTearingSupported && !m_VSync ? DXGI_PRESENT_ALLOW_TEARING : 0;*/
+    // Present the frame.
+    ThrowIfFailed(m_swapChain->Present(1u, 0u));
+}
+
 void Blainn::RenderSubsystem::OnResize(UINT newWidth, UINT newHeight)
 {
     // To recreate resources demanding width and height (shadow maps, G buffer etc.)
     // m_renderer->OnResize(newWidth, newHeight);
 }
 
-VOID Blainn::RenderSubsystem::WaitForGPU()
-{
-    // Schedule a Signal command in the queue.
-    ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), m_fenceValues[m_frameIndex]));
-
-    // Wait until the fence has been processed.
-    ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_fenceEvent));
-    WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
-
-    m_fenceValues[m_frameIndex]++;
-}
-
-VOID Blainn::RenderSubsystem::MoveToNextFrame()
-{
-    // Schedule a Signal command in the queue.
-    const UINT64 currentFenceValue = m_fenceValues[m_frameIndex];
-    ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), currentFenceValue));
-
-    // Update the frame index.
-    m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
-
-    // If the next frame is not ready to be rendered yet, wait until it is ready.
-    if (m_fence->GetCompletedValue() < m_fenceValues[m_frameIndex])
-    {
-        ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_fenceEvent));
-        WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
-    }
-
-    // Set the fence value for the next frame.
-    m_fenceValues[m_frameIndex] = currentFenceValue + 1;
-}
-
-
 void Blainn::RenderSubsystem::LoadPipeline()
 {
-    ThrowIfFailed(m_commandList->Reset(m_commandAllocators[m_frameIndex].Get(), nullptr));
+    auto commandList = m_commandQueue->GetCommandList(m_commandAllocator.Get());
 
     CreateFrameResources();
     CreateDescriptorHeaps();
@@ -514,9 +455,7 @@ void Blainn::RenderSubsystem::LoadPipeline()
     CreateShaders();
     CreatePipelineStateObjects();
 
-    m_commandList->Close();
-    ID3D12CommandList *cmdLists[] = {m_commandList.Get()};
-    m_commandQueue->ExecuteCommandLists(_countof(cmdLists), cmdLists);
+    m_commandQueue->ExecuteCommandList(commandList);
 }
 
 void Blainn::RenderSubsystem::CreateFrameResources()
@@ -802,55 +741,55 @@ void Blainn::RenderSubsystem::AddMeshToRenderComponent(Entity entity, MeshHandle
     }
 }
 
-void Blainn::RenderSubsystem::RenderDepthOnlyPass()
+void Blainn::RenderSubsystem::RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
-    m_commandList->RSSetViewports(1u, &m_viewport);
-    m_commandList->RSSetScissorRects(1u, &m_scissorRect);
+    pCommandList->RSSetViewports(1u, &m_viewport);
+    pCommandList->RSSetScissorRects(1u, &m_scissorRect);
 
-    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    m_commandList->ResourceBarrier(1u, &transition);
+    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currBackBuffer].Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    pCommandList->ResourceBarrier(1u, &transition);
 
     auto rtvHandle = GetRTV();
     auto dsvHandle = GetDSV();
 
     const float *clearColor = DirectX::Colors::Yellow;
-    m_commandList->OMSetRenderTargets(1u, &rtvHandle, TRUE, &dsvHandle);
-    m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0u, nullptr);
-    m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u, nullptr);
+    pCommandList->OMSetRenderTargets(1u, &rtvHandle, TRUE, &dsvHandle);
+    pCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0u, nullptr);
+    pCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u, nullptr);
 
-    m_commandList->SetPipelineState(m_pipelineStates.at(EPsoType::CascadedShadowsOpaque).Get());
+    pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::CascadedShadowsOpaque).Get());
     
-    transition = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_frameIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-    m_commandList->ResourceBarrier(1u, &transition);
+    transition = CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[m_currBackBuffer].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+    pCommandList->ResourceBarrier(1u, &transition);
 }
 
-void Blainn::RenderSubsystem::RenderGeometryPass()
+void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
 
 
 }
 
-void Blainn::RenderSubsystem::RenderLightingPass()
+void Blainn::RenderSubsystem::RenderLightingPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
 }
 
-void Blainn::RenderSubsystem::RenderTransparencyPass()
+void Blainn::RenderSubsystem::RenderTransparencyPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
 }
 
-void Blainn::RenderSubsystem::DeferredDirectionalLightPass()
+void Blainn::RenderSubsystem::DeferredDirectionalLightPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
 }
 
-void Blainn::RenderSubsystem::DeferredPointLightPass()
+void Blainn::RenderSubsystem::DeferredPointLightPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
 }
 
-void Blainn::RenderSubsystem::DeferredSpotLightPass()
+void Blainn::RenderSubsystem::DeferredSpotLightPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
 }
 
-void Blainn::RenderSubsystem::DrawQuad(ID3D12GraphicsCommandList *cmdList)
+void Blainn::RenderSubsystem::DrawQuad(ID3D12GraphicsCommandList2 *pCommandList)
 {
 }
 
@@ -924,23 +863,23 @@ eastl::pair<XMMATRIX, XMMATRIX> Blainn::RenderSubsystem::GetLightSpaceMatrix(con
         XMMatrixLookAtLH(center, center + XMVectorSet(lightDir.x, lightDir.y, lightDir.z, 1.0f), FreyaMath::UpVector);
 
     // Measuring cascade
-    float minX = std::numeric_limits<float>::max();
-    float minY = std::numeric_limits<float>::max();
-    float minZ = std::numeric_limits<float>::max();
-    float maxX = std::numeric_limits<float>::lowest();
-    float maxY = std::numeric_limits<float>::lowest();
-    float maxZ = std::numeric_limits<float>::lowest();
+    float minX = eastl::numeric_limits<float>::max();
+    float minY = eastl::numeric_limits<float>::max();
+    float minZ = eastl::numeric_limits<float>::max();
+    float maxX = eastl::numeric_limits<float>::lowest();
+    float maxY = eastl::numeric_limits<float>::lowest();
+    float maxZ = eastl::numeric_limits<float>::lowest();
 
     for (const auto &v : frustumCorners)
     {
         const auto trf = XMVector4Transform(v, lightView);
 
-        minX = std::min(minX, XMVectorGetX(trf));
-        maxX = std::max(maxX, XMVectorGetX(trf));
-        minY = std::min(minY, XMVectorGetY(trf));
-        maxY = std::max(maxY, XMVectorGetY(trf));
-        minZ = std::min(minZ, XMVectorGetZ(trf));
-        maxZ = std::max(maxZ, XMVectorGetZ(trf));
+        minX = eastl::min(minX, XMVectorGetX(trf));
+        maxX = eastl::max(maxX, XMVectorGetX(trf));
+        minY = eastl::min(minY, XMVectorGetY(trf));
+        maxY = eastl::max(maxY, XMVectorGetY(trf));
+        minZ = eastl::min(minZ, XMVectorGetZ(trf));
+        maxZ = eastl::max(maxZ, XMVectorGetZ(trf));
     }
     // Tune this parameter according to the scene
     constexpr float zMult = 10.0f;
