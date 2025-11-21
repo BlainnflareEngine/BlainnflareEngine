@@ -127,6 +127,8 @@ set(EDITOR_SOURCES
         src/inspector/input-widgets/path_input_field.cpp
         include/inspector/input-widgets/path_input_field.h
         include/inspector/input-widgets/NumericInputWidget.h
+        src/scene/SceneMeta.cpp
+        include/scene/SceneMeta.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
