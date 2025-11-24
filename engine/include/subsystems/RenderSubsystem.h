@@ -142,8 +142,15 @@ namespace Blainn
         void DeferredSpotLightPass(ID3D12GraphicsCommandList2 *pCommandList);
 #pragma endregion DeferredShading
 
-        //void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, std::vector<std::unique_ptr<RenderItem>>& renderItems);
-        // void DrawInstancedRenderItems(ID3D12GraphicsCommandList* cmdList, std::vector<std::unique_ptr<RenderItem>>& renderItems);
+        void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<MeshData> &meshesData);
+        void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<MeshData> &meshData);
+
+#pragma region CommandListIntrinsic
+        void Draw(UINT vertexCount, UINT instanceCount = 1u, UINT startVertex = 0u, UINT startInstance = 0u);
+        void DrawIndexed(UINT indexCount, UINT instanceCount = 1u, UINT startIndex = 0u, UINT baseVertex = 0u, UINT startInstance = 0u);
+        
+#pragma region CommandListIntrinsic
+
         void DrawQuad(ID3D12GraphicsCommandList2 *pCommandList);
 
         eastl::array<const CD3DX12_STATIC_SAMPLER_DESC, 5> GetStaticSamplers();
