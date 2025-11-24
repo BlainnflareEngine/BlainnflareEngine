@@ -99,19 +99,13 @@ ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::GetCommandList(ID3D12Co
 }
 
 // Execute a command list.
-// Returns the fence value to wait for for this command list.
-UINT64 Blainn::CommandQueue::ExecuteCommandList(ComPtr<ID3D12GraphicsCommandList2> commandList)
+void Blainn::CommandQueue::ExecuteCommandList(ComPtr<ID3D12GraphicsCommandList2> commandList)
 {
     commandList->Close();
-
     ID3D12CommandList *const ppCommandLists[] = {commandList.Get()};
-
     m_commandQueue->ExecuteCommandLists(1u, ppCommandLists);
-    UINT64 fenceValue = Signal();
-
+    
     m_commandListQueue.push(commandList);
-
-    return fenceValue;
 }
 
 ComPtr<ID3D12CommandQueue> Blainn::CommandQueue::GetCommandQueue() const
