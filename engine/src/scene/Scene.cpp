@@ -328,7 +328,7 @@ void Blainn::Scene::CreateAttachMeshComponent(Entity entity, const Path &path, c
     RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
     if (renderComponentPtr)
     {
-        RenderSubsystem::GetInstance().AddMeshToRenderComponent(entity, *handlePtr);
+        RenderSubsystem::GetInstance().AddMeshToRenderComponent(entity, handlePtr);
     }
 }
 
