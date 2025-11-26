@@ -47,6 +47,7 @@ public slots:
     void OnSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
     void SaveCurrentMeta();
+
 protected:
     void keyPressEvent(QKeyEvent *event) override;
 
@@ -55,5 +56,8 @@ private:
     SceneItemModel *m_sceneModel;
     AddToSceneContextMenu *m_addToSceneMenu;
     eastl::shared_ptr<SceneMeta> m_sceneMeta;
+
+    void CreateEntityInHierarchy(Blainn::Entity& entity, bool bSceneChanged = false);
+    void CreateEntityInHierarchy(Blainn::Entity&& entity, bool bSceneChanged = false);
 };
 }; // namespace editor

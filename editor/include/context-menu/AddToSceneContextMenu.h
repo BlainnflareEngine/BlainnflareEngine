@@ -12,6 +12,10 @@
 
 namespace editor
 {
+class SceneItemModel;
+}
+namespace editor
+{
 class scene_hierarchy_widget;
 }
 namespace editor
