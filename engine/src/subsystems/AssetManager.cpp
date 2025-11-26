@@ -11,6 +11,16 @@
 #include "file-system/Model.h"
 #include "file-system/Texture.h"
 
+#ifndef MAX_TEXTURES
+    #define MAX_TEXTURES 512
+#endif
+#ifndef MAX_MATERIALS
+    #define MAX_MATERIALS 64
+#endif
+#ifndef MAX_MESHES
+    #define MAX_MESHES 64
+#endif
+
 namespace Blainn
 {
 AssetManager &AssetManager::GetInstance()
@@ -26,9 +36,9 @@ void AssetManager::Init()
     m_loader = eastl::make_unique<AssetLoader>();
     m_loader->Init();
 
-    m_textures.reserve(512);
-    m_materials.reserve(64);
-    m_meshes.reserve(64);
+    m_textures.reserve(MAX_TEXTURES);
+    m_materials.reserve(MAX_MATERIALS);
+    m_meshes.reserve(MAX_MESHES);
 
     // TODO: create default texture
     m_textures.emplace(m_loader->LoadTexture(std::filesystem::current_path() / "Default.png", TextureType::ALBEDO));
@@ -252,6 +262,9 @@ void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int ind
     m_textures[index] = m_loader->LoadTexture(path, type);
     auto str = "Placing texture to index " + std::to_string(index);
     BF_INFO(str);
+
+    // create cpu, gpu d3d12 resources
+
 }
 
 
@@ -270,6 +283,11 @@ void AssetManager::AddMeshWhenLoaded(const Path &relativePath, const unsigned in
     m_meshes[index] = m_loader->ImportModel(relativePath, data);
     auto str = "Placing model to index " + std::to_string(index);
     BF_INFO(str);
+
+    // create cpu, gpu d3d12 resources
+    
+    CreateMeshDataResources(m_meshes[index].get()->GetMeshes());
+    
 }
 
 
@@ -336,6 +354,11 @@ void AssetManager::DecreaseMeshRefCount(const unsigned int index)
         if (value.index == index) --value.refCount;
 
     // TODO: remove asset if refCount == 0
+}
+
+void AssetManager::CreateMeshDataResources(const eastl::vector<MeshData>& meshes)
+{
+
 }
 
 } // namespace Blainn

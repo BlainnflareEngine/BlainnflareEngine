@@ -25,12 +25,13 @@ struct MeshData
     }
 
 
-    MeshData(const eastl::vector<BlainnVertex>& vertices, const eastl::vector<UINT>& indices,
-             const eastl::shared_ptr<MaterialHandle> &materialHandle)
+    MeshData(const eastl::vector<BlainnVertex>& vertices, const eastl::vector<UINT>& indices, const eastl::shared_ptr<MaterialHandle> &materialHandle, uint8_t numLODs = 1u)
         : vertices(vertices)
         , indices(indices)
         , materialHandle(materialHandle)
+        , NumLODs(numLODs)
     {
+
     }
 
 
