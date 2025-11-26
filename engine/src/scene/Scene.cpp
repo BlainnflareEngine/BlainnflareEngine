@@ -277,6 +277,15 @@ void Scene::DestroyEntity(Entity entity, bool excludeChildren, bool first)
     if (!excludeChildren)
     {
         // destroy each child, can't really iterate through them, so should think about it a bit
+        // don't make this a foreach loop because entt will move the children
+        //            vector in memory as entities/components get deleted
+        for (size_t i = 0; i < entity.Children().size(); i++)
+        {
+            auto childId = entity.Children()[i];
+            Entity child = GetEntityWithUUID(childId);
+            DestroyEntity(child, excludeChildren, false);
+        }
+
     }
 
     const uuid id = entity.GetUUID();
@@ -403,7 +412,7 @@ void Blainn::Scene::CreateAttachMeshComponent(Entity entity, const Path &path, c
     RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
     if (renderComponentPtr)
     {
-        RenderSubsystem::GetInstance().AddMeshToRenderComponent(entity, *handlePtr);
+        RenderSubsystem::GetInstance().AddMeshToRenderComponent(entity, handlePtr);
     }
 }
 

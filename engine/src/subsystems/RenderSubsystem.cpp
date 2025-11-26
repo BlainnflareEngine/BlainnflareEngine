@@ -790,12 +790,12 @@ void Blainn::RenderSubsystem::CreateAttachRenderComponent(Entity entity)
     MeshComponent *meshComponentPtr = entity.TryGetComponent<MeshComponent>();
     if (meshComponentPtr)
     {
-        AddMeshToRenderComponent(entity, *meshComponentPtr->m_meshHandle);
+        AddMeshToRenderComponent(entity, meshComponentPtr->m_meshHandle);
     }
 }
 
 // TODO: make MeshHandle shared_ptr
-void Blainn::RenderSubsystem::AddMeshToRenderComponent(Entity entity, MeshHandle meshHandle)
+void Blainn::RenderSubsystem::AddMeshToRenderComponent(Entity entity, eastl::shared_ptr<Blainn::MeshHandle> meshHandle)
 {
     RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
 
@@ -808,7 +808,7 @@ void Blainn::RenderSubsystem::AddMeshToRenderComponent(Entity entity, MeshHandle
     renderComponentPtr->m_meshCanBeRendered = true;
     renderComponentPtr->m_meshHandle = meshHandle;
 
-    eastl::vector<MeshData> meshDataVec = meshHandle.GetMesh().GetMeshes();
+    eastl::vector<MeshData> meshDataVec = meshHandle->GetMesh().GetMeshes();
     for (const auto &meshData : meshDataVec)
     {
         // TODO: create index and vertex buffer for gpu: create upload buffers and set commands in command list
