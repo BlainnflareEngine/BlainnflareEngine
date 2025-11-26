@@ -2,7 +2,7 @@
 
 #include "Render/CommandQueue.h"
 
-Blainn::CommandQueue::CommandQueue(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TYPE type)
+Blainn::CommandQueue::CommandQueue(const ComPtr<ID3D12Device2>& device, D3D12_COMMAND_LIST_TYPE type)
     : m_fenceValue(0)
     , m_commandListType(type)
     , m_device(device)
@@ -31,7 +31,7 @@ Blainn::CommandQueue::~CommandQueue()
 UINT64 Blainn::CommandQueue::Signal()
 {
     ++m_fenceValue;
-    m_commandQueue->Signal(m_fence.Get(), m_fenceValue);
+    ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), m_fenceValue));
     return m_fenceValue;
 }
 
@@ -52,7 +52,7 @@ void Blainn::CommandQueue::WaitForFenceValue(UINT64 fenceValue)
          * SetEventOnCompletion(fenceValue, fenceEvent)
          * Specifies an event that's raised when the fence reaches a certain value.
          */
-        m_fence->SetEventOnCompletion(fenceValue, m_fenceEvent);
+        ThrowIfFailed(m_fence->SetEventOnCompletion(fenceValue, m_fenceEvent));
         WaitForSingleObject(m_fenceEvent, INFINITE); // WaitForSingleObjecEx(m_fenceEvent, INFINITE, FALSE)
     }
 }
@@ -73,9 +73,8 @@ ComPtr<ID3D12CommandAllocator> Blainn::CommandQueue::CreateCommandAllocator()
 ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::CreateCommandList(ID3D12CommandAllocator* pCommandAllocator)
 {
     ComPtr<ID3D12GraphicsCommandList2> commandList;
-    ThrowIfFailed(
-        m_device->CreateCommandList(0u, m_commandListType, pCommandAllocator, nullptr, IID_PPV_ARGS(&commandList)));
-
+    ThrowIfFailed(m_device->CreateCommandList(0u, m_commandListType, pCommandAllocator, nullptr, IID_PPV_ARGS(&commandList)));
+    
     return commandList;
 }
 
@@ -87,13 +86,15 @@ ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::GetCommandList(ID3D12Co
     {
         commandList = m_commandListQueue.front();
         m_commandListQueue.pop();
-
-        ThrowIfFailed(commandList->Reset(pCommandAllocator, nullptr));
     }
     else
     {
         commandList = CreateCommandList(pCommandAllocator);
+        // We've created new command list, so it needs to be closed before reset
+        ThrowIfFailed(commandList->Close());
     }
+
+    ThrowIfFailed(commandList->Reset(pCommandAllocator, nullptr));
 
     return commandList;
 }
@@ -101,7 +102,7 @@ ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::GetCommandList(ID3D12Co
 // Execute a command list.
 void Blainn::CommandQueue::ExecuteCommandList(ComPtr<ID3D12GraphicsCommandList2> commandList)
 {
-    commandList->Close();
+    ThrowIfFailed(commandList->Close());
     ID3D12CommandList *const ppCommandLists[] = {commandList.Get()};
     m_commandQueue->ExecuteCommandLists(1u, ppCommandLists);
     
