@@ -88,9 +88,13 @@ set(ENGINE_SOURCES
         include/tools/Serializer.h
         include/scene/SceneEvent.h
         src/scene/SceneEvent.cpp
+        include/scripting/TypeRegistration.h
+        src/scripting/TypeRegistration.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
+
+target_compile_options(ENGINE PRIVATE /bigobj)
 
 source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${ENGINE_SOURCES})
 

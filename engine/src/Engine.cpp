@@ -146,6 +146,7 @@ Path &Engine::GetContentDirectory()
 void Engine::SetContentDirectory(const Path &contentDirectory)
 {
     s_contentDirectory = contentDirectory;
+    // TODO: ScriptingSubsystem::SetLuaScriptsFolder()
 }
 
 

@@ -36,6 +36,8 @@ public:
         sol::protected_function customFunc = m_environment[functionName.data()];
         if (!customFunc.valid())
         {
+            BF_ERROR("LuaScript::CustomCall: Function " + eastl::string(functionName) + " not found in script "
+                     + m_scriptPath);
             return false;
         }
         sol::set_environment(m_environment, customFunc);
