@@ -29,8 +29,8 @@
 #include <uuid_v4.h>
 #include <yaml-cpp/yaml.h>
 
-#include "subsystems/Log.h"
-#include "tools/Profiler.h"
+#include "Subsystems/Log.h"
+#include "Tools/Profiler.h"
 
 #pragma endregion
 

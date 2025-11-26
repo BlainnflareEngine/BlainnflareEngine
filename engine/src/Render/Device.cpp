@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Render/Device.h"
+#include "Render/CommandQueue.h"
+#include "Render/SwapChain.h"
 
 Blainn::Device::Device(bool useWarpDevice)
     : m_useWarpDevice(useWarpDevice)

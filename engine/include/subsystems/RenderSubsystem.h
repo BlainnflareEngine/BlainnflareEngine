@@ -2,26 +2,26 @@
 
 #include <Windows.h>
 #include "Render/DXHelpers.h"
-#include "Render/Device.h"
 #include "Render/SwapChain.h"
-#include "Render/FrameResource.h"
-#include "Render/CommandQueue.h"
-#include "Render/RootSignature.h"
 
 #include "handles/Handle.h"
 #include "scene/Entity.h"
 #include "Render/Camera.h"
 #include "Render/GBuffer.h"
-#include "Render/Renderer.h"
 #include "Render/CascadeShadowMap.h"
 
 namespace Blainn
 {
+    class Device;
+    class Renderer;
+    class RootSignature;
+    struct FrameResource;
+    
     const int gNumFrameResources = 3;
 
     class RenderSubsystem
     {
-        friend class Renderer;
+        //friend class Renderer;
         
     public:
         enum ERootParameter : UINT

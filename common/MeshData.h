@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "handles/Handle.h"
-#include "VertexTypes.h"
-
 #include <pch.h>
+
+#include "VertexTypes.h"
+#include "Handles/Handle.h"
 
 namespace Blainn
 {
@@ -23,7 +23,6 @@ struct MeshData
         vertices.reserve(256);
         indices.reserve(256);
     }
-
 
     MeshData(const eastl::vector<BlainnVertex>& vertices, const eastl::vector<UINT>& indices, const eastl::shared_ptr<MaterialHandle> &materialHandle, uint8_t numLODs = 1u)
         : vertices(vertices)

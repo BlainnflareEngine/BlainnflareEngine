@@ -1,6 +1,6 @@
 #include "Render/SwapChain.h"
-#include "Render/CommandQueue.h"
 #include "Render/Device.h"
+#include "Render/CommandQueue.h"
 
 namespace Blainn
 {

@@ -4,8 +4,8 @@
 
 namespace Blainn
 {
-    class CommandQueue;
     class Device;
+    class CommandQueue;
 
     class SwapChain
     {

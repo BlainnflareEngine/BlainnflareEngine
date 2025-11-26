@@ -8,7 +8,7 @@ namespace Blainn
 {
     class FreyaUtil
     {
-        public:
+    public:
         static ComPtr<ID3D12Resource> CreateDefaultBuffer(ID3D12Device* device, ID3D12GraphicsCommandList* cmdList, const void* initData, UINT64 byteSize, ComPtr<ID3D12Resource>& uploadBuffer);
         
         static UINT CalcConstantBufferByteSize(const UINT byteSize);

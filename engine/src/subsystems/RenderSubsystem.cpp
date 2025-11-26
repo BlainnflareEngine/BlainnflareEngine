@@ -1,25 +1,25 @@
 #include "pch.h"
 
-#include "subsystems/RenderSubsystem.h"
+#include "Subsystems/RenderSubsystem.h"
+#include "Engine.h"
 
-#include <cassert>
-#include <iostream>
+#include "VertexTypes.h"
+
+#include "Components/MeshComponent.h"
+#include "Components/RenderComponent.h" //????
+#include "File-System/Model.h"
+#include "Handles/Handle.h"
+#include "Scene/Scene.h"
 
 #include "Render/Device.h"
+#include "Render/CommandQueue.h"
 #include "Render/FreyaMath.h"
 #include "Render/FreyaUtil.h"
 #include "Render/Renderer.h"
 #include "Render/RootSignature.h"
-#include "VertexTypes.h"
+#include "Render/FrameResource.h"
 
-#include "Engine.h"
-#include "components/MeshComponent.h"
-#include "components/RenderComponent.h" //????
-#include "file-system/Model.h"
-#include "handles/Handle.h"
-#include "scene/Scene.h"
-#include "subsystems/Log.h"
-#include "tools/Profiler.h"
+#include <cassert>
 
 using namespace Blainn;
 

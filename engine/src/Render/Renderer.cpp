@@ -1,5 +1,4 @@
 #include "Render/Renderer.h"
-#include "RenderSubsystem.h"
 
 Blainn::Renderer::Renderer(ID3D12Device *pDevice, uint32_t width, uint32_t height)
     : m_device(pDevice)

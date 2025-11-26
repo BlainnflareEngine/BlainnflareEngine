@@ -2,8 +2,6 @@
 
 #include <Windows.h>
 #include "DXHelpers.h"
-#include "Render/SwapChain.h"
-#include "Render/CommandQueue.h"
 
 struct ID3D12Device2;
 struct IDXGIFactory4;
@@ -13,6 +11,9 @@ using namespace Microsoft::WRL;
 
 namespace Blainn
 {
+    class SwapChain;
+    class CommandQueue;
+
     class Device /*: public eastl::enable_shared_from_this<Device>*/
     {
     public:
