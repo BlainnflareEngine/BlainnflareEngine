@@ -2,13 +2,17 @@
 
 #include <Windows.h>
 #include "Render/DXHelpers.h"
+#include "Render/Device.h"
+#include "Render/SwapChain.h"
 #include "Render/FrameResource.h"
 #include "Render/CommandQueue.h"
+#include "Render/RootSignature.h"
 
 #include "handles/Handle.h"
 #include "scene/Entity.h"
 #include "Render/Camera.h"
 #include "Render/GBuffer.h"
+#include "Render/Renderer.h"
 #include "Render/CascadeShadowMap.h"
 
 namespace Blainn
@@ -36,18 +40,20 @@ namespace Blainn
 
         enum EPsoType : UINT
         {
-            CascadedShadowsOpaque = 0u,
+            CascadedShadowsOpaque = 0,
 
             DeferredGeometry,
-            DeferredDirectional,
+            Wireframe,
 
+            DeferredDirectional,
             DeferredPointWithinFrustum,
             DeferredPointIntersectsFarPlane,
             DeferredPointFullQuad,
-
             DeferredSpot,
 
-            NumPipelineStates = 7u
+            Transparency,
+
+            NumPipelineStates = 9u
         };
 
         enum EShaderType : UINT
@@ -75,7 +81,8 @@ namespace Blainn
     public:
         static RenderSubsystem &GetInstance();
 
-        void Init(HWND windowHandle);
+        void Init(eastl::shared_ptr<Device> device, HWND window);
+        void SetWindowParams(HWND window);
         void Render(float deltaTime);
         void Destroy();
 
@@ -90,20 +97,19 @@ namespace Blainn
         VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter = false);
         VOID SetCustomWindowText(LPCWSTR text) const;
         
-        VOID CreateDebugLayer();
-        
-        VOID CreateDevice();
         VOID CreateCommandObjectsAndInternalFence();
-        VOID CreateRtvAndDsvDescriptorHeaps();
         VOID CreateSwapChain();
+        VOID CreateRtvAndDsvDescriptorHeaps();
         
         VOID Reset();
+        VOID ResetGraphicsFeatures();
 
         VOID Present();
 #pragma endregion BoilerplateD3D12
         void OnResize(UINT newWidth, UINT newHeight);
     
         void LoadPipeline();
+        void LoadGraphicsFeatures();
 
         void CreateFrameResources();
         void CreateDescriptorHeaps();
@@ -153,8 +159,6 @@ namespace Blainn
 
         void DrawQuad(ID3D12GraphicsCommandList2 *pCommandList);
 
-        eastl::array<const CD3DX12_STATIC_SAMPLER_DESC, 5> GetStaticSamplers();
-
         eastl::pair<XMMATRIX, XMMATRIX> GetLightSpaceMatrix(const float nearZ, const float farZ);
         // Doubt that't a good idea to return vector of matrices. Should rather pass vector as a parameter probalby and
         // fill it inside function.
@@ -173,6 +177,7 @@ namespace Blainn
         HWND m_hWND;
 
         static inline bool m_isInitialized = false;
+        bool m_areGraphicsFeaturesLoaded = false;
         bool m_useWarpDevice = false;
 
         static inline const uint32_t SwapChainFrameCount = 2u;
@@ -189,27 +194,20 @@ namespace Blainn
         
     private:
         // Pipeline objects.
-        ComPtr<IDXGIFactory4> m_factory;
-        ComPtr<IDXGISwapChain3> m_swapChain;
-        ComPtr<ID3D12Device2> m_device;
-        ComPtr<IDXGIAdapter1> m_hardwareAdapter;
+        eastl::shared_ptr<SwapChain> m_swapChain;
+        eastl::shared_ptr<Device> m_device;
 
         eastl::unique_ptr<Renderer> m_renderer = nullptr;
 
-        eastl::shared_ptr<CommandQueue> m_commandQueue = nullptr;
         // Temporary allocator that is needed only for initialization stage (but could be used for smth else)
         ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;
 
-        ComPtr<ID3D12Resource> m_renderTargets[SwapChainFrameCount];
+        //ComPtr<ID3D12Resource> m_renderTargets[SwapChainFrameCount];
         ComPtr<ID3D12Resource> m_depthStencilBuffer;
 
         UINT m_4xMsaaQuality = 0u;
 
-        // Synchronization objects.
-        UINT m_currBackBuffer = 0u; // keep track of front and back buffers (see SwapChainFrameCount)
-        UINT64 m_fenceValues[SwapChainFrameCount];
-
-        ComPtr<ID3D12RootSignature> m_rootSignature;
+        eastl::shared_ptr<RootSignature> m_rootSignature;
         eastl::unordered_map<EShaderType, ComPtr<ID3DBlob>> m_shaders;
         eastl::unordered_map<EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
 
@@ -251,7 +249,7 @@ namespace Blainn
     private:
         D3D12_CPU_DESCRIPTOR_HANDLE GetRTV()
         {
-            return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_currBackBuffer, m_rtvDescriptorSize);
+            return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_swapChain->GetBackBufferIndex(), m_rtvDescriptorSize);
         }
 
         D3D12_CPU_DESCRIPTOR_HANDLE GetDSV()
