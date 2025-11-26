@@ -4,9 +4,11 @@
 
 namespace Blainn
 {
+    class Device;
+
     struct FrameResource
     {
-        FrameResource(ID3D12Device *device, UINT passCount, UINT objectCount, UINT materialCount, UINT pointLightsCount);
+        FrameResource(const eastl::shared_ptr<Device>& device, UINT passCount, UINT objectCount, UINT materialCount, UINT pointLightsCount);
         FrameResource(const FrameResource &lhs) = delete;
         FrameResource &operator=(const FrameResource &lhs) = delete;
 
