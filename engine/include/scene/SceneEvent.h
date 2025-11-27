@@ -63,6 +63,8 @@ public:
     ~EntityCreatedEvent() override {};
 
     SceneEventType GetEventType() override;
+
+    [[nodiscard]] Entity GetParent() const;
 };
 
 class EntityDestroyedEvent : public EntityEvent

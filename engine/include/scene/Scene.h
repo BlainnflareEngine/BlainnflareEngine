@@ -7,9 +7,9 @@
 #include "EASTL/string_view.h"
 #include "EASTL/unordered_map.h"
 #include "Entity.h"
+#include "ImportAssetData.h"
 #include "SceneEvent.h"
 #include "TransformComponent.h"
-#include "ImportAssetData.h"
 #include "aliases.h"
 #include "concurrentqueue.h"
 #include "entt/entt.hpp"
@@ -66,7 +66,10 @@ public:
 
     Entity CreateEntity(const eastl::string &name = "", bool onSceneChanged = false);
     Entity CreateChildEntity(Entity parent, const eastl::string &name = "", bool onSceneChanged = false);
-    Entity CreateEntityWithID(const uuid &id, const eastl::string &name = "", bool shouldSort = true, bool onSceneChanged = false);
+    Entity CreateEntityWithID(const uuid &id, const eastl::string &name = "", bool shouldSort = true,
+                              bool onSceneChanged = false);
+    Entity CreateChildEntityWithID(Entity parent, const uuid &id, const eastl::string &name = "",
+                                   bool shouldSort = true, bool onSceneChanged = false);
     void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false);
     void SubmitToDestroyEntity(Entity entity);
     void DestroyEntity(Entity entity, bool excludeChildren = false, bool first = true);
@@ -76,6 +79,8 @@ public:
     Entity TryGetEntityWithUUID(const uuid &id) const;
     Entity TryGetEntityWithTag(const eastl::string &tag);
     Entity TryGetDescendantEntityWithTag(Entity entity, const eastl::string &tag) const;
+
+    void GetEntitiesInHierarchy(eastl::vector<Entity> &outEntities);
 
     void CreateAttachMeshComponent(Entity entity, const Path &path, const ImportMeshData &data);
 
