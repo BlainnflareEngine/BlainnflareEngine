@@ -218,7 +218,11 @@ void scene_hierarchy_widget::OnSelectionChanged(const QItemSelection &selected, 
 {
     QModelIndexList selectedIndexes = selected.indexes();
 
-    if (selectedIndexes.isEmpty()) return;
+    if (selectedIndexes.isEmpty())
+    {
+        Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
+        return;
+    }
 
     auto entity = SceneItemModel::GetNodeFromIndex(selectedIndexes.first());
 
