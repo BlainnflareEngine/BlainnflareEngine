@@ -1,16 +1,21 @@
 #pragma once
 
-#include <EASTL/optional.h>
-#include <EASTL/string.h>
-#include <EASTL/unordered_map.h>
-#include <sol/sol.hpp>
-
 #include "aliases.h"
+
 #include "components/ScriptingComponent.h"
-#include "scene/Scene.h"
+#include "scene/Entity.h"
+
+namespace sol
+{
+class state;
+}
 
 namespace Blainn
 {
+class ScriptingComponent;
+class Scene;
+class Entity;
+
 class ScriptingSubsystem
 {
 public:
@@ -18,6 +23,9 @@ public:
     static void Destroy();
 
     static void Update(Scene &scene, float deltaTimeMs);
+
+    static void CreateAttachScriptingComponent(Entity entity);
+    static void DestroyScriptingComponent(Entity entity);
 
     static sol::state &GetLuaState();
 

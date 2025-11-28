@@ -3,7 +3,11 @@
 #include "subsystems/ScriptingSubsystem.h"
 
 #include <cassert>
+#include <sol/sol.hpp>
 
+
+#include "ScriptingSubsystem.h"
+#include "scene/Scene.h"
 #include "scripting/TypeRegistration.h"
 
 using namespace Blainn;
@@ -43,10 +47,39 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
     }
 }
 
+void Blainn::ScriptingSubsystem::CreateAttachScriptingComponent(Entity entity)
+{
+    ScriptingComponent *component = entity.TryGetComponent<ScriptingComponent>();
+    if (component)
+    {
+        BF_ERROR("Entity " + entity.GetUUID().str() + " already has ScriptingComponent");
+        return;
+    }
+    entity.AddComponent<ScriptingComponent>();
+}
+
+void Blainn::ScriptingSubsystem::DestroyScriptingComponent(Entity entity)
+{
+    ScriptingComponent *component = entity.TryGetComponent<ScriptingComponent>();
+    if (!component)
+    {
+        BF_ERROR("Entity " + entity.GetUUID().str() + " does not have ScriptingComponent");
+        return;
+    }
+
+    for (const auto &[scriptUuid, _] : component->scripts)
+    {
+        UnloadScript(scriptUuid);
+    }
+
+    entity.RemoveComponent<ScriptingComponent>();
+}
+
 sol::state &ScriptingSubsystem::GetLuaState()
 {
     return m_lua;
 }
+
 void ScriptingSubsystem::SetLuaScriptsFolder(const eastl::string &path)
 {
     m_luaScriptsFolder = path;

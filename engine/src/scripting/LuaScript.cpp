@@ -37,6 +37,10 @@ bool LuaScript::Load(eastl::string_view scriptPath)
         return false;
     }
 
+    if (HasFunction(PredefinedFunctions::OnStart)) m_predefinedFunctions.insert(PredefinedFunctions::OnStart);
+    if (HasFunction(PredefinedFunctions::OnUpdate)) m_predefinedFunctions.insert(PredefinedFunctions::OnUpdate);
+    if (HasFunction(PredefinedFunctions::OnDestroy)) m_predefinedFunctions.insert(PredefinedFunctions::OnDestroy);
+
     m_isLoaded = true;
     return true;
 }
@@ -56,7 +60,7 @@ const uuid &Blainn::LuaScript::GetId() const
     return m_id;
 }
 
-bool Blainn::LuaScript::HasFunction(const eastl::string &functionName)
+bool Blainn::LuaScript::HasFunction(const eastl::string &functionName) const
 {
     sol::protected_function customFunc = m_environment[functionName.data()];
     if (!customFunc.valid())
@@ -68,15 +72,18 @@ bool Blainn::LuaScript::HasFunction(const eastl::string &functionName)
 
 bool LuaScript::OnStartCall()
 {
-    return CustomCall("OnStart");
+    if (!m_predefinedFunctions.contains(PredefinedFunctions::OnStart)) return false;
+    return CustomCall(PredefinedFunctions::OnStart);
 }
 
 bool LuaScript::OnUpdateCall(float deltaTimeMs)
 {
-    return CustomCall("OnUpdate", deltaTimeMs);
+    if (!m_predefinedFunctions.contains(PredefinedFunctions::OnUpdate)) return false;
+    return CustomCall(PredefinedFunctions::OnUpdate, deltaTimeMs);
 }
 
 bool LuaScript::OnDestroyCall()
 {
-    return CustomCall("OnDestroy");
+    if (!m_predefinedFunctions.contains(PredefinedFunctions::OnDestroy)) return false;
+    return CustomCall(PredefinedFunctions::OnDestroy);
 }

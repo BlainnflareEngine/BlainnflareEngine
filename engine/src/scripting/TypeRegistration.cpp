@@ -1,16 +1,15 @@
 #include "pch.h"
 
-#include "scripting/TypeRegistration.h"
+#include "aliases.h"
 
-#include <lua.hpp>
-#include <sol/sol.hpp>
+#include "scripting/TypeRegistration.h"
 
 #include "Input/InputEvent.h"
 #include "Input/InputSubsystem.h"
 #include "Input/KeyCodes.h"
 #include "Input/KeyboardEvents.h"
 #include "Input/MouseEvents.h"
-#include "aliases.h"
+
 
 using namespace Blainn;
 

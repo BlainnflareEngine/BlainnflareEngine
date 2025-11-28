@@ -1,10 +1,5 @@
 #pragma once
 
-#include <EASTL/string.h>
-
-#include <lua.hpp>
-#include <sol/sol.hpp>
-
 #include "aliases.h"
 
 namespace Blainn
@@ -20,7 +15,7 @@ public:
     const eastl::string &GetScriptPath() const;
     const uuid &GetId() const;
 
-    bool HasFunction(const eastl::string &functionName);
+    bool HasFunction(const eastl::string &functionName) const;
     bool OnStartCall();
     bool OnUpdateCall(float deltaTimeMs);
     bool OnDestroyCall();
@@ -58,5 +53,13 @@ private:
     uuid m_id;
     eastl::string m_scriptPath;
     sol::environment m_environment;
+
+    struct PredefinedFunctions
+    {
+        inline const static eastl::string OnStart = "OnStart";
+        inline const static eastl::string OnUpdate = "OnUpdate";
+        inline const static eastl::string OnDestroy = "OnDestroy";
+    };
+    eastl::unordered_set<eastl::string> m_predefinedFunctions;
 };
 } // namespace Blainn

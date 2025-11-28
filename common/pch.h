@@ -18,12 +18,18 @@
 #include <EASTL/list.h>
 #include <EASTL/map.h>
 #include <EASTL/numeric.h>
+#include <EASTL/optional.h>
 #include <EASTL/priority_queue.h>
 #include <EASTL/queue.h>
 #include <EASTL/shared_ptr.h>
 #include <EASTL/string.h>
 #include <EASTL/unique_ptr.h>
+#include <EASTL/unordered_map.h>
+#include <EASTL/unordered_set.h>
 #include <EASTL/weak_ptr.h>
+
+#pragma endregion
+
 #include <cstdint>
 
 #include <uuid_v4.h>
@@ -32,7 +38,6 @@
 #include "subsystems/Log.h"
 #include "tools/Profiler.h"
 
-#pragma endregion
 
 #pragma region New operators for EASTL
 
@@ -67,3 +72,5 @@ inline eastl::string ToEASTLString(const std::string &s)
     return eastl::string(s.c_str());
 }
 
+#include <lua.hpp>
+#include <sol/sol.hpp>
