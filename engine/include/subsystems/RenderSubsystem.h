@@ -223,9 +223,9 @@ namespace Blainn
         ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
         ComPtr<ID3D12DescriptorHeap> m_srvHeap;
         
-        UINT m_rtvDescriptorSize;       // see m_rtvHeap
-        UINT m_dsvDescriptorSize;       // see m_dsvHeap
-        UINT m_cbvSrvUavDescriptorSize; // see m_cbvHeap
+        UINT m_rtvDescriptorSize;      
+        UINT m_dsvDescriptorSize;
+        UINT m_cbvSrvUavDescriptorSize;
 
         D3D12_VIEWPORT m_viewport;
         D3D12_RECT m_scissorRect;
@@ -238,11 +238,12 @@ namespace Blainn
 
 #pragma region DeferredShading
         eastl::unique_ptr<GBuffer> m_GBuffer;
+        CD3DX12_GPU_DESCRIPTOR_HANDLE m_GBufferTexturesSrv;
 #pragma endregion DeferredShading
 
 #pragma region CascadedShadows
+        eastl::unique_ptr<ShadowMap> m_cascadeShadowMap;
         CD3DX12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowSrv;
-        CD3DX12_GPU_DESCRIPTOR_HANDLE m_GBufferTexturesSrv;
         float m_shadowCascadeLevels[MaxCascades] = {0.0f, 0.0f, 0.0f, 0.0f};
 #pragma endregion CascadedShadows
 
