@@ -46,6 +46,7 @@ namespace Blainn
                                     CD3DX12_CPU_DESCRIPTOR_HANDLE destDescriptor);
         VOID CreateRenderTargetView(ID3D12Resource *pResource, const D3D12_RENDER_TARGET_VIEW_DESC* rtvDesc, CD3DX12_CPU_DESCRIPTOR_HANDLE destDescriptor);
 
+        VOID CreateShaderResourceView(ID3D12Resource *pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC* srvDesc, CD3DX12_CPU_DESCRIPTOR_HANDLE destDescriptor);
 
         HRESULT CreateRootSignature(UINT nodeMask, const void *pBlobRootSignature, SIZE_T blobLengthBytes, ComPtr<ID3D12RootSignature> &rootSignature);
 

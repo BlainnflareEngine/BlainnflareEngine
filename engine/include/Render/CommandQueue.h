@@ -15,6 +15,7 @@ namespace Blainn
         /*virtual */~CommandQueue(); // gfx, compute, copy
 
         // Get an available command list from the command queue.
+        ComPtr<ID3D12CommandAllocator> GetCommandAllocator();
         ComPtr<ID3D12GraphicsCommandList2> GetCommandList(ID3D12CommandAllocator *pCommandList);
 
         // Execute a command list.
@@ -33,6 +34,7 @@ namespace Blainn
 
     private:
         using CommandListQueue = eastl::queue<ComPtr<ID3D12GraphicsCommandList2>>;
+        using CommandAllocatorQueue = eastl::queue<ComPtr<ID3D12CommandAllocator>>;
 
         ComPtr<ID3D12Device2> m_device;
         ComPtr<ID3D12CommandQueue> m_commandQueue;
@@ -42,5 +44,6 @@ namespace Blainn
 
         D3D12_COMMAND_LIST_TYPE m_commandListType;
         CommandListQueue m_commandListQueue;
+        CommandAllocatorQueue m_commandAllocatorQueue;
     };
 } // namespace Blainn

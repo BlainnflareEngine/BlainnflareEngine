@@ -168,6 +168,10 @@ void Engine::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
     s_activeScene = scene;
 }
 
+eastl::shared_ptr<Device> Engine::GetGraphicsDevice()
+{
+    return m_device;
+}
 
 HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle, const std::string &winClassTitle,
                                 HINSTANCE hInst)

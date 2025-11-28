@@ -188,6 +188,12 @@ VOID Blainn::Device::CreateRenderTargetView(ID3D12Resource *pResource, const D3D
     m_device->CreateRenderTargetView(pResource, rtvDesc, destDescriptor);
 }
 
+VOID Blainn::Device::CreateShaderResourceView(ID3D12Resource *pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC *srvDesc,
+                                              CD3DX12_CPU_DESCRIPTOR_HANDLE destDescriptor)
+{
+    m_device->CreateShaderResourceView(pResource, srvDesc, destDescriptor);
+}
+
 HRESULT Blainn::Device::CreateRootSignature(UINT nodeMask, const void* pBlobRootSignature, SIZE_T blobLengthBytes, ComPtr<ID3D12RootSignature>& rootSignature)
 {
     return m_device->CreateRootSignature(nodeMask, pBlobRootSignature, blobLengthBytes, IID_PPV_ARGS(rootSignature.GetAddressOf()));

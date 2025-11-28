@@ -53,7 +53,7 @@ void Blainn::CommandQueue::WaitForFenceValue(UINT64 fenceValue)
          * Specifies an event that's raised when the fence reaches a certain value.
          */
         ThrowIfFailed(m_fence->SetEventOnCompletion(fenceValue, m_fenceEvent));
-        WaitForSingleObject(m_fenceEvent, INFINITE); // WaitForSingleObjecEx(m_fenceEvent, INFINITE, FALSE)
+        WaitForSingleObject(m_fenceEvent, INFINITE);
     }
 }
 
@@ -66,6 +66,26 @@ ComPtr<ID3D12CommandAllocator> Blainn::CommandQueue::CreateCommandAllocator()
 {
     ComPtr<ID3D12CommandAllocator> commandAllocator;
     ThrowIfFailed(m_device->CreateCommandAllocator(m_commandListType, IID_PPV_ARGS(&commandAllocator)));
+
+    return commandAllocator;
+}
+
+
+ComPtr<ID3D12CommandAllocator> Blainn::CommandQueue::GetCommandAllocator()
+{
+    ComPtr<ID3D12CommandAllocator> commandAllocator;
+
+    if (!m_commandAllocatorQueue.empty())
+    {
+        commandAllocator = m_commandAllocatorQueue.front();
+        m_commandAllocatorQueue.pop();
+    }
+    else
+    {
+        commandAllocator = CreateCommandAllocator();
+    }
+
+    ThrowIfFailed(commandAllocator->Reset());
 
     return commandAllocator;
 }
