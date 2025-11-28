@@ -81,8 +81,9 @@ private:
     void DecreaseMeshRefCount(const unsigned int index);
 
 private:
-    // To render subsystem
-    void CreateMeshDataResources(const eastl::vector<MeshData> &meshes);
+    // Connect with render subsystem resource creating
+    void CreateTextureDataResource(const eastl::shared_ptr<Texture> &texture);
+    void CreateMeshDataResource(const eastl::shared_ptr<Model> &model);
 
 private:
     inline static eastl::unique_ptr<AssetLoader> m_loader;
