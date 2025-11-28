@@ -19,6 +19,8 @@
 #include "Render/RootSignature.h"
 #include "Render/FrameResource.h"
 
+#include "Render/PrebuiltEngineMeshes.h"
+
 #include <cassert>
 
 using namespace Blainn;
@@ -94,8 +96,8 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     }
 
     UpdateObjectsCB(deltaTime);
-    UpdateMaterialBuffer(deltaTime);
-    UpdateLightsBuffer(deltaTime);
+    //UpdateMaterialBuffer(deltaTime);
+    //UpdateLightsBuffer(deltaTime);
 
     UpdateShadowTransform(deltaTime);
     UpdateShadowPassCB(deltaTime);   // pass
@@ -133,51 +135,47 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
     ID3D12DescriptorHeap *descriptorHeaps[] = {m_srvHeap.Get()};
     pCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-//#pragma region ProperSceneRendering
-//    const auto& scene = Engine::GetActiveScene();
-//    const auto& renderableEntities = scene->GetAllEntitiesWith<IDComponent, MeshComponent>();
-//
-//    eastl::unordered_map<MeshHandle, eastl::vector<IDComponent>> uniqueMeshes(renderableEntities.size_hint());
-//    
-//    for (const auto& entityComponents : renderableEntities.each())
-//    {
-//        auto &idComponent = std::get<1>(entityComponents);
-//        auto &meshComponent = std::get<2>(entityComponents);
-//
-//        auto& model = *meshComponent.m_meshHandle;
-//        if (uniqueMeshes.contains(model))
-//        {
-//            uniqueMeshes.at(model).push_back(idComponent);
-//        }
-//        else
-//        {
-//            uniqueMeshes[model] = eastl::vector<IDComponent>{idComponent};
-//        }
-//    }
-//
-//    for (auto& [mesh, ids] : uniqueMeshes)
-//    {
-//        for (auto& id : ids)
-//        {
-//            const auto& entity = scene->GetEntityWithUUID(id.ID);
-//            
-//            auto& transform = entity.GetComponent<TransformComponent>();
-//        }
-//
-//        DrawMeshes(pCommandList, mesh);
-//    }
-//#pragma endregion ProperSceneRendering
+#pragma region ProperSceneRendering
+    /*const auto& scene = Engine::GetActiveScene();
+    const auto& renderableEntities = scene->GetAllEntitiesWith<IDComponent, MeshComponent>();
+
+    eastl::unordered_map<MeshHandle, eastl::vector<IDComponent>> uniqueMeshes(renderableEntities.size_hint());
+    
+    for (const auto& entityComponents : renderableEntities.each())
+    {
+        auto &idComponent = std::get<1>(entityComponents);
+        auto &meshComponent = std::get<2>(entityComponents);
+
+        auto& model = *meshComponent.m_meshHandle;
+        if (uniqueMeshes.contains(model))
+        {
+            uniqueMeshes.at(model).push_back(idComponent);
+        }
+        else
+        {
+            uniqueMeshes[model] = eastl::vector<IDComponent>{idComponent};
+        }
+    }
+
+    for (auto& [mesh, ids] : uniqueMeshes)
+    {
+        for (auto& id : ids)
+        {
+            const auto& entity = scene->GetEntityWithUUID(id.ID);
+            
+            auto& transform = entity.GetComponent<TransformComponent>();
+        }
+
+        DrawMeshes(pCommandList, mesh);
+    }*/
+#pragma endregion ProperSceneRendering
     
 #pragma region TempSceneRendering
-    
-
-
+    //RenderDepthOnlyPass(pCommandList);
+    RenderGeometryPass(pCommandList);
+    //RenderLightingPass(pCommandList);
+    //RenderTransparencyPass(pCommandList);
 #pragma region TempSceneRendering
-
-    RenderDepthOnlyPass(pCommandList);
-    /*RenderGeometryPass(pCommandList);
-    RenderLightingPass(pCommandList);
-    RenderTransparencyPass(pCommandList);*/
 }
 
 VOID Blainn::RenderSubsystem::InitializeD3D()
@@ -317,6 +315,7 @@ void Blainn::RenderSubsystem::LoadPipeline()
     auto commandQueue = m_device->GetCommandQueue();
     auto commandList = commandQueue->GetCommandList(m_commandAllocator.Get());
 
+    CreateRenderItems(commandList.Get());
     CreateFrameResources();
     CreateDescriptorHeaps();
     CreateRootSignature();
@@ -331,7 +330,10 @@ void Blainn::RenderSubsystem::LoadPipeline()
 void Blainn::RenderSubsystem::LoadGraphicsFeatures()
 {
     m_camera = eastl::make_unique<Camera>();
+    
     m_cascadeShadowMap = eastl::make_unique<CascadeShadowMap>(m_device->GetDevice2().Get(), 2048u, 2048u, MaxCascades);
+    m_cascadeShadowMap->CreateShadowCascadeSplits(m_camera->GetNearZ(), m_camera->GetFarZ());
+
     m_GBuffer = eastl::make_unique<GBuffer>(m_device->GetDevice2().Get(), m_width, m_height);
     // Explicitly reset all window params dependent features
 
@@ -339,12 +341,26 @@ void Blainn::RenderSubsystem::LoadGraphicsFeatures()
     m_areGraphicsFeaturesLoaded = true;
 }
 
+void Blainn::RenderSubsystem::CreateRenderItems(ID3D12GraphicsCommandList *pCommandList)
+{
+    eastl::unique_ptr<Model> cubeModel = eastl::make_unique<Model>();
+
+    auto cubeMesh = PrebuiltEngineMeshes::CreateBox(1.0f, 1.0f, 1.0f);
+
+    cubeModel->SetMeshes(eastl::vector<MeshData>{cubeMesh});
+
+    cubeModel->CreateGPUBuffers(m_device->GetDevice2().Get(), pCommandList, cubeMesh.vertices, cubeMesh.indices);
+
+    m_meshItems.push_back(eastl::move(cubeModel));
+}
+
 void Blainn::RenderSubsystem::CreateFrameResources()
 {
     for (int i = 0; i < gNumFrameResources; i++)
     {
-        m_frameResources.push_back(eastl::make_unique<FrameResource>(
-            m_device, static_cast<UINT>(EPassType::NumPasses), 0u /*(UINT)m_renderItems.size()*/,
+        m_frameResources.push_back(eastl::make_unique<FrameResource>(m_device, 
+            static_cast<UINT>(EPassType::NumPasses), 
+            m_meshItems.size() /*(UINT)m_renderItems.size()*/,
             0u /*(UINT)m_materials.size()*/, 0u /*MaxPointLights*/));
     }
 }
@@ -682,30 +698,173 @@ void Blainn::RenderSubsystem::OnKeyboardInput(float deltaTime)
 
 void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 {
+    auto objectCB = m_currFrameResource->ObjectsCB.get();
+
+    for (auto &ri : m_meshItems)
+    {
+        // Luna stuff. Try to remove 'if' statement.
+        // Have tried. It does not affect anything.
+        // Looks like it just forces the code to update the object's constant buffer regardless of whether it has been
+        // modified or not.
+        /*if (ri->NumFramesDirty > 0)
+        {*/
+            XMMATRIX transposeWorld = XMMatrixTranspose(XMMatrixIdentity());
+            XMVECTOR det = XMMatrixDeterminant(transposeWorld);
+
+            XMStoreFloat4x4(&m_perObjectCBData.World, transposeWorld);
+            XMStoreFloat4x4(&m_perObjectCBData.InvTransposeWorld, XMMatrixTranspose(XMMatrixInverse(&det, transposeWorld)));
+            //XMStoreFloat4x4(&m_perObjectCBData.TexTransform, XMMatrixTranspose(ri->TexTransform));
+            //m_perObjectCBData.MaterialIndex = ri->Mat->MatBufferIndex;
+
+            objectCB->CopyData(0, m_perObjectCBData); // In this case ri->ObjCBIndex would be equal to index 'i' of traditional for loop
+            //ri->NumFramesDirty--;
+        //}
+    }
 }
 
 void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
 {
+    /*auto currMaterialDataSB = m_currFrameResource->MaterialSB.get();
+
+    for (auto &e : m_materials)
+    {
+        Material *mat = e.second.get();
+        if (mat->NumFramesDirty > 0)
+        {
+            m_perMaterialSBData.DiffuseAlbedo = mat->DiffuseAlbedo;
+            m_perMaterialSBData.FresnelR0 = mat->FresnelR0;
+            m_perMaterialSBData.Roughness = mat->Roughness;
+            XMStoreFloat4x4(&m_perMaterialSBData.MatTransform, XMMatrixTranspose(mat->MatTransform));
+            m_perMaterialSBData.DiffusseMapIndex = mat->DiffuseSrvHeapIndex;
+
+            currMaterialDataSB->CopyData(mat->MatBufferIndex, m_perMaterialSBData);
+
+            mat->NumFramesDirty--;
+        }
+    }*/
 }
 
 void Blainn::RenderSubsystem::UpdateLightsBuffer(float deltaTime)
 {
+    //auto currPointLightSB = m_currFrameResource->PointLightSB.get();
+
+    //for (auto &e : m_pointLights)
+    //{
+    //    // we have many instances, not the one objects, so think about it (we can't update all instances, if only one
+    //    // point light gets dirty)
+    //    // if (e->NumFramesDirty > 0)
+    //    //{
+
+    //    int pointLightIndex = 0;
+    //    const auto &instances = e->Instances;
+
+    //    for (UINT i = 0; i < (UINT)instances.size(); ++i)
+    //    {
+    //        XMStoreFloat4x4(&m_perInstanceSBData.World, XMMatrixTranspose(XMLoadFloat4x4(&instances[i].World)));
+    //        m_perInstanceSBData.Light.Strength = instances[i].Light.Strength;
+    //        m_perInstanceSBData.Light.FallOfStart = instances[i].Light.FallOfStart;
+    //        m_perInstanceSBData.Light.FallOfEnd = instances[i].Light.FallOfEnd;
+    //        m_perInstanceSBData.Light.Position = instances[i].Light.Position;
+    //        // copy all instances to structured buffer
+    //        currPointLightSB->CopyData(pointLightIndex++, m_perInstanceSBData);
+    //    }
+    //    e->InstanceCount = pointLightIndex;
+
+    //    // e->NumFramesDirty--;
+    //    // }
+    //}
 }
 
 void Blainn::RenderSubsystem::UpdateShadowTransform(float deltaTime)
 {
+    eastl::vector<eastl::pair<XMMATRIX, XMMATRIX>> lightSpaceMatrices;
+    GetLightSpaceMatrices(lightSpaceMatrices);
+
+    for (UINT i = 0; i < MaxCascades; ++i)
+    {
+        XMMATRIX shadowTransform = lightSpaceMatrices[i].first * lightSpaceMatrices[i].second;
+        m_shadowPassCBData.Cascades.CascadeViewProj[i] = XMMatrixTranspose(shadowTransform);
+
+        m_mainPassCBData.Cascades.CascadeViewProj[i] = XMMatrixTranspose(shadowTransform);
+        m_mainPassCBData.Cascades.Distances[i] = m_cascadeShadowMap->GetCascadeLevel(i);
+    }
 }
 
 void Blainn::RenderSubsystem::UpdateShadowPassCB(float deltaTime)
 {
+    XMMATRIX view = XMMatrixIdentity();
+    XMMATRIX proj = XMMatrixIdentity();
+    XMMATRIX viewProj = XMMatrixMultiply(view, proj);
+
+    auto det = XMMatrixDeterminant(viewProj);
+    XMMATRIX invViewProj = XMMatrixInverse(&det, viewProj);
+
+    XMStoreFloat4x4(&m_shadowPassCBData.View, XMMatrixTranspose(view));
+    XMStoreFloat4x4(&m_shadowPassCBData.Proj, XMMatrixTranspose(proj));
+    XMStoreFloat4x4(&m_shadowPassCBData.ViewProj, XMMatrixTranspose(viewProj));
+    XMStoreFloat4x4(&m_shadowPassCBData.InvViewProj, XMMatrixTranspose(invViewProj));
+
+    auto currPassCB = m_currFrameResource->PassCB.get();
+    currPassCB->CopyData(static_cast<int>(EPassType::DepthShadow), m_shadowPassCBData);
 }
 
 void Blainn::RenderSubsystem::UpdateGeometryPassCB(float deltaTime)
 {
+    XMMATRIX view = m_camera->GetViewMatrix();
+    XMMATRIX proj = m_camera->GetPerspectiveProjectionMatrix();
+    XMMATRIX viewProj = XMMatrixMultiply(view, proj);
+    auto det = XMMatrixDeterminant(viewProj);
+    XMMATRIX invViewProj = XMMatrixInverse(&det, viewProj);
+
+    XMStoreFloat4x4(&m_geometryPassCBData.View, XMMatrixTranspose(view));
+    XMStoreFloat4x4(&m_geometryPassCBData.Proj, XMMatrixTranspose(proj));
+    XMStoreFloat4x4(&m_geometryPassCBData.ViewProj, XMMatrixTranspose(viewProj));
+    XMStoreFloat4x4(&m_geometryPassCBData.InvViewProj, XMMatrixTranspose(invViewProj));
+
+    m_geometryPassCBData.EyePosW = m_camera->GetPosition3f();
+    m_geometryPassCBData.RenderTargetSize = XMFLOAT2((float)m_width, (float)m_height);
+    m_geometryPassCBData.InvRenderTargetSize = XMFLOAT2(1.0f / m_width, 1.0f / m_height);
+    m_geometryPassCBData.NearZ = m_camera->GetNearZ();
+    m_geometryPassCBData.FarZ = m_camera->GetFarZ();
+    m_geometryPassCBData.DeltaTime = deltaTime;
+    m_geometryPassCBData.TotalTime = deltaTime;
+
+    auto currPassCB = m_currFrameResource->PassCB.get();
+    currPassCB->CopyData(static_cast<int>(EPassType::DeferredGeometry), m_geometryPassCBData);
 }
 
 void Blainn::RenderSubsystem::UpdateMainPassCB(float deltaTime)
 {
+    XMMATRIX view = m_camera->GetViewMatrix();
+    XMMATRIX proj = m_camera->GetPerspectiveProjectionMatrix();
+    XMMATRIX viewProj = XMMatrixMultiply(view, proj);
+    auto det = XMMatrixDeterminant(viewProj);
+    XMMATRIX invViewProj = XMMatrixInverse(&det, viewProj);
+
+    XMStoreFloat4x4(&m_mainPassCBData.View, XMMatrixTranspose(view));
+    XMStoreFloat4x4(&m_mainPassCBData.Proj, XMMatrixTranspose(proj));
+    XMStoreFloat4x4(&m_mainPassCBData.ViewProj, XMMatrixTranspose(viewProj));
+    XMStoreFloat4x4(&m_mainPassCBData.InvViewProj, XMMatrixTranspose(invViewProj));
+
+    m_mainPassCBData.EyePosW = m_camera->GetPosition3f();
+    m_mainPassCBData.RenderTargetSize = XMFLOAT2((float)m_width, (float)m_height);
+    m_mainPassCBData.InvRenderTargetSize = XMFLOAT2(1.0f / m_width, 1.0f / m_height);
+    m_mainPassCBData.NearZ = m_camera->GetNearZ();
+    m_mainPassCBData.FarZ = m_camera->GetFarZ();
+    m_mainPassCBData.DeltaTime = deltaTime;
+    m_mainPassCBData.TotalTime = deltaTime;
+
+    m_mainPassCBData.Ambient = {0.25f, 0.25f, 0.35f, 1.0f};
+
+#pragma region DirLight
+    // Invert sign because other way light would be pointing up
+    XMVECTOR lightDir = -FreyaMath::SphericalToCarthesian(1.0f, m_sunTheta, m_sunPhi);
+    XMStoreFloat3(&m_mainPassCBData.DirLight.Direction, lightDir);
+    m_mainPassCBData.DirLight.Strength = {1.0f, 1.0f, 0.9f};
+#pragma endregion DirLight
+
+    auto currPassCB = m_currFrameResource->PassCB.get();
+    currPassCB->CopyData(static_cast<int>(EPassType::DeferredLighting), m_mainPassCBData);
 }
 
 void Blainn::RenderSubsystem::RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pCommandList)
@@ -756,8 +915,8 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
 
     // Bind all the materials used in this scene. For structured buffers, we can bypass the heap and set as a root
     // descriptor.
-    auto matBuffer = m_currFrameResource->MaterialSB->Get();
-    pCommandList->SetGraphicsRootShaderResourceView(ERootParameter::MaterialDataSB, matBuffer->GetGPUVirtualAddress());
+    //auto matBuffer = m_currFrameResource->MaterialSB->Get();
+    //pCommandList->SetGraphicsRootShaderResourceView(ERootParameter::MaterialDataSB, matBuffer->GetGPUVirtualAddress());
 
     // Bind all the textures used in this scene. Observe that we only have to specify the first descriptor in the table.
     // The root signature knows how many descriptors are expected in the table.
@@ -784,7 +943,7 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
 
     pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::DeferredGeometry).Get());
     
-    //DrawRenderItems(pCommandList, m_renderItems);
+    DrawMeshes(pCommandList, m_meshItems);
 
     for (unsigned i = 0; i < GBuffer::EGBufferLayer::MAX - 1u; i++)
     {
@@ -896,6 +1055,30 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
     }
 }
 
+void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<eastl::unique_ptr<Model>>& models)
+{
+    UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
+
+    auto currFrameObjCB = m_currFrameResource->ObjectsCB->Get();
+
+    for (auto &&model : models)
+    {
+        auto currVBV = model->VertexBufferView();
+        auto currIBV = model->IndexBufferView();
+        pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
+        pCommandList->IASetIndexBuffer(&currIBV);
+
+        D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currFrameObjCB->GetGPUVirtualAddress(), objCBByteSize, 0u/*ri->ObjCBIndex*/);
+
+        // now we set only objects' cbv per item, material data is set per pass
+        // we get material data by index from structured buffer
+        pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerObjectDataCB, objCBAddress);
+        pCommandList->DrawIndexedInstanced(36, 1u, 0u, 0u, 0u);
+        //pCommandList->DrawInstanced(24, 1u, 0u, 0u);
+    }
+}
+
 void Blainn::RenderSubsystem::DrawInstancedMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<MeshData>& meshData)
 {
 }
@@ -970,30 +1153,12 @@ void Blainn::RenderSubsystem::GetLightSpaceMatrices(eastl::vector<eastl::pair<XM
     {
         if (i == 0)
         {
-            outMatrices.push_back(GetLightSpaceMatrix(m_camera->GetNearZ(), m_shadowCascadeLevels[i]));
+            outMatrices.push_back(GetLightSpaceMatrix(m_camera->GetNearZ(), m_cascadeShadowMap->GetCascadeLevel(i)));
         }
         else
         {
-            outMatrices.push_back(GetLightSpaceMatrix(m_shadowCascadeLevels[i - 1], m_shadowCascadeLevels[i]));
+            outMatrices.push_back(GetLightSpaceMatrix(m_cascadeShadowMap->GetCascadeLevel(i-1), m_cascadeShadowMap->GetCascadeLevel(i)));
         }
-    }
-}
-
-void Blainn::RenderSubsystem::CreateShadowCascadeSplits()
-{
-    const float minZ = m_camera->GetNearZ();
-    const float maxZ = m_camera->GetFarZ();
-
-    const float range = maxZ - minZ;
-    const float ratio = maxZ / minZ;
-
-    for (int i = 0; i < MaxCascades; i++)
-    {
-        float p = (i + 1) / (float)(MaxCascades);
-        float log = (float)(minZ * pow(ratio, p));
-        float uniform = minZ + range * p;
-        float d = 0.95f * (log - uniform) + uniform; // 0.95f - idk, just magic value
-        m_shadowCascadeLevels[i] = ((d - minZ) / range) * maxZ;
     }
 }
 

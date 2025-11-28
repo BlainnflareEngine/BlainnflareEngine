@@ -45,6 +45,11 @@ ComPtr<ID3D12Resource> Blainn::FreyaUtil::CreateDefaultBuffer(ID3D12Device* devi
     return defaultBuffer;
 }
 
+D3D12_GPU_VIRTUAL_ADDRESS Blainn::FreyaUtil::GetGPUVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS address, UINT byteStride, UINT index)
+{
+    return address + (UINT64)(byteStride * index);
+}
+
 ComPtr<ID3DBlob> Blainn::FreyaUtil::CompileShader(const std::wstring& fileName, const D3D_SHADER_MACRO* defines, const std::string& entrypoint, const std::string& target)
 {
 #if defined(_DEBUG) | defined(DEBUG)

@@ -16,6 +16,7 @@ namespace Blainn
     class Model : public FileSystemObject
     {
     public:
+        Model();
         Model(const Path &absolutPath);
         Model(const Model &other, const Path &absolutPath);
         Model(Model &&other, const Path &absolutPath) noexcept;
@@ -32,7 +33,7 @@ namespace Blainn
         void CreateBufferResources(const eastl::shared_ptr<Device> &device);
         
         template <typename TVertex, typename TIndex = UINT>
-        void CreateGPUBuffers(ID3D12Device *device, ID3D12GraphicsCommandList *cmdList,
+        void CreateGPUBuffers(ID3D12Device2 *device, ID3D12GraphicsCommandList *cmdList,
                               const eastl::vector<TVertex> &vertices,
                               const eastl::vector<TIndex> &indices = eastl::vector<TIndex>(0))
         {

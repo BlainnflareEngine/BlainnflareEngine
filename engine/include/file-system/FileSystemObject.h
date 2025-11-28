@@ -13,6 +13,7 @@ namespace Blainn
 class FileSystemObject
 {
 public:
+    FileSystemObject() = default;
     FileSystemObject(const Path &absolutPath);
     virtual ~FileSystemObject();
 

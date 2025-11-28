@@ -39,6 +39,7 @@ set(ENGINE_SOURCES
         include/Render/UploadBuffer.h
         include/Render/Camera.h
         include/Render/GBuffer.h
+        include/Render/PrebuiltEngineMeshes.h
         include/Render/ShadowMap.h
         include/Render/SwapChain.h 
         include/Render/CascadeShadowMap.h
@@ -50,6 +51,7 @@ set(ENGINE_SOURCES
         src/Render/FrameResource.cpp
         src/Render/Camera.cpp
         src/Render/GBuffer.cpp
+        src/Render/PrebuiltEngineMeshes.cpp
         src/Render/ShadowMap.cpp
         src/Render/SwapChain.cpp
         src/Render/CascadeShadowMap.cpp

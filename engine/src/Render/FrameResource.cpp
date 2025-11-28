@@ -6,8 +6,8 @@ Blainn::FrameResource::FrameResource(const eastl::shared_ptr<Device>& device, ui
 {
     ThrowIfFailed(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator));
 
-    //ObjectsCB = eastl::make_unique<UploadBuffer<ObjectConstants>>(device, objectCount, TRUE);
-    //PassCB = eastl::make_unique<UploadBuffer<PassConstants>>(device, passCount, TRUE);
+    ObjectsCB = eastl::make_unique<UploadBuffer<ObjectConstants>>(device->GetDevice2().Get(), objectCount, TRUE);
+    PassCB = eastl::make_unique<UploadBuffer<PassConstants>>(device->GetDevice2().Get(), passCount, TRUE);
     //MaterialSB = eastl::make_unique<UploadBuffer<MaterialData>>(device, materialCount, FALSE);      // Structured buffer
     //PointLightSB = eastl::make_unique<UploadBuffer<InstanceData>>(device, pointLightsCount, FALSE); // Structured buffer
 }

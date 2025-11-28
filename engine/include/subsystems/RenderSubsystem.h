@@ -12,13 +12,13 @@
 
 namespace Blainn
 {
+    const int gNumFrameResources = 3;
+
     class Device;
     class Renderer;
     class RootSignature;
     struct FrameResource;
     
-    const int gNumFrameResources = 3;
-
     class RenderSubsystem
     {
         //friend class Renderer;
@@ -75,7 +75,7 @@ namespace Blainn
     private:
         RenderSubsystem() = default; 
         RenderSubsystem(const RenderSubsystem&) = delete;
-        RenderSubsystem& operator=(const RenderSubsystem&) = delete; 
+        RenderSubsystem& operator=(const RenderSubsystem&) = delete;
         RenderSubsystem(const RenderSubsystem&&) = delete;
         RenderSubsystem& operator=(const RenderSubsystem&&) = delete; 
     public:
@@ -111,7 +111,14 @@ namespace Blainn
         void LoadPipeline();
         void LoadGraphicsFeatures();
 
+#pragma region TempRender
+        void CreateRenderItems(ID3D12GraphicsCommandList *pCommandList);
+
+        eastl::vector<eastl::unique_ptr<Model>> m_meshItems;
+#pragma endregion TempRender
+        
         void CreateFrameResources();
+
         void CreateDescriptorHeaps();
         void CreateRootSignature();
         void CreateShaders();
@@ -149,6 +156,7 @@ namespace Blainn
 #pragma endregion DeferredShading
 
         void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<MeshData> &meshesData);
+        void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<eastl::unique_ptr<Model>> &models);
         void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<MeshData> &meshData);
 
 #pragma region CommandListIntrinsic
@@ -163,7 +171,6 @@ namespace Blainn
         // Doubt that't a good idea to return vector of matrices. Should rather pass vector as a parameter probalby and
         // fill it inside function.
         void GetLightSpaceMatrices(eastl::vector<eastl::pair<XMMATRIX, XMMATRIX>> &outMatrices);
-        void CreateShadowCascadeSplits();
 
         eastl::vector<XMVECTOR> GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection);
 
@@ -192,6 +199,8 @@ namespace Blainn
         bool m_isWireframe = false;      // Fill mode
         bool m_is4xMsaaState = false;
         
+        UINT m_4xMsaaQuality = 0u;
+
     private:
         // Pipeline objects.
         eastl::shared_ptr<SwapChain> m_swapChain;
@@ -205,13 +214,15 @@ namespace Blainn
         //ComPtr<ID3D12Resource> m_renderTargets[SwapChainFrameCount];
         ComPtr<ID3D12Resource> m_depthStencilBuffer;
 
-        UINT m_4xMsaaQuality = 0u;
-
         eastl::shared_ptr<RootSignature> m_rootSignature;
         eastl::unordered_map<EShaderType, ComPtr<ID3DBlob>> m_shaders;
         eastl::unordered_map<EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
 
         ObjectConstants m_perObjectCBData;
+
+        float m_sunPhi = XM_PIDIV4;
+        float m_sunTheta = 1.25f * XM_PI;
+
         PassConstants m_shadowPassCBData;
         PassConstants m_geometryPassCBData;
         PassConstants m_mainPassCBData; // deferred color(light) pass
@@ -244,7 +255,6 @@ namespace Blainn
 #pragma region CascadedShadows
         eastl::unique_ptr<ShadowMap> m_cascadeShadowMap;
         CD3DX12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowSrv;
-        float m_shadowCascadeLevels[MaxCascades] = {0.0f, 0.0f, 0.0f, 0.0f};
 #pragma endregion CascadedShadows
 
     private:
