@@ -1,0 +1,104 @@
+#include "pch.h"
+
+#include "aliases.h"
+
+#include "scripting/TypeRegistration.h"
+
+#include "Input/InputEvent.h"
+#include "Input/InputSubsystem.h"
+#include "Input/KeyCodes.h"
+#include "Input/KeyboardEvents.h"
+#include "Input/MouseEvents.h"
+
+using namespace Blainn;
+
+void Blainn::RegisterInputTypes(sol::state &luaState)
+{
+    luaState.new_enum<true>("InputEventType", "MouseMoved", InputEventType::MouseMoved, "MouseButtonPressed",
+                            InputEventType::MouseButtonPressed, "MouseButtonReleased",
+                            InputEventType::MouseButtonReleased, "MouseScrolled", InputEventType::MouseScrolled,
+                            "KeyPressed", InputEventType::KeyPressed, "KeyReleased", InputEventType::KeyReleased);
+
+    luaState.new_enum<true>("MouseButton", "Left", MouseButton::Left, "Right", MouseButton::Right, "Middle",
+                            MouseButton::Middle, "X1", MouseButton::X1, "X2", MouseButton::X2);
+
+    sol::table inputTable = luaState.create_table();
+
+    auto make_event_table = [](const InputEventPointer &ev, sol::state_view lua)
+    {
+        sol::table tbl = lua.create_table();
+        tbl["type"] = static_cast<int>(ev->GetEventType());
+
+        switch (ev->GetEventType())
+        {
+        case InputEventType::MouseMoved:
+        {
+            MouseMovedEvent *me = dynamic_cast<MouseMovedEvent *>(ev.get());
+            if (me)
+            {
+                tbl["x"] = me->GetX();
+                tbl["y"] = me->GetY();
+            }
+            break;
+        }
+        case InputEventType::MouseScrolled:
+        {
+            MouseScrolledEvent *se = dynamic_cast<MouseScrolledEvent *>(ev.get());
+            if (se)
+            {
+                tbl["xOffset"] = se->GetXOffset();
+                tbl["yOffset"] = se->GetYOffset();
+            }
+            break;
+        }
+        case InputEventType::MouseButtonPressed:
+        case InputEventType::MouseButtonReleased:
+        {
+            MouseButtonEvent *mbe = dynamic_cast<MouseButtonEvent *>(ev.get());
+            if (mbe)
+            {
+                tbl["button"] = static_cast<int>(mbe->GetMouseButton());
+            }
+            break;
+        }
+        case InputEventType::KeyPressed:
+        case InputEventType::KeyReleased:
+        {
+            KeyboardEvent *kbe = dynamic_cast<KeyboardEvent *>(ev.get());
+            if (kbe)
+            {
+                tbl["key"] = static_cast<int>(kbe->GetKey());
+            }
+            break;
+        }
+        default:
+            break;
+        }
+
+        return tbl;
+    };
+
+    auto add_listener_func = [&luaState, make_event_table](int eventTypeInt, sol::function listener)
+    {
+        InputEventType eventType = static_cast<InputEventType>(eventTypeInt);
+        sol::function luaListener = listener;
+
+        Blainn::Input::AddEventListener(eventType,
+                                        [&luaState, luaListener, make_event_table](const InputEventPointer &ev)
+                                        {
+                                            sol::state_view lua(luaState);
+                                            sol::table tbl = make_event_table(ev, lua);
+
+                                            sol::protected_function pfunc = luaListener;
+                                            sol::protected_function_result result = pfunc(tbl);
+                                            if (!result.valid())
+                                            {
+                                                sol::error err = result;
+                                                BF_ERROR("Lua input listener error: " + eastl::string(err.what()));
+                                            }
+                                        });
+    };
+
+    inputTable.set_function("AddEventListener", add_listener_func);
+    luaState["Input"] = inputTable;
+}

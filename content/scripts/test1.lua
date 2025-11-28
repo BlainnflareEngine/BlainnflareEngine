@@ -14,13 +14,14 @@ function OnStart()
     VectorTest()
 end
 
--- function OnUpdate(deltaTime)
+function OnUpdate(deltaTime)
+    print(a)
 --     VectorTest()
 --     value = 0
 --     for i = 1, 100 do
 --         value = value + i
 --     end
--- end
+end
 
 function OnDestroy()
     print("Test1 onDestroy called")

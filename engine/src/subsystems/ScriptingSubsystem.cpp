@@ -141,4 +141,9 @@ void Blainn::ScriptingSubsystem::RegisterBlainnTypes()
 {
     RegisterCommonTypes(m_lua);
     RegisterInputTypes(m_lua);
+    RegisterEntityTypes(m_lua);
+    RegisterSceneTypes(m_lua);
+    RegisterAssetLoaderTypes(m_lua);
+    RegisterAssetManagerTypes(m_lua);
+    RegisterEngineTypes(m_lua);
 }
