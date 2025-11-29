@@ -465,16 +465,20 @@ void Blainn::RenderSubsystem::CreateRootSignature()
     CD3DX12_ROOT_PARAMETER slotRootParameter[ERootParameter::NumRootParameters];
 
     // Perfomance TIP: Order from most frequent to least frequent.
-    slotRootParameter[ERootParameter::PerObjectDataCB].InitAsConstantBufferView(0u, 0u, D3D12_SHADER_VISIBILITY_ALL); // a root descriptor for objects' CBVs.
-    slotRootParameter[ERootParameter::PerPassDataCB].InitAsConstantBufferView(1u, 0u, D3D12_SHADER_VISIBILITY_ALL);   // a root descriptor for Pass CBV.
-    slotRootParameter[ERootParameter::MaterialDataSB].InitAsShaderResourceView(1u, 0u, D3D12_SHADER_VISIBILITY_ALL);  // a srv for structured buffer with materials' data
-    slotRootParameter[ERootParameter::PointLightsDataSB].InitAsShaderResourceView(0u, 1u, D3D12_SHADER_VISIBILITY_ALL); // a srv for structured buffer
-    slotRootParameter[ERootParameter::SpotLightsDataSB].InitAsShaderResourceView(1u, 1u, D3D12_SHADER_VISIBILITY_ALL); // a srv for structured buffer
-    slotRootParameter[ERootParameter::CascadedShadowMaps].InitAsDescriptorTable(1u, &cascadeShadowSrv, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for shadow maps array.
-    slotRootParameter[ERootParameter::Textures].InitAsDescriptorTable(1u, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for textures
-    slotRootParameter[ERootParameter::GBufferTextures].InitAsDescriptorTable(1u, &gBufferTable, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for GBuffer
+    slotRootParameter[ERootParameter::PerObjectDataCB   ].InitAsConstantBufferView(0u, 0u, D3D12_SHADER_VISIBILITY_ALL); // a root descriptor for objects' CBVs.
+    slotRootParameter[ERootParameter::PerPassDataCB     ].InitAsConstantBufferView(1u, 0u, D3D12_SHADER_VISIBILITY_ALL);   // a root descriptor for Pass CBV.
 
-   m_rootSignature->Create(m_device, ARRAYSIZE(slotRootParameter), slotRootParameter, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    slotRootParameter[ERootParameter::MaterialDataSB    ].InitAsShaderResourceView(1u, 0u, D3D12_SHADER_VISIBILITY_ALL);  // a srv for structured buffer with materials' data
+    slotRootParameter[ERootParameter::PointLightsDataSB ].InitAsShaderResourceView(0u, 1u, D3D12_SHADER_VISIBILITY_ALL); // a srv for structured buffer
+    slotRootParameter[ERootParameter::SpotLightsDataSB  ].InitAsShaderResourceView(1u, 1u, D3D12_SHADER_VISIBILITY_ALL); // a srv for structured buffer
+
+    slotRootParameter[ERootParameter::CascadedShadowMaps].InitAsDescriptorTable(1u, &cascadeShadowSrv, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for shadow maps array.
+
+    slotRootParameter[ERootParameter::Textures          ].InitAsDescriptorTable(1u, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for textures
+
+    slotRootParameter[ERootParameter::GBufferTextures   ].InitAsDescriptorTable(1u, &gBufferTable, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for GBuffer
+
+    m_rootSignature->Create(m_device, ARRAYSIZE(slotRootParameter), slotRootParameter, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 }
 
 void Blainn::RenderSubsystem::CreateShaders()
@@ -487,19 +491,22 @@ void Blainn::RenderSubsystem::CreateShaders()
 
     const D3D_SHADER_MACRO shadowDebugDefines[] = {"SHADOW_DEBUG", "1", NULL, NULL};
 
-    m_shaders[EShaderType::CascadedShadowsVS] = FreyaUtil::CompileShader(L"./Content/Shaders/ShadowVS.hlsl", nullptr, "main", "vs_5_1");
-    m_shaders[EShaderType::CascadedShadowsGS] = FreyaUtil::CompileShader(L"./Content/Shaders/CascadesGS.hlsl", nullptr, "main", "gs_5_1");
+    m_shaders[EShaderType::CascadedShadowsVS]       = FreyaUtil::CompileShader(L"./Content/Shaders/ShadowVS.hlsl", nullptr, "main", "vs_5_1");
+    m_shaders[EShaderType::CascadedShadowsGS]       = FreyaUtil::CompileShader(L"./Content/Shaders/CascadesGS.hlsl", nullptr, "main", "gs_5_1");
 
 #pragma region DeferredShading
-    m_shaders[EShaderType::DeferredGeometryVS] = FreyaUtil::CompileShader(L"./Content/Shaders/GBufferPassVS.hlsl", nullptr, "main", "vs_5_1");
-    m_shaders[EShaderType::DeferredGeometryPS] = FreyaUtil::CompileShader(L"./Content/Shaders/GBufferPassPS.hlsl", nullptr, "main", "ps_5_1");
+    m_shaders[EShaderType::DeferredGeometryVS]      = FreyaUtil::CompileShader(L"./Content/Shaders/GBufferPassVS.hlsl", nullptr, "main", "vs_5_1");
+    m_shaders[EShaderType::DeferredGeometryPS]      = FreyaUtil::CompileShader(L"./Content/Shaders/GBufferPassPS.hlsl", nullptr, "main", "ps_5_1");
+    
+    /*m_shaders[EShaderType::DeferredGeometryVS]      = FreyaUtil::CompileShader(L"./Content/Shaders/GBufferTestShaderVS.hlsl", nullptr, "main", "vs_5_1");
+    m_shaders[EShaderType::DeferredGeometryPS]      = FreyaUtil::CompileShader(L"./Content/Shaders/GBufferTestShaderPS.hlsl", nullptr, "main", "ps_5_1");*/
+    
+    m_shaders[EShaderType::DeferredDirVS]           = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredDirectionalLightVS.hlsl", nullptr, "main", "vs_5_1");
+    m_shaders[EShaderType::DeferredDirPS]           = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredDirectionalLightPS.hlsl", nullptr, "main", "ps_5_1");
 
-    m_shaders[EShaderType::DeferredDirVS] = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredDirectionalLightVS.hlsl", nullptr, "main", "vs_5_1");
-    m_shaders[EShaderType::DeferredDirPS] = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredDirectionalLightPS.hlsl", nullptr, "main", "ps_5_1");
-
-    m_shaders[EShaderType::DeferredLightVolumesVS] = FreyaUtil::CompileShader(L"./Content/Shaders/LightVolumesVS.hlsl", nullptr, "main", "vs_5_1");
-    m_shaders[EShaderType::DeferredPointPS] = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredPointLightPS.hlsl", nullptr, "main", "ps_5_1");
-    m_shaders[EShaderType::DeferredSpotPS] = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredSpotLightPS.hlsl", nullptr, "main", "ps_5_1");
+    m_shaders[EShaderType::DeferredLightVolumesVS]  = FreyaUtil::CompileShader(L"./Content/Shaders/LightVolumesVS.hlsl", nullptr, "main", "vs_5_1");
+    m_shaders[EShaderType::DeferredPointPS]         = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredPointLightPS.hlsl", nullptr, "main", "ps_5_1");
+    m_shaders[EShaderType::DeferredSpotPS]          = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredSpotLightPS.hlsl", nullptr, "main", "ps_5_1");
 #pragma endregion DeferredShading
 }
 
@@ -909,9 +916,7 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
 
 #pragma region BypassResources
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
-    pCommandList->SetGraphicsRootConstantBufferView(
-        ERootParameter::PerPassDataCB,
-        currFramePassCB->GetGPUVirtualAddress() + passCBByteSize); // second element contains data for geometry pass
+    pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerPassDataCB, currFramePassCB->GetGPUVirtualAddress() + passCBByteSize); // second element contains data for geometry pass
 
     // Bind all the materials used in this scene. For structured buffers, we can bypass the heap and set as a root
     // descriptor.
@@ -920,8 +925,7 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
 
     // Bind all the textures used in this scene. Observe that we only have to specify the first descriptor in the table.
     // The root signature knows how many descriptors are expected in the table.
-    pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::Textures,
-                                                 m_srvHeap->GetGPUDescriptorHandleForHeapStart());
+    // pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::Textures, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
 #pragma endregion BypassResources
 
     // start of the GBuffer rtvs in rtvHeap
