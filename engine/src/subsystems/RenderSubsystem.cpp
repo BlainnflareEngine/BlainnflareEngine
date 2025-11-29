@@ -171,7 +171,7 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
 #pragma endregion ProperSceneRendering
     
 #pragma region TempSceneRendering
-    RenderDepthOnlyPass(pCommandList);
+    //RenderDepthOnlyPass(pCommandList);
     RenderGeometryPass(pCommandList);
     RenderLightingPass(pCommandList);
     //RenderTransparencyPass(pCommandList);
@@ -968,7 +968,7 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
 void Blainn::RenderSubsystem::RenderLightingPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
     DeferredDirectionalLightPass(pCommandList);
-    //DeferredPointLightPass(pCommandList);
+    DeferredPointLightPass(pCommandList);
     //DeferredSpotLightPass(pCommandList);
 }
 
@@ -1013,15 +1013,13 @@ void Blainn::RenderSubsystem::DeferredPointLightPass(ID3D12GraphicsCommandList2 
     UINT passCBByteSize = FreyaUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
 
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
-    pCommandList->SetGraphicsRootConstantBufferView(
-        ERootParameter::PerPassDataCB, currFramePassCB->GetGPUVirtualAddress()
-                                           + 2u * passCBByteSize); // third element contains data for color/light pass
+    //pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerPassDataCB, currFramePassCB->GetGPUVirtualAddress() + 2u * passCBByteSize); // third element contains data for color/light pass
 
     // Bind GBuffer textures
-    pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::GBufferTextures, m_GBufferTexturesSrv);
+    //pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::GBufferTextures, m_GBufferTexturesSrv);
 
     // !!! HACK (TO DRAW EVEN IF FRUSTUM INTERSECTS LIGHT VOLUME)
-    pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::DeferredPointWithinFrustum).Get());
+    //pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::DeferredPointWithinFrustum).Get());
     
     //DrawInstancedMeshes(m_commandList, m_pointLights);
     //DrawInstancedRenderItems(pCommandList, m_pointLights);
