@@ -61,6 +61,9 @@ namespace Blainn
 
         void DisposeUploaders();
 
+        size_t GetVerticesCount() const { return totalVertexCount; }
+        size_t GetIndicesCount() const { return totalIndexCount; }
+
 #pragma region VertexIndexBuffersViewStuff
         D3D12_VERTEX_BUFFER_VIEW VertexBufferView() const;
         D3D12_INDEX_BUFFER_VIEW IndexBufferView() const;
@@ -72,6 +75,9 @@ namespace Blainn
         DXGI_FORMAT IndexFormat = DXGI_FORMAT_R16_UINT;
         UINT IndexBufferByteSize = 0u;
 #pragma endregion VertexIndexBuffersViewStuff
+
+        size_t totalVertexCount = 0u;
+        size_t totalIndexCount = 0u;
 
         // the actual default buffer resource
         Microsoft::WRL::ComPtr<ID3D12Resource> VertexBufferGPU = nullptr;

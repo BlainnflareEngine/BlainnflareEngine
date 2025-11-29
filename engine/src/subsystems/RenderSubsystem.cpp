@@ -20,6 +20,7 @@
 #include "Render/FrameResource.h"
 
 #include "Render/PrebuiltEngineMeshes.h"
+#include "Subsystems/AssetManager.h"
 
 #include <cassert>
 
@@ -344,14 +345,13 @@ void Blainn::RenderSubsystem::LoadGraphicsFeatures()
 void Blainn::RenderSubsystem::CreateRenderItems(ID3D12GraphicsCommandList *pCommandList)
 {
     eastl::unique_ptr<Model> cubeModel = eastl::make_unique<Model>();
-
     auto cubeMesh = PrebuiltEngineMeshes::CreateBox(1.0f, 1.0f, 1.0f);
-
     cubeModel->SetMeshes(eastl::vector<MeshData<>>{cubeMesh});
-
+    cubeModel->CreateBufferResources(m_device);
     cubeModel->CreateGPUBuffers(m_device->GetDevice2().Get(), pCommandList, cubeMesh.vertices, cubeMesh.indices);
-
     m_meshItems.push_back(eastl::move(cubeModel));
+
+
 }
 
 void Blainn::RenderSubsystem::CreateFrameResources()
@@ -1057,21 +1057,29 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
 
     auto currFrameObjCB = m_currFrameResource->ObjectsCB->Get();
 
-    for (auto &&model : models)
+    const auto& renderEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, MeshComponent>();
+
+    for (const auto& [entity, entityID, entityMesh] : renderEntitiesView.each())
     {
-        auto currVBV = model->VertexBufferView();
-        auto currIBV = model->IndexBufferView();
+        auto& model = entityMesh.m_meshHandle->GetMesh();
+        auto currVBV = model.VertexBufferView();
+        auto currIBV = model.IndexBufferView();
+
         pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
         pCommandList->IASetIndexBuffer(&currIBV);
-
+        
         D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currFrameObjCB->GetGPUVirtualAddress(), objCBByteSize, 0u /*ri->ObjCBIndex*/);
-
-        // now we set only objects' cbv per item, material data is set per pass
-        // we get material data by index from structured buffer
+        
         pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerObjectDataCB, objCBAddress);
-        pCommandList->DrawIndexedInstanced(36, 1u, 0u, 0u, 0u);
-        // pCommandList->DrawInstanced(24, 1u, 0u, 0u);
+        if (currVBV.SizeInBytes > 0)
+        {
+            pCommandList->DrawIndexedInstanced(model.GetVerticesCount(), 1u, 0u, 0u, 0u);
+        }
+        else
+        {
+            pCommandList->DrawInstanced(model.GetIndicesCount(), 1u, 0u, 0u);
+        }
     }
 }
 

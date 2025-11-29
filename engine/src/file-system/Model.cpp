@@ -74,10 +74,7 @@ Model::Model()
         /*auto commandQueue = device->GetCommandQueue();
         auto commandAllocator = commandQueue->GetCommandAllocator();
         auto commandList = device->GetCommandQueue()->GetCommandList(commandAllocator.Get());*/
-
-        size_t totalVertexCount = 0u;
-        size_t totalIndexCount = 0u;
-            
+                    
         for (auto &mesh : GetMeshes())
         {
             totalVertexCount += mesh.vertices.size();
