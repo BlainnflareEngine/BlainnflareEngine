@@ -2,7 +2,7 @@
 
 #include "aliases.h"
 
-#include "common/ImportAssetData.h"
+#include "ImportAssetData.h"
 #include "file-system/Material.h"
 #include "file-system/Model.h"
 #include "file-system/Texture.h"
@@ -11,8 +11,11 @@
 #include "scripting/TypeRegistration.h"
 #include "subsystems/AssetLoader.h"
 #include "subsystems/AssetManager.h"
+#include "subsystems/ScriptingSubsystem.h"
 
 using namespace Blainn;
+
+#ifdef BLAINN_REGISTER_LUA_TYPES
 
 void Blainn::RegisterAssetLoaderTypes(sol::state &luaState)
 {
@@ -24,7 +27,9 @@ void Blainn::RegisterAssetLoaderTypes(sol::state &luaState)
     // ImportMeshData binding
     sol::usertype<ImportMeshData> ImportMeshDataType =
         luaState.new_usertype<ImportMeshData>("ImportMeshData", sol::constructors<ImportMeshData()>());
-    ImportMeshDataType["path"] = &ImportMeshData::path;
+    ImportMeshDataType["path"] = sol::property(
+        [](const ImportMeshData &d) { return d.path.string(); },
+        [](ImportMeshData &d, const std::string &p) { d.path = Path(p); });
     ImportMeshDataType["id"] =
         sol::property([](const ImportMeshData &d) { return d.id.str(); },
                       [](ImportMeshData &d, const std::string &idStr) { d.id = uuid::fromStrFactory(idStr); });
@@ -35,17 +40,19 @@ void Blainn::RegisterAssetLoaderTypes(sol::state &luaState)
     sol::usertype<Handle> HandleType = luaState.new_usertype<Handle>("Handle", sol::no_constructor);
     HandleType["GetIndex"] = &Handle::GetIndex;
 
-    sol::usertype<TextureHandle> TextureHandleType =
-        luaState.new_usertype<TextureHandle>("TextureHandle", sol::no_constructor, sol::bases<Handle>());
-    TextureHandleType["GetTexture"] = &TextureHandle::GetTexture;
+    sol::usertype<MeshHandle> MeshHandleType = luaState.new_usertype<MeshHandle>("MeshHandle", sol::no_constructor);
+    MeshHandleType.set_function("GetIndex", &MeshHandle::GetIndex);
+    MeshHandleType.set_function("GetMesh", &MeshHandle::GetMesh);
 
     sol::usertype<MaterialHandle> MaterialHandleType =
-        luaState.new_usertype<MaterialHandle>("MaterialHandle", sol::no_constructor, sol::bases<Handle>());
-    MaterialHandleType["GetMaterial"] = &MaterialHandle::GetMaterial;
+        luaState.new_usertype<MaterialHandle>("MaterialHandle", sol::no_constructor);
+    MaterialHandleType.set_function("GetIndex", &MaterialHandle::GetIndex);
+    MaterialHandleType.set_function("GetMaterial", &MaterialHandle::GetMaterial);
 
-    sol::usertype<MeshHandle> MeshHandleType =
-        luaState.new_usertype<MeshHandle>("MeshHandle", sol::no_constructor, sol::bases<Handle>());
-    MeshHandleType["GetMesh"] = &MeshHandle::GetMesh;
+    sol::usertype<TextureHandle> TextureHandleType =
+        luaState.new_usertype<TextureHandle>("TextureHandle", sol::no_constructor);
+    TextureHandleType.set_function("GetIndex", &TextureHandle::GetIndex);
+    TextureHandleType.set_function("GetTexture", &TextureHandle::GetTexture);
 
     // File-system types
     sol::usertype<Model> ModelType = luaState.new_usertype<Model>("Model", sol::no_constructor);
@@ -106,3 +113,5 @@ void Blainn::RegisterAssetLoaderTypes(sol::state &luaState)
 
     luaState["AssetManager"] = assetTable;
 }
+
+#endif

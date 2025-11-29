@@ -97,11 +97,13 @@ set(ENGINE_SOURCES
         src/scripting/type-registration/ScriptingToLua.cpp
         src/scripting/type-registration/AssetManagerToLua.cpp
         src/scripting/type-registration/AssetLoaderToLua.cpp
+        src/scripting/type-registration/ComponentsToLua.cpp
+        src/scripting/type-registration/EngineToLua.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
 
-#target_compile_options(ENGINE PRIVATE /bigobj)
+target_compile_options(ENGINE PRIVATE /bigobj)
 
 source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${ENGINE_SOURCES})
 

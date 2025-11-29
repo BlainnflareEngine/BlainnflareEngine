@@ -2,10 +2,10 @@
 a = 20
 
 function OnStart()
-    print("Test2 onStart called")
+    Log.Info("Test2 onStart called")
     Input.AddEventListener(InputEventType.KeyPressed, 
         function(ev)
-        print("key pressed listener from script:", ev.key)
+        Log.Info("key pressed listener from script: " .. tostring(ev.key))
         end
     )
 end
@@ -18,6 +18,6 @@ function OnUpdate(deltaTime)
 end
 
 function OnCustomCall(b)
-    print("Test2 onCustomCall called")
+    Log.Info("Test2 onCustomCall called")
     b = b + 3
 end

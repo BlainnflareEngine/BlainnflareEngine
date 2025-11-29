@@ -6,6 +6,7 @@
 #include <sol/sol.hpp>
 
 
+#include "Engine.h"
 #include "ScriptingSubsystem.h"
 #include "scene/Scene.h"
 #include "scripting/TypeRegistration.h"
@@ -18,6 +19,7 @@ void ScriptingSubsystem::Init()
                          sol::lib::os, sol::lib::io);
 
     RegisterBlainnTypes();
+
     m_isInitialized = true;
 }
 
@@ -37,6 +39,37 @@ void ScriptingSubsystem::Destroy()
 
 void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
 {
+#ifdef BLAINN_TEST_LUA_SCRIPTS
+
+    static bool create;
+    if (!create)
+    {
+        m_scriptTestEntity = Engine::GetActiveScene()->CreateEntity("LuaScriptTestEntity");
+        CreateAttachScriptingComponent(m_scriptTestEntity);
+        m_scriptTestUuid1 = ScriptingSubsystem::LoadScript(m_scriptTestEntity, "test1.lua", true).value_or(uuid());
+        m_scriptTestUuid2 = ScriptingSubsystem::LoadScript(m_scriptTestEntity, "test2.lua", true).value_or(uuid());
+
+        create = true;
+    }
+#endif
+
+    // TODO: can be replaced with profiler
+    // const int num_tests = 10;
+    // long long duration = 0;
+    // for (int j = 0; j < num_tests; j++)
+    // {
+    //     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+    //     for (int i = 0; i < 1000; i++)
+    //     {
+    //         ScriptingSubsystem::Update(*s_activeScene, deltaTime);
+    //     }
+    //     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    //     duration += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    // }
+    // long long avg = duration / num_tests;
+    // std::cout << avg << " avg microseconds" << std::endl;
+    // exit(0);
+
     auto view = scene.GetAllEntitiesWith<ScriptingComponent>();
     for (const auto &[entity, scriptingComponent] : view.each())
     {
@@ -139,11 +172,15 @@ void ScriptingSubsystem::UnloadScript(const uuid &scriptUuid)
 
 void Blainn::ScriptingSubsystem::RegisterBlainnTypes()
 {
+#ifdef BLAINN_REGISTER_LUA_TYPES
     RegisterCommonTypes(m_lua);
     RegisterInputTypes(m_lua);
+    RegisterAssetLoaderTypes(m_lua);
+    RegisterComponentTypes(m_lua);
     RegisterEntityTypes(m_lua);
     RegisterSceneTypes(m_lua);
-    RegisterAssetLoaderTypes(m_lua);
     RegisterAssetManagerTypes(m_lua);
     RegisterEngineTypes(m_lua);
+    RegisterScriptingTypes(m_lua);
+#endif
 }

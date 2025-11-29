@@ -74,46 +74,7 @@ void Engine::Update(float deltaTime)
     // this trace doesn't make sense, it exactly matches the frame
     BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop");
 
-    /// ----- TEST SCRIPTING -----
-
-    static bool one;
-    if (!one)
-    { // TODO: remove script testing
-        Entity entity = s_activeScene->CreateEntity();
-        entity.AddComponent<ScriptingComponent>();
-        ScriptingSubsystem::LoadScript(entity, "test2.lua").value();
-        one = true;
-    }
-
-    // const int num_tests = 10;
-    // long long duration = 0;
-    // for (int j = 0; j < num_tests; j++)
-    // {
-    //     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    //     for (int i = 0; i < 1000; i++)
-    //     {
-    //         ScriptingSubsystem::Update(*s_activeScene, deltaTime);
-    //     }
-    //     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    //     duration += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    // }
-    // long long avg = duration / num_tests;
-    // std::cout << avg << " avg microseconds" << std::endl;
-    // exit(0);
-
-    // uuid scriptUuid = ScriptingSubsystem::LoadScript(entity, "test1.lua").value();
-    //  ScriptingSubsystem::CallScriptFunction(scriptUuid, "abobus");
-    //  ScriptingSubsystem::UnloadScript(scriptUuid);
-
-    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnUpdate", 16.67f);
-    // int b = 42;
-    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnCustomCall", eastl::ref(b));
-    // std::cout << "Value of b after script call: " << b << std::endl;
-    // ScriptingSubsystem::UnloadScript(scriptUuid);
-    /// ----- END TEST SCRIPTING -----
-
     std::counting_semaphore<1> updateDoneSem(0);
-
 
     Input::ProcessEvents();
 

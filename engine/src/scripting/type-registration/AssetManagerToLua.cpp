@@ -4,14 +4,18 @@
 
 #include "scripting/TypeRegistration.h"
 
+#include "ImportAssetData.h"
 #include "file-system/Material.h"
 #include "file-system/Model.h"
 #include "file-system/Texture.h"
 #include "file-system/TextureType.h"
 #include "handles/Handle.h"
 #include "subsystems/AssetManager.h"
+#include "subsystems/ScriptingSubsystem.h"
 
 using namespace Blainn;
+
+#ifdef BLAINN_REGISTER_LUA_TYPES
 
 void Blainn::RegisterAssetManagerTypes(sol::state &luaState)
 {
@@ -40,7 +44,7 @@ void Blainn::RegisterAssetManagerTypes(sol::state &luaState)
 
     sol::usertype<Material> MaterialType = luaState.new_usertype<Material>("Material", sol::no_constructor);
     MaterialType.set_function("GetPath", [](Material &m) { return m.GetPath().string(); });
-    MaterialType.set_function("GetShader", &Material::GetShader);
+    MaterialType.set_function("GetShader", [](Material &m) { return std::string(m.GetShader().c_str()); });
     MaterialType.set_function("HasTexture", &Material::HasTexture);
 
     // Register texture type enum for convenience
@@ -63,8 +67,9 @@ void Blainn::RegisterAssetManagerTypes(sol::state &luaState)
                          [](const std::string &path) { return AssetManager::GetInstance().HasMesh(Path(path)); });
     manager.set_function("HasTexture",
                          [](const std::string &path) { return AssetManager::GetInstance().HasTexture(Path(path)); });
-    manager.set_function("HasMaterial",
-                         [](const std::string &path) { return AssetManager::GetInstance().HasMaterial(Path(path)); });
+    // manager.set_function("HasMaterial",
+    //                      [](const std::string &path) { return AssetManager::GetInstance().HasMaterial(Path(path));
+    //                      });
 
     manager.set_function("LoadTexture",
                          [](const std::string &path, TextureType type) -> unsigned int
@@ -112,3 +117,5 @@ void Blainn::RegisterAssetManagerTypes(sol::state &luaState)
 
     luaState["AssetManager"] = manager;
 }
+
+#endif

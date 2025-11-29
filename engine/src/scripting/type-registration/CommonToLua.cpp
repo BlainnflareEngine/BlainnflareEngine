@@ -5,8 +5,11 @@
 #include "scripting/TypeRegistration.h"
 #include "spdlog/spdlog.h"
 #include "subsystems/Log.h"
+#include "subsystems/ScriptingSubsystem.h"
 
 using namespace Blainn;
+
+#ifdef BLAINN_REGISTER_LUA_TYPES
 
 static Quat Quat_GetNormalized(const Quat &q)
 {
@@ -31,6 +34,19 @@ static Quat Quat_Inverse(const Quat &q)
 
 void Blainn::RegisterCommonTypes(sol::state &luaState)
 {
+    auto toVec3 = [](const sol::object &o) -> Vec3
+    {
+        if (o.is<Vec3>()) return o.as<Vec3>();
+        if (o.is<sol::table>())
+        {
+            sol::table t = o.as<sol::table>();
+            float x = t["x"] ? t["x"] : 0.0f;
+            float y = t["y"] ? t["y"] : 0.0f;
+            float z = t["z"] ? t["z"] : 0.0f;
+            return Vec3(x, y, z);
+        }
+        return Vec3::Zero;
+    };
     sol::usertype<Vec2> Vec2Type = luaState.new_usertype<Vec2>(
         "Vec2", sol::constructors<Vec2(), Vec2(float, float)>(), sol::meta_function::subtraction,
         [](const Vec2 &a, const Vec2 &b) { return a - b; }, sol::meta_function::addition,
@@ -41,6 +57,9 @@ void Blainn::RegisterCommonTypes(sol::state &luaState)
 
     Vec2Type["x"] = &Vec2::x;
     Vec2Type["y"] = &Vec2::y;
+
+    // Make Vec2 callable: Vec2(x,y)
+    Vec2Type[sol::meta_function::call] = [](float x, float y) { return Vec2(x, y); };
 
     Vec2Type["Length"] = &Vec2::Length;
     Vec2Type["LengthSquared"] = &Vec2::LengthSquared;
@@ -63,6 +82,9 @@ void Blainn::RegisterCommonTypes(sol::state &luaState)
     Vec3Type["x"] = &Vec3::x;
     Vec3Type["y"] = &Vec3::y;
     Vec3Type["z"] = &Vec3::z;
+
+    // Make Vec3 callable: Vec3(x,y,z)
+    Vec3Type[sol::meta_function::call] = [](float x, float y, float z) { return Vec3(x, y, z); };
 
     Vec3Type["Length"] = static_cast<float (Vec3::*)() const>(&Vec3::Length);
     Vec3Type["LengthSquared"] = static_cast<float (Vec3::*)() const>(&Vec3::LengthSquared);
@@ -87,6 +109,9 @@ void Blainn::RegisterCommonTypes(sol::state &luaState)
     Vec4Type["z"] = &Vec4::z;
     Vec4Type["w"] = &Vec4::w;
 
+    // Make Vec4 callable: Vec4(x,y,z,w)
+    Vec4Type[sol::meta_function::call] = [](float x, float y, float z, float w) { return Vec4(x, y, z, w); };
+
     Vec4Type["Length"] = static_cast<float (Vec4::*)() const>(&Vec4::Length);
     Vec4Type["LengthSquared"] = static_cast<float (Vec4::*)() const>(&Vec4::LengthSquared);
     Vec4Type["Normalize"] = static_cast<void (Vec4::*)()>(&Vec4::Normalize);
@@ -105,6 +130,9 @@ void Blainn::RegisterCommonTypes(sol::state &luaState)
     QuatType["z"] = &Quat::z;
     QuatType["w"] = &Quat::w;
 
+    // Make Quat callable: Quat(x,y,z,w)
+    QuatType[sol::meta_function::call] = [](float x, float y, float z, float w) { return Quat(x, y, z, w); };
+
     // Provide quaternion helper accessors and common helpers
     QuatType["Normalize"] = static_cast<void (Quat::*)()>(&Quat::Normalize);
     QuatType["GetNormalized"] = &Quat_GetNormalized;
@@ -118,14 +146,29 @@ void Blainn::RegisterCommonTypes(sol::state &luaState)
                                     [](const Mat4 &a, const Mat4 &b) { return a * b; });
 
     // Add Mat4 factory helpers and instance helpers
-    Mat4Type["CreateTranslation"] = static_cast<Mat4 (*)(const Vec3 &)>(&Mat4::CreateTranslation);
-    Mat4Type["CreateScaleVec"] = static_cast<Mat4 (*)(const Vec3 &)>(&Mat4::CreateScale);
+    Mat4Type["CreateTranslation"] = [toVec3](const sol::object &o) { return Mat4::CreateTranslation(toVec3(o)); };
+    Mat4Type["CreateScaleVec"] = [toVec3](const sol::object &o) { return Mat4::CreateScale(toVec3(o)); };
     Mat4Type["CreateScale"] = static_cast<Mat4 (*)(float, float, float)>(&Mat4::CreateScale);
     Mat4Type["CreateScaleUniform"] = static_cast<Mat4 (*)(float)>(&Mat4::CreateScale);
     Mat4Type["CreateRotationX"] = static_cast<Mat4 (*)(float)>(&Mat4::CreateRotationX);
     Mat4Type["CreateRotationY"] = static_cast<Mat4 (*)(float)>(&Mat4::CreateRotationY);
     Mat4Type["CreateRotationZ"] = static_cast<Mat4 (*)(float)>(&Mat4::CreateRotationZ);
-    Mat4Type["CreateFromQuaternion"] = static_cast<Mat4 (*)(const Quat &)>(&Mat4::CreateFromQuaternion);
+    auto toQuat = [](const sol::object &o) -> Quat
+    {
+        if (o.is<Quat>()) return o.as<Quat>();
+        if (o.is<sol::table>())
+        {
+            sol::table t = o.as<sol::table>();
+            float x = t["x"] ? t["x"] : 0.0f;
+            float y = t["y"] ? t["y"] : 0.0f;
+            float z = t["z"] ? t["z"] : 0.0f;
+            float w = t["w"] ? t["w"] : 0.0f;
+            return Quat(w, x, y, z);
+        }
+        return Quat(1.f, 0.f, 0.f, 0.f);
+    };
+
+    Mat4Type["CreateFromQuaternion"] = [toQuat](const sol::object &o) { return Mat4::CreateFromQuaternion(toQuat(o)); };
 
     Mat4Type["Transpose"] = static_cast<Mat4 (Mat4::*)() const>(&Mat4::Transpose);
     Mat4Type["Invert"] = static_cast<Mat4 (Mat4::*)() const>(&Mat4::Invert);
@@ -143,6 +186,7 @@ void Blainn::RegisterCommonTypes(sol::state &luaState)
     PlaneType["SetNormal"] = [](Plane &p, const Vec3 &v) { p.Normal(v); };
     PlaneType["D"] = [](const Plane &p) { return p.D(); };
     PlaneType["SetD"] = [](Plane &p, float d) { p.D(d); };
+    PlaneType[sol::meta_function::call] = []() { return Plane(); };
 
     // Register Rect
     sol::usertype<Rect> RectType =
@@ -154,6 +198,7 @@ void Blainn::RegisterCommonTypes(sol::state &luaState)
     RectType["y"] = &Rect::y;
     RectType["width"] = &Rect::width;
     RectType["height"] = &Rect::height;
+    RectType[sol::meta_function::call] = [](float x, float y, float w, float h) { return Rect(x, y, w, h); };
 
     // Register Ray
     sol::usertype<Ray> RayType =
@@ -163,6 +208,7 @@ void Blainn::RegisterCommonTypes(sol::state &luaState)
     // Ray fields: position and direction
     RayType["position"] = &Ray::position;
     RayType["direction"] = &Ray::direction;
+    RayType[sol::meta_function::call] = [](const Vec3 &p, const Vec3 &d) { return Ray(p, d); };
 
     // Register Viewport
     sol::usertype<Viewport> ViewportType = luaState.new_usertype<Viewport>(
@@ -176,6 +222,7 @@ void Blainn::RegisterCommonTypes(sol::state &luaState)
     ViewportType["height"] = &Viewport::height;
     ViewportType["minDepth"] = &Viewport::minDepth;
     ViewportType["maxDepth"] = &Viewport::maxDepth;
+    ViewportType[sol::meta_function::call] = [](int x, int y, int w, int h) { return Viewport(x, y, w, h); };
 
     // Register Color
     sol::usertype<Color> ColorType = luaState.new_usertype<Color>(
@@ -193,6 +240,7 @@ void Blainn::RegisterCommonTypes(sol::state &luaState)
         sol::property(static_cast<float (Color::*)() const>(&Color::A), static_cast<void (Color::*)(float)>(&Color::A));
     ColorType["ToVector3"] = static_cast<Vec3 (Color::*)() const>(&Color::ToVector3);
     ColorType["ToVector4"] = static_cast<Vec4 (Color::*)() const>(&Color::ToVector4);
+    ColorType[sol::meta_function::call] = [](float r, float g, float b, float a) { return Color(r, g, b, a); };
 
     // Register Log functions
     sol::table logTable = luaState.create_table();
@@ -241,3 +289,5 @@ void Blainn::RegisterCommonTypes(sol::state &luaState)
 
     luaState["Log"] = logTable;
 }
+
+#endif

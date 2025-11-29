@@ -4,13 +4,16 @@
 
 #include "scripting/TypeRegistration.h"
 
-#include "common/ImportAssetData.h"
+#include "ImportAssetData.h"
 #include "scene/Entity.h"
 #include "scene/Scene.h"
 #include "spdlog/spdlog.h"
 #include "subsystems/AssetManager.h"
+#include "subsystems/ScriptingSubsystem.h"
 
 using namespace Blainn;
+
+#ifdef BLAINN_REGISTER_LUA_TYPES
 
 void Blainn::RegisterSceneTypes(sol::state &luaState)
 {
@@ -69,6 +72,12 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
                                          {
                                              uuid id = uuid::fromStrFactory(idStr);
                                              scene.DestroyEntity(id, excludeChildren, first);
+                                         },
+                                         [](Scene &scene, Entity entity) { scene.DestroyEntity(entity); },
+                                         [](Scene &scene, const std::string &idStr)
+                                         {
+                                             uuid id = uuid::fromStrFactory(idStr);
+                                             scene.DestroyEntity(id);
                                          }));
 
     // UUID helpers - accept string UUIDs from Lua
@@ -131,3 +140,5 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
     // Expose utility to process events
     SceneType.set_function("ProcessEvents", [](Scene &scene) { Scene::ProcessEvents(); });
 }
+
+#endif

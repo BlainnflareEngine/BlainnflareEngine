@@ -6,10 +6,11 @@
 #include "scene/Scene.h"
 #include "scripting/TypeRegistration.h"
 #include "subsystems/AssetManager.h"
+#include "subsystems/ScriptingSubsystem.h"
 
 using namespace Blainn;
 
-void Blainn::RegisterScriptingTypes(sol::state &luaState);
+#ifdef BLAINN_REGISTER_LUA_TYPES
 
 void Blainn::RegisterEngineTypes(sol::state &luaState)
 {
@@ -29,3 +30,5 @@ void Blainn::RegisterEngineTypes(sol::state &luaState)
 
     luaState["Engine"] = engineTbl;
 }
+
+#endif

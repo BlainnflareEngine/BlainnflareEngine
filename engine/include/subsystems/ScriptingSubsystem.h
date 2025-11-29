@@ -5,6 +5,14 @@
 #include "components/ScriptingComponent.h"
 #include "scene/Entity.h"
 
+// disable if you dont want to register lua types
+#define BLAINN_REGISTER_LUA_TYPES
+
+#ifdef BLAINN_REGISTER_LUA_TYPES
+// enable to test lua scripts functionality.
+#define BLAINN_TEST_LUA_SCRIPTS
+#endif
+
 namespace sol
 {
 class state;
@@ -12,9 +20,6 @@ class state;
 
 namespace Blainn
 {
-class ScriptingComponent;
-class Scene;
-class Entity;
 
 class ScriptingSubsystem
 {
@@ -76,5 +81,11 @@ private:
     inline static eastl::unordered_map<uuid, Entity> m_scriptEntityConnections = eastl::unordered_map<uuid, Entity>{};
 
     static void RegisterBlainnTypes();
+
+#ifdef BLAINN_TEST_LUA_SCRIPTS
+    inline static Entity m_scriptTestEntity{};
+    inline static uuid m_scriptTestUuid1{};
+    inline static uuid m_scriptTestUuid2{};
+#endif
 };
 } // namespace Blainn

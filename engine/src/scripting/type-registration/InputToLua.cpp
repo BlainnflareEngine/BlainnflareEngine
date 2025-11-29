@@ -9,8 +9,11 @@
 #include "Input/KeyCodes.h"
 #include "Input/KeyboardEvents.h"
 #include "Input/MouseEvents.h"
+#include "subsystems/ScriptingSubsystem.h"
 
 using namespace Blainn;
+
+#ifdef BLAINN_REGISTER_LUA_TYPES
 
 void Blainn::RegisterInputTypes(sol::state &luaState)
 {
@@ -102,3 +105,5 @@ void Blainn::RegisterInputTypes(sol::state &luaState)
     inputTable.set_function("AddEventListener", add_listener_func);
     luaState["Input"] = inputTable;
 }
+
+#endif
