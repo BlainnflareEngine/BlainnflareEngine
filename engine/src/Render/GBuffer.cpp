@@ -153,4 +153,10 @@ void GBuffer::CreateResources()
     ThrowIfFailed(m_device->CreateCommittedResource(&defaultHeap,
                                                     D3D12_HEAP_FLAG_NONE, &texDesc, D3D12_RESOURCE_STATE_GENERIC_READ,
                                                     &optClear, IID_PPV_ARGS(&m_buffer[depthIndex].m_resource)));
+
+    m_buffer[0].m_resource->SetName(L"Albedo");
+    m_buffer[1].m_resource->SetName(L"World");
+    m_buffer[2].m_resource->SetName(L"Normal");
+    m_buffer[3].m_resource->SetName(L"Specular");
+    m_buffer[4].m_resource->SetName(L"Depth");
 }

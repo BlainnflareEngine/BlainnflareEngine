@@ -8,6 +8,6 @@ namespace Blainn
     class PrebuiltEngineMeshes
     {
     public:
-        static MeshData CreateBox(float width, float height, float depth);
+        static MeshData<> CreateBox(float width, float height, float depth);
     };
 }

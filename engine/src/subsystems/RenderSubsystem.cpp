@@ -171,9 +171,9 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
 #pragma endregion ProperSceneRendering
     
 #pragma region TempSceneRendering
-    //RenderDepthOnlyPass(pCommandList);
+    RenderDepthOnlyPass(pCommandList);
     RenderGeometryPass(pCommandList);
-    //RenderLightingPass(pCommandList);
+    RenderLightingPass(pCommandList);
     //RenderTransparencyPass(pCommandList);
 #pragma region TempSceneRendering
 }
@@ -347,7 +347,7 @@ void Blainn::RenderSubsystem::CreateRenderItems(ID3D12GraphicsCommandList *pComm
 
     auto cubeMesh = PrebuiltEngineMeshes::CreateBox(1.0f, 1.0f, 1.0f);
 
-    cubeModel->SetMeshes(eastl::vector<MeshData>{cubeMesh});
+    cubeModel->SetMeshes(eastl::vector<MeshData<>>{cubeMesh});
 
     cubeModel->CreateGPUBuffers(m_device->GetDevice2().Get(), pCommandList, cubeMesh.vertices, cubeMesh.indices);
 
@@ -518,7 +518,9 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     defaultPsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT); // Blend state is disable
     defaultPsoDesc.SampleMask = UINT_MAX;
     defaultPsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    defaultPsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
     defaultPsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+    defaultPsoDesc.DepthStencilState.DepthEnable = FALSE;
     defaultPsoDesc.InputLayout = BlainnVertex::InputLayout;
     defaultPsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     defaultPsoDesc.NumRenderTargets = 1u;
@@ -625,7 +627,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     pointLightIntersectsFarPlanePsoDesc.BlendState.IndependentBlendEnable = FALSE;
     pointLightIntersectsFarPlanePsoDesc.BlendState.RenderTarget[0] = RTBlendDesc;
 
-    pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+    pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthEnable = FALSE;
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
@@ -636,7 +638,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC pointLightWithinFrustumPsoDesc = pointLightIntersectsFarPlanePsoDesc;
-    pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT; // ???
+    pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; // ???
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
     ThrowIfFailed(m_device->CreateGraphicsPipelineState(pointLightWithinFrustumPsoDesc, m_pipelineStates[EPsoType::DeferredPointWithinFrustum]));
 
@@ -690,7 +692,7 @@ void Blainn::RenderSubsystem::AddMeshToRenderComponent(Entity entity, MeshHandle
     renderComponentPtr->m_meshCanBeRendered = true;
     renderComponentPtr->m_meshHandle = meshHandle;
 
-    eastl::vector<MeshData> meshDataVec = meshHandle.GetMesh().GetMeshes();
+    eastl::vector<MeshData<>> meshDataVec = meshHandle.GetMesh().GetMeshes();
     for (const auto &meshData : meshDataVec)
     {
         // TODO: create index and vertex buffer for gpu: create upload buffers and set commands in command list
@@ -707,7 +709,7 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 {
     auto objectCB = m_currFrameResource->ObjectsCB.get();
 
-    for (auto &ri : m_meshItems)
+    for (auto &renderItem : m_meshItems)
     {
         // Luna stuff. Try to remove 'if' statement.
         // Have tried. It does not affect anything.
@@ -715,7 +717,11 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
         // modified or not.
         /*if (ri->NumFramesDirty > 0)
         {*/
-            XMMATRIX transposeWorld = XMMatrixTranspose(XMMatrixIdentity());
+            XMVECTOR scale = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
+            XMVECTOR position = XMVectorSet(0.0f, 0.0f, 6.0f, 1.0f);
+            XMMATRIX world = XMMatrixScalingFromVector(scale) * XMMatrixTranslationFromVector(position);
+
+            XMMATRIX transposeWorld = XMMatrixTranspose(world);
             XMVECTOR det = XMMatrixDeterminant(transposeWorld);
 
             XMStoreFloat4x4(&m_perObjectCBData.World, transposeWorld);
@@ -964,16 +970,15 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
 void Blainn::RenderSubsystem::RenderLightingPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
     DeferredDirectionalLightPass(pCommandList);
-    DeferredPointLightPass(pCommandList);
-    // DeferredSpotLightPass(pCommandList);
+    //DeferredPointLightPass(pCommandList);
+    //DeferredSpotLightPass(pCommandList);
 }
 
 void Blainn::RenderSubsystem::DeferredDirectionalLightPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
     UINT passCBByteSize = FreyaUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
 
-    auto transition =
-        CD3DX12_RESOURCE_BARRIER::Transition(m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
     // Indicate that the back buffer will be used as a render target.
     pCommandList->ResourceBarrier(1u, &transition);
 
@@ -987,17 +992,15 @@ void Blainn::RenderSubsystem::DeferredDirectionalLightPass(ID3D12GraphicsCommand
     const float *clearColor = &m_mainPassCBData.FogColor.x;
     pCommandList->OMSetRenderTargets(1u, &rtvHandle, TRUE, &dsvHandle);
     pCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0u, nullptr);
-    pCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u,
-                                        nullptr);
+    pCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u, nullptr);
 
 #pragma region BypassResources
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
     pCommandList->SetGraphicsRootConstantBufferView(
-        ERootParameter::PerPassDataCB, currFramePassCB->GetGPUVirtualAddress()
-                                           + 2u * passCBByteSize); // third element contains data for color/light pass
+        ERootParameter::PerPassDataCB, currFramePassCB->GetGPUVirtualAddress() + 2u * passCBByteSize); // third element contains data for color/light pass
 
     // Set shaadow map texture for main pass
-    pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::CascadedShadowMaps, m_cascadeShadowSrv);
+    // pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::CascadedShadowMaps, m_cascadeShadowSrv);
 
     // Bind GBuffer textures
     pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::GBufferTextures, m_GBufferTexturesSrv);
@@ -1040,50 +1043,38 @@ void Blainn::RenderSubsystem::RenderTransparencyPass(ID3D12GraphicsCommandList2 
 
 }
 
-void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<MeshData>& meshesData)
-{
-    for (auto &&meshData : meshesData)
-    {
-        const auto indexCount = meshData.indices.size();
-        const auto vertexCount = meshData.vertices.size();
-        
-        if (indexCount > 0)
-        {
-            pCommandList->IASetIndexBuffer(NULL);
-            pCommandList->DrawIndexedInstanced(indexCount, 1u, 0u, 0u, 0u);
-        }
-        else if (vertexCount > 0)
-        {
-            pCommandList->DrawInstanced(vertexCount, 1u, 0u, 0u);
-        }
-    }
-}
+// void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<MeshData<>>& meshesData)
+// {
+
+// }
 
 void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<eastl::unique_ptr<Model>>& models)
 {
-    UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
+    
+            UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-    auto currFrameObjCB = m_currFrameResource->ObjectsCB->Get();
+            auto currFrameObjCB = m_currFrameResource->ObjectsCB->Get();
 
-    for (auto &&model : models)
-    {
-        auto currVBV = model->VertexBufferView();
-        auto currIBV = model->IndexBufferView();
-        pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
-        pCommandList->IASetIndexBuffer(&currIBV);
+            for (auto &&model : models)
+            {
+                auto currVBV = model->VertexBufferView();
+                auto currIBV = model->IndexBufferView();
+                pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+                pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
+                pCommandList->IASetIndexBuffer(&currIBV);
 
-        D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currFrameObjCB->GetGPUVirtualAddress(), objCBByteSize, 0u/*ri->ObjCBIndex*/);
+                D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(
+                    currFrameObjCB->GetGPUVirtualAddress(), objCBByteSize, 0u /*ri->ObjCBIndex*/);
 
-        // now we set only objects' cbv per item, material data is set per pass
-        // we get material data by index from structured buffer
-        pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerObjectDataCB, objCBAddress);
-        pCommandList->DrawIndexedInstanced(36, 1u, 0u, 0u, 0u);
-        //pCommandList->DrawInstanced(24, 1u, 0u, 0u);
-    }
+                // now we set only objects' cbv per item, material data is set per pass
+                // we get material data by index from structured buffer
+                pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerObjectDataCB, objCBAddress);
+                pCommandList->DrawIndexedInstanced(36, 1u, 0u, 0u, 0u);
+                // pCommandList->DrawInstanced(24, 1u, 0u, 0u);
+            }
 }
 
-void Blainn::RenderSubsystem::DrawInstancedMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<MeshData>& meshData)
+void Blainn::RenderSubsystem::DrawInstancedMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<MeshData<BlainnVertex, uint32_t>>& meshData)
 {
 }
 
@@ -1101,6 +1092,9 @@ void Blainn::RenderSubsystem::DrawIndexed(UINT indexCount, UINT instanceCount, U
 
 void Blainn::RenderSubsystem::DrawQuad(ID3D12GraphicsCommandList2 *pCommandList)
 {
+    auto currFrameObjCB = m_currFrameResource->ObjectsCB->Get();
+    pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+    pCommandList->DrawInstanced(4u, 1u, 0u, 0u);
 }
 
 eastl::pair<XMMATRIX, XMMATRIX> Blainn::RenderSubsystem::GetLightSpaceMatrix(const float nearZ, const float farZ)

@@ -56,13 +56,13 @@ Model::Model()
     }
 
 
-    eastl::vector<MeshData> &Model::GetMeshes()
+    eastl::vector<MeshData<>> &Model::GetMeshes()
     {
         return m_meshes;
     }
 
 
-    void Model::SetMeshes(const eastl::vector<MeshData> &meshes)
+    void Model::SetMeshes(const eastl::vector<MeshData<>> &meshes)
     {
         m_meshes = meshes;
     }

@@ -2,9 +2,9 @@
 
 namespace Blainn
 {
-    MeshData PrebuiltEngineMeshes::CreateBox(float width, float height, float depth)
+    MeshData<> PrebuiltEngineMeshes::CreateBox(float width, float height, float depth)
     {
-        MeshData meshData;
+        MeshData<> meshData;
 
         BlainnVertex v[24];
 

@@ -26,8 +26,8 @@ namespace Blainn
         virtual void Delete() override;
         virtual void Move() override;
 
-        eastl::vector<MeshData> &GetMeshes();
-        void SetMeshes(const eastl::vector<MeshData> &meshes);
+        eastl::vector<MeshData<>> &GetMeshes();
+        void SetMeshes(const eastl::vector<MeshData<>> &meshes);
 
     public:
         void CreateBufferResources(const eastl::shared_ptr<Device> &device);
@@ -82,7 +82,7 @@ namespace Blainn
         Microsoft::WRL::ComPtr<ID3D12Resource> IndexBufferUploader = nullptr;
 
     private:
-        eastl::vector<MeshData> m_meshes;
+        eastl::vector<MeshData<>> m_meshes;
     };
 
 } // namespace Blainn
