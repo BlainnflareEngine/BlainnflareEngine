@@ -20,7 +20,7 @@ VSOutput main(VSInput input)
 {
     VSOutput output = (VSOutput) 0;
     
-    MaterialData matData = gMaterialData[gMaterialIndex];
+    //MaterialData matData = gMaterialData[gMaterialIndex];
     
     float4 oPosW = mul(float4(input.iPosL, 1.0f), gWorld);
     output.oPosH = mul(oPosW, gViewProj);
@@ -28,7 +28,7 @@ VSOutput main(VSInput input)
     output.oNormalW = mul(input.iNormalL, (float3x3) gInvTransposeWorld);
     
     float4 texCoord = mul(float4(input.inTexC, 0.0f, 1.0f), gTexTransform);
-    output.oTexC = mul(texCoord, matData.MatTransform).xy;
+    output.oTexC = float2(1.0f, 1.0f);//mul(texCoord, matData.MatTransform).xy;
     
     return output;
 }

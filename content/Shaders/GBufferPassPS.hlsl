@@ -21,18 +21,19 @@ GBuffer main(PSInput input)
 {
     GBuffer output = (GBuffer) 0;
     
-    MaterialData matData = gMaterialData[gMaterialIndex];
+    //MaterialData matData = gMaterialData[gMaterialIndex];
     
-    float4 diffuseAlbedo = matData.DiffuseAlbedo;
-    float3 fresnelR0 = matData.FresnelR0;
-    float roughness = matData.Roughness;
-    uint diffuseTexIndex = matData.DiffuseMapIndex;
+    //float4 diffuseAlbedo = matData.DiffuseAlbedo;
+    //float3 fresnelR0 = matData.FresnelR0;
+    //float roughness = matData.Roughness;
+    //uint diffuseTexIndex = matData.DiffuseMapIndex;
     
-    diffuseAlbedo *= gDiffuseMap[diffuseTexIndex].Sample(gSamplerAnisotropicWrap, input.iTexC);
+    //diffuseAlbedo *= gDiffuseMap[diffuseTexIndex].Sample(gSamplerAnisotropicWrap, input.iTexC);
     
-    output.DiffuseAlbedo = diffuseAlbedo;
+    //output.DiffuseAlbedo = diffuseAlbedo;
+    output.DiffuseAlbedo = float4(1.0f, 0.0f, 0.0f, 1.0f); 
     output.AmbientOcclusion = float4(input.iPosW, 0.0f); // temporary
-    output.Specular = float4(fresnelR0, log2(1.0f - roughness) / 10.5f);
+    //output.Specular = float4(fresnelR0, log2(1.0f - roughness) / 10.5f);
     output.Normal = float4(input.iNormalW, 0.0f);
     
     return output;
