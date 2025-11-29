@@ -111,4 +111,44 @@ inline MeshComponent GetMesh(const YAML::Node &node)
 
     return mesh;
 }
+
+inline bool HasRelationship(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["RelationshipComponent"]) return true;
+
+    return false;
+}
+
+inline RelationshipComponent GetRelationship(const YAML::Node &node)
+{
+    RelationshipComponent relationship;
+
+    if (!node || node.IsNull())
+    {
+        BF_ERROR("Failed to parse relationship component. Not found in .scene!");
+        return relationship;
+    }
+
+    if (node["Parent"])
+    {
+        std::string parentIdStr = node["Parent"].as<std::string>();
+        relationship.ParentHandle = uuid::fromStrFactory(parentIdStr);
+    }
+
+    if (const YAML::Node &childrenNode = node["Children"])
+    {
+        if (childrenNode.IsSequence())
+        {
+            for (const auto &childNode : childrenNode)
+            {
+                std::string childIdStr = childNode.as<std::string>("");
+                relationship.Children.push_back(uuid::fromStrFactory(childIdStr));
+            }
+        }
+    }
+
+    return relationship;
+}
 } // namespace Blainn

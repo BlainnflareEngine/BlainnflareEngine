@@ -3,8 +3,10 @@
 //
 
 #include "FileSystemUtils.h"
+
 #include "../include/dialog/import_asset_dialog.h"
 #include "../include/dialog/import_model_dialog.h"
+#include "ContentFilterProxyModel.h"
 
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -78,28 +80,73 @@ void OpenFolder(const QString &path, QAbstractItemView &itemView)
     QDir dir(path);
     if (!dir.exists())
     {
-        QMessageBox::warning(nullptr, "Error", "Directory not found!");
+        BF_ERROR("Directory not found!");
         return;
     }
 
-    auto fileModel = qobject_cast<QFileSystemModel *>(itemView.model());
-    QModelIndex index = fileModel->index(path);
-    if (index.isValid())
+    QAbstractItemModel *model = itemView.model();
+    if (!model) return;
+
+    if (auto proxyModel = qobject_cast<ContentFilterProxyModel *>(model))
     {
-        fileModel->setRootPath(path);
-        if (auto treeView = qobject_cast<QTreeView *>(&itemView))
-        {
-            treeView->setCurrentIndex(index);
-            treeView->expand(index);
-            treeView->scrollTo(index);
-        }
-        if (auto listView = qobject_cast<QListView *>(&itemView))
-        {
-            QModelIndex index = fileModel->index(path);
-            listView->setRootIndex(index);
-            listView->setCurrentIndex(index);
-            listView->scrollTo(index);
-        }
+        OpenFolderWithProxy(path, itemView, *proxyModel);
+    }
+    else if (auto fileModel = qobject_cast<QFileSystemModel *>(model))
+    {
+        OpenFolderWithoutProxy(path, itemView, *fileModel);
+    }
+    else
+    {
+        QMessageBox::warning(nullptr, "Error", "Unsupported model type!");
+    }
+}
+
+
+void OpenFolderWithProxy(const QString &path, QAbstractItemView &itemView, const ContentFilterProxyModel &proxyModel)
+{
+    QFileSystemModel *fileModel = qobject_cast<QFileSystemModel *>(proxyModel.sourceModel());
+    if (!fileModel)
+    {
+        BF_ERROR("Proxy model source is not a file system model");
+        return;
+    }
+
+    QModelIndex sourceIndex = fileModel->index(path);
+    if (!sourceIndex.isValid()) return;
+
+    fileModel->setRootPath(path);
+
+    QModelIndex viewIndex = proxyModel.mapFromSource(sourceIndex);
+    if (!viewIndex.isValid()) return;
+
+    ApplyViewSettings(itemView, viewIndex, viewIndex);
+}
+
+
+void OpenFolderWithoutProxy(const QString &path, QAbstractItemView &itemView, QFileSystemModel &fileModel)
+{
+    QModelIndex sourceIndex = fileModel.index(path);
+    if (!sourceIndex.isValid()) return;
+
+    fileModel.setRootPath(path);
+
+    ApplyViewSettings(itemView, sourceIndex, sourceIndex);
+}
+
+
+void ApplyViewSettings(QAbstractItemView &itemView, const QModelIndex &rootIndex, const QModelIndex &currentIndex)
+{
+    if (auto treeView = qobject_cast<QTreeView *>(&itemView))
+    {
+        treeView->setCurrentIndex(currentIndex);
+        treeView->expand(currentIndex);
+        treeView->scrollTo(currentIndex);
+    }
+    else if (auto listView = qobject_cast<QListView *>(&itemView))
+    {
+        listView->setRootIndex(rootIndex);
+        listView->setCurrentIndex(currentIndex);
+        listView->scrollTo(currentIndex);
     }
 }
 
@@ -109,7 +156,7 @@ void OpenFolder(const QString &path, const eastl::vector<QAbstractItemView *> &i
     QDir dir(path);
     if (!dir.exists())
     {
-        QMessageBox::warning(nullptr, "Error", "Directory not found!");
+        BF_ERROR("Directory not found!");
         return;
     }
 
@@ -295,6 +342,7 @@ void SelectFileAsync(QWidget *parent, const QString &title, const QString &initi
     dialog->setFileMode(QFileDialog::ExistingFile);
     dialog->setNameFilter(nameFilter);
     dialog->setDirectory(initialDir);
+    dialog->setOption(QFileDialog::DontUseNativeDialog, true);
 
     QObject::connect(dialog, &QFileDialog::finished, dialog,
                      [dialog, onAccepted](int result)

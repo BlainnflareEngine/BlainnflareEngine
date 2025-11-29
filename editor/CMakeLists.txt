@@ -116,7 +116,6 @@ set(EDITOR_SOURCES
         ../engine/include/scene/SceneParser.h
         src/inspector/entity/transform_widget.cpp
         include/inspector/entity/transform_widget.h
-        include/inspector/entity/FieldValidation.h
         src/inspector/input-widgets/float_input_field.cpp
         include/inspector/input-widgets/float_input_field.h
         include/themed_panel.h
@@ -127,6 +126,10 @@ set(EDITOR_SOURCES
         include/inspector/entity/mesh_widget.h
         src/inspector/input-widgets/path_input_field.cpp
         include/inspector/input-widgets/path_input_field.h
+        include/inspector/input-widgets/NumericInputWidget.h
+        src/scene/SceneMeta.cpp
+        include/scene/SceneMeta.h
+        "include/scene/EntityNodeComparator .h"
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

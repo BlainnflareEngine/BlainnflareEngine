@@ -10,9 +10,11 @@
 #include <qstring.h>
 
 
+class QFileSystemModel;
 class QLabel;
 namespace editor
 {
+class ContentFilterProxyModel;
 class import_asset_dialog;
 namespace Ui
 {
@@ -51,6 +53,9 @@ namespace filters
 {
 inline static QString ShaderFilter = "Shaders (*.cso);;All Files (*)";
 inline static QString TextureFilter = "Textures (*.png *.dds *.jpg *.jpeg *.tga *.bmp);;All Files (*)";
+inline static const QString supported3DFormatsFilter =
+    "3D Files (*.obj *.gltf *.glb *.fbx);;Wavefront OBJ (*.obj);;glTF (*.gltf);;glTF Binary (*.glb);;Autodesk FBX "
+    "(*.fbx);;All Files (*)";
 } // namespace filters
 
 
@@ -61,6 +66,12 @@ void OpenFileExplorer(const QString &filePath);
 void OpenFolderExplorer(const QString &path);
 
 void OpenFolder(const QString &path, QAbstractItemView &itemView);
+
+void OpenFolderWithProxy(const QString &path, QAbstractItemView &itemView, const ContentFilterProxyModel &proxyModel);
+
+void OpenFolderWithoutProxy(const QString &path, QAbstractItemView &itemView, QFileSystemModel &fileModel);
+
+void ApplyViewSettings(QAbstractItemView &itemView, const QModelIndex &rootIndex, const QModelIndex &currentIndex);
 
 void OpenFolder(const QString &path, const eastl::vector<QAbstractItemView *> &itemViews);
 

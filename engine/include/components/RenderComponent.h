@@ -8,6 +8,6 @@ struct RenderComponent
 {
     bool m_visible = true;
     bool m_meshCanBeRendered = false; // TODO: replace with std::optional<MeshHandle> two fields
-    MeshHandle m_meshHandle{0};
+    eastl::shared_ptr<Blainn::MeshHandle> m_meshHandle = nullptr;
 };
 } // namespace Blainn

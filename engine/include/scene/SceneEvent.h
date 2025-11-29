@@ -28,16 +28,16 @@ public:
 class SceneChangedEvent : public SceneEvent
 {
 public:
-    SceneChangedEvent(const eastl::shared_ptr<Scene> &scene);
+    SceneChangedEvent(const eastl::string &name);
 
     ~SceneChangedEvent() override {};
 
     SceneEventType GetEventType() override;
 
-    [[nodiscard]] eastl::shared_ptr<Scene> GetScene() const;
+    [[nodiscard]] eastl::string &GetName();
 
 private:
-    eastl::shared_ptr<Scene> m_scene;
+    eastl::string m_name;
 };
 
 class EntityEvent : public SceneEvent
@@ -63,6 +63,8 @@ public:
     ~EntityCreatedEvent() override {};
 
     SceneEventType GetEventType() override;
+
+    [[nodiscard]] Entity GetParent() const;
 };
 
 class EntityDestroyedEvent : public EntityEvent

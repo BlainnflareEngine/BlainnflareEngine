@@ -6,6 +6,7 @@
 #include "scene/EntityTemplates.h"
 #include "scene/Scene.h"
 
+#include "EASTL/unordered_set.h"
 #include "Engine.h"
 #include "Serializer.h"
 #include "ozz/base/containers/string.h"
@@ -37,6 +38,8 @@ Scene::Scene(const YAML::Node &config)
 
     m_Name = config["SceneName"].as<std::string>().c_str();
     m_SceneID.fromStr(config["SceneID"].as<std::string>().c_str());
+
+    s_sceneEventQueue.enqueue(eastl::make_shared<SceneChangedEvent>(m_Name));
 
     if (config["Entities"] && config["Entities"].IsSequence()) CreateEntities(config["Entities"], true);
 }
@@ -153,7 +156,7 @@ Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name, bool o
 
     m_EntityIdMap[idComponent.ID] = entity;
 
-    // SortEntities();
+    SortEntities();
 
     s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
 
@@ -176,7 +179,32 @@ Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool
 
     m_EntityIdMap[idComponent.ID] = entity;
 
-    // if (shouldSort) SortEntities();
+    if (shouldSort) SortEntities();
+
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
+
+    return entity;
+}
+
+
+Entity Scene::CreateChildEntityWithID(Entity parent, const uuid &id, const eastl::string &name, bool shouldSort,
+                                      bool onSceneChanged)
+{
+    BLAINN_PROFILE_FUNC();
+
+    auto entity = Entity{m_Registry.create(), this};
+    auto &idComponent = entity.AddComponent<IDComponent>();
+    idComponent.ID = id;
+
+    if (!name.empty()) entity.AddComponent<TagComponent>(name);
+
+    entity.AddComponent<RelationshipComponent>();
+
+    if (parent) entity.SetParent(parent);
+
+    m_EntityIdMap[idComponent.ID] = entity;
+
+    SortEntities();
 
     s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
 
@@ -211,11 +239,22 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged)
             entity.AddComponent<MeshComponent>(GetMesh(entityNode["MeshComponent"]));
         }
 
-        //if ()
-
-        // TODO: make hierarchy
+        if (HasRelationship(entityNode))
+        {
+            auto component = GetRelationship(entityNode["RelationshipComponent"]);
+            if (auto relations = entity.TryGetComponent<RelationshipComponent>())
+            {
+                entity.SetParentUUID(component.ParentHandle);
+                relations->Children = component.Children;
+            }
+            else
+            {
+                entity.AddComponent<RelationshipComponent>(component);
+            }
+        }
     }
 }
+
 
 void Scene::SubmitToDestroyEntity(Entity entity)
 {
@@ -238,6 +277,15 @@ void Scene::DestroyEntity(Entity entity, bool excludeChildren, bool first)
     if (!excludeChildren)
     {
         // destroy each child, can't really iterate through them, so should think about it a bit
+        // don't make this a foreach loop because entt will move the children
+        //            vector in memory as entities/components get deleted
+        for (size_t i = 0; i < entity.Children().size(); i++)
+        {
+            auto childId = entity.Children()[i];
+            Entity child = GetEntityWithUUID(childId);
+            DestroyEntity(child, excludeChildren, false);
+        }
+
     }
 
     const uuid id = entity.GetUUID();
@@ -254,7 +302,7 @@ void Scene::DestroyEntity(Entity entity, bool excludeChildren, bool first)
     m_Registry.destroy(entity);
     m_EntityIdMap.erase(id);
 
-    // SortEntities();
+    SortEntities();
 }
 
 void Scene::DestroyEntity(const uuid &entityID, bool excludeChildren, bool first)
@@ -302,6 +350,44 @@ Entity Scene::TryGetDescendantEntityWithTag(Entity entity, const eastl::string &
     return Entity{};
 }
 
+
+void Scene::GetEntitiesInHierarchy(eastl::vector<Entity> &outEntities)
+{
+    outEntities.clear();
+    outEntities.reserve(m_EntityIdMap.size());
+    eastl::unordered_set<uuid> visited;
+
+    eastl::function<void(Entity)> dfs = [&](Entity e)
+    {
+        if (!e.IsValid()) return;
+
+        auto id = e.GetUUID();
+        if (visited.contains(id)) return;
+
+        visited.insert(id);
+        outEntities.push_back(e);
+
+        if (auto *rel = e.TryGetComponent<RelationshipComponent>())
+        {
+            for (const auto &childUUID : rel->Children)
+            {
+                auto child = GetEntityWithUUID(childUUID);
+                dfs(child);
+            }
+        }
+    };
+
+    for (auto [entity, idComponent] : GetAllEntitiesWith<IDComponent>().each())
+    {
+        Entity e = GetEntityWithUUID(idComponent.ID);
+        if (!e.GetParent().IsValid())
+        {
+            dfs(e);
+        }
+    }
+}
+
+
 void Blainn::Scene::CreateAttachMeshComponent(Entity entity, const Path &path, const ImportMeshData &data)
 {
     MeshComponent *meshComponentPtr = entity.TryGetComponent<MeshComponent>();
@@ -326,7 +412,7 @@ void Blainn::Scene::CreateAttachMeshComponent(Entity entity, const Path &path, c
     RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
     if (renderComponentPtr)
     {
-        RenderSubsystem::GetInstance().AddMeshToRenderComponent(entity, *handlePtr);
+        RenderSubsystem::GetInstance().AddMeshToRenderComponent(entity, handlePtr);
     }
 }
 

@@ -42,6 +42,10 @@ editor_main::editor_main(QWidget *parent)
     connect(ui->folderContent, &folder_content_widget::FolderSelected, ui->pathBar, &path_bar_widget::SetCurrentPath);
 
 
+    connect(ui->Entities->selectionModel(), &QItemSelectionModel::selectionChanged, ui->folderContent->GetListView(), &QListView::clearSelection);
+    connect(ui->folderContent->GetListView()->selectionModel(), &QItemSelectionModel::selectionChanged, ui->Entities, &QTreeView::clearSelection);
+
+
     connect(ui->ClearConsoleButton, &QPushButton::clicked, ui->consoleMessages, &console_messages_widget::ClearConsole);
 
     connect(ui->AddToScene, &QPushButton::clicked, this, &editor_main::OpenAddToScene);
@@ -109,7 +113,7 @@ void editor_main::OpenAddToScene() const
 void editor_main::OnOpenSettings()
 {
     SettingsData data = SettingsData(Blainn::Engine::GetContentDirectory());
-    editor_settings* settings = new editor_settings(data, this);
+    editor_settings *settings = new editor_settings(data, this);
     settings->show();
 }
 
@@ -117,6 +121,7 @@ void editor_main::OnOpenSettings()
 void editor_main::OnSaveScene()
 {
     Blainn::Engine::GetActiveScene()->SaveScene();
+    ui->Entities->SaveCurrentMeta();
 }
 
 } // namespace editor

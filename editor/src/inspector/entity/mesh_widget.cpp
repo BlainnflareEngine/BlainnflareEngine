@@ -19,7 +19,7 @@ namespace editor
 mesh_widget::mesh_widget(const Blainn::Entity &entity, QWidget *parent)
     : component_widget_base(entity, "Mesh", parent)
 {
-    m_path_input_field = new path_input_field(this);
+    m_path_input_field = new path_input_field("Mesh path", {}, this);
     m_path_input_field->SetExtensions(formats::supported3DFormats);
     layout()->addWidget(m_path_input_field);
 
@@ -43,6 +43,8 @@ void mesh_widget::UpdatePath()
 
 void mesh_widget::SetNewPath(const QString &newPath)
 {
+    if (newPath.isEmpty()) return;
+
     if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::MeshComponent>()) destroy();
 
     Blainn::Path path = ToString(newPath);

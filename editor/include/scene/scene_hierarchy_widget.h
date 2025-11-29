@@ -5,6 +5,7 @@
 #pragma once
 
 
+#include "SceneMeta.h"
 #include "context-menu/AddToSceneContextMenu.h"
 #include "scene/SceneEvent.h"
 
@@ -37,12 +38,15 @@ public:
 
     void OnEntityCreated(const Blainn::SceneEventPointer &event);
     void OnEntityDestroyed(const Blainn::SceneEventPointer &event);
+    void OnSceneChanged(const Blainn::SceneEventPointer &event);
 
 public slots:
 
     void OnItemDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
 
     void OnSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+
+    void SaveCurrentMeta();
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
@@ -51,5 +55,9 @@ private:
     Ui::scene_hierarchy_widget *ui;
     SceneItemModel *m_sceneModel;
     AddToSceneContextMenu *m_addToSceneMenu;
+    eastl::shared_ptr<SceneMeta> m_sceneMeta;
+
+    void CreateEntityInHierarchy(Blainn::Entity& entity, bool bSceneChanged = false);
+    void CreateEntityInHierarchy(Blainn::Entity&& entity, bool bSceneChanged = false);
 };
 }; // namespace editor

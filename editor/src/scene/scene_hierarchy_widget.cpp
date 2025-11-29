@@ -20,6 +20,8 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
     : QTreeView(parent)
     , ui(new Ui::scene_hierarchy_widget)
 {
+    m_sceneMeta = eastl::make_unique<SceneMeta>("");
+
     ui->setupUi(this);
 
     m_sceneModel = new SceneItemModel(this);
@@ -42,6 +44,8 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
                                     [this](const Blainn::SceneEventPointer &event) { this->OnEntityCreated(event); });
     Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityDestroyed,
                                     [this](const Blainn::SceneEventPointer &event) { this->OnEntityDestroyed(event); });
+    Blainn::Scene::AddEventListener(Blainn::SceneEventType::SceneChanged,
+                                    [this](const Blainn::SceneEventPointer &event) { this->OnSceneChanged(event); });
 }
 
 scene_hierarchy_widget::~scene_hierarchy_widget()
@@ -62,23 +66,85 @@ SceneItemModel &scene_hierarchy_widget::GetSceneModel() const
 }
 
 
-void scene_hierarchy_widget::OnEntityCreated(const Blainn::SceneEventPointer &event)
+void scene_hierarchy_widget::CreateEntityInHierarchy(Blainn::Entity &entity, const bool bSceneChanged)
 {
-    using namespace Blainn;
+    Blainn::Entity parent = entity.GetParent();
+    QModelIndex newIndex;
 
-    const auto entityEvent = static_cast<const EntityCreatedEvent *>(event.get());
-    QModelIndex newIndex = GetSceneModel().AddNewEntity(entityEvent->GetEntity());
+    if (parent.IsValid())
+    {
+        newIndex = GetSceneModel().AddNewEntity(entity, SceneItemModel::FindIndexByEntity(m_sceneModel, parent));
+    }
+    else
+    {
+        newIndex = GetSceneModel().AddNewEntity(entity);
+    }
 
     if (newIndex.isValid())
     {
         if (newIndex.isValid()) expand(newIndex);
 
-        if (!entityEvent->IsSceneChanged())
+        if (!bSceneChanged)
         {
             setCurrentIndex(newIndex);
             edit(newIndex);
         }
     }
+
+    if (m_sceneMeta && !bSceneChanged)
+    {
+        int newPosition = newIndex.row();
+        m_sceneMeta->AddEntity(entity, newPosition);
+    }
+
+    // TODO: meta is not working now)
+    // m_sceneModel->SortAccordingToMeta(m_sceneMeta);
+}
+
+
+void scene_hierarchy_widget::CreateEntityInHierarchy(Blainn::Entity &&entity, bool bSceneChanged)
+{
+    Blainn::Entity parent = entity.GetParent();
+    QModelIndex newIndex;
+
+    if (parent.IsValid())
+    {
+        newIndex = GetSceneModel().AddNewEntity(entity, SceneItemModel::FindIndexByEntity(m_sceneModel, parent));
+    }
+    else
+    {
+        newIndex = GetSceneModel().AddNewEntity(entity);
+    }
+
+    if (newIndex.isValid())
+    {
+        if (newIndex.isValid()) expand(newIndex);
+
+        if (!bSceneChanged)
+        {
+            setCurrentIndex(newIndex);
+            edit(newIndex);
+        }
+    }
+
+    if (m_sceneMeta && !bSceneChanged)
+    {
+        int newPosition = newIndex.row();
+        m_sceneMeta->AddEntity(entity, newPosition);
+    }
+}
+
+
+void scene_hierarchy_widget::OnEntityCreated(const Blainn::SceneEventPointer &event)
+{
+    using namespace Blainn;
+
+    const auto entityEvent = static_cast<const EntityCreatedEvent *>(event.get());
+
+    if (entityEvent->IsSceneChanged()) return;
+    if (!entityEvent->GetEntity().IsValid()) return;
+
+    CreateEntityInHierarchy(entityEvent->GetEntity(), entityEvent->IsSceneChanged());
 }
 
 
@@ -110,6 +176,26 @@ void scene_hierarchy_widget::OnEntityDestroyed(const Blainn::SceneEventPointer &
     }
 
     model->removeRow(nodeIndex.row(), nodeIndex.parent());
+
+    // if (!entityEvent->IsSceneChanged()) m_sceneModel->SortAccordingToMeta(m_sceneMeta);
+}
+
+
+void scene_hierarchy_widget::OnSceneChanged(const Blainn::SceneEventPointer &event)
+{
+    using namespace Blainn;
+
+    auto sceneEvent = static_cast<SceneChangedEvent *>(event.get());
+    BF_DEBUG("OnSceneChanged");
+    m_sceneMeta = eastl::make_shared<SceneMeta>(QString::fromStdString(sceneEvent->GetName().c_str()));
+
+    eastl::vector<Entity> entities = {};
+    Engine::GetActiveScene()->GetEntitiesInHierarchy(entities);
+
+    for (auto &entity : entities)
+    {
+        CreateEntityInHierarchy(entity, true);
+    }
 }
 
 
@@ -133,7 +219,11 @@ void scene_hierarchy_widget::OnSelectionChanged(const QItemSelection &selected, 
 {
     QModelIndexList selectedIndexes = selected.indexes();
 
-    if (selectedIndexes.isEmpty()) return;
+    if (selectedIndexes.isEmpty())
+    {
+        Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
+        return;
+    }
 
     auto entity = SceneItemModel::GetNodeFromIndex(selectedIndexes.first());
 
@@ -144,6 +234,12 @@ void scene_hierarchy_widget::OnSelectionChanged(const QItemSelection &selected, 
 
     auto inspector = fabric.GetEntityInspector(data);
     Blainn::Editor::GetInstance().GetInspector().SetItem(inspector);
+}
+
+
+void scene_hierarchy_widget::SaveCurrentMeta()
+{
+    if (m_sceneMeta) m_sceneMeta->Save();
 }
 
 
