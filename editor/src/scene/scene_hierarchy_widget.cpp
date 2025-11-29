@@ -142,6 +142,7 @@ void scene_hierarchy_widget::OnEntityCreated(const Blainn::SceneEventPointer &ev
     const auto entityEvent = static_cast<const EntityCreatedEvent *>(event.get());
 
     if (entityEvent->IsSceneChanged()) return;
+    if (!entityEvent->GetEntity().IsValid()) return;
 
     CreateEntityInHierarchy(entityEvent->GetEntity(), entityEvent->IsSceneChanged());
 }
