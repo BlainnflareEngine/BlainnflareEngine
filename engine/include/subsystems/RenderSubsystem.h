@@ -156,9 +156,29 @@ namespace Blainn
         void DeferredSpotLightPass(ID3D12GraphicsCommandList2 *pCommandList);
 #pragma endregion DeferredShading
 
-        void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<MeshData> &meshesData);
-        void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<eastl::unique_ptr<Model>> &models);
-        void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<MeshData> &meshData);
+        template<typename TVertex, typename TIndex>
+        void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<MeshData<TVertex, TIndex>> &meshesData)
+        {
+            for (auto &&meshData : meshesData)
+            {
+                const auto indexCount = meshData.indices.size();
+                const auto vertexCount = meshData.vertices.size();
+
+                if (indexCount > 0)
+                {
+                    cmdList->IASetIndexBuffer(NULL);
+                    cmdList->DrawIndexedInstanced(indexCount, 1u, 0u, 0u, 0u);
+                }
+                else if (vertexCount > 0)
+                {
+                    cmdList->DrawInstanced(vertexCount, 1u, 0u, 0u);
+                }
+            }
+        }
+        
+        void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<eastl::unique_ptr<Model>> &models); 
+
+        void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
 
 #pragma region CommandListIntrinsic
         void Draw(UINT vertexCount, UINT instanceCount = 1u, UINT startVertex = 0u, UINT startInstance = 0u);
