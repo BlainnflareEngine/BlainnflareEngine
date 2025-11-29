@@ -99,8 +99,8 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     //UpdateMaterialBuffer(deltaTime);
     //UpdateLightsBuffer(deltaTime);
 
-    //UpdateShadowTransform(deltaTime);
-    //UpdateShadowPassCB(deltaTime);   // pass
+    UpdateShadowTransform(deltaTime);
+    UpdateShadowPassCB(deltaTime);   // pass
 
     UpdateGeometryPassCB(deltaTime); // pass
     UpdateMainPassCB(deltaTime);     // pass
@@ -171,7 +171,7 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
 #pragma endregion ProperSceneRendering
     
 #pragma region TempSceneRendering
-    //RenderDepthOnlyPass(pCommandList);
+    RenderDepthOnlyPass(pCommandList);
     RenderGeometryPass(pCommandList);
     RenderLightingPass(pCommandList);
     //RenderTransparencyPass(pCommandList);
@@ -518,9 +518,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     defaultPsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT); // Blend state is disable
     defaultPsoDesc.SampleMask = UINT_MAX;
     defaultPsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-    defaultPsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
     defaultPsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-    defaultPsoDesc.DepthStencilState.DepthEnable = FALSE;
     defaultPsoDesc.InputLayout = BlainnVertex::InputLayout;
     defaultPsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     defaultPsoDesc.NumRenderTargets = 1u;
@@ -882,23 +880,32 @@ void Blainn::RenderSubsystem::UpdateMainPassCB(float deltaTime)
 
 void Blainn::RenderSubsystem::RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
-    pCommandList->RSSetViewports(1u, &m_viewport);
-    pCommandList->RSSetScissorRects(1u, &m_scissorRect);
+    UINT passCBByteSize = FreyaUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
 
-    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    auto csmViewport = m_cascadeShadowMap->GetViewport();
+    auto csmScissor = m_cascadeShadowMap->GetScissorRect();
+
+    pCommandList->RSSetViewports(1u, &csmViewport);
+    pCommandList->RSSetScissorRects(1u, &csmScissor);
+
+    // change to depth write state
+    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_cascadeShadowMap->Get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
     pCommandList->ResourceBarrier(1u, &transition);
 
-    auto rtvHandle = GetRTV();
-    auto dsvHandle = GetDSV();
+#pragma region BypassResources
+    auto currFramePassCB = m_currFrameResource->PassCB->Get();
+    auto currFrameGPUVirtualAddress = FreyaUtil::GetGPUVirtualAddress(currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DepthShadow));
+    pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerPassDataCB, currFrameGPUVirtualAddress);
+#pragma endregion BypassResources
 
-    const float *clearColor = DirectX::Colors::Yellow;
-    pCommandList->OMSetRenderTargets(1u, &rtvHandle, TRUE, &dsvHandle);
-    pCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0u, nullptr);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_cascadeShadowMap->GetDsv());
+    pCommandList->OMSetRenderTargets(0u, nullptr, TRUE, &dsvHandle);
     pCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u, nullptr);
 
     pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::CascadedShadowsOpaque).Get());
-    
-    transition = CD3DX12_RESOURCE_BARRIER::Transition(m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+    DrawMeshes(pCommandList, m_meshItems);
+
+    transition = CD3DX12_RESOURCE_BARRIER::Transition(m_cascadeShadowMap->Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_GENERIC_READ);
     pCommandList->ResourceBarrier(1u, &transition);
 }
 
@@ -998,7 +1005,7 @@ void Blainn::RenderSubsystem::DeferredDirectionalLightPass(ID3D12GraphicsCommand
         ERootParameter::PerPassDataCB, currFramePassCB->GetGPUVirtualAddress() + 2u * passCBByteSize); // third element contains data for color/light pass
 
     // Set shaadow map texture for main pass
-    // pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::CascadedShadowMaps, m_cascadeShadowSrv);
+    pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::CascadedShadowMaps, m_cascadeShadowSrv);
 
     // Bind GBuffer textures
     pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::GBufferTextures, m_GBufferTexturesSrv);
@@ -1046,28 +1053,26 @@ void Blainn::RenderSubsystem::RenderTransparencyPass(ID3D12GraphicsCommandList2 
 
 void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<eastl::unique_ptr<Model>>& models)
 {
-    
-            UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
+    UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-            auto currFrameObjCB = m_currFrameResource->ObjectsCB->Get();
+    auto currFrameObjCB = m_currFrameResource->ObjectsCB->Get();
 
-            for (auto &&model : models)
-            {
-                auto currVBV = model->VertexBufferView();
-                auto currIBV = model->IndexBufferView();
-                pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-                pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
-                pCommandList->IASetIndexBuffer(&currIBV);
+    for (auto &&model : models)
+    {
+        auto currVBV = model->VertexBufferView();
+        auto currIBV = model->IndexBufferView();
+        pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
+        pCommandList->IASetIndexBuffer(&currIBV);
 
-                D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(
-                    currFrameObjCB->GetGPUVirtualAddress(), objCBByteSize, 0u /*ri->ObjCBIndex*/);
+        D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currFrameObjCB->GetGPUVirtualAddress(), objCBByteSize, 0u /*ri->ObjCBIndex*/);
 
-                // now we set only objects' cbv per item, material data is set per pass
-                // we get material data by index from structured buffer
-                pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerObjectDataCB, objCBAddress);
-                pCommandList->DrawIndexedInstanced(36, 1u, 0u, 0u, 0u);
-                // pCommandList->DrawInstanced(24, 1u, 0u, 0u);
-            }
+        // now we set only objects' cbv per item, material data is set per pass
+        // we get material data by index from structured buffer
+        pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerObjectDataCB, objCBAddress);
+        pCommandList->DrawIndexedInstanced(36, 1u, 0u, 0u, 0u);
+        // pCommandList->DrawInstanced(24, 1u, 0u, 0u);
+    }
 }
 
 void Blainn::RenderSubsystem::DrawInstancedMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<MeshData<BlainnVertex, uint32_t>>& meshData)
