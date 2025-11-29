@@ -102,7 +102,7 @@ void AddToSceneContextMenu::DeleteEntity(const QModelIndex &index)
 
     if (!sceneModel) return;
 
-    Blainn::Engine::GetActiveScene()->DestroyEntity(sceneModel->GetEntity());
+    Blainn::Engine::GetActiveScene()->SubmitToDestroyEntity(sceneModel->GetEntity());
 }
 
 

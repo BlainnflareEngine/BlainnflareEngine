@@ -265,10 +265,10 @@ void Scene::SubmitToDestroyEntity(Entity entity)
         return;
     }
 
-    SubmitPostUpdateFunc([entity]() { entity.m_Scene->DestroyEntity(entity); });
+    SubmitPostUpdateFunc([entity]() { entity.m_Scene->DestroyEntityInternal(entity); });
 }
 
-void Scene::DestroyEntity(Entity entity, bool excludeChildren, bool first)
+void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool first)
 {
     BLAINN_PROFILE_FUNC();
 
@@ -283,9 +283,8 @@ void Scene::DestroyEntity(Entity entity, bool excludeChildren, bool first)
         {
             auto childId = entity.Children()[i];
             Entity child = GetEntityWithUUID(childId);
-            DestroyEntity(child, excludeChildren, false);
+            DestroyEntityInternal(child, excludeChildren, false);
         }
-
     }
 
     const uuid id = entity.GetUUID();
@@ -305,12 +304,12 @@ void Scene::DestroyEntity(Entity entity, bool excludeChildren, bool first)
     SortEntities();
 }
 
-void Scene::DestroyEntity(const uuid &entityID, bool excludeChildren, bool first)
+void Scene::DestroyEntityInternal(const uuid &entityID, bool excludeChildren, bool first)
 {
     const auto it = m_EntityIdMap.find(entityID);
     if (it == m_EntityIdMap.end()) return;
 
-    DestroyEntity(it->second, excludeChildren, first);
+    DestroyEntityInternal(it->second, excludeChildren, first);
 }
 
 Entity Scene::GetEntityWithUUID(const uuid &id) const
@@ -507,11 +506,11 @@ TransformComponent Scene::GetWorldSpaceTransform(Entity entity)
 
 void Scene::SortEntities()
 {
-    m_Registry.sort<IDComponent>(
-        [&](const auto &lhs, const auto &rhs)
-        {
-            auto lhsEntity = m_EntityIdMap.find(lhs.ID);
-            auto rhsEntity = m_EntityIdMap.find(rhs.ID);
-            return static_cast<uint32_t>(lhsEntity->second) < static_cast<uint32_t>(rhsEntity->second);
-        });
+    // m_Registry.sort<IDComponent>(
+    //     [&](const auto &lhs, const auto &rhs)
+    //     {
+    //         auto lhsEntity = m_EntityIdMap.find(lhs.ID);
+    //         auto rhsEntity = m_EntityIdMap.find(rhs.ID);
+    //         return static_cast<uint32_t>(lhsEntity->second) < static_cast<uint32_t>(rhsEntity->second);
+    //     });
 }

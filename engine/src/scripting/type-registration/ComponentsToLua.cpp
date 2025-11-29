@@ -66,7 +66,6 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
         luaState.new_usertype<RenderComponent>("RenderComponent", sol::constructors<RenderComponent()>());
     RenderComponentType.set_function("IsVisible", [](RenderComponent &r) { return r.m_visible; });
     RenderComponentType.set_function("SetVisible", [](RenderComponent &r, bool v) { r.m_visible = v; });
-    RenderComponentType.set_function("GetMeshIndex", [](RenderComponent &r) { return r.m_meshHandle.GetIndex(); });
 
     // ScriptingComponent (expose a method to list attached scripts by UUID)
     sol::usertype<ScriptingComponent> ScriptingComponentType =

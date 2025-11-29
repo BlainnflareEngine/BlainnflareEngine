@@ -72,8 +72,7 @@ public:
                                    bool shouldSort = true, bool onSceneChanged = false);
     void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false);
     void SubmitToDestroyEntity(Entity entity);
-    void DestroyEntity(Entity entity, bool excludeChildren = false, bool first = true);
-    void DestroyEntity(const uuid &entityID, bool excludeChildren = false, bool first = true);
+
 
     Entity GetEntityWithUUID(const uuid &id) const;
     Entity TryGetEntityWithUUID(const uuid &id) const;
@@ -103,6 +102,9 @@ public:
     // Entity CreatePrefabEntity(Entity entity, Entity parent /* and so on */);
 
 private:
+    void DestroyEntityInternal(Entity entity, bool excludeChildren = false, bool first = true);
+    void DestroyEntityInternal(const uuid &entityID, bool excludeChildren = false, bool first = true);
+
     void SortEntities();
 
     template <typename Fn> void SubmitPostUpdateFunc(Fn &&func)

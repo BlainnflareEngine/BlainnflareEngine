@@ -160,7 +160,6 @@ local function RunEntityLifecycleTests()
     -- ok("DestroyEntity child", true)
 
     -- Entity destruction
-    local uuidStr = e:GetUUID()
     scene:DestroyEntity(e)
     ok("DestroyEntity parent", true)
 end
@@ -220,6 +219,7 @@ local function RunEntitySearchAndIDTests()
     ok("DuplicateEntity returns entity or nothing (no crash)", true)
 
     -- Cleanup
+    scene:DestroyEntity(dup)
     scene:DestroyEntity(e)
     if e2 ~= nil and e2:IsValid() then
         scene:DestroyEntity(e2)

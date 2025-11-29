@@ -65,20 +65,7 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
                            [](Scene &scene, Entity entity) { scene.SubmitToDestroyEntity(entity); });
 
     // Multiple overloads for DestroyEntity
-    SceneType.set_function("DestroyEntity",
-                           sol::overload([](Scene &scene, Entity entity, bool excludeChildren, bool first)
-                                         { scene.DestroyEntity(entity, excludeChildren, first); },
-                                         [](Scene &scene, const std::string &idStr, bool excludeChildren, bool first)
-                                         {
-                                             uuid id = uuid::fromStrFactory(idStr);
-                                             scene.DestroyEntity(id, excludeChildren, first);
-                                         },
-                                         [](Scene &scene, Entity entity) { scene.DestroyEntity(entity); },
-                                         [](Scene &scene, const std::string &idStr)
-                                         {
-                                             uuid id = uuid::fromStrFactory(idStr);
-                                             scene.DestroyEntity(id);
-                                         }));
+    SceneType.set_function("DestroyEntity", [](Scene &scene, Entity entity) { scene.SubmitToDestroyEntity(entity); });
 
     // UUID helpers - accept string UUIDs from Lua
     SceneType.set_function("GetEntityWithUUID", [](Scene &scene, const std::string &idStr)
