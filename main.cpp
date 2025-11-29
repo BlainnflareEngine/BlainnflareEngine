@@ -1,10 +1,14 @@
 #include <iostream>
 
+#ifdef BLAINN_INCLUDE_EDITOR
 #include <QApplication>
 #include <QPushButton>
 #include <pch.h>
 
+
 #include "editor/include/Editor.h"
+#endif
+
 #include "engine/include/Engine.h"
 #include "engine/include/tools/Timeline.h"
 
@@ -81,7 +85,9 @@ int main(int argc, char **argv)
         }
     }
 
+#if defined(BLAINN_INCLUDE_EDITOR)
     Blainn::Editor::GetInstance().Destroy();
+#endif
     Blainn::Engine::Destroy();
 
     return 0;
