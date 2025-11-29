@@ -43,6 +43,5 @@ namespace Blainn
         static inline eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr = nullptr;
         static inline eastl::shared_ptr<Scene> s_activeScene{};
         static inline Path s_contentDirectory;
-        static eastl::shared_ptr<Device> m_device;
     };
 } // namespace Blainn

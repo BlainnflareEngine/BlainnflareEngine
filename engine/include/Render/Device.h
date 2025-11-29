@@ -16,9 +16,13 @@ namespace Blainn
 
     class Device /*: public eastl::enable_shared_from_this<Device>*/
     {
+    protected:
+        Device() = default;
+        
     public:
-
-        Device(bool useWarpDevice = false);
+        void Init(bool bUseWarpAdapter = false);
+        static Device& GetInstance();
+        
         ~Device();
         
         // NOTE: Enabling the debug layer after device creation will invalidate the active device.

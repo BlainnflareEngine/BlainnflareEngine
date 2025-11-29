@@ -6,6 +6,7 @@
 #include "FileSystemObject.h"
 #include "MeshData.h"
 #include "Render/FreyaUtil.h"
+#include "Render/Device.h"
 
 #include <EASTL/vector.h>
 
@@ -38,6 +39,10 @@ namespace Blainn
                               const eastl::vector<TIndex> &indices = eastl::vector<TIndex>(0))
         {
             static_assert(eastl::is_same<TIndex, unsigned>() || eastl::is_same<TIndex, unsigned short>());
+
+
+            auto& device_ = Device::GetInstance();
+            auto commandList = device_->GetCommandQueue()->GetCommandList();
 
             const UINT64 vbByteSize = vertices.size() * sizeof(TVertex);
             const UINT ibByteSize = (UINT)indices.size() * sizeof(TIndex);
