@@ -99,8 +99,8 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     //UpdateMaterialBuffer(deltaTime);
     //UpdateLightsBuffer(deltaTime);
 
-    UpdateShadowTransform(deltaTime);
-    UpdateShadowPassCB(deltaTime);   // pass
+    //UpdateShadowTransform(deltaTime);
+    //UpdateShadowPassCB(deltaTime);   // pass
 
     UpdateGeometryPassCB(deltaTime); // pass
     UpdateMainPassCB(deltaTime);     // pass
@@ -909,9 +909,7 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
                                                                D3D12_RESOURCE_STATE_RENDER_TARGET);
         pCommandList->ResourceBarrier(1u, &transition);
     }
-    auto transition =
-        CD3DX12_RESOURCE_BARRIER::Transition(m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH),
-                                             D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
     pCommandList->ResourceBarrier(1u, &transition);
 
 #pragma region BypassResources

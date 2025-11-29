@@ -9,5 +9,7 @@ namespace Blainn
     {
     public:
         static MeshData CreateBox(float width, float height, float depth);
+
+        static MeshData ÑreateGrid(float width, float depth, UINT m, UINT n);
     };
 }

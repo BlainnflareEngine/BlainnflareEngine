@@ -35,9 +35,9 @@ VOID Blainn::Device::CreateDebugLayer()
     {
         debugController->EnableDebugLayer();
 
-        ComPtr<ID3D12Debug1> debugController1;
+        /*ComPtr<ID3D12Debug1> debugController1;
         ThrowIfFailed(debugController->QueryInterface(IID_PPV_ARGS(&debugController1)));
-        debugController1->SetEnableGPUBasedValidation(true);
+        debugController1->SetEnableGPUBasedValidation(true);*/
 
         // Enable additional debug layers.
         m_dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
