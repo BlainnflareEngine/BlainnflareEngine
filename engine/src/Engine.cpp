@@ -22,6 +22,9 @@ eastl::shared_ptr<Device> Engine::m_device = nullptr;
 
 void Engine::Init()
 {
+    bool useWarpDevice = false;
+    Device::GetInstance().Init(useWarpDevice);
+
     vgjs::thread_count_t jobSystemThreadCount{8};
     s_JobSystemPtr = eastl::make_shared<vgjs::JobSystem>(vgjs::JobSystem(jobSystemThreadCount));
 
@@ -166,11 +169,6 @@ eastl::shared_ptr<Scene> Engine::GetActiveScene()
 void Engine::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
 {
     s_activeScene = scene;
-}
-
-eastl::shared_ptr<Device> Engine::GetGraphicsDevice()
-{
-    return m_device;
 }
 
 HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle, const std::string &winClassTitle,

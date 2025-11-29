@@ -10,6 +10,7 @@
 #include "File-System/Material.h"
 #include "File-System/Model.h"
 #include "File-System/Texture.h"
+#include "Render/PrebuiltEngineMeshes.h"
 
 #ifndef MAX_TEXTURES
     #define MAX_TEXTURES 512
@@ -48,7 +49,12 @@ namespace Blainn
         m_materials.emplace(eastl::make_shared<Material>(material));
 
         // TODO: create default mesh
-        m_meshes.emplace(eastl::make_shared<Model>(Engine::GetContentDirectory()));
+        auto defaultMeshData = PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f);
+        auto model = eastl::make_shared<Model>();
+        model->SetMeshes({defaultMeshData});
+        model->CreateGPUBuffers()
+
+        m_meshes.emplace(model);
     }
 
 
@@ -73,10 +79,10 @@ namespace Blainn
             return eastl::make_shared<MeshHandle>(it->second.index);
         }
 
-        BF_ERROR("This model doesn't imported yet. You should import it first. {0}", relativePath.string());
+        BF_ERROR("This model isn't imported yet. You should import it first. {0}", relativePath.string());
 
         // TODO: return default mesh
-        return eastl::make_shared<MeshHandle>(0);
+        return GetDefaultMesh();
     }
 
 

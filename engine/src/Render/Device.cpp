@@ -4,9 +4,16 @@
 #include "Render/CommandQueue.h"
 #include "Render/SwapChain.h"
 
-Blainn::Device::Device(bool useWarpDevice)
-    : m_useWarpDevice(useWarpDevice)
+Blainn::Device& Blainn::Device::GetInstance()
 {
+    static Device device;
+    return device;
+}
+
+void Blainn::Device::Init(bool useWarpDevice)
+{
+    m_useWarpDevice = useWarpDevice;
+    
     ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(&m_factory)));
 
     if (m_useWarpDevice)
