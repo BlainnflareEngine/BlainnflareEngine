@@ -9,7 +9,8 @@ namespace Blainn
     {
     }
 
-    void RootSignature::Create(const eastl::shared_ptr<Device>& device, UINT numParameters, const CD3DX12_ROOT_PARAMETER *rootParams, D3D12_ROOT_SIGNATURE_FLAGS flags)
+    void RootSignature::Create(Device &device, UINT numParameters, const CD3DX12_ROOT_PARAMETER *rootParams,
+                               D3D12_ROOT_SIGNATURE_FLAGS flags)
     {
         auto staticSamplers = GetStaticSamplers();
 
@@ -19,7 +20,7 @@ namespace Blainn
         ComPtr<ID3DBlob> signature = nullptr;
         ComPtr<ID3DBlob> error = nullptr;
         ThrowIfFailed(D3D12SerializeRootSignature(&m_rootSignatureDesc, m_rootSignatureVersion, &signature, &error));
-        ThrowIfFailed(device->CreateRootSignature(0u, signature->GetBufferPointer(), signature->GetBufferSize(), m_rootSignature));
+        ThrowIfFailed(device.CreateRootSignature(0u, signature->GetBufferPointer(), signature->GetBufferSize(), m_rootSignature));
     }
 
     std::array<const CD3DX12_STATIC_SAMPLER_DESC, 5> RootSignature::GetStaticSamplers()

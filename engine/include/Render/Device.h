@@ -14,14 +14,13 @@ namespace Blainn
     class SwapChain;
     class CommandQueue;
 
-    class Device /*: public eastl::enable_shared_from_this<Device>*/
+    class Device
     {
-    protected:
         Device() = default;
         
     public:
-        void Init(bool bUseWarpAdapter = false);
         static Device& GetInstance();
+        void Init(bool bUseWarpAdapter = false);
         
         ~Device();
         
@@ -36,7 +35,6 @@ namespace Blainn
         eastl::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE commandListType = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
         
         eastl::shared_ptr<SwapChain> CreateSwapChain(HWND window, DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R10G10B10A2_UNORM);
-        VOID CreateCommandQueues();
         HRESULT CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE commandListType, ComPtr<ID3D12CommandAllocator>&  commandAllocator);
         
         HRESULT CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors,
@@ -60,8 +58,12 @@ namespace Blainn
                                        D3D12_RESOURCE_STATES initialResourceState,
                                        const D3D12_CLEAR_VALUE &optClearValue, ComPtr<ID3D12Resource>& resource);
 
+        VOID CreateCommandQueues();
+        bool IsInitialized() const { return m_isInitialized; }
+
     private:
         VOID GetHardwareAdapter(_In_ IDXGIFactory1 *pFactory, _Outptr_result_maybenull_ IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter = false);
+
     private:
         static inline UINT m_dxgiFactoryFlags = 0u;
         bool m_useWarpDevice = false;
@@ -76,5 +78,7 @@ namespace Blainn
         ComPtr<ID3D12Device2> m_device = nullptr;
         //ComPtr<ID3D12Device4> m_device4 = nullptr;
         ComPtr<IDXGIFactory4> m_factory = nullptr;
+
+        bool m_isInitialized = false;
     };
 }

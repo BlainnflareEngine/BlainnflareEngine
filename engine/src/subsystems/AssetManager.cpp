@@ -48,13 +48,13 @@ namespace Blainn
         Material material = Material(std::filesystem::current_path() / "Default.mat", "Default");
         m_materials.emplace(eastl::make_shared<Material>(material));
 
-        // TODO: create default mesh
-        auto defaultMeshData = PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f);
-        auto model = eastl::make_shared<Model>();
-        model->SetMeshes({defaultMeshData});
-        model->CreateGPUBuffers()
+        //// TODO: create default mesh
+        //auto defaultMeshData = PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f);
+        //auto model = eastl::make_shared<Model>();
+        //model->SetMeshes({defaultMeshData});
+        //model->CreateBufferResources();
 
-        m_meshes.emplace(model);
+        //m_meshes.emplace(model);
     }
 
 
@@ -367,9 +367,7 @@ namespace Blainn
 
     void AssetManager::CreateMeshDataResource(const eastl::shared_ptr<Model>& model)
     {
-        auto gfxDevice = Engine::GetGraphicsDevice();
-    
-        model->CreateBufferResources(gfxDevice);
+        model->CreateBufferResources();
     }
 
 } // namespace Blainn

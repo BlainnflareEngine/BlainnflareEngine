@@ -17,7 +17,7 @@ namespace Blainn
         RootSignature& operator=(RootSignature&& rhs) = delete;*/
 
     public:
-        void Create(const eastl::shared_ptr<Device>& device, UINT numParameters, const CD3DX12_ROOT_PARAMETER *rootParams, D3D12_ROOT_SIGNATURE_FLAGS flags);
+        void Create(Device& device, UINT numParameters, const CD3DX12_ROOT_PARAMETER *rootParams, D3D12_ROOT_SIGNATURE_FLAGS flags);
 
         FORCEINLINE ID3D12RootSignature *Get() const
         {

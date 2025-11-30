@@ -10,7 +10,7 @@ namespace Blainn
     class SwapChain
     {
     public:
-        SwapChain(Device& device, HWND hWnd, DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R10G10B10A2_UNORM);
+        SwapChain(HWND hWnd, DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R10G10B10A2_UNORM);
         virtual ~SwapChain();
 
     private:
@@ -41,8 +41,6 @@ namespace Blainn
 
     private:
         Microsoft::WRL::ComPtr<IDXGISwapChain3> m_dxgiSwapChain;
-
-        Device& m_device;                               // Device that created this swap chain
 
         ComPtr<ID3D12Resource> m_renderTargets[SwapChainFrameCount];
         UINT m_currBackBuffer = 0u;

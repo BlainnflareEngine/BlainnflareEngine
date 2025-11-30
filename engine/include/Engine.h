@@ -32,8 +32,6 @@ namespace Blainn
         static void ClearActiveScene();
 
     public:
-        static eastl::shared_ptr<Device> GetGraphicsDevice();
-
         static HWND CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle,
                                        const std::string &winClassTitle, HINSTANCE hInst);
         static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);

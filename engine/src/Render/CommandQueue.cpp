@@ -21,6 +21,9 @@ Blainn::CommandQueue::CommandQueue(const ComPtr<ID3D12Device2>& device, D3D12_CO
 
     m_fenceEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
     assert(m_fenceEvent && "Failed to create fence event handle.");
+
+    ThrowIfFailed(m_device->CreateCommandAllocator(type, IID_PPV_ARGS(defaultCommandAllocator.GetAddressOf())));
+    ThrowIfFailed(m_device->CreateCommandList(0u, type, defaultCommandAllocator.Get(), nullptr, IID_PPV_ARGS(defaultCommandList.GetAddressOf())));
 }
 
 Blainn::CommandQueue::~CommandQueue()
@@ -117,6 +120,16 @@ ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::GetCommandList(ID3D12Co
     ThrowIfFailed(commandList->Reset(pCommandAllocator, nullptr));
 
     return commandList;
+}
+
+ComPtr<ID3D12CommandAllocator> Blainn::CommandQueue::GetDefaultCommandAllocator()
+{
+    return defaultCommandAllocator;
+}
+
+ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::GetDefaultCommandList()
+{
+    return defaultCommandList;
 }
 
 // Execute a command list.

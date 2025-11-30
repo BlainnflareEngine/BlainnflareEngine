@@ -18,6 +18,10 @@ namespace Blainn
         ComPtr<ID3D12CommandAllocator> GetCommandAllocator();
         ComPtr<ID3D12GraphicsCommandList2> GetCommandList(ID3D12CommandAllocator *pCommandList);
 
+        // Get an available command list from the command queue.
+        ComPtr<ID3D12CommandAllocator> GetDefaultCommandAllocator();
+        ComPtr<ID3D12GraphicsCommandList2> GetDefaultCommandList();
+
         // Execute a command list.
         void ExecuteCommandList(ComPtr<ID3D12GraphicsCommandList2> cmdList);
 
@@ -45,5 +49,8 @@ namespace Blainn
         D3D12_COMMAND_LIST_TYPE m_commandListType;
         CommandListQueue m_commandListQueue;
         CommandAllocatorQueue m_commandAllocatorQueue;
+
+        ComPtr<ID3D12GraphicsCommandList2> defaultCommandList;
+        ComPtr<ID3D12CommandAllocator> defaultCommandAllocator;
     };
 } // namespace Blainn

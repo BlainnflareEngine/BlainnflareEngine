@@ -28,6 +28,21 @@ void Blainn::Device::Init(bool useWarpDevice)
 
         ThrowIfFailed(D3D12CreateDevice(m_hardwareAdapter.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&m_device)));
     }
+
+    CreateCommandQueues();
+
+    m_isInitialized = true;
+}
+
+void Blainn::Device::CreateCommandQueues()
+{
+    // If we have multiple command queues, we can write a resource only from one queue at the same time.
+    // Before it can be accessed by another queue, it must transition to read or common state.
+    // In a read state resource can be read from multiple command queues simultaneously, including across processes,
+    // based on its read state.
+    m_directCommandQueue = eastl::make_shared<CommandQueue>(m_device, D3D12_COMMAND_LIST_TYPE_DIRECT);
+    m_copyCommandQueue = eastl::make_shared<CommandQueue>(m_device, D3D12_COMMAND_LIST_TYPE_COPY);
+    m_computeCommandQueue = eastl::make_shared<CommandQueue>(m_device, D3D12_COMMAND_LIST_TYPE_COMPUTE);
 }
 
 Blainn::Device::~Device()
@@ -140,20 +155,9 @@ _Use_decl_annotations_ VOID Blainn::Device::GetHardwareAdapter(IDXGIFactory1 *pF
 
 eastl::shared_ptr<Blainn::SwapChain> Blainn::Device::CreateSwapChain(HWND window, DXGI_FORMAT backBufferFormat)
 {
-    eastl::shared_ptr<SwapChain> swapChain = eastl::make_shared<SwapChain>(*this, window, backBufferFormat);
+    eastl::shared_ptr<SwapChain> swapChain = eastl::make_shared<SwapChain>(window, backBufferFormat);
 
     return swapChain;
-}
-
-VOID Blainn::Device::CreateCommandQueues()
-{
-    // If we have multiple command queues, we can write a resource only from one queue at the same time.
-    // Before it can be accessed by another queue, it must transition to read or common state.
-    // In a read state resource can be read from multiple command queues simultaneously, including across processes,
-    // based on its read state.
-    m_directCommandQueue = eastl::make_shared<CommandQueue>(m_device, D3D12_COMMAND_LIST_TYPE_DIRECT);
-    m_copyCommandQueue = eastl::make_shared<CommandQueue>(m_device, D3D12_COMMAND_LIST_TYPE_COPY);
-    m_computeCommandQueue = eastl::make_shared<CommandQueue>(m_device, D3D12_COMMAND_LIST_TYPE_COMPUTE);
 }
 
 HRESULT Blainn::Device::CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE commandListType, ComPtr<ID3D12CommandAllocator>& commandAllocator)

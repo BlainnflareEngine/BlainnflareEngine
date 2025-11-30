@@ -67,14 +67,8 @@ Model::Model()
         m_meshes = meshes;
     }
 
-    void Model::CreateBufferResources(const eastl::shared_ptr<Device> &device)
+    void Model::CreateBufferResources(ID3D12GraphicsCommandList2* pCommandList)
     {
-        // Device still NULL here
-
-        /*auto commandQueue = device->GetCommandQueue();
-        auto commandAllocator = commandQueue->GetCommandAllocator();
-        auto commandList = device->GetCommandQueue()->GetCommandList(commandAllocator.Get());*/
-                    
         for (auto &mesh : GetMeshes())
         {
             totalVertexCount += mesh.vertices.size();
@@ -100,7 +94,9 @@ Model::Model()
             indexValueOffsetPerMesh += mesh.vertices.size();
         }
 
-        //CreateGPUBuffers(device->GetDevice2().Get(), commandList.Get(), allVertices, allIndices);
+        auto cmdQueue = Device::GetInstance().GetCommandQueue();
+       
+        CreateGPUBuffers(cmdQueue->GetDefaultCommandList().Get(), allVertices, allIndices);
     }
 
     D3D12_VERTEX_BUFFER_VIEW Model::VertexBufferView() const

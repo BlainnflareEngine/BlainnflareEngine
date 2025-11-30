@@ -1,12 +1,14 @@
+#include "pch.h"
+
 #include "Render/SwapChain.h"
 #include "Render/Device.h"
 #include "Render/CommandQueue.h"
+#include "comdef.h"
 
 namespace Blainn
 {
-    SwapChain::SwapChain(Device& device, HWND hWnd, DXGI_FORMAT backBufferFormat)
-        : m_device(device)
-        , m_hWnd(hWnd)
+    SwapChain::SwapChain(HWND hWnd, DXGI_FORMAT backBufferFormat)
+        : m_hWnd(hWnd)
         , m_width(0u)
         , m_height(0u)
         , m_backBufferFormat(backBufferFormat)
@@ -49,12 +51,20 @@ namespace Blainn
         swapChainFullScreenDesc.RefreshRate.Denominator = 1u;
         swapChainFullScreenDesc.Windowed = TRUE;
 
-        auto commandQueue = m_device.GetCommandQueue();
-        auto factory = m_device.GetFactory();
+        auto &device = Device::GetInstance();
+        auto commandQueue = device.GetCommandQueue();
+        
+        auto factory = device.GetFactory();
+
         ComPtr<IDXGISwapChain1> swapChain;
+        
         ThrowIfFailed(factory->CreateSwapChainForHwnd(
             commandQueue->GetCommandQueue().Get(), // Swap chain needs the queue so that it can force a flush on it.
             hWnd, &swapChainDesc, &swapChainFullScreenDesc, nullptr, &swapChain));
+
+        HRESULT hr = device.GetDevice2()->GetDeviceRemovedReason();
+        auto error = _com_error(hr);
+        BF_ERROR("{}", error.ErrorMessage());
 
         // This sample does not support fullscreen transitions.
         ThrowIfFailed(factory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER));
@@ -131,7 +141,7 @@ namespace Blainn
         for (UINT i = 0; i < SwapChainFrameCount; ++i)
         {
             ThrowIfFailed(m_dxgiSwapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])));
-            m_device.CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHeapHandle);
+            Device::GetInstance().CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHeapHandle);
             rtvHeapHandle.Offset(1, rtvDescriptorSize);
 
             std::wstring name = L"Backbuffer[" + std::to_wstring(i) + L"]";

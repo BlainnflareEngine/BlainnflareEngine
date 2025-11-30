@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include "Render/DXHelpers.h"
 #include "Render/SwapChain.h"
+#include "Render/Device.h"
 
 #include "handles/Handle.h"
 #include "scene/Entity.h"
@@ -74,7 +75,7 @@ namespace Blainn
         };
 
     private:
-        RenderSubsystem() = default; 
+        RenderSubsystem() = default;
         RenderSubsystem(const RenderSubsystem&) = delete;
         RenderSubsystem& operator=(const RenderSubsystem&) = delete;
         RenderSubsystem(const RenderSubsystem&&) = delete;
@@ -82,7 +83,7 @@ namespace Blainn
     public:
         static RenderSubsystem &GetInstance();
 
-        void Init(eastl::shared_ptr<Device> device, HWND window);
+        void Init(HWND window);
         void SetWindowParams(HWND window);
         void Render(float deltaTime);
         void Destroy();
@@ -113,7 +114,7 @@ namespace Blainn
         void LoadGraphicsFeatures();
 
 #pragma region TempRender
-        void CreateRenderItems(ID3D12GraphicsCommandList *pCommandList);
+        void CreateRenderItems(ID3D12GraphicsCommandList2 *pCommandList);
 
         eastl::vector<eastl::unique_ptr<Model>> m_meshItems;
 #pragma endregion TempRender
@@ -225,7 +226,7 @@ namespace Blainn
     private:
         // Pipeline objects.
         eastl::shared_ptr<SwapChain> m_swapChain;
-        eastl::shared_ptr<Device> m_device;
+        Device& m_device = Device::GetInstance();
 
         eastl::unique_ptr<Renderer> m_renderer = nullptr;
 

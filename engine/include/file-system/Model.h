@@ -31,25 +31,24 @@ namespace Blainn
         void SetMeshes(const eastl::vector<MeshData<>> &meshes);
 
     public:
-        void CreateBufferResources(const eastl::shared_ptr<Device> &device);
+        void CreateBufferResources(ID3D12GraphicsCommandList2* pCommandList = nullptr);
         
         template <typename TVertex, typename TIndex = UINT>
-        void CreateGPUBuffers(ID3D12Device2 *device, ID3D12GraphicsCommandList *cmdList,
-                              const eastl::vector<TVertex> &vertices,
-                              const eastl::vector<TIndex> &indices = eastl::vector<TIndex>(0))
+        void CreateGPUBuffers(ID3D12GraphicsCommandList2* pCommandList, const eastl::vector<TVertex> &vertices, const eastl::vector<TIndex> &indices = eastl::vector<TIndex>(0))
         {
             static_assert(eastl::is_same<TIndex, unsigned>() || eastl::is_same<TIndex, unsigned short>());
 
+            auto& device = Device::GetInstance();
 
-            auto& device_ = Device::GetInstance();
-            auto commandList = device_->GetCommandQueue()->GetCommandList();
-
+            // TODO
             const UINT64 vbByteSize = vertices.size() * sizeof(TVertex);
             const UINT ibByteSize = (UINT)indices.size() * sizeof(TIndex);
 
             if (vbByteSize)
             {
-                VertexBufferGPU = FreyaUtil::CreateDefaultBuffer(device, cmdList, vertices.data(), vbByteSize, VertexBufferUploader); // Create GPU resource
+                VertexBufferGPU = FreyaUtil::CreateDefaultBuffer(device.GetDevice2().Get(), pCommandList,
+                                                                 vertices.data(), vbByteSize,
+                                                   VertexBufferUploader); // Create GPU resource
                 // For vertex buffer view.
                 VertexBufferByteSize = (UINT)vbByteSize;
                 VertexByteStride = sizeof(TVertex);
@@ -57,7 +56,7 @@ namespace Blainn
 
             if (ibByteSize)
             {
-                IndexBufferGPU = FreyaUtil::CreateDefaultBuffer(device, cmdList, indices.data(), ibByteSize, IndexBufferUploader); // Create GPU resource
+                IndexBufferGPU = FreyaUtil::CreateDefaultBuffer(device.GetDevice2().Get(), pCommandList, indices.data(), ibByteSize, IndexBufferUploader); // Create GPU resource
                 // For index buffer view.
                 IndexBufferByteSize = ibByteSize;
                 IndexFormat = (eastl::is_same<TIndex, unsigned short>()) ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;

@@ -8,7 +8,7 @@ namespace Blainn
 
     struct FrameResource
     {
-        FrameResource(const eastl::shared_ptr<Device>& device, UINT passCount, UINT objectCount, UINT materialCount, UINT pointLightsCount);
+        FrameResource(Device& device, UINT passCount, UINT objectCount, UINT materialCount, UINT pointLightsCount);
         FrameResource(const FrameResource &lhs) = delete;
         FrameResource &operator=(const FrameResource &lhs) = delete;
 

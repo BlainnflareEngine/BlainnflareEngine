@@ -18,8 +18,6 @@
 
 using namespace Blainn;
 
-eastl::shared_ptr<Device> Engine::m_device = nullptr;
-
 void Engine::Init()
 {
     bool useWarpDevice = false;
@@ -62,12 +60,11 @@ void Engine::InitRenderSubsystem(HWND windowHandle)
     // NOTE: Enabling the debug layer after device creation will invalidate the active device.
     Device::CreateDebugLayer();
 #endif
-    m_device = eastl::make_shared<Device>();
 
 #pragma endregion RenderingContext
 
     auto &renderInst = RenderSubsystem::GetInstance();
-    renderInst.Init(m_device, windowHandle);
+    renderInst.Init(windowHandle);
     m_renderFunc = std::bind(&RenderSubsystem::Render, &renderInst, std::placeholders::_1);
 }
 

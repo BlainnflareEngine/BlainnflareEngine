@@ -11,7 +11,6 @@
 #include "Handles/Handle.h"
 #include "Scene/Scene.h"
 
-#include "Render/Device.h"
 #include "Render/CommandQueue.h"
 #include "Render/FreyaMath.h"
 #include "Render/FreyaUtil.h"
@@ -26,23 +25,18 @@
 
 using namespace Blainn;
 
-void Blainn::RenderSubsystem::Init(eastl::shared_ptr<Device> device, HWND window)
+void Blainn::RenderSubsystem::Init(HWND window)
 {
     if (m_isInitialized) return;
     
-    m_device = device;
     SetWindowParams(window);
     
-    BF_INFO("RenderSubsystem::Init() called");
-
     InitializeD3D();
     LoadGraphicsFeatures();
     LoadPipeline();
 
-    /*m_renderer = eastl::make_unique<Renderer>(m_device.Get(), m_width, m_height);
-    m_renderer->Init();*/
-
     m_isInitialized = true;
+    BF_INFO("RenderSubsystem::Init() called");
 }
 
 void Blainn::RenderSubsystem::SetWindowParams(HWND window)
@@ -88,7 +82,7 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     m_currFrameResourceIndex = (m_currFrameResourceIndex + 1) % gNumFrameResources;
     m_currFrameResource = m_frameResources[m_currFrameResourceIndex].get();
 
-    auto commandQueue = m_device->GetCommandQueue();
+    auto commandQueue = m_device.GetCommandQueue();
     // Has the GPU finished processing the commands of the current frame resource?
     // If not, wait until the GPU has completed commands up to this fence point.
     if (m_currFrameResource->Fence != 0 /*&& !m_commandQueue->IsFenceComplete(m_currFrameResource->Fence)*/)
@@ -181,7 +175,6 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
 
 VOID Blainn::RenderSubsystem::InitializeD3D()
 {
-    CreateCommandObjectsAndInternalFence();
     CreateSwapChain();
     CreateRtvAndDsvDescriptorHeaps();
     
@@ -197,35 +190,27 @@ void Blainn::RenderSubsystem::SetCustomWindowText(LPCWSTR text) const
     // SetWindowText(m_hWND_, windowText.c_str());
 }
 
-VOID Blainn::RenderSubsystem::CreateCommandObjectsAndInternalFence()
-{
-    //m_commandQueue = eastl::make_shared<CommandQueue>(m_device, D3D12_COMMAND_LIST_TYPE_DIRECT);
-    m_device->CreateCommandQueues();
-
-    m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator);
-}
-
 VOID Blainn::RenderSubsystem::CreateSwapChain()
 {
-    m_swapChain = m_device->CreateSwapChain(m_hWND, BackBufferFormat);
+    m_swapChain = Device::GetInstance().CreateSwapChain(m_hWND, BackBufferFormat);
 }
 
 // Create descriptor heaps. Descriptor heap has to be created for every GPU resource
 VOID Blainn::RenderSubsystem::CreateRtvAndDsvDescriptorHeaps()
 {
     // Describe and create a render target view (RTV) descriptor heap.
-    ThrowIfFailed(m_device->CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, SwapChainFrameCount + (GBuffer::EGBufferLayer::MAX - 1u), m_rtvHeap));
-    m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, SwapChainFrameCount + (GBuffer::EGBufferLayer::MAX - 1u), m_rtvHeap));
+    m_rtvDescriptorSize = m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
-    ThrowIfFailed(m_device->CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 3u /*main DSV + csm + DSV from GBuffer*/, m_dsvHeap));
-    m_dsvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 3u /*main DSV + csm + DSV from GBuffer*/, m_dsvHeap));
+    m_dsvDescriptorSize = m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 }
 
 VOID Blainn::RenderSubsystem::Reset()
 {
-    auto commandQueue = m_device->GetCommandQueue();
+    auto commandQueue = m_device.GetCommandQueue();
     
-    assert(m_device);
+    assert(&m_device);
     assert(m_swapChain);
     assert(commandQueue);
     assert(m_commandAllocator);
@@ -259,12 +244,12 @@ VOID Blainn::RenderSubsystem::Reset()
     optClear.DepthStencil.Depth = 1.0f;
     optClear.DepthStencil.Stencil = 0u;
 
-    ThrowIfFailed(m_device->CreateCommittedResource(D3D12_HEAP_TYPE_DEFAULT, D3D12_HEAP_FLAG_NONE, depthStencilDesc, 
+    ThrowIfFailed(m_device.CreateCommittedResource(D3D12_HEAP_TYPE_DEFAULT, D3D12_HEAP_FLAG_NONE, depthStencilDesc, 
                                                     D3D12_RESOURCE_STATE_COMMON, optClear,
                                                     m_depthStencilBuffer));
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
-    m_device->CreateDepthStencilView(m_depthStencilBuffer.Get(), DepthStencilFormat, dsvHandle);
+    m_device.CreateDepthStencilView(m_depthStencilBuffer.Get(), DepthStencilFormat, dsvHandle);
     m_depthStencilBuffer->SetName(L"DepthStencilBuffer");
 
     // Transition the resource from its initial state to be used as a depth buffer.
@@ -313,7 +298,7 @@ void Blainn::RenderSubsystem::OnResize(UINT newWidth, UINT newHeight)
 
 void Blainn::RenderSubsystem::LoadPipeline()
 {
-    auto commandQueue = m_device->GetCommandQueue();
+    auto commandQueue = m_device.GetCommandQueue();
     auto commandList = commandQueue->GetCommandList(m_commandAllocator.Get());
 
     CreateRenderItems(commandList.Get());
@@ -332,26 +317,24 @@ void Blainn::RenderSubsystem::LoadGraphicsFeatures()
 {
     m_camera = eastl::make_unique<Camera>();
     
-    m_cascadeShadowMap = eastl::make_unique<CascadeShadowMap>(m_device->GetDevice2().Get(), 2048u, 2048u, MaxCascades);
+    m_cascadeShadowMap = eastl::make_unique<CascadeShadowMap>(m_device.GetDevice2().Get(), 2048u, 2048u, MaxCascades);
     m_cascadeShadowMap->CreateShadowCascadeSplits(m_camera->GetNearZ(), m_camera->GetFarZ());
 
-    m_GBuffer = eastl::make_unique<GBuffer>(m_device->GetDevice2().Get(), m_width, m_height);
+    m_GBuffer = eastl::make_unique<GBuffer>(m_device.GetDevice2().Get(), m_width, m_height);
     // Explicitly reset all window params dependent features
 
     ResetGraphicsFeatures();
     m_areGraphicsFeaturesLoaded = true;
 }
 
-void Blainn::RenderSubsystem::CreateRenderItems(ID3D12GraphicsCommandList *pCommandList)
+void Blainn::RenderSubsystem::CreateRenderItems(ID3D12GraphicsCommandList2 *pCommandList)
 {
     eastl::unique_ptr<Model> cubeModel = eastl::make_unique<Model>();
     auto cubeMesh = PrebuiltEngineMeshes::CreateBox(1.0f, 1.0f, 1.0f);
     cubeModel->SetMeshes(eastl::vector<MeshData<>>{cubeMesh});
-    cubeModel->CreateBufferResources(m_device);
-    cubeModel->CreateGPUBuffers(m_device->GetDevice2().Get(), pCommandList, cubeMesh.vertices, cubeMesh.indices);
+    cubeModel->CreateBufferResources(pCommandList);
+    //cubeModel->CreateGPUBuffers(cubeMesh.vertices, cubeMesh.indices);
     m_meshItems.push_back(eastl::move(cubeModel));
-
-
 }
 
 void Blainn::RenderSubsystem::CreateFrameResources()
@@ -367,10 +350,10 @@ void Blainn::RenderSubsystem::CreateFrameResources()
 
 void Blainn::RenderSubsystem::CreateDescriptorHeaps()
 {
-    ThrowIfFailed(m_device->CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
                                                  1u + 5u /*+ (UINT)m_textures.size()*/, m_srvHeap));
                                              // csm + GBuffer
-    m_cbvSrvUavDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    m_cbvSrvUavDescriptorSize = m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvHeap->GetCPUDescriptorHandleForHeapStart());
 
@@ -405,7 +388,7 @@ void Blainn::RenderSubsystem::CreateDescriptorHeaps()
     srvDesc.Texture2DArray.ArraySize = m_cascadeShadowMap->Get()->GetDesc().DepthOrArraySize;
     srvDesc.Texture2DArray.PlaneSlice = 0u;
     srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
-    m_device->CreateShaderResourceView(nullptr, &srvDesc, handle);
+    m_device.CreateShaderResourceView(nullptr, &srvDesc, handle);
 
     handle.Offset(1, m_cbvSrvUavDescriptorSize);
 
@@ -429,7 +412,7 @@ void Blainn::RenderSubsystem::CreateDescriptorHeaps()
         srvDesc.Format = (i == GBuffer::EGBufferLayer::DEPTH) ? DXGI_FORMAT_R24_UNORM_X8_TYPELESS : m_GBuffer->GetBufferTextureFormat(i);
         srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
         srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-        m_device->CreateShaderResourceView(nullptr, &srvDesc, handle);
+        m_device.CreateShaderResourceView(nullptr, &srvDesc, handle);
 
         auto cpuDsvRtvHandle =
             (i == GBuffer::EGBufferLayer::DEPTH)
@@ -547,7 +530,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     cascadeShadowPsoDesc.InputLayout = SimpleVertex::InputLayout;
     cascadeShadowPsoDesc.NumRenderTargets = 0u;
     cascadeShadowPsoDesc.RTVFormats[0] = DXGI_FORMAT_UNKNOWN;
-    ThrowIfFailed(m_device->CreateGraphicsPipelineState(cascadeShadowPsoDesc, m_pipelineStates[EPsoType::CascadedShadowsOpaque]));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(cascadeShadowPsoDesc, m_pipelineStates[EPsoType::CascadedShadowsOpaque]));
 #pragma endregion CascadeShadowsDepthPass
 
 #pragma region DeferredShading
@@ -567,14 +550,13 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     GBufferPsoDesc.RTVFormats[1] = m_GBuffer->GetBufferTextureFormat(GBuffer::EGBufferLayer::AMBIENT_OCCLUSION);
     GBufferPsoDesc.RTVFormats[2] = m_GBuffer->GetBufferTextureFormat(GBuffer::EGBufferLayer::NORMAL);
     GBufferPsoDesc.RTVFormats[3] = m_GBuffer->GetBufferTextureFormat(GBuffer::EGBufferLayer::SPECULAR);
-    ThrowIfFailed(m_device->CreateGraphicsPipelineState(GBufferPsoDesc, m_pipelineStates[EPsoType::DeferredGeometry]));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(GBufferPsoDesc, m_pipelineStates[EPsoType::DeferredGeometry]));
 
     // not sure it works
 #pragma region Wireframe
     D3D12_GRAPHICS_PIPELINE_STATE_DESC opaqueWireframe = GBufferPsoDesc;
     opaqueWireframe.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-    ThrowIfFailed(
-        m_device->CreateGraphicsPipelineState(opaqueWireframe, m_pipelineStates[EPsoType::Wireframe]));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(opaqueWireframe, m_pipelineStates[EPsoType::Wireframe]));
 #pragma endregion Wireframe
 
 #pragma region DeferredDirectional
@@ -590,7 +572,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
             m_shaders.at(EShaderType::DeferredDirPS)->GetBufferSize()
         });
     dirLightPsoDesc.InputLayout = SimpleVertex::InputLayout;
-    ThrowIfFailed(m_device->CreateGraphicsPipelineState(dirLightPsoDesc, m_pipelineStates[EPsoType::DeferredDirectional]));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(dirLightPsoDesc, m_pipelineStates[EPsoType::DeferredDirectional]));
 #pragma endregion DeferredDirectional
 
 #pragma region DeferredPointLight
@@ -632,13 +614,13 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.StencilEnable = FALSE;
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.StencilReadMask = 0xFF;
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.StencilWriteMask = 0xFF;
-    ThrowIfFailed(m_device->CreateGraphicsPipelineState(pointLightIntersectsFarPlanePsoDesc, m_pipelineStates[EPsoType::DeferredPointIntersectsFarPlane]));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(pointLightIntersectsFarPlanePsoDesc, m_pipelineStates[EPsoType::DeferredPointIntersectsFarPlane]));
     
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC pointLightWithinFrustumPsoDesc = pointLightIntersectsFarPlanePsoDesc;
     pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; // ???
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
-    ThrowIfFailed(m_device->CreateGraphicsPipelineState(pointLightWithinFrustumPsoDesc, m_pipelineStates[EPsoType::DeferredPointWithinFrustum]));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(pointLightWithinFrustumPsoDesc, m_pipelineStates[EPsoType::DeferredPointWithinFrustum]));
 
 #pragma endregion DeferredPointLight
 
@@ -649,7 +631,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
             reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredSpotPS)->GetBufferPointer()),
             m_shaders.at(EShaderType::DeferredSpotPS)->GetBufferSize()
         });
-    ThrowIfFailed(m_device->CreateGraphicsPipelineState(spotLightPsoDesc, m_pipelineStates[EPsoType::DeferredSpot]));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(spotLightPsoDesc, m_pipelineStates[EPsoType::DeferredSpot]));
 #pragma endregion DeferredSpotLight
 #pragma endregion DeferredShading
 }

@@ -51,9 +51,5 @@ inline void ThrowIfFailed(HRESULT hr)
     {
         throw HrException(hr);
     }
-}
-
-namespace Blainn
-{
 
 }
