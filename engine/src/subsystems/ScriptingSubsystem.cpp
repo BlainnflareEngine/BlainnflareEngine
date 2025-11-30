@@ -46,8 +46,10 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
     {
         m_scriptTestEntity = Engine::GetActiveScene()->CreateEntity("LuaScriptTestEntity");
         CreateAttachScriptingComponent(m_scriptTestEntity);
-        m_scriptTestUuid1 = ScriptingSubsystem::LoadScript(m_scriptTestEntity, "test1.lua", true).value_or(uuid());
-        m_scriptTestUuid2 = ScriptingSubsystem::LoadScript(m_scriptTestEntity, "test2.lua", true).value_or(uuid());
+        m_scriptTestUuid1 =
+            ScriptingSubsystem::LoadScript(m_scriptTestEntity, "scripts/test1.lua", true).value_or(uuid());
+        m_scriptTestUuid2 =
+            ScriptingSubsystem::LoadScript(m_scriptTestEntity, "./scripts/test2.lua", true).value_or(uuid());
 
         create = true;
     }
@@ -113,12 +115,7 @@ sol::state &ScriptingSubsystem::GetLuaState()
     return m_lua;
 }
 
-void ScriptingSubsystem::SetLuaScriptsFolder(const eastl::string &path)
-{
-    m_luaScriptsFolder = path;
-};
-
-eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const eastl::string &path, bool callOnStart)
+eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const Path &path, bool callOnStart)
 {
     ScriptingComponent *component = entity.TryGetComponent<ScriptingComponent>();
     if (!component)
@@ -127,10 +124,10 @@ eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const eastl:
         return eastl::optional<uuid>();
     }
 
-    eastl::string scriptLoadPath = m_luaScriptsFolder + path;
+    Path scriptLoadPath = Engine::GetContentDirectory() / path;
     if (!std::filesystem::exists(scriptLoadPath.c_str()))
     {
-        BF_ERROR("Script load error: script" + scriptLoadPath + "does not exist");
+        BF_ERROR("Script load error: script" + scriptLoadPath.string() + "does not exist");
         return eastl::optional<uuid>();
     }
 

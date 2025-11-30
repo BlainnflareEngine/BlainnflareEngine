@@ -16,9 +16,6 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
 {
     sol::table scriptTable = luaState.create_table();
 
-    scriptTable.set_function("SetLuaScriptsFolder", [](const std::string &path)
-                             { ScriptingSubsystem::SetLuaScriptsFolder(eastl::string(path.c_str())); });
-
     scriptTable.set_function("CreateAttachScriptingComponent",
                              [](Entity entity) { ScriptingSubsystem::CreateAttachScriptingComponent(entity); });
     scriptTable.set_function("DestroyScriptingComponent",
@@ -28,8 +25,7 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
                              [&luaState](Entity entity, const std::string &path, bool callOnStart)
                              {
                                  sol::state_view lua(luaState);
-                                 auto result =
-                                     ScriptingSubsystem::LoadScript(entity, eastl::string(path.c_str()), callOnStart);
+                                 auto result = ScriptingSubsystem::LoadScript(entity, Path(path.c_str()), callOnStart);
                                  if (!result.has_value()) return sol::object(sol::nil);
                                  return sol::make_object(lua, result.value().str());
                              });
@@ -55,10 +51,10 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
 
     // Register LuaScript usertype
     sol::usertype<LuaScript> LuaScriptType = luaState.new_usertype<LuaScript>("LuaScript", sol::default_constructor);
-    LuaScriptType.set_function("Load", [](LuaScript &s, const std::string &path)
-                               { return s.Load(eastl::string_view(path.c_str())); });
+    LuaScriptType.set_function("Load",
+                               [](LuaScript &s, const std::string &path) { return s.Load(Path(path.c_str())); });
     LuaScriptType.set_function("IsLoaded", &LuaScript::IsLoaded);
-    LuaScriptType.set_function("GetScriptPath", [](LuaScript &s) { return std::string(s.GetScriptPath().c_str()); });
+    LuaScriptType.set_function("GetScriptPath", [](LuaScript &s) { return s.GetScriptPath().string(); });
     LuaScriptType.set_function("GetId", [](LuaScript &s) { return s.GetId().str(); });
     LuaScriptType.set_function("HasFunction", [](LuaScript &s, const std::string &funcName)
                                { return s.HasFunction(eastl::string(funcName.c_str())); });

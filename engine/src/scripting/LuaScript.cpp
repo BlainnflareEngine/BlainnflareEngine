@@ -12,16 +12,16 @@ LuaScript::LuaScript()
     m_id = Rand::getRandomUUID();
 }
 
-bool LuaScript::Load(eastl::string_view scriptPath)
+bool LuaScript::Load(const Path &scriptPath)
 {
     m_scriptPath = scriptPath;
 
     sol::state &lua = ScriptingSubsystem::GetLuaState();
-    sol::load_result script = lua.load_file(scriptPath.data());
+    sol::load_result script = lua.load_file(scriptPath.string());
     if (!script.valid())
     {
         sol::error err = script;
-        BF_ERROR("Failed to load Lua script: " + m_scriptPath + "\nError: " + err.what());
+        BF_ERROR("Failed to load Lua script: {}\nError: {}", m_scriptPath.string(), err.what());
         return false;
     }
 
@@ -33,7 +33,7 @@ bool LuaScript::Load(eastl::string_view scriptPath)
     if (!result.valid())
     {
         sol::error err = result;
-        BF_ERROR("Failed to execute Lua script: " + m_scriptPath + "\nError: " + err.what());
+        BF_ERROR("Failed to execute Lua script: {}\nError: {}", m_scriptPath.string(), err.what());
         return false;
     }
 
@@ -50,7 +50,7 @@ bool LuaScript::IsLoaded() const
     return m_isLoaded;
 }
 
-const eastl::string &LuaScript::GetScriptPath() const
+const Path &LuaScript::GetScriptPath() const
 {
     return m_scriptPath;
 }

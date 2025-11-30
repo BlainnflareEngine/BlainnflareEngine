@@ -202,6 +202,7 @@ local function RunEntitySearchAndIDTests()
     local found = scene:GetEntityWithUUID(uuidStr)
     ok("GetEntityWithUUID returns entity", found ~= nil and found:IsValid())
 
+    -- TODO:
     -- TryGetEntityWithTag
     -- local search = scene:TryGetEntityWithTag("TestLuaTag")
     -- ok("TryGetEntityWithTag finds entity by tag", search ~= nil and search:IsValid())
@@ -298,7 +299,7 @@ local function RunScriptingLoadTests()
     ok("AddScriptingComponent", e:HasScriptingComponent())
 
     -- Attempt to load this script (test2.lua)
-    local id = Scripting.LoadScript(e, "test2.lua", true)
+    local id = Scripting.LoadScript(e, "./scripts/test2.lua", true)
     if type(id) == "string" then
         ok("Scripting.LoadScript returns id string", true)
         local scripts = Scripting.ListScripts(e)
@@ -352,7 +353,6 @@ local function RunAllTests()
     SafeCall(RunScriptingLoadTests, "ScriptingLoadTests")
     SafeCall(RunLuaScriptInstanceTest, "LuaScriptInstanceTest")
     SafeCall(RunInputTests, "InputTests")
-    print("\n")
     Log.Warn("--- Tests completed. Passed: " .. testsPassed .. ", Failed: " .. testsFailed .. " ---\n")
 end
 
