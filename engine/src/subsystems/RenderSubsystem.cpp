@@ -513,6 +513,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     defaultPsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT); // Blend state is disable
     defaultPsoDesc.SampleMask = UINT_MAX;
     defaultPsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+    
     defaultPsoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     defaultPsoDesc.InputLayout = BlainnVertex::InputLayout;
     defaultPsoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
@@ -1051,21 +1052,26 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
 
     auto currFrameObjCB = m_currFrameResource->ObjectsCB->Get();
 
-    const auto& renderEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, MeshComponent>();
+    const auto& renderEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
 
-    for (const auto& [entity, entityID, entityMesh] : renderEntitiesView.each())
+    for (const auto& [entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
     {
         //auto& model = entityMesh.m_meshHandle->GetMesh();
         auto &model = AssetManager::GetInstance().GetMeshByIndex(0);
         auto currVBV = model.VertexBufferView();
         auto currIBV = model.IndexBufferView();
 
+        auto matrix = entityTransform.GetTransform().Transpose();
+        ObjectConstants perObject;
+        perObject.World = matrix;
+        
+        m_currFrameResource->ObjectsCB->CopyData(0, perObject);
+
         pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
         pCommandList->IASetIndexBuffer(&currIBV);
-        
+
         D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currFrameObjCB->GetGPUVirtualAddress(), objCBByteSize, 0u /*ri->ObjCBIndex*/);
-        
         pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerObjectDataCB, objCBAddress);
 
         if (currVBV.SizeInBytes)
