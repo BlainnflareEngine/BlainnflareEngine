@@ -45,7 +45,7 @@ void Blainn::Device::CreateCommandQueues()
     m_computeCommandQueue = eastl::make_shared<CommandQueue>(m_device, D3D12_COMMAND_LIST_TYPE_COMPUTE);
 }
 
-Blainn::Device::~Device()
+void Blainn::Device::Destroy()
 {
     Flush();
 }

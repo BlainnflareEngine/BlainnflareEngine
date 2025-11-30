@@ -67,7 +67,7 @@ Model::Model()
         m_meshes = meshes;
     }
 
-    void Model::CreateBufferResources(ID3D12GraphicsCommandList2* pCommandList)
+    void Model::CreateBufferResources()
     {
         for (auto &mesh : GetMeshes())
         {
@@ -75,8 +75,11 @@ Model::Model()
             totalIndexCount += mesh.indices.size();
         }
 
-        eastl::vector<BlainnVertex> allVertices(totalVertexCount);
-        eastl::vector<UINT> allIndices(totalIndexCount);
+        eastl::vector<BlainnVertex> allVertices;
+        eastl::vector<UINT> allIndices;
+
+        allVertices.reserve(totalVertexCount);
+        allIndices.reserve(totalIndexCount);
 
         size_t indexValueOffsetPerMesh = 0;
         for (auto &mesh : GetMeshes())

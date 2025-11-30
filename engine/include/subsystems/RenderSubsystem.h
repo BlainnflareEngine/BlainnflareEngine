@@ -99,7 +99,6 @@ namespace Blainn
         VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter = false);
         VOID SetCustomWindowText(LPCWSTR text) const;
         
-        VOID CreateCommandObjectsAndInternalFence();
         VOID CreateSwapChain();
         VOID CreateRtvAndDsvDescriptorHeaps();
         
@@ -230,10 +229,6 @@ namespace Blainn
 
         eastl::unique_ptr<Renderer> m_renderer = nullptr;
 
-        // Temporary allocator that is needed only for initialization stage (but could be used for smth else)
-        ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;
-
-        //ComPtr<ID3D12Resource> m_renderTargets[SwapChainFrameCount];
         ComPtr<ID3D12Resource> m_depthStencilBuffer;
 
         eastl::shared_ptr<RootSignature> m_rootSignature;

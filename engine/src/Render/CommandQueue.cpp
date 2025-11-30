@@ -11,7 +11,7 @@ Blainn::CommandQueue::CommandQueue(const ComPtr<ID3D12Device2>& device, D3D12_CO
     desc.Type = type;
     desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
     desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    desc.NodeMask = 0;
+    desc.NodeMask = 0u;
 
     ThrowIfFailed(m_device->CreateCommandQueue(&desc, IID_PPV_ARGS(&m_commandQueue)));
 
@@ -23,7 +23,9 @@ Blainn::CommandQueue::CommandQueue(const ComPtr<ID3D12Device2>& device, D3D12_CO
     assert(m_fenceEvent && "Failed to create fence event handle.");
 
     ThrowIfFailed(m_device->CreateCommandAllocator(type, IID_PPV_ARGS(defaultCommandAllocator.GetAddressOf())));
+
     ThrowIfFailed(m_device->CreateCommandList(0u, type, defaultCommandAllocator.Get(), nullptr, IID_PPV_ARGS(defaultCommandList.GetAddressOf())));
+    ThrowIfFailed(defaultCommandList->Close());
 }
 
 Blainn::CommandQueue::~CommandQueue()

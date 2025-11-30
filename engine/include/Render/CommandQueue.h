@@ -50,6 +50,7 @@ namespace Blainn
         CommandListQueue m_commandListQueue;
         CommandAllocatorQueue m_commandAllocatorQueue;
 
+        // Temporary allocator and list that are needed only for initialization stage (but could be used for smth else)
         ComPtr<ID3D12GraphicsCommandList2> defaultCommandList;
         ComPtr<ID3D12CommandAllocator> defaultCommandAllocator;
     };

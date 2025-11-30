@@ -31,7 +31,7 @@ namespace Blainn
         void SetMeshes(const eastl::vector<MeshData<>> &meshes);
 
     public:
-        void CreateBufferResources(ID3D12GraphicsCommandList2* pCommandList = nullptr);
+        void CreateBufferResources();
         
         template <typename TVertex, typename TIndex = UINT>
         void CreateGPUBuffers(ID3D12GraphicsCommandList2* pCommandList, const eastl::vector<TVertex> &vertices, const eastl::vector<TIndex> &indices = eastl::vector<TIndex>(0))

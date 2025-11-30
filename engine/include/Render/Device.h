@@ -21,9 +21,8 @@ namespace Blainn
     public:
         static Device& GetInstance();
         void Init(bool bUseWarpAdapter = false);
-        
-        ~Device();
-        
+        void Destroy();
+
         // NOTE: Enabling the debug layer after device creation will invalidate the active device.
         static VOID CreateDebugLayer();
 

@@ -209,16 +209,18 @@ VOID Blainn::RenderSubsystem::CreateRtvAndDsvDescriptorHeaps()
 VOID Blainn::RenderSubsystem::Reset()
 {
     auto commandQueue = m_device.GetCommandQueue();
-    
+    auto commandAllocator = commandQueue->GetDefaultCommandAllocator();
+    auto commandList = commandQueue->GetDefaultCommandList();
+
     assert(&m_device);
     assert(m_swapChain);
     assert(commandQueue);
-    assert(m_commandAllocator);
+    assert(commandAllocator);
+    assert(commandList);
 
     // Before making any changes
     commandQueue->Flush();
-    auto commandList = commandQueue->GetCommandList(m_commandAllocator.Get());
-    
+
     // temp
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
     m_swapChain->Reset(m_width, m_height, rtvHeapHandle, m_rtvDescriptorSize);
@@ -254,10 +256,14 @@ VOID Blainn::RenderSubsystem::Reset()
 
     // Transition the resource from its initial state to be used as a depth buffer.
     auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+    ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
+
     commandList->ResourceBarrier(1, &transition);
 
     // Execute the resize commands.
-    commandQueue->ExecuteCommandList(commandList);
+    ThrowIfFailed(commandList->Close());
+    ID3D12CommandList *const ppCommandLists[] = {commandList.Get()};
+    commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
     // Wait until resize is complete.
     commandQueue->Flush();
@@ -299,8 +305,11 @@ void Blainn::RenderSubsystem::OnResize(UINT newWidth, UINT newHeight)
 void Blainn::RenderSubsystem::LoadPipeline()
 {
     auto commandQueue = m_device.GetCommandQueue();
-    auto commandList = commandQueue->GetCommandList(m_commandAllocator.Get());
+    auto commandAllocator = commandQueue->GetDefaultCommandAllocator();
+    auto commandList = commandQueue->GetDefaultCommandList();
 
+    ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
+    
     CreateRenderItems(commandList.Get());
     CreateFrameResources();
     CreateDescriptorHeaps();
@@ -309,7 +318,10 @@ void Blainn::RenderSubsystem::LoadPipeline()
     CreateShaders();
     CreatePipelineStateObjects();
 
-    commandQueue->ExecuteCommandList(commandList);
+    ThrowIfFailed(commandList->Close());
+    ID3D12CommandList *const ppCommandLists[] = {commandList.Get()};
+    commandQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
     commandQueue->Flush();
 }
 
@@ -329,12 +341,12 @@ void Blainn::RenderSubsystem::LoadGraphicsFeatures()
 
 void Blainn::RenderSubsystem::CreateRenderItems(ID3D12GraphicsCommandList2 *pCommandList)
 {
-    eastl::unique_ptr<Model> cubeModel = eastl::make_unique<Model>();
+    /*eastl::unique_ptr<Model> cubeModel = eastl::make_unique<Model>();
     auto cubeMesh = PrebuiltEngineMeshes::CreateBox(1.0f, 1.0f, 1.0f);
     cubeModel->SetMeshes(eastl::vector<MeshData<>>{cubeMesh});
     cubeModel->CreateBufferResources(pCommandList);
-    //cubeModel->CreateGPUBuffers(cubeMesh.vertices, cubeMesh.indices);
-    m_meshItems.push_back(eastl::move(cubeModel));
+    cubeModel->CreateGPUBuffers(pCommandList, cubeMesh.vertices, cubeMesh.indices);
+    m_meshItems.push_back(eastl::move(cubeModel));*/
 }
 
 void Blainn::RenderSubsystem::CreateFrameResources()
@@ -342,8 +354,8 @@ void Blainn::RenderSubsystem::CreateFrameResources()
     for (int i = 0; i < gNumFrameResources; i++)
     {
         m_frameResources.push_back(eastl::make_unique<FrameResource>(m_device, 
-            static_cast<UINT>(EPassType::NumPasses), 
-            m_meshItems.size() /*(UINT)m_renderItems.size()*/,
+            static_cast<UINT>(EPassType::NumPasses),
+            1u /*(UINT)m_renderItems.size()*/,
             0u /*(UINT)m_materials.size()*/, 0u /*MaxPointLights*/));
     }
 }
@@ -1043,7 +1055,8 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
 
     for (const auto& [entity, entityID, entityMesh] : renderEntitiesView.each())
     {
-        auto& model = entityMesh.m_meshHandle->GetMesh();
+        //auto& model = entityMesh.m_meshHandle->GetMesh();
+        auto &model = AssetManager::GetInstance().GetMeshByIndex(0);
         auto currVBV = model.VertexBufferView();
         auto currIBV = model.IndexBufferView();
 
@@ -1054,13 +1067,14 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
         D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currFrameObjCB->GetGPUVirtualAddress(), objCBByteSize, 0u /*ri->ObjCBIndex*/);
         
         pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerObjectDataCB, objCBAddress);
-        if (currVBV.SizeInBytes > 0)
+
+        if (currVBV.SizeInBytes)
         {
-            pCommandList->DrawIndexedInstanced(model.GetVerticesCount(), 1u, 0u, 0u, 0u);
+            pCommandList->DrawIndexedInstanced(model.GetIndicesCount(), 1u, 0u, 0u, 0u);
         }
         else
         {
-            pCommandList->DrawInstanced(model.GetIndicesCount(), 1u, 0u, 0u);
+            pCommandList->DrawInstanced(model.GetVerticesCount(), 1u, 0u, 0u);
         }
     }
 }

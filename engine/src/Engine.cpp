@@ -20,6 +20,11 @@ using namespace Blainn;
 
 void Engine::Init()
 {
+#if defined(DEBUG) || defined(_DEBUG)
+    // Enable the debug layer (requires the Graphics Tools "optional feature").
+    // NOTE: Enabling the debug layer after device creation will invalidate the active device.
+    Device::CreateDebugLayer();
+#endif
     bool useWarpDevice = false;
     Device::GetInstance().Init(useWarpDevice);
 
@@ -53,16 +58,6 @@ void Engine::Init()
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
 {
-    #pragma region RenderingContext
-
-#if defined(DEBUG) || defined(_DEBUG)
-    // Enable the debug layer (requires the Graphics Tools "optional feature").
-    // NOTE: Enabling the debug layer after device creation will invalidate the active device.
-    Device::CreateDebugLayer();
-#endif
-
-#pragma endregion RenderingContext
-
     auto &renderInst = RenderSubsystem::GetInstance();
     renderInst.Init(windowHandle);
     m_renderFunc = std::bind(&RenderSubsystem::Render, &renderInst, std::placeholders::_1);
@@ -77,6 +72,8 @@ void Engine::Destroy()
 
     RenderSubsystem::GetInstance().Destroy();
     Log::Destroy();
+
+    Device::GetInstance().Destroy();
 
     s_JobSystemPtr->terminate();
 }
