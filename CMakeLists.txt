@@ -8,6 +8,8 @@ cmake_policy(SET CMP0074 OLD)
 cmake_policy(SET CMP0169 OLD)
 add_compile_options(/EHsc)
 
+option(BLAINN_EXCLUDE_EDITOR "Build the engine without the editor" OFF)
+
 # Allow VS to have the filters
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -54,11 +56,7 @@ add_subdirectory(libs/yaml-cpp)
 add_subdirectory(libs/sol2)
 add_subdirectory(libs/D3D12MemoryAllocator)
 
-#if(NOT BLAINN_EXCLUDE_EDITOR)
-#    add_subdirectory(libs/qlementine)
-#endif()
-
-if(BLAINN_INCLUDE_EDITOR)
+if(NOT BLAINN_EXCLUDE_EDITOR)
     add_subdirectory(libs/qlementine)
 endif()
 
@@ -89,8 +87,7 @@ set(SOL2_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/libs/sol2/include)
 
 add_subdirectory(${ENGINE_DIR})
 
-#if(NOT BLAINN_EXCLUDE_EDITOR)
-if(BLAINN_INCLUDE_EDITOR)
+if(NOT BLAINN_EXCLUDE_EDITOR)
     add_subdirectory(${EDITOR_DIR})
 endif()
 
@@ -114,8 +111,7 @@ target_include_directories(pch INTERFACE
 target_precompile_headers(pch INTERFACE common/pch.h)
 
 
-#if(BLAINN_EXCLUDE_EDITOR)
-if(NOT BLAINN_INCLUDE_EDITOR)
+if(BLAINN_EXCLUDE_EDITOR)
     target_link_libraries(${PROJECT_NAME} PUBLIC
             pch
             ENGINE)
@@ -130,8 +126,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
         d3d12.lib
         d3dcompiler.lib)
 
-#if(BLAINN_EXCLUDE_EDITOR)
-if(NOT BLAINN_INCLUDE_EDITOR)
+if(BLAINN_EXCLUDE_EDITOR)
     target_include_directories(${PROJECT_NAME} PUBLIC
             "${ENGINE_DIR}"
             "${CMAKE_SOURCE_DIR}/libs"
@@ -163,9 +158,9 @@ else()
 endif()
 
 
-#if(NOT BLAINN_EXCLUDE_EDITOR)
-if(BLAINN_INCLUDE_EDITOR)
+if(NOT BLAINN_EXCLUDE_EDITOR)
     target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_INCLUDE_EDITOR)
+
     # Qt files deploy for Windows
     if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
         set(DEBUG_SUFFIX "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:d>")
