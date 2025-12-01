@@ -301,6 +301,11 @@ std::string ToString(const QString &str)
     return str.toUtf8().constData();
 }
 
+const char * ToCString(const QString &str)
+{
+    return str.toUtf8().constData();
+}
+
 
 eastl::string ToEASTLString(const QString &str)
 {

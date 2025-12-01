@@ -151,4 +151,45 @@ inline RelationshipComponent GetRelationship(const YAML::Node &node)
 
     return relationship;
 }
+
+inline bool HasScripting(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["ScriptingComponent"]) return true;
+
+    return false;
+}
+
+inline ScriptingComponent GetScripting(const YAML::Node &node)
+{
+    ScriptingComponent component;
+
+    if (!node || node.IsNull() || !node.IsMap())
+    {
+        BF_WARN("Scripting component not found or invalid in .scene file.");
+        return component;
+    }
+
+    const YAML::Node &scriptsNode = node["Scripts"];
+    if (!scriptsNode || !scriptsNode.IsSequence()) return component;
+
+    for (const auto &scriptNode : scriptsNode)
+    {
+        if (!scriptNode.IsMap()) continue;
+
+        std::string path = scriptNode["Path"].as<std::string>("");
+        if (path.empty()) continue;
+
+        bool shouldTriggerStart = true;
+        if (const YAML::Node &triggerNode = scriptNode["ShouldTriggerStart"])
+        {
+            shouldTriggerStart = triggerNode.as<bool>(true);
+        }
+
+        component.scriptPaths[eastl::string(path.c_str())] = ScriptInfo{shouldTriggerStart};
+    }
+
+    return component;
+}
 } // namespace Blainn

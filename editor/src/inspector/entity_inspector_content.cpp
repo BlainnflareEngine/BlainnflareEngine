@@ -4,8 +4,10 @@
 
 #include "entity_inspector_content.h"
 
+#include "../../include/inspector/entity/scripting/scripting_widget.h"
 #include "LabelsUtils.h"
 #include "components/MeshComponent.h"
+#include "components/ScriptingComponent.h"
 #include "entity/add_component_button.h"
 #include "entity/mesh_widget.h"
 #include "entity/transform_widget.h"
@@ -25,7 +27,8 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
         return;
     }
 
-    setLayout(new QVBoxLayout());
+    auto boxLayout = new QVBoxLayout();
+    setLayout(boxLayout);
 
     m_tag = new QLabel(ToHeader2(m_data.tag), this);
     m_tag->setTextFormat(Qt::MarkdownText);
@@ -36,12 +39,17 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     layout()->addWidget(separator);
 
     connect(m_data.node, &EntityNode::OnTagChanged, this, &entity_inspector_content::SetTag);
-    // TODO: get all components of this entity and create component widget for each
 
     if (entity.HasComponent<Blainn::TransformComponent>())
     {
         auto transform = new transform_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(transform);
+    }
+
+    if (entity.HasComponent<Blainn::ScriptingComponent>())
+    {
+        auto scripting = new scripting_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(scripting);
     }
 
     if (entity.HasComponent<Blainn::MeshComponent>())
@@ -50,7 +58,7 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
         layout()->addWidget(mesh);
     }
 
-    auto *addButton = new add_component_button(data.node->GetEntity(), layout(), this);
+    auto *addButton = new add_component_button(data.node->GetEntity(),  boxLayout, this);
     layout()->addWidget(addButton);
 }
 

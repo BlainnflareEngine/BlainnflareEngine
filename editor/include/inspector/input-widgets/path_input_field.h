@@ -27,10 +27,15 @@ public:
 
     QString GetPath() const;
     QString GetAbsolutePath() const;
-    void SetPath(const QString &absolutePath);
+    void SetPath(const QString &relativePath);
+
+    /**
+     * Set path, do not trigger PathChanged signal.
+     */
+    void SetPathSilent(const QString &relativePath) const;
 
 signals:
-    void PathChanged(const QString &path);
+    void PathChanged(const QString &oldPath, const QString &newPath);
 
 private slots:
     void OnBrowse();

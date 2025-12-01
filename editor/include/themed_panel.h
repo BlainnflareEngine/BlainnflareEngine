@@ -13,10 +13,21 @@ class themed_panel : public QFrame
     Q_OBJECT
 
 public:
-    explicit themed_panel(QWidget *parent = nullptr);
+    enum PanelColor
+    {
+        FIRST,
+        SECOND,
+        THIRD,
+        FOURTH,
+    };
+
+    explicit themed_panel(PanelColor color, QWidget *parent = nullptr);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
+
+private:
+    PanelColor m_color;
 };
 
 } // namespace editor

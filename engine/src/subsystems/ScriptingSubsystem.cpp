@@ -98,7 +98,6 @@ void Blainn::ScriptingSubsystem::DestroyScriptingComponent(Entity entity)
     ScriptingComponent *component = entity.TryGetComponent<ScriptingComponent>();
     if (!component)
     {
-        BF_ERROR("Entity " + entity.GetUUID().str() + " does not have ScriptingComponent");
         return;
     }
 

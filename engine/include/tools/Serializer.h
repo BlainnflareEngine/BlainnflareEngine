@@ -77,6 +77,26 @@ public:
         out << YAML::EndMap;
     }
 
+    static void Scripting(Entity &entity, YAML::Emitter &out)
+    {
+        if (!entity.HasComponent<ScriptingComponent>()) return;
+
+        const auto &scripting = entity.GetComponent<ScriptingComponent>();
+        out << YAML::Key << "ScriptingComponent" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "Scripts" << YAML::Value << YAML::BeginSeq;
+
+        for (const auto &[path, info] : scripting.scriptPaths)
+        {
+            out << YAML::BeginMap;
+            out << YAML::Key << "Path" << YAML::Value << path.c_str();
+            out << YAML::Key << "ShouldTriggerStart" << YAML::Value << info.shouldTriggerStart;
+            out << YAML::EndMap;
+        }
+
+        out << YAML::EndSeq;
+        out << YAML::EndMap;
+    }
+
     static void Mesh(Entity &entity, YAML::Emitter &out)
     {
         if (!entity.HasComponent<MeshComponent>()) return;
