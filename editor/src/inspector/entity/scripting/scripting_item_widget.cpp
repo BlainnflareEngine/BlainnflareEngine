@@ -12,11 +12,11 @@
 namespace editor
 {
 scripting_item_widget::scripting_item_widget(QWidget *parent)
-    : QWidget(parent)
+    : themed_panel(FIRST, parent)
 {
     setLayout(new QVBoxLayout());
     layout()->setSpacing(5);
-    layout()->setContentsMargins(5, 5, 5, 5);
+    layout()->setContentsMargins(20, 10, 20, 10);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
     m_triggerStart = new bool_input_field("Trigger Start", true, this);

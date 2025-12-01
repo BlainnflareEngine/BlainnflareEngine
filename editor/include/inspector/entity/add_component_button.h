@@ -10,6 +10,7 @@
 #include <QPushButton>
 
 
+class QBoxLayout;
 namespace editor
 {
 
@@ -17,7 +18,7 @@ class add_component_button : public QPushButton
 {
     Q_OBJECT
 public:
-    add_component_button(const Blainn::Entity &entity, QLayout *layout, QWidget *parent);
+    add_component_button(const Blainn::Entity &entity, QBoxLayout *layout, QWidget *parent);
 
 public slots:
     void OnClicked();
@@ -27,7 +28,7 @@ public slots:
 
 private:
     Blainn::Entity m_entity;
-    QLayout *m_layout;
+    QBoxLayout *m_layout;
     QMenu *m_menu = nullptr;
     QAction *m_transformAction = nullptr;
     QAction *m_meshAction = nullptr;

@@ -20,7 +20,7 @@ scripting_widget::scripting_widget(const Blainn::Entity &entity, QWidget *parent
     auto mainLayout = qobject_cast<QVBoxLayout *>(layout());
     m_scriptsLayout = new QVBoxLayout();
     m_scriptsLayout->setContentsMargins(0, 0, 0, 0);
-    m_scriptsLayout->setSpacing(5);
+    m_scriptsLayout->setSpacing(15);
     mainLayout->addLayout(m_scriptsLayout);
 
     m_addButton = new QPushButton("Add Script", this);

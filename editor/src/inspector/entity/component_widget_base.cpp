@@ -16,7 +16,7 @@
 namespace editor
 {
 component_widget_base::component_widget_base(const Blainn::Entity &entity, const QString &name, QWidget *parent)
-    : themed_panel(parent)
+    : themed_panel(FOURTH,parent)
     , m_entity(entity)
 {
     setLayout(new QVBoxLayout());

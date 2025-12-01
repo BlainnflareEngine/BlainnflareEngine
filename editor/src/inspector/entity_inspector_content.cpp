@@ -27,7 +27,8 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
         return;
     }
 
-    setLayout(new QVBoxLayout());
+    auto boxLayout = new QVBoxLayout();
+    setLayout(boxLayout);
 
     m_tag = new QLabel(ToHeader2(m_data.tag), this);
     m_tag->setTextFormat(Qt::MarkdownText);
@@ -38,7 +39,6 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     layout()->addWidget(separator);
 
     connect(m_data.node, &EntityNode::OnTagChanged, this, &entity_inspector_content::SetTag);
-    // TODO: get all components of this entity and create component widget for each
 
     if (entity.HasComponent<Blainn::TransformComponent>())
     {
@@ -58,7 +58,7 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
         layout()->addWidget(mesh);
     }
 
-    auto *addButton = new add_component_button(data.node->GetEntity(), layout(), this);
+    auto *addButton = new add_component_button(data.node->GetEntity(),  boxLayout, this);
     layout()->addWidget(addButton);
 }
 

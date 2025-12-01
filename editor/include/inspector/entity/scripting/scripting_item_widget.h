@@ -3,6 +3,9 @@
 //
 
 #pragma once
+#include "themed_panel.h"
+
+
 #include <QPushButton>
 #include <QWidget>
 
@@ -17,7 +20,7 @@ class bool_input_field;
 namespace editor
 {
 
-class scripting_item_widget : public QWidget
+class scripting_item_widget : public themed_panel
 {
     Q_OBJECT
 

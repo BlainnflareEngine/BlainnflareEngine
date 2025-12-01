@@ -16,7 +16,7 @@
 
 namespace editor
 {
-add_component_button::add_component_button(const Blainn::Entity &entity, QLayout *layout, QWidget *parent)
+add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLayout *layout, QWidget *parent)
     : QPushButton(parent)
     , m_entity(entity)
     , m_layout(layout)
@@ -51,7 +51,7 @@ void add_component_button::OnTransformAction()
 
     m_entity.AddComponent<Blainn::TransformComponent>();
     auto transform = new transform_widget(m_entity, this);
-    m_layout->addWidget(transform);
+    m_layout->insertWidget(m_layout->count() - 1, transform);
 }
 
 
@@ -62,7 +62,7 @@ void add_component_button::OnMeshAction()
 
     m_entity.AddComponent<Blainn::MeshComponent>(eastl::move(Blainn::AssetManager::GetDefaultMesh()));
     auto mesh = new mesh_widget(m_entity, this);
-    m_layout->addWidget(mesh);
+    m_layout->insertWidget(m_layout->count() - 1, mesh);
 }
 
 
@@ -76,7 +76,7 @@ void add_component_button::OnScriptingAction()
 
     Blainn::ScriptingSubsystem::CreateAttachScriptingComponent(m_entity);
     auto scripting = new scripting_widget(m_entity, this);
-    m_layout->addWidget(scripting);
+    m_layout->insertWidget(m_layout->count() - 1, scripting);
 }
 
 } // namespace editor
