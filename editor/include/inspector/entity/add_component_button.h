@@ -23,6 +23,7 @@ public slots:
     void OnClicked();
     void OnTransformAction();
     void OnMeshAction();
+    void OnScriptingAction();
 
 private:
     Blainn::Entity m_entity;
@@ -30,6 +31,7 @@ private:
     QMenu *m_menu = nullptr;
     QAction *m_transformAction = nullptr;
     QAction *m_meshAction = nullptr;
+    QAction *m_scriptingAction = nullptr;
 };
 
 } // namespace editor

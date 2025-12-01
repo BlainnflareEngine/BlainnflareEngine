@@ -8,6 +8,7 @@
 
 #include "EASTL/unordered_set.h"
 #include "Engine.h"
+#include "ScriptingSubsystem.h"
 #include "Serializer.h"
 #include "ozz/base/containers/string.h"
 #include "scene/SceneParser.h"
@@ -90,6 +91,7 @@ void Scene::SaveScene()
         Serializer::Tag(e, out);
         Serializer::Transform(e, out);
         Serializer::Relationship(e, out);
+        Serializer::Scripting(e, out);
         Serializer::Mesh(e, out);
 
         out << YAML::EndMap; // end for every entity
@@ -234,6 +236,11 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged)
             entity.AddComponent<TransformComponent>(GetTransform(entityNode["TransformComponent"]));
         }
 
+        if (HasScripting(entityNode))
+        {
+            entity.AddComponent<ScriptingComponent>(GetScripting(entityNode["ScriptingComponent"]));
+        }
+
         if (HasMesh(entityNode))
         {
             entity.AddComponent<MeshComponent>(GetMesh(entityNode["MeshComponent"]));
@@ -298,6 +305,7 @@ void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool firs
     // before actually destroying remove components that might require ID of the entity
     s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity));
 
+    ScriptingSubsystem::DestroyScriptingComponent(entity);
     m_Registry.destroy(entity);
     m_EntityIdMap.erase(id);
 

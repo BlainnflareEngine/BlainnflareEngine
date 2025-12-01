@@ -4,8 +4,10 @@
 
 #include "entity_inspector_content.h"
 
+#include "../../include/inspector/entity/scripting/scripting_widget.h"
 #include "LabelsUtils.h"
 #include "components/MeshComponent.h"
+#include "components/ScriptingComponent.h"
 #include "entity/add_component_button.h"
 #include "entity/mesh_widget.h"
 #include "entity/transform_widget.h"
@@ -42,6 +44,12 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     {
         auto transform = new transform_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(transform);
+    }
+
+    if (entity.HasComponent<Blainn::ScriptingComponent>())
+    {
+        auto scripting = new scripting_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(scripting);
     }
 
     if (entity.HasComponent<Blainn::MeshComponent>())

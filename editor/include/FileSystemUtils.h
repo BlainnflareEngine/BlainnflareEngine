@@ -92,6 +92,8 @@ import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info);
 
 std::string ToString(const QString &str);
 
+const char *ToCString(const QString &str);
+
 eastl::string ToEASTLString(const QString &str);
 
 QString ToQString(const eastl::string &str);

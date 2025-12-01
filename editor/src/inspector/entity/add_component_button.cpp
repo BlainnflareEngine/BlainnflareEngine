@@ -4,6 +4,8 @@
 
 #include "entity/add_component_button.h"
 
+#include "../../../include/inspector/entity/scripting/scripting_widget.h"
+#include "ScriptingSubsystem.h"
 #include "components/MeshComponent.h"
 #include "entity/mesh_widget.h"
 #include "entity/transform_widget.h"
@@ -23,6 +25,7 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QLayout
 
     m_transformAction = m_menu->addAction("Transform");
     m_meshAction = m_menu->addAction("Mesh");
+    m_scriptingAction = m_menu->addAction("Scripting");
 
     setText("Add component");
 
@@ -30,6 +33,7 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QLayout
 
     connect(m_transformAction, &QAction::triggered, this, &add_component_button::OnTransformAction);
     connect(m_meshAction, &QAction::triggered, this, &add_component_button::OnMeshAction);
+    connect(m_scriptingAction, &QAction::triggered, this, &add_component_button::OnScriptingAction);
 }
 
 
@@ -60,4 +64,19 @@ void add_component_button::OnMeshAction()
     auto mesh = new mesh_widget(m_entity, this);
     m_layout->addWidget(mesh);
 }
+
+
+void add_component_button::OnScriptingAction()
+{
+    if (!m_entity.IsValid()) return;
+
+    // actually CreateAttachScriptingComponent check this, but if I don't check this here, another scripting
+    // widget will be created even if it already contains in UI
+    if (m_entity.HasComponent<Blainn::ScriptingComponent>()) return;
+
+    Blainn::ScriptingSubsystem::CreateAttachScriptingComponent(m_entity);
+    auto scripting = new scripting_widget(m_entity, this);
+    m_layout->addWidget(scripting);
+}
+
 } // namespace editor

@@ -73,6 +73,7 @@ QStringList path_input_field::GetExtensions() const
 
 QString path_input_field::GetPath() const
 {
+    auto a = m_input->text();
     return m_input->text();
 }
 
@@ -98,13 +99,14 @@ QString path_input_field::GetAbsolutePath() const
 void path_input_field::SetPath(const QString &relativePath)
 {
     if (m_input->text() == relativePath) return;
+    QString oldPath = m_input->text();
 
     if (relativePath.isEmpty())
     {
         if (m_input->text() != relativePath)
         {
             m_input->setText(relativePath);
-            emit PathChanged(relativePath);
+            emit PathChanged(oldPath, relativePath);
         }
 
         return;
@@ -114,12 +116,18 @@ void path_input_field::SetPath(const QString &relativePath)
     if (m_input->text() != relativePath)
     {
         m_input->setText(relativePath);
-        emit PathChanged(relativePath);
+        emit PathChanged(oldPath, relativePath);
         return;
     }
 
     m_input->setText("");
-    emit PathChanged("");
+    emit PathChanged(oldPath, "");
+}
+
+
+void path_input_field::SetPathSilent(const QString &relativePath) const
+{
+    m_input->setText(relativePath);
 }
 
 
