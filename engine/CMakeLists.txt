@@ -23,6 +23,8 @@ set(ENGINE_SOURCES
         src/physics/ContactListenerImpl.cpp
         include/components/PhysicsComponent.h
         src/components/PhysicsComponent.cpp
+        include/components/MeshComponent.h
+        src/components/MeshComponent.cpp
         include/physics/ShapeFactory.h
         src/physics/ShapeFactory.cpp
         include/Render/Renderer.h
