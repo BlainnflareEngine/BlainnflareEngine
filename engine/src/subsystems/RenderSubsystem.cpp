@@ -113,7 +113,7 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
 #endif
 
     auto commandList = commandQueue->GetCommandList(currCmdAlloc);
-    PopulateCommandList(commandList.Get()); // Record all the commands we need to render the scene into the command list.
+    PopulateCommandList(commandList.Get());
 
     commandQueue->ExecuteCommandList(commandList);
     Present();
@@ -130,47 +130,10 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
     ID3D12DescriptorHeap *descriptorHeaps[] = {m_srvHeap.Get()};
     pCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-#pragma region ProperSceneRendering
-    /*const auto& scene = Engine::GetActiveScene();
-    const auto& renderableEntities = scene->GetAllEntitiesWith<IDComponent, MeshComponent>();
-
-    eastl::unordered_map<MeshHandle, eastl::vector<IDComponent>> uniqueMeshes(renderableEntities.size_hint());
-    
-    for (const auto& entityComponents : renderableEntities.each())
-    {
-        auto &idComponent = std::get<1>(entityComponents);
-        auto &meshComponent = std::get<2>(entityComponents);
-
-        auto& model = *meshComponent.m_meshHandle;
-        if (uniqueMeshes.contains(model))
-        {
-            uniqueMeshes.at(model).push_back(idComponent);
-        }
-        else
-        {
-            uniqueMeshes[model] = eastl::vector<IDComponent>{idComponent};
-        }
-    }
-
-    for (auto& [mesh, ids] : uniqueMeshes)
-    {
-        for (auto& id : ids)
-        {
-            const auto& entity = scene->GetEntityWithUUID(id.ID);
-            
-            auto& transform = entity.GetComponent<TransformComponent>();
-        }
-
-        DrawMeshes(pCommandList, mesh);
-    }*/
-#pragma endregion ProperSceneRendering
-    
-#pragma region TempSceneRendering
     RenderDepthOnlyPass(pCommandList);
     RenderGeometryPass(pCommandList);
     RenderLightingPass(pCommandList);
     //RenderTransparencyPass(pCommandList);
-#pragma region TempSceneRendering
 }
 
 VOID Blainn::RenderSubsystem::InitializeD3D()
@@ -310,7 +273,7 @@ void Blainn::RenderSubsystem::LoadPipeline()
 
     ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
     
-    CreateRenderItems(commandList.Get());
+    //CreateRenderItems(commandList.Get());
     CreateFrameResources();
     CreateDescriptorHeaps();
     CreateRootSignature();
@@ -353,9 +316,7 @@ void Blainn::RenderSubsystem::CreateFrameResources()
 {
     for (int i = 0; i < gNumFrameResources; i++)
     {
-        m_frameResources.push_back(eastl::make_unique<FrameResource>(m_device, 
-            static_cast<UINT>(EPassType::NumPasses),
-            //2u /*(UINT)m_renderItems.size()*/,
+        m_frameResources.push_back(eastl::make_unique<FrameResource>(m_device, static_cast<UINT>(EPassType::NumPasses),
             0u /*(UINT)m_materials.size()*/, 0u /*MaxPointLights*/));
     }
 }
@@ -492,9 +453,6 @@ void Blainn::RenderSubsystem::CreateShaders()
 #pragma region DeferredShading
     m_shaders[EShaderType::DeferredGeometryVS]      = FreyaUtil::CompileShader(L"./Content/Shaders/GBufferPassVS.hlsl", nullptr, "main", "vs_5_1");
     m_shaders[EShaderType::DeferredGeometryPS]      = FreyaUtil::CompileShader(L"./Content/Shaders/GBufferPassPS.hlsl", nullptr, "main", "ps_5_1");
-    
-    /*m_shaders[EShaderType::DeferredGeometryVS]      = FreyaUtil::CompileShader(L"./Content/Shaders/GBufferTestShaderVS.hlsl", nullptr, "main", "vs_5_1");
-    m_shaders[EShaderType::DeferredGeometryPS]      = FreyaUtil::CompileShader(L"./Content/Shaders/GBufferTestShaderPS.hlsl", nullptr, "main", "ps_5_1");*/
     
     m_shaders[EShaderType::DeferredDirVS]           = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredDirectionalLightVS.hlsl", nullptr, "main", "vs_5_1");
     m_shaders[EShaderType::DeferredDirPS]           = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredDirectionalLightPS.hlsl", nullptr, "main", "ps_5_1");
@@ -919,7 +877,8 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
 
 #pragma region BypassResources
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
-    pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerPassDataCB, currFramePassCB->GetGPUVirtualAddress() + passCBByteSize); // second element contains data for geometry pass
+    auto currFramePassCBAddress = FreyaUtil::GetGPUVirtualAddress(currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DeferredGeometry));
+    pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerPassDataCB, currFramePassCBAddress); // second element contains data for geometry pass
 
     // Bind all the materials used in this scene. For structured buffers, we can bypass the heap and set as a root
     // descriptor.
@@ -993,9 +952,9 @@ void Blainn::RenderSubsystem::DeferredDirectionalLightPass(ID3D12GraphicsCommand
 
 #pragma region BypassResources
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
-    pCommandList->SetGraphicsRootConstantBufferView(
-        ERootParameter::PerPassDataCB, currFramePassCB->GetGPUVirtualAddress() + 2u * passCBByteSize); // third element contains data for color/light pass
-
+    auto currFramePassCBAddress = FreyaUtil::GetGPUVirtualAddress(currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DeferredLighting));
+    
+    pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerPassDataCB, currFramePassCBAddress);
     // Set shaadow map texture for main pass
     pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::CascadedShadowMaps, m_cascadeShadowSrv);
 
@@ -1012,7 +971,8 @@ void Blainn::RenderSubsystem::DeferredPointLightPass(ID3D12GraphicsCommandList2 
     UINT passCBByteSize = FreyaUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
 
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
-    //pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerPassDataCB, currFramePassCB->GetGPUVirtualAddress() + 2u * passCBByteSize); // third element contains data for color/light pass
+    auto currFramePassCBAddress = FreyaUtil::GetGPUVirtualAddress(currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DeferredLighting));
+    //pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerPassDataCB, currFramePassCBAddress);
 
     // Bind GBuffer textures
     //pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::GBufferTextures, m_GBufferTexturesSrv);
@@ -1030,18 +990,11 @@ void Blainn::RenderSubsystem::DeferredPointLightPass(ID3D12GraphicsCommandList2 
 
 void Blainn::RenderSubsystem::DeferredSpotLightPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
-
 }
 
 void Blainn::RenderSubsystem::RenderTransparencyPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
-
 }
-
-// void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<MeshData<>>& meshesData)
-// {
-
-// }
 
 void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<eastl::unique_ptr<Model>>& models)
 {
@@ -1074,22 +1027,6 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
             pCommandList->DrawInstanced(model.GetVerticesCount(), 1u, 0u, 0u);
         }
     }
-}
-
-void Blainn::RenderSubsystem::DrawInstancedMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<MeshData<BlainnVertex, uint32_t>>& meshData)
-{
-}
-
-void Blainn::RenderSubsystem::Draw(UINT vertexCount, UINT instanceCount, UINT startVertex, UINT startInstance)
-{
-    // TO DO: FlushResourceBarriers(); // Probably needed
-    
-}
-
-void Blainn::RenderSubsystem::DrawIndexed(UINT indexCount, UINT instanceCount, UINT startIndex, UINT baseVertex, UINT startInstance)
-{
-    // TO DO: FlushResourceBarriers(); // Probably needed
-
 }
 
 void Blainn::RenderSubsystem::DrawQuad(ID3D12GraphicsCommandList2 *pCommandList)

@@ -22,8 +22,6 @@ namespace Blainn
     
     class RenderSubsystem
     {
-        //friend class Renderer;
-        
     public:
         enum ERootParameter : UINT
         {
@@ -90,7 +88,7 @@ namespace Blainn
 
         void CreateAttachRenderComponent(Entity entity);
         void AddMeshToRenderComponent(Entity entity, MeshHandle meshHandle);
-        
+        // Record all the commands we need to render the scene into the command list.
         void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
     private:
         void InitializeD3D();

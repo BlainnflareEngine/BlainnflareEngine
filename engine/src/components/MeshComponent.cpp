@@ -12,6 +12,6 @@ namespace Blainn
     void MeshComponent::UpdateMeshCB(ObjectConstants& objectCBData)
     {
         m_perObjectCBData = objectCBData;
-        ObjectCB->CopyData(0, m_perObjectCBData); // In this case ri->ObjCBIndex would be equal to index 'i' of traditional for loop
+        ObjectCB->CopyData(0, m_perObjectCBData);
     }
 }

@@ -11,8 +11,7 @@ namespace Blainn
     public:
         static ComPtr<ID3D12Resource> CreateDefaultBuffer(ID3D12Device* device, ID3D12GraphicsCommandList* cmdList, const void* initData, UINT64 byteSize, ComPtr<ID3D12Resource>& uploadBuffer);
         
-        static D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS address, UINT byteStride,
-                                                              UINT index = 0u);
+        static D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS address, UINT byteStride, UINT index = 0u);
 
         static UINT CalcConstantBufferByteSize(const UINT byteSize);
         
