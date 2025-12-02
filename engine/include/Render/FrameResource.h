@@ -8,7 +8,7 @@ namespace Blainn
 
     struct FrameResource
     {
-        FrameResource(Device& device, UINT passCount, UINT objectCount, UINT materialCount, UINT pointLightsCount);
+        FrameResource(Device& device, UINT passCount, /*UINT objectCount, */UINT materialCount, UINT pointLightsCount);
         FrameResource(const FrameResource &lhs) = delete;
         FrameResource &operator=(const FrameResource &lhs) = delete;
 
@@ -16,7 +16,7 @@ namespace Blainn
         
         ComPtr<ID3D12CommandAllocator> commandAllocator;
         
-        eastl::unique_ptr<UploadBuffer<ObjectConstants>> ObjectsCB = nullptr;
+        //eastl::unique_ptr<UploadBuffer<ObjectConstants>> ObjectsCB = nullptr; // pernding to remove
         eastl::unique_ptr<UploadBuffer<PassConstants>> PassCB = nullptr;
         eastl::unique_ptr<UploadBuffer<MaterialData>> MaterialSB = nullptr;
         eastl::unique_ptr<UploadBuffer<InstanceData>> PointLightSB = nullptr;

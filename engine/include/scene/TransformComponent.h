@@ -8,102 +8,108 @@
 
 namespace Blainn
 {
-struct TransformComponent
-{
-    Vec3 Translation{0.f, 0.f, 0.f};
-    Vec3 Scale{1.f, 1.f, 1.f};
-
-private:
-
-    // Euler is stored as Yaw Pitch Roll
-    Vec3 EulerRotation{0.f, 0.f, 0.f};
-    Quat Rotation{1.f, 0.f, 0.f, 0.f};
-
-public:
-    TransformComponent() = default;
-    TransformComponent(const TransformComponent&) = default;
-
-    TransformComponent(const Vec3& translation)
-        : Translation(translation)
-    {}
-
-    Mat4 GetTransform() const
+    struct TransformComponent
     {
-        using namespace DirectX::SimpleMath;
-        return Matrix::CreateScale(Scale)
-            * Matrix::CreateFromQuaternion(Rotation)
-            * Matrix::CreateTranslation(Translation);
-    }
+        Vec3 Translation{0.f, 0.f, 0.f};
+        Vec3 Scale{1.f, 1.f, 1.f};
 
-    void SetTransform(Mat4& transform)
-    {
-        using namespace DirectX::SimpleMath;
-        transform.Decompose(Scale, Rotation, Translation);
-        EulerRotation = Rotation.ToEuler();
-    }
+    private:
 
-    Vec3 GetRotationEuler() const
-    {
-        return EulerRotation;
-    }
+        // Euler is stored as Yaw Pitch Roll
+        Vec3 EulerRotation{0.f, 0.f, 0.f};
+        Quat Rotation{1.f, 0.f, 0.f, 0.f};
 
-    void SetRotationEuler(const Vec3& euler)
-    {
-        using namespace DirectX::SimpleMath;
-        EulerRotation = euler;
-        Rotation = Quaternion::CreateFromYawPitchRoll(euler.x, euler.y, euler.z);
-    }
+        int NumFramesDirty = 3; // NumFrameResources
 
-    Quat GetRotation() const
-    {
-        return Rotation;
-    }
+    public:
+        TransformComponent() = default;
+        TransformComponent(const TransformComponent&) = default;
 
-    void SetRotation(const Quat& rotation)
-    {
-        using namespace DirectX::SimpleMath;
-        auto warpToPi = [](const Vec3 v)
+        TransformComponent(const Vec3& translation)
+            : Translation(translation)
+        {}
+
+        Mat4 GetTransform() const
         {
-            constexpr auto piVec = Vec3(DirectX::XM_PI);
-            const auto x = v + piVec;
-            const auto y = 2 * piVec;
-
-            const auto mod = x - y * Vec3(DirectX::XMVectorFloor(x / y));
-            return mod - piVec;
-        };
-
-        const auto originalEuler = EulerRotation;
-        Rotation = rotation;
-        EulerRotation = Rotation.ToEuler();
-
-        Vec3 alternatives[4] = {
-            {EulerRotation.x - DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
-            {EulerRotation.x + DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
-            {EulerRotation.x + DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI},
-            {EulerRotation.x - DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI}
-        };
-
-        float distances[5] = {
-            (warpToPi(EulerRotation - originalEuler)).LengthSquared(),
-            (warpToPi(alternatives[0] - originalEuler)).LengthSquared(),
-            (warpToPi(alternatives[1] - originalEuler)).LengthSquared(),
-            (warpToPi(alternatives[2] - originalEuler)).LengthSquared(),
-            (warpToPi(alternatives[3] - originalEuler)).LengthSquared()
-        };
-
-        float best = distances[0];
-        int bestIndex = 0;
-        for (const auto& distance : distances)
-        {
-            if (distance < best)
-            {
-                best = distance;
-                EulerRotation = alternatives[bestIndex];
-            }
-            bestIndex++;
+            using namespace DirectX::SimpleMath;
+            return Matrix::CreateScale(Scale)
+                * Matrix::CreateFromQuaternion(Rotation)
+                * Matrix::CreateTranslation(Translation);
         }
 
-        EulerRotation = warpToPi(EulerRotation);
-    }
-};
+        void SetTransform(Mat4& transform)
+        {
+            using namespace DirectX::SimpleMath;
+            transform.Decompose(Scale, Rotation, Translation);
+            EulerRotation = Rotation.ToEuler();
+
+            NumFramesDirty = 3; 
+        }
+
+        bool IsDirty() const { return NumFramesDirty > 0; }
+
+        Vec3 GetRotationEuler() const
+        {
+            return EulerRotation;
+        }
+
+        void SetRotationEuler(const Vec3& euler)
+        {
+            using namespace DirectX::SimpleMath;
+            EulerRotation = euler;
+            Rotation = Quaternion::CreateFromYawPitchRoll(euler.x, euler.y, euler.z);
+        }
+
+        Quat GetRotation() const
+        {
+            return Rotation;
+        }
+
+        void SetRotation(const Quat& rotation)
+        {
+            using namespace DirectX::SimpleMath;
+            auto warpToPi = [](const Vec3 v)
+            {
+                constexpr auto piVec = Vec3(DirectX::XM_PI);
+                const auto x = v + piVec;
+                const auto y = 2 * piVec;
+
+                const auto mod = x - y * Vec3(DirectX::XMVectorFloor(x / y));
+                return mod - piVec;
+            };
+
+            const auto originalEuler = EulerRotation;
+            Rotation = rotation;
+            EulerRotation = Rotation.ToEuler();
+
+            Vec3 alternatives[4] = {
+                {EulerRotation.x - DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
+                {EulerRotation.x + DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
+                {EulerRotation.x + DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI},
+                {EulerRotation.x - DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI}
+            };
+
+            float distances[5] = {
+                (warpToPi(EulerRotation - originalEuler)).LengthSquared(),
+                (warpToPi(alternatives[0] - originalEuler)).LengthSquared(),
+                (warpToPi(alternatives[1] - originalEuler)).LengthSquared(),
+                (warpToPi(alternatives[2] - originalEuler)).LengthSquared(),
+                (warpToPi(alternatives[3] - originalEuler)).LengthSquared()
+            };
+
+            float best = distances[0];
+            int bestIndex = 0;
+            for (const auto& distance : distances)
+            {
+                if (distance < best)
+                {
+                    best = distance;
+                    EulerRotation = alternatives[bestIndex];
+                }
+                bestIndex++;
+            }
+
+            EulerRotation = warpToPi(EulerRotation);
+        }
+    };
 }

@@ -355,7 +355,7 @@ void Blainn::RenderSubsystem::CreateFrameResources()
     {
         m_frameResources.push_back(eastl::make_unique<FrameResource>(m_device, 
             static_cast<UINT>(EPassType::NumPasses),
-            1u /*(UINT)m_renderItems.size()*/,
+            //2u /*(UINT)m_renderItems.size()*/,
             0u /*(UINT)m_materials.size()*/, 0u /*MaxPointLights*/));
     }
 }
@@ -700,31 +700,28 @@ void Blainn::RenderSubsystem::OnKeyboardInput(float deltaTime)
 
 void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 {
-    auto objectCB = m_currFrameResource->ObjectsCB.get();
-
-    for (auto &renderItem : m_meshItems)
+    const auto &renderEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
+    for (const auto& [entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
     {
         // Luna stuff. Try to remove 'if' statement.
         // Have tried. It does not affect anything.
-        // Looks like it just forces the code to update the object's constant buffer regardless of whether it has been
-        // modified or not.
-        /*if (ri->NumFramesDirty > 0)
-        {*/
-            XMVECTOR scale = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
-            XMVECTOR position = XMVectorSet(0.0f, 0.0f, 6.0f, 1.0f);
-            XMMATRIX world = XMMatrixScalingFromVector(scale) * XMMatrixTranslationFromVector(position);
+        // Looks like it just forces the code to update the object's constant buffer regardless of whether it has been modified or not.
+        if (entityTransform.IsDirty())
+        {
+            ObjectConstants objConstants;
 
-            XMMATRIX transposeWorld = XMMatrixTranspose(world);
-            XMVECTOR det = XMMatrixDeterminant(transposeWorld);
+            auto world = entityTransform.GetTransform();
+            auto transposeWorld = world.Transpose();
+            auto invTransposeWorld = transposeWorld.Invert();
+            
+            XMStoreFloat4x4(&objConstants.World, transposeWorld);
+            XMStoreFloat4x4(&objConstants.InvTransposeWorld, XMMatrixTranspose(invTransposeWorld));
+            // XMStoreFloat4x4(&objConstants.TexTransform, XMMatrixTranspose(ri->TexTransform));
+            // objConstants.MaterialIndex = ri->Mat->MatBufferIndex;
 
-            XMStoreFloat4x4(&m_perObjectCBData.World, transposeWorld);
-            XMStoreFloat4x4(&m_perObjectCBData.InvTransposeWorld, XMMatrixTranspose(XMMatrixInverse(&det, transposeWorld)));
-            //XMStoreFloat4x4(&m_perObjectCBData.TexTransform, XMMatrixTranspose(ri->TexTransform));
-            //m_perObjectCBData.MaterialIndex = ri->Mat->MatBufferIndex;
-
-            objectCB->CopyData(0, m_perObjectCBData); // In this case ri->ObjCBIndex would be equal to index 'i' of traditional for loop
+            entityMesh.UpdateMeshCB(objConstants);
             //ri->NumFramesDirty--;
-        //}
+        }
     }
 }
 
@@ -1050,28 +1047,22 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
 {
     UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-    auto currFrameObjCB = m_currFrameResource->ObjectsCB->Get();
-
     const auto& renderEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
-
     for (const auto& [entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
     {
         //auto& model = entityMesh.m_meshHandle->GetMesh();
+        auto currObjectCB = entityMesh.ObjectCB->Get();
+
         auto &model = AssetManager::GetInstance().GetMeshByIndex(0);
+        
         auto currVBV = model.VertexBufferView();
         auto currIBV = model.IndexBufferView();
-
-        auto matrix = entityTransform.GetTransform().Transpose();
-        ObjectConstants perObject;
-        perObject.World = matrix;
-        
-        m_currFrameResource->ObjectsCB->CopyData(0, perObject);
 
         pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
         pCommandList->IASetIndexBuffer(&currIBV);
 
-        D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currFrameObjCB->GetGPUVirtualAddress(), objCBByteSize, 0u /*ri->ObjCBIndex*/);
+        D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currObjectCB->GetGPUVirtualAddress(), objCBByteSize, 0u);
         pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerObjectDataCB, objCBAddress);
 
         if (currVBV.SizeInBytes)
@@ -1103,7 +1094,6 @@ void Blainn::RenderSubsystem::DrawIndexed(UINT indexCount, UINT instanceCount, U
 
 void Blainn::RenderSubsystem::DrawQuad(ID3D12GraphicsCommandList2 *pCommandList)
 {
-    auto currFrameObjCB = m_currFrameResource->ObjectsCB->Get();
     pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
     pCommandList->DrawInstanced(4u, 1u, 0u, 0u);
 }

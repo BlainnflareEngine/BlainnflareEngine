@@ -235,7 +235,7 @@ namespace Blainn
         eastl::unordered_map<EShaderType, ComPtr<ID3DBlob>> m_shaders;
         eastl::unordered_map<EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
 
-        ObjectConstants m_perObjectCBData;
+        //ObjectConstants m_perObjectCBData;
 
         float m_sunPhi = XM_PIDIV4;
         float m_sunTheta = 1.25f * XM_PI;
