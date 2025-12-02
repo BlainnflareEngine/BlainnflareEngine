@@ -57,8 +57,8 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
     EntityType.set_function("RemoveTransformComponent",
                             [](Entity &e) { return e.RemoveComponentIfExists<TransformComponent>(); });
 
-    EntityType.set_function("AddMeshComponent", [](Entity &e, unsigned int meshIndex)
-                            { return e.AddComponent<MeshComponent>(eastl::make_shared<MeshHandle>(meshIndex)); });
+    // EntityType.set_function("AddMeshComponent", [](Entity &e, unsigned int meshIndex)
+    //                         { return e.AddComponent<MeshComponent>(eastl::make_shared<MeshHandle>(meshIndex)); });
     EntityType.set_function("GetMeshComponent",
                             [](Entity &e) -> MeshComponent * { return e.TryGetComponent<MeshComponent>(); });
     EntityType.set_function("HasMeshComponent", [](Entity &e) { return e.HasComponent<MeshComponent>(); });

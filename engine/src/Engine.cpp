@@ -20,6 +20,14 @@ using namespace Blainn;
 
 void Engine::Init()
 {
+#if defined(DEBUG) || defined(_DEBUG)
+    // Enable the debug layer (requires the Graphics Tools "optional feature").
+    // NOTE: Enabling the debug layer after device creation will invalidate the active device.
+    Device::CreateDebugLayer();
+#endif
+    bool useWarpDevice = false;
+    Device::GetInstance().Init(useWarpDevice);
+
     vgjs::thread_count_t jobSystemThreadCount{8};
     s_JobSystemPtr = eastl::make_shared<vgjs::JobSystem>(vgjs::JobSystem(jobSystemThreadCount));
 
@@ -51,7 +59,6 @@ void Engine::Init()
 void Engine::InitRenderSubsystem(HWND windowHandle)
 {
     auto &renderInst = RenderSubsystem::GetInstance();
-
     renderInst.Init(windowHandle);
     m_renderFunc = std::bind(&RenderSubsystem::Render, &renderInst, std::placeholders::_1);
 }
@@ -65,6 +72,8 @@ void Engine::Destroy()
 
     RenderSubsystem::GetInstance().Destroy();
     Log::Destroy();
+
+    Device::GetInstance().Destroy();
 
     s_JobSystemPtr->terminate();
 }
@@ -142,7 +151,6 @@ void Engine::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
 {
     s_activeScene = scene;
 }
-
 
 HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle, const std::string &winClassTitle,
                                 HINSTANCE hInst)

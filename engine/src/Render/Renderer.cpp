@@ -1,5 +1,4 @@
 #include "Render/Renderer.h"
-#include "RenderSubsystem.h"
 
 Blainn::Renderer::Renderer(ID3D12Device *pDevice, uint32_t width, uint32_t height)
     : m_device(pDevice)
@@ -20,11 +19,11 @@ void Blainn::Renderer::Init()
 void Blainn::Renderer::CreateCommandObjects()
 {
     ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                                         IID_PPV_ARGS(&m_commandAllocators[m_frameIndex])));
+                                                         IID_PPV_ARGS(&m_commandAllocators[m_currBackBuffer])));
 
     // Create the command list.
     ThrowIfFailed(m_device->CreateCommandList(0u /*Single GPU*/,D3D12_COMMAND_LIST_TYPE_DIRECT, 
-                                          m_commandAllocators[m_frameIndex].Get() /*Must match the command list type*/,
+                                          m_commandAllocators[m_currBackBuffer].Get() /*Must match the command list type*/,
                                           nullptr, IID_PPV_ARGS(&m_commandList)));
 
     // Command lists are created in the recording state, but there is nothing

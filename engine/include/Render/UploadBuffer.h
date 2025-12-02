@@ -10,9 +10,8 @@ namespace Blainn{
     class UploadBuffer
     {
         public:
-        UploadBuffer(ID3D12Device* device, uint32_t elementCount, bool isConstantBuffer)
-		:
-		m_isConstantBuffer(isConstantBuffer)
+        UploadBuffer(ID3D12Device2* device, uint32_t elementCount, bool isConstantBuffer)
+		: m_isConstantBuffer(isConstantBuffer)
         {
             m_elementByteSize = sizeof(T);
 

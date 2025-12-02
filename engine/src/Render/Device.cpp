@@ -2,57 +2,102 @@
 
 #include "Render/Device.h"
 #include "Render/CommandQueue.h"
-#include "Render/DXHelpers.h"
-#include "subsystems/Log.h"
+#include "Render/SwapChain.h"
 
-Blainn::Device::Device()
-    : m_useWarpDevice(false)
+Blainn::Device& Blainn::Device::GetInstance()
 {
-    // HRESULT check
-    HRESULT hr = (CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(&m_factory)));
-    ThrowIfFailed(hr);
+    static Device device;
+    return device;
+}
+
+void Blainn::Device::Init(bool useWarpDevice)
+{
+    m_useWarpDevice = useWarpDevice;
+    
+    ThrowIfFailed(CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(&m_factory)));
 
     if (m_useWarpDevice)
     {
         ComPtr<IDXGIAdapter> warpAdapter;
-        // HRESULT check
         ThrowIfFailed(m_factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
-        // HRESULT check
         ThrowIfFailed(D3D12CreateDevice(warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_device)));
     }
     else
     {
         GetHardwareAdapter(m_factory.Get(), &m_hardwareAdapter);
-        
-        // HRESULT check
+
         ThrowIfFailed(D3D12CreateDevice(m_hardwareAdapter.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&m_device)));
     }
+
+    CreateCommandQueues();
+
+    m_isInitialized = true;
 }
 
-Blainn::Device::~Device()
+void Blainn::Device::CreateCommandQueues()
 {
+    // If we have multiple command queues, we can write a resource only from one queue at the same time.
+    // Before it can be accessed by another queue, it must transition to read or common state.
+    // In a read state resource can be read from multiple command queues simultaneously, including across processes,
+    // based on its read state.
+    m_directCommandQueue = eastl::make_shared<CommandQueue>(m_device, D3D12_COMMAND_LIST_TYPE_DIRECT);
+    m_copyCommandQueue = eastl::make_shared<CommandQueue>(m_device, D3D12_COMMAND_LIST_TYPE_COPY);
+    m_computeCommandQueue = eastl::make_shared<CommandQueue>(m_device, D3D12_COMMAND_LIST_TYPE_COMPUTE);
 }
 
-void Blainn::Device::CreateDebugLayer()
+void Blainn::Device::Destroy()
+{
+    Flush();
+}
+
+VOID Blainn::Device::CreateDebugLayer()
 {
     ComPtr<ID3D12Debug> debugController;
     if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
     {
         debugController->EnableDebugLayer();
 
+        ComPtr<ID3D12Debug1> debugController1;
+        ThrowIfFailed(debugController->QueryInterface(IID_PPV_ARGS(&debugController1)));
+        debugController1->SetEnableGPUBasedValidation(true);
+
         // Enable additional debug layers.
         m_dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
     }
 }
 
+VOID Blainn::Device::Flush()
+{
+    m_directCommandQueue->Flush();
+    m_copyCommandQueue->Flush();
+    m_computeCommandQueue->Flush();
+}
+
+eastl::shared_ptr<Blainn::CommandQueue> Blainn::Device::GetCommandQueue(D3D12_COMMAND_LIST_TYPE commandListType) const
+{
+    switch (commandListType)
+    {
+    case D3D12_COMMAND_LIST_TYPE_DIRECT:
+        return m_directCommandQueue;
+        break;
+    case D3D12_COMMAND_LIST_TYPE_COMPUTE:
+        return m_computeCommandQueue;
+        break;
+    case D3D12_COMMAND_LIST_TYPE_COPY:
+        return m_copyCommandQueue;
+        break;
+    default:
+        assert(false && "Invalid command queue type.");
+        return nullptr;
+    }
+}
+
 // Helper function for acquiring the first available hardware adapter that supports Direct3D 12.
 // If no such adapter can be found, *ppAdapter will be set to nullptr.
-_Use_decl_annotations_ void Blainn::Device::GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter)
+_Use_decl_annotations_ VOID Blainn::Device::GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter)
 {
     *ppAdapter = nullptr;
-
     ComPtr<IDXGIAdapter1> adapter;
-
     ComPtr<IDXGIFactory6> factory6;
     if (SUCCEEDED(pFactory->QueryInterface(IID_PPV_ARGS(&factory6))))
     {
@@ -108,55 +153,74 @@ _Use_decl_annotations_ void Blainn::Device::GetHardwareAdapter(IDXGIFactory1 *pF
     *ppAdapter = adapter.Detach();
 }
 
-ID3D12CommandQueue* Blainn::Device::GetCommandQueue(ECommandQueueType queueType)
+eastl::shared_ptr<Blainn::SwapChain> Blainn::Device::CreateSwapChain(HWND window, DXGI_FORMAT backBufferFormat)
 {
-    return m_renderingCmdQueues[static_cast<int>(queueType)]->Get();
-}
+    eastl::shared_ptr<SwapChain> swapChain = eastl::make_shared<SwapChain>(window, backBufferFormat);
 
-ComPtr<IDXGISwapChain4> Blainn::Device::CreateSwapChain(DXGI_SWAP_CHAIN_DESC1 &desc, DXGI_SWAP_CHAIN_FULLSCREEN_DESC &fullScreenDesc, HWND window)
-{
-    ComPtr<IDXGISwapChain4> swapChain;
-
-    ComPtr<IDXGISwapChain1> swapChain1;
-    ThrowIfFailed(m_factory->CreateSwapChainForHwnd(
-        GetCommandQueue(ECommandQueueType::GFX), // Swap chain needs the queue so that it can force a flush on it.
-        window,
-        &desc,
-        &fullScreenDesc,
-        nullptr,
-        &swapChain1));
-
-    // This sample does not support fullscreen transitions.
-    ThrowIfFailed(m_factory->MakeWindowAssociation(window, DXGI_MWA_NO_ALT_ENTER));
-
-    ThrowIfFailed(swapChain1.As(&swapChain));
-    
     return swapChain;
 }
 
-static D3D12_COMMAND_LIST_TYPE QueueTypeToCommandListType(const Blainn::ECommandQueueType queueType)
+HRESULT Blainn::Device::CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE commandListType, ComPtr<ID3D12CommandAllocator>& commandAllocator)
 {
-    using namespace Blainn;
-
-    switch (queueType)
-    {
-    case ECommandQueueType::GFX:
-        return D3D12_COMMAND_LIST_TYPE_DIRECT;
-    case ECommandQueueType::COMPUTE:
-        return D3D12_COMMAND_LIST_TYPE_COMPUTE;
-    case ECommandQueueType::COPY:
-        return D3D12_COMMAND_LIST_TYPE_COPY;
-    case ECommandQueueType::NUM_COMMAND_QUEUE_TYPES:
-        break;
-    }
-    return D3D12_COMMAND_LIST_TYPE_DIRECT;
+    return m_device->CreateCommandAllocator(commandListType, IID_PPV_ARGS(commandAllocator.GetAddressOf()));
 }
 
-void Blainn::Device::CreateCommandQueues()
+HRESULT Blainn::Device::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors,
+                                             ComPtr<ID3D12DescriptorHeap> &descriptorHeap,
+                                             D3D12_DESCRIPTOR_HEAP_FLAGS flags/* = D3D12_DESCRIPTOR_HEAP_FLAG_NONE*/, UINT nodeMask/*= 0u*/)
 {
-    auto device = eastl::shared_ptr<Device>(this);
-    for (UINT i = 0; i != static_cast<UINT>(ECommandQueueType::NUM_COMMAND_QUEUE_TYPES); ++i)
-    {
-        m_renderingCmdQueues[i] = eastl::make_shared<CommandQueue>(device, QueueTypeToCommandListType(static_cast<ECommandQueueType>(i)));
-    }
+    D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+    heapDesc.Type = type;
+    heapDesc.NumDescriptors = numDescriptors;
+    heapDesc.Flags = (type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : flags;
+    heapDesc.NodeMask = nodeMask;
+    return m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(descriptorHeap.GetAddressOf()));
+}
+
+UINT Blainn::Device::GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType)
+{
+    return m_device->GetDescriptorHandleIncrementSize(heapType);
+}
+
+HRESULT Blainn::Device::CreateGraphicsPipelineState(const D3D12_GRAPHICS_PIPELINE_STATE_DESC &psoDesc, ComPtr<ID3D12PipelineState> &pipelineState)
+{
+    return m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState));
+}
+
+VOID Blainn::Device::CreateDepthStencilView(ID3D12Resource *pResource, const DXGI_FORMAT format , CD3DX12_CPU_DESCRIPTOR_HANDLE destDescriptor)
+{
+    D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+    dsvDesc.Format = format;
+    dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+    dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+    dsvDesc.Texture2D.MipSlice = 0u;
+    m_device->CreateDepthStencilView(pResource, &dsvDesc, destDescriptor);
+}
+
+VOID Blainn::Device::CreateRenderTargetView(ID3D12Resource *pResource, const D3D12_RENDER_TARGET_VIEW_DESC* rtvDesc,
+                                            CD3DX12_CPU_DESCRIPTOR_HANDLE destDescriptor)
+{
+    m_device->CreateRenderTargetView(pResource, rtvDesc, destDescriptor);
+}
+
+VOID Blainn::Device::CreateShaderResourceView(ID3D12Resource *pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC *srvDesc,
+                                              CD3DX12_CPU_DESCRIPTOR_HANDLE destDescriptor)
+{
+    m_device->CreateShaderResourceView(pResource, srvDesc, destDescriptor);
+}
+
+HRESULT Blainn::Device::CreateRootSignature(UINT nodeMask, const void* pBlobRootSignature, SIZE_T blobLengthBytes, ComPtr<ID3D12RootSignature>& rootSignature)
+{
+    return m_device->CreateRootSignature(nodeMask, pBlobRootSignature, blobLengthBytes, IID_PPV_ARGS(rootSignature.GetAddressOf()));
+}
+
+HRESULT Blainn::Device::CreateCommittedResource(const D3D12_HEAP_TYPE heapType, D3D12_HEAP_FLAGS heapFlags,
+                                               const D3D12_RESOURCE_DESC& resourceDesc,
+                                               D3D12_RESOURCE_STATES initialResourceState,
+                                               const D3D12_CLEAR_VALUE &optClearValue, ComPtr<ID3D12Resource> &resource)
+{
+    auto heapProp = CD3DX12_HEAP_PROPERTIES(heapType);
+
+    return m_device->CreateCommittedResource(&heapProp, heapFlags, &resourceDesc, initialResourceState, &optClearValue,
+                                             IID_PPV_ARGS(resource.GetAddressOf()));
 }

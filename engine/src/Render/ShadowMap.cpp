@@ -57,6 +57,24 @@ void ShadowMap::OnResize(UINT newWidth, UINT newHeight)
     }
 }
 
+void ShadowMap::CreateShadowCascadeSplits(float nearZ, float farZ)
+{
+    const float minZ = nearZ;
+    const float maxZ = farZ;
+
+    const float range = maxZ - minZ;
+    const float ratio = maxZ / minZ;
+
+    for (int i = 0; i < MaxCascades; i++)
+    {
+        float p = (i + 1) / (float)(MaxCascades);
+        float log = (float)(minZ * pow(ratio, p));
+        float uniform = minZ + range * p;
+        float d = 0.95f * (log - uniform) + uniform; // 0.95f - idk, just magic value
+        m_shadowCascadeLevels[i] = ((d - minZ) / range) * maxZ;
+    }
+}
+
 void ShadowMap::CreateDescriptors()
 {
     // Create SRV to resource so we can sample the shadow map in a shader program.

@@ -47,7 +47,7 @@ namespace Blainn
         ComPtr<ID3D12Resource> m_depthStencilBuffer;
         
         // Synchronization objects.
-        uint32_t m_frameIndex = 0u; // keep track of front and back buffers (see SwapChainFrameCount)
+        uint32_t m_currBackBuffer = 0u; // keep track of front and back buffers (see SwapChainFrameCount)
         ComPtr<ID3D12Fence> m_fence;
         HANDLE m_fenceEvent;
         uint64_t m_fenceValues[SwapChainFrameCount];
