@@ -14,7 +14,7 @@
 namespace Blainn
 {
     const int gNumFrameResources = 3;
-
+  
     class Device;
     class Renderer;
     class RootSignature;
@@ -278,9 +278,9 @@ namespace Blainn
             return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_swapChain->GetBackBufferIndex(), m_rtvDescriptorSize);
         }
 
-        D3D12_CPU_DESCRIPTOR_HANDLE GetDSV()
-        {
-            return m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
-        }    
-    };
+    D3D12_CPU_DESCRIPTOR_HANDLE GetDSV()
+    {
+        return m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
+    }
+};
 } // namespace Blainn

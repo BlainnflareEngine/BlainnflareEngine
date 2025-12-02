@@ -95,9 +95,22 @@ set(ENGINE_SOURCES
         include/tools/Serializer.h
         include/scene/SceneEvent.h
         src/scene/SceneEvent.cpp
+        
+        include/scripting/TypeRegistration.h
+        src/scripting/type-registration/CommonToLua.cpp
+        src/scripting/type-registration/InputToLua.cpp
+        src/scripting/type-registration/EntityToLua.cpp
+        src/scripting/type-registration/SceneToLua.cpp
+        src/scripting/type-registration/ScriptingToLua.cpp
+        src/scripting/type-registration/AssetManagerToLua.cpp
+        src/scripting/type-registration/AssetLoaderToLua.cpp
+        src/scripting/type-registration/ComponentsToLua.cpp
+        src/scripting/type-registration/EngineToLua.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
+
+target_compile_options(ENGINE PRIVATE /bigobj)
 
 source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${ENGINE_SOURCES})
 

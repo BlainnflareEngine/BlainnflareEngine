@@ -34,7 +34,6 @@ public:
 private:
     Ui::inspector_widget *ui;
 
-    QWidget *m_item;
     bool m_locked = false;
 };
 } // namespace editor

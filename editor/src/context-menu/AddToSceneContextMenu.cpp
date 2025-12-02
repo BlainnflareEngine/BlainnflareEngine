@@ -78,8 +78,10 @@ void AddToSceneContextMenu::AddEntity(const QModelIndex &index)
 {
     if (index.isValid())
     {
-        // TODO: create parented entity
-        // newIndex = m_treeView.GetSceneModel().AddNewEntity(index);
+        Blainn::Entity parent = SceneItemModel::GetNodeFromIndex(index)->GetEntity();
+
+        if (parent.IsValid()) Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Entity");
+        else BF_ERROR("Parent entity is invalid.");
     }
     else
     {
@@ -100,7 +102,7 @@ void AddToSceneContextMenu::DeleteEntity(const QModelIndex &index)
 
     if (!sceneModel) return;
 
-    Blainn::Engine::GetActiveScene()->DestroyEntity(sceneModel->GetEntity());
+    Blainn::Engine::GetActiveScene()->SubmitToDestroyEntity(sceneModel->GetEntity());
 }
 
 

@@ -111,4 +111,85 @@ inline MeshComponent GetMesh(const YAML::Node &node)
 
     return mesh;
 }
+
+inline bool HasRelationship(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["RelationshipComponent"]) return true;
+
+    return false;
+}
+
+inline RelationshipComponent GetRelationship(const YAML::Node &node)
+{
+    RelationshipComponent relationship;
+
+    if (!node || node.IsNull())
+    {
+        BF_ERROR("Failed to parse relationship component. Not found in .scene!");
+        return relationship;
+    }
+
+    if (node["Parent"])
+    {
+        std::string parentIdStr = node["Parent"].as<std::string>();
+        relationship.ParentHandle = uuid::fromStrFactory(parentIdStr);
+    }
+
+    if (const YAML::Node &childrenNode = node["Children"])
+    {
+        if (childrenNode.IsSequence())
+        {
+            for (const auto &childNode : childrenNode)
+            {
+                std::string childIdStr = childNode.as<std::string>("");
+                relationship.Children.push_back(uuid::fromStrFactory(childIdStr));
+            }
+        }
+    }
+
+    return relationship;
+}
+
+inline bool HasScripting(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["ScriptingComponent"]) return true;
+
+    return false;
+}
+
+inline ScriptingComponent GetScripting(const YAML::Node &node)
+{
+    ScriptingComponent component;
+
+    if (!node || node.IsNull() || !node.IsMap())
+    {
+        BF_WARN("Scripting component not found or invalid in .scene file.");
+        return component;
+    }
+
+    const YAML::Node &scriptsNode = node["Scripts"];
+    if (!scriptsNode || !scriptsNode.IsSequence()) return component;
+
+    for (const auto &scriptNode : scriptsNode)
+    {
+        if (!scriptNode.IsMap()) continue;
+
+        std::string path = scriptNode["Path"].as<std::string>("");
+        if (path.empty()) continue;
+
+        bool shouldTriggerStart = true;
+        if (const YAML::Node &triggerNode = scriptNode["ShouldTriggerStart"])
+        {
+            shouldTriggerStart = triggerNode.as<bool>(true);
+        }
+
+        component.scriptPaths[eastl::string(path.c_str())] = ScriptInfo{shouldTriggerStart};
+    }
+
+    return component;
+}
 } // namespace Blainn

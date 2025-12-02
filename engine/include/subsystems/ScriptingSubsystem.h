@@ -1,16 +1,26 @@
 #pragma once
 
-#include <EASTL/optional.h>
-#include <EASTL/string.h>
-#include <EASTL/unordered_map.h>
-#include <sol/sol.hpp>
-
 #include "aliases.h"
+
 #include "components/ScriptingComponent.h"
-#include "scene/Scene.h"
+#include "scene/Entity.h"
+
+// disable if you dont want to register lua types
+#define BLAINN_REGISTER_LUA_TYPES
+
+#ifdef BLAINN_REGISTER_LUA_TYPES
+// enable to test lua scripts functionality.
+#define BLAINN_TEST_LUA_SCRIPTS
+#endif
+
+namespace sol
+{
+class state;
+}
 
 namespace Blainn
 {
+
 class ScriptingSubsystem
 {
 public:
@@ -19,15 +29,15 @@ public:
 
     static void Update(Scene &scene, float deltaTimeMs);
 
-    static sol::state &GetLuaState();
+    static void CreateAttachScriptingComponent(Entity entity);
+    static void DestroyScriptingComponent(Entity entity);
 
-    /// @param path - ralative to cwd or absolute path
-    static void SetLuaScriptsFolder(const eastl::string &path);
+    static sol::state &GetLuaState();
 
     /// @param path - script path in scripts content folder
     /// @param callOnStart - call OnStart() script function. true by default
     /// @return returns loaded script uuid
-    static eastl::optional<uuid> LoadScript(Entity entity, const eastl::string &path, bool callOnStart = true);
+    static eastl::optional<uuid> LoadScript(Entity entity, const Path &path, bool callOnStart = true);
 
     /// @brief OnDestroy() script function called automatically
     static void UnloadScript(const uuid &scriptUuid);
@@ -63,10 +73,14 @@ private:
     inline static bool m_isInitialized = false;
     inline static sol::state m_lua = sol::state();
 
-    inline static eastl::string m_luaScriptsFolder = "content/scripts/";
-
     inline static eastl::unordered_map<uuid, Entity> m_scriptEntityConnections = eastl::unordered_map<uuid, Entity>{};
 
     static void RegisterBlainnTypes();
+
+#ifdef BLAINN_TEST_LUA_SCRIPTS
+    inline static Entity m_scriptTestEntity{};
+    inline static uuid m_scriptTestUuid1{};
+    inline static uuid m_scriptTestUuid2{};
+#endif
 };
 } // namespace Blainn

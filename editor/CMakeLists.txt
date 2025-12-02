@@ -130,6 +130,12 @@ set(EDITOR_SOURCES
         src/scene/SceneMeta.cpp
         include/scene/SceneMeta.h
         "include/scene/EntityNodeComparator .h"
+        src/inspector/input-widgets/bool_input_field.cpp
+        include/inspector/input-widgets/bool_input_field.h
+        src/inspector/entity/scripting/scripting_widget.cpp
+        include/inspector/entity/scripting/scripting_widget.h
+        src/inspector/entity/scripting/scripting_item_widget.cpp
+        include/inspector/entity/scripting/scripting_item_widget.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

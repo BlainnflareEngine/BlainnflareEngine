@@ -42,6 +42,10 @@ editor_main::editor_main(QWidget *parent)
     connect(ui->folderContent, &folder_content_widget::FolderSelected, ui->pathBar, &path_bar_widget::SetCurrentPath);
 
 
+    connect(ui->Entities->selectionModel(), &QItemSelectionModel::selectionChanged, ui->folderContent->GetListView(), &QListView::clearSelection);
+    connect(ui->folderContent->GetListView()->selectionModel(), &QItemSelectionModel::selectionChanged, ui->Entities, &QTreeView::clearSelection);
+
+
     connect(ui->ClearConsoleButton, &QPushButton::clicked, ui->consoleMessages, &console_messages_widget::ClearConsole);
 
     connect(ui->AddToScene, &QPushButton::clicked, this, &editor_main::OpenAddToScene);

@@ -16,7 +16,7 @@
 namespace editor
 {
 component_widget_base::component_widget_base(const Blainn::Entity &entity, const QString &name, QWidget *parent)
-    : themed_panel(parent)
+    : themed_panel(FOURTH,parent)
     , m_entity(entity)
 {
     setLayout(new QVBoxLayout());
@@ -29,7 +29,7 @@ component_widget_base::component_widget_base(const Blainn::Entity &entity, const
     labelLayout->setSpacing(5);
     labelLayout->setAlignment(Qt::AlignLeft);
 
-    m_label = new QLabel(ToHeader2(name), this);
+    m_label = new QLabel(ToHeader3(name), this);
     m_label->setTextFormat(Qt::MarkdownText);
     labelLayout->addWidget(m_label);
 

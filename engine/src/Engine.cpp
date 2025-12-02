@@ -83,22 +83,7 @@ void Engine::Update(float deltaTime)
     // this trace doesn't make sense, it exactly matches the frame
     BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop");
 
-    /// ----- TEST SCRIPTING -----
-    // Entity entity = sc.CreateEntity();
-    // entity.AddComponent<ScriptingComponent>();
-    // uuid scriptUuid = ScriptingSubsystem::LoadScript(entity, "test1.lua").value();
-    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "abobus");
-    // ScriptingSubsystem::UnloadScript(scriptUuid);
-    // scriptUuid = ScriptingSubsystem::LoadScript(entity, "test2.lua").value();
-    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnUpdate", 16.67f);
-    // int b = 42;
-    // ScriptingSubsystem::CallScriptFunction(scriptUuid, "OnCustomCall", eastl::ref(b));
-    // std::cout << "Value of b after script call: " << b << std::endl;
-    // ScriptingSubsystem::UnloadScript(scriptUuid);
-    /// ----- END TEST SCRIPTING -----
-
     std::counting_semaphore<1> updateDoneSem(0);
-
 
     Input::ProcessEvents();
 
@@ -110,13 +95,15 @@ void Engine::Update(float deltaTime)
         std::cout << "Engine second" << std::endl;
 
         // TODO: -- remove -- test input
-        //Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Pressed);
-        //Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Released);
+        // Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Pressed);
+        // Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Released);
 
         testAccumulator = 0.0f;
     }
 
     Scene::ProcessEvents();
+
+    ScriptingSubsystem::Update(*s_activeScene, deltaTime);
 
     vgjs::schedule(
         [deltaTime, &updateDoneSem]() -> void

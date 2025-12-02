@@ -55,6 +55,12 @@ Blainn::SceneEventType Blainn::EntityCreatedEvent::GetEventType()
 }
 
 
+Blainn::Entity Blainn::EntityCreatedEvent::GetParent() const
+{
+    return m_entity.GetParent();
+}
+
+
 Blainn::EntityDestroyedEvent::EntityDestroyedEvent(const Entity &entity, bool sceneChanged)
     : EntityEvent(entity, sceneChanged)
 {

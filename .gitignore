@@ -42,8 +42,9 @@
 
 # BlainnflareEngine
 build/
-.vscode/
 .vs/
+.vscode/c_cpp_properties.json
+.vscode/settings.json
 [Cc]onfig/
 *.sln
 libs/*

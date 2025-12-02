@@ -625,12 +625,12 @@ void Blainn::RenderSubsystem::CreateAttachRenderComponent(Entity entity)
     MeshComponent *meshComponentPtr = entity.TryGetComponent<MeshComponent>();
     if (meshComponentPtr)
     {
-        AddMeshToRenderComponent(entity, *meshComponentPtr->m_meshHandle);
+        AddMeshToRenderComponent(entity, meshComponentPtr->m_meshHandle);
     }
 }
 
 // TODO: make MeshHandle shared_ptr
-void Blainn::RenderSubsystem::AddMeshToRenderComponent(Entity entity, MeshHandle meshHandle)
+void Blainn::RenderSubsystem::AddMeshToRenderComponent(Entity entity, eastl::shared_ptr<Blainn::MeshHandle> meshHandle)
 {
     RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
 
