@@ -101,7 +101,12 @@ void Blainn::ScriptingSubsystem::DestroyScriptingComponent(Entity entity)
         return;
     }
 
-    for (const auto &[scriptUuid, _] : component->scripts)
+    std::vector<uuid> scriptUuids;
+    scriptUuids.reserve(component->scripts.size());
+    std::transform(component->scripts.begin(), component->scripts.end(), std::back_inserter(scriptUuids),
+                   [](const eastl::pair<uuid, LuaScript> &pair) { return pair.first; });
+
+    for (const auto &scriptUuid : scriptUuids)
     {
         UnloadScript(scriptUuid);
     }
