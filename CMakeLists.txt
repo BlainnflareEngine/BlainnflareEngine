@@ -203,3 +203,9 @@ endif ()
 message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 message("CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
 message("CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/content"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/content"
+)

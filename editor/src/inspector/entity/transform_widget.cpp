@@ -15,6 +15,8 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
+#include "Engine.h"
+
 namespace editor
 {
 transform_widget::transform_widget(const Blainn::Entity &entity, QWidget *parent)
@@ -26,14 +28,22 @@ transform_widget::transform_widget(const Blainn::Entity &entity, QWidget *parent
 }
 
 
-void transform_widget::OnPositionChanged()
-{
+void transform_widget::OnPositionChanged() {
     if (!m_entity.HasComponent<Blainn::TransformComponent>()) return;
+
+    const auto& scene = Blainn::Engine::GetActiveScene();
+
+    if (!scene) {
+        return;
+    }
+    //scene->ConvertToLocalSpace(m_entity);
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
     transform.Translation.x = m_positionX->GetValue();
     transform.Translation.y = m_positionY->GetValue();
     transform.Translation.z = m_positionZ->GetValue();
+
+    scene->ConvertToWorldSpace(m_entity);
 }
 
 
@@ -100,6 +110,11 @@ void transform_widget::LoadTransformValues()
 
     BlockSignals(true);
 
+    const auto& scene = Blainn::Engine::GetActiveScene();
+    if (!scene) return;
+
+    scene->ConvertToLocalSpace(m_entity);
+
     m_positionX->SetValue(transform.Translation.x);
     m_positionY->SetValue(transform.Translation.y);
     m_positionZ->SetValue(transform.Translation.z);
@@ -112,6 +127,8 @@ void transform_widget::LoadTransformValues()
     m_scaleX->SetValue(transform.Scale.x);
     m_scaleY->SetValue(transform.Scale.y);
     m_scaleZ->SetValue(transform.Scale.z);
+
+    scene->ConvertToWorldSpace(m_entity);
 
     BlockSignals(false);
 }

@@ -52,7 +52,7 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
     // Register LuaScript usertype
     sol::usertype<LuaScript> LuaScriptType = luaState.new_usertype<LuaScript>("LuaScript", sol::default_constructor);
     LuaScriptType.set_function("Load",
-                               [](LuaScript &s, const std::string &path) { return s.Load(Path(path.c_str())); });
+                               [](LuaScript &s, const std::string &path, Entity owningEntity) { return s.Load(Path(path.c_str()), owningEntity); });
     LuaScriptType.set_function("IsLoaded", &LuaScript::IsLoaded);
     LuaScriptType.set_function("GetScriptPath", [](LuaScript &s) { return s.GetScriptPath().string(); });
     LuaScriptType.set_function("GetId", [](LuaScript &s) { return s.GetId().str(); });

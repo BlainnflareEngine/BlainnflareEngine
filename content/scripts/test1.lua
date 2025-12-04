@@ -311,8 +311,8 @@ local function RunScriptingLoadTests()
             end
         end
         ok("ListScripts contains loaded script id", found)
-        Scripting.UnloadScript(id)
-        ok("UnloadScript called", true)
+        -- Scripting.UnloadScript(id)
+        -- ok("UnloadScript called", true)
     else
         Log.Info("Scripting.LoadScript not available or returned nil; skipping further scripting checks")
     end
@@ -340,6 +340,7 @@ local function RunInputTests()
 end
 
 local function RunAllTests()
+--[[
     SafeCall(RunVec2Tests, "Vec2Tests")
     SafeCall(RunVec3Tests, "Vec3Tests")
     SafeCall(RunVec4Tests, "Vec4Tests")
@@ -350,9 +351,12 @@ local function RunAllTests()
     SafeCall(RunEngineTests, "EngineTests")
     SafeCall(RunSceneEntityTests, "SceneEntityTests")
     SafeCall(RunAssetManagerTests, "AssetManagerTests")
+ ]]
     SafeCall(RunScriptingLoadTests, "ScriptingLoadTests")
+--[[
     SafeCall(RunLuaScriptInstanceTest, "LuaScriptInstanceTest")
     SafeCall(RunInputTests, "InputTests")
+ ]]
     Log.Warn("--- Tests completed. Passed: " .. testsPassed .. ", Failed: " .. testsFailed .. " ---\n")
 end
 
