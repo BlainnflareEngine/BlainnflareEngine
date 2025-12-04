@@ -3,63 +3,139 @@
 //
 
 #include "file-system/Model.h"
+#include "Render/Device.h"
+#include "Render/CommandQueue.h"
 
 namespace Blainn
 {
+Model::Model()
+    {
+        m_meshes.reserve(4);
+    }
+    
+    Model::Model(const Path &absolutPath)
+        : FileSystemObject(absolutPath)
+    {
+        m_meshes.reserve(4);
+    }
+
+    Model::Model(const Model &other, const Path &absolutPath)
+        : FileSystemObject(absolutPath)
+    {
+        m_meshes = other.m_meshes;
+    }
 
 
-Model::Model(const Path &absolutPath)
-    : FileSystemObject(absolutPath)
-{
-    m_meshes.reserve(4);
-}
+    Model::Model(Model &&other, const Path &absolutPath) noexcept
+        : FileSystemObject(absolutPath)
+    {
+        m_meshes = std::move(other.m_meshes);
+    }
 
 
-Model::Model(const Model &other, const Path &absolutPath)
-    : FileSystemObject(absolutPath)
-{
-    m_meshes = other.m_meshes;
-}
+    Model::~Model()
+    {
+    }
 
 
-Model::Model(Model &&other, const Path &absolutPath) noexcept
-    : FileSystemObject(absolutPath)
-{
-    m_meshes = std::move(other.m_meshes);
-}
+    void Model::Copy()
+    {
+        FileSystemObject::Copy();
+    }
 
 
-Model::~Model()
-{
-}
+    void Model::Delete()
+    {
+        FileSystemObject::Delete();
+    }
 
 
-void Model::Copy()
-{
-    FileSystemObject::Copy();
-}
+    void Model::Move()
+    {
+        FileSystemObject::Move();
+    }
 
 
-void Model::Delete()
-{
-    FileSystemObject::Delete();
-}
+    eastl::vector<MeshData<>> &Model::GetMeshes()
+    {
+        return m_meshes;
+    }
 
 
-void Model::Move()
-{
-    FileSystemObject::Move();
-}
+    void Model::SetMeshes(const eastl::vector<MeshData<>> &meshes)
+    {
+        m_meshes = meshes;
+    }
 
+    void Model::CreateBufferResources()
+    {
+        for (auto &mesh : GetMeshes())
+        {
+            totalVertexCount += mesh.vertices.size();
+            totalIndexCount += mesh.indices.size();
+        }
 
-eastl::vector<MeshData> &Model::GetMeshes()
-{
-    return m_meshes;
-}
+        eastl::vector<BlainnVertex> allVertices;
+        eastl::vector<UINT> allIndices;
 
+        allVertices.reserve(totalVertexCount);
+        allIndices.reserve(totalIndexCount);
 
-void Model::SetMeshes(const eastl::vector<MeshData> &meshes)
-{
-    m_meshes = meshes;
-}
+        size_t indexValueOffsetPerMesh = 0;
+        for (auto &mesh : GetMeshes())
+        {
+            allVertices.insert(allVertices.end(), mesh.vertices.begin(), mesh.vertices.end());
+            
+            auto tempCurrentMeshIndices = mesh.indices;
+            eastl::for_each(tempCurrentMeshIndices.begin(), tempCurrentMeshIndices.end(), [&indexValueOffsetPerMesh](UINT& value)
+                {
+                    value += indexValueOffsetPerMesh;
+                });
+
+            allIndices.insert(allIndices.end(), tempCurrentMeshIndices.begin(), tempCurrentMeshIndices.end());
+
+            indexValueOffsetPerMesh += mesh.vertices.size();
+        }
+
+        auto cmdQueue = Device::GetInstance().GetCommandQueue();
+        auto cmdList = cmdQueue->GetDefaultCommandList();
+        auto cmdAlloc = cmdQueue->GetDefaultCommandAllocator();
+
+        cmdList->Reset(cmdAlloc.Get(), nullptr);
+
+        CreateGPUBuffers(cmdList.Get(), allVertices, allIndices);
+
+        ThrowIfFailed(cmdList->Close());
+        ID3D12CommandList *const ppCommandLists[] = {cmdList.Get()};
+        cmdQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+        cmdQueue->Flush();
+    }
+
+    D3D12_VERTEX_BUFFER_VIEW Model::VertexBufferView() const
+    {
+        D3D12_VERTEX_BUFFER_VIEW vbv;
+        vbv.BufferLocation = VertexBufferGPU->GetGPUVirtualAddress();
+        vbv.StrideInBytes = VertexByteStride;
+        vbv.SizeInBytes = VertexBufferByteSize;
+
+        return vbv;
+    }
+
+    D3D12_INDEX_BUFFER_VIEW Model::IndexBufferView() const
+    {
+        D3D12_INDEX_BUFFER_VIEW ibv;
+        ibv.BufferLocation = IndexBufferGPU->GetGPUVirtualAddress();
+        ibv.Format = IndexFormat;
+        ibv.SizeInBytes = IndexBufferByteSize;
+
+        return ibv;
+    }
+
+    // We can free this memory after we finish upload to the GPU.
+    void Model::DisposeUploaders()
+    {
+        VertexBufferUploader = nullptr;
+        IndexBufferUploader = nullptr;
+    }
+
 } // namespace Blainn

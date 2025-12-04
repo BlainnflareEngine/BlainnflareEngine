@@ -6,7 +6,7 @@ namespace Blainn
 {
     class Camera
     {
-        public:
+    public:
         Camera();
         /*virtual */~Camera() = default;
         

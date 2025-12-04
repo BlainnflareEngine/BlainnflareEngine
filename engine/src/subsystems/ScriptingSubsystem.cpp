@@ -101,7 +101,12 @@ void Blainn::ScriptingSubsystem::DestroyScriptingComponent(Entity entity)
         return;
     }
 
-    for (const auto &[scriptUuid, _] : component->scripts)
+    eastl::vector<uuid> scriptUuids;
+    scriptUuids.reserve(component->scripts.size());
+    eastl::transform(component->scripts.begin(), component->scripts.end(), eastl::back_inserter(scriptUuids),
+                     [](const eastl::pair<uuid, LuaScript> &pair) { return pair.first; });
+
+    for (const auto &scriptUuid : scriptUuids)
     {
         UnloadScript(scriptUuid);
     }
@@ -136,7 +141,7 @@ eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const Path &
     if (callOnStart) luaScript.OnStartCall();
 
     uuid scriptUuid = luaScript.GetId();
-    scripts[scriptUuid] = std::move(luaScript);
+    scripts[scriptUuid] = eastl::move(luaScript);
     m_scriptEntityConnections[scriptUuid] = entity;
     return eastl::optional(eastl::move(scriptUuid));
 }

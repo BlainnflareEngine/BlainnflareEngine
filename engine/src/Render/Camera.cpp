@@ -2,16 +2,16 @@
 #include "Render/FreyaMath.h"
 
 Blainn::Camera::Camera()
-	: m_nearZ(1.0f)
-	, m_farZ(1000.0f)
-	, m_fovYRad(0.0f)
-	, m_aspectRatio(0.0f)
+    : m_nearZ(1.0f)
+    , m_farZ(1000.0f)
+    , m_fovYRad(0.0f)
+    , m_aspectRatio(0.0f)
 	, m_nearWindowHeight(0.0f)
 	, m_farWindowHeight(0.0f)
 {
 	m_view = XMMatrixIdentity();
-	m_persProj = XMMatrixIdentity();
-	m_orthProj = XMMatrixIdentity();
+    m_persProj = XMMatrixIdentity();
+    m_orthProj = XMMatrixIdentity();
 	// to update view matrix on the first update call
 	m_isDirty = true;
 }

@@ -23,6 +23,8 @@ set(ENGINE_SOURCES
         src/physics/ContactListenerImpl.cpp
         include/components/PhysicsComponent.h
         src/components/PhysicsComponent.cpp
+        include/components/MeshComponent.h
+        src/components/MeshComponent.cpp
         include/physics/ShapeFactory.h
         src/physics/ShapeFactory.cpp
         include/Render/Renderer.h
@@ -39,16 +41,21 @@ set(ENGINE_SOURCES
         include/Render/UploadBuffer.h
         include/Render/Camera.h
         include/Render/GBuffer.h
+        include/Render/PrebuiltEngineMeshes.h
         include/Render/ShadowMap.h
+        include/Render/SwapChain.h 
         include/Render/CascadeShadowMap.h
         src/Render/Renderer.cpp
         src/Render/CommandQueue.cpp
         src/Render/Device.cpp
         src/Render/FreyaUtil.cpp
+        src/Render/RootSignature.cpp
         src/Render/FrameResource.cpp
         src/Render/Camera.cpp
         src/Render/GBuffer.cpp
+        src/Render/PrebuiltEngineMeshes.cpp
         src/Render/ShadowMap.cpp
+        src/Render/SwapChain.cpp
         src/Render/CascadeShadowMap.cpp
         include/scene/Scene.h
         src/scene/Scene.cpp
@@ -88,7 +95,7 @@ set(ENGINE_SOURCES
         include/tools/Serializer.h
         include/scene/SceneEvent.h
         src/scene/SceneEvent.cpp
-
+        
         include/scripting/TypeRegistration.h
         src/scripting/type-registration/CommonToLua.cpp
         src/scripting/type-registration/InputToLua.cpp
@@ -132,5 +139,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         spdlog
         pch
         lua
-)
-
+        d3d12.lib
+        d3dcompiler.lib)

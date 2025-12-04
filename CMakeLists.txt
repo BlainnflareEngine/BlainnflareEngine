@@ -122,9 +122,6 @@ else()
             EDITOR)
 endif()
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
-        d3d12.lib
-        d3dcompiler.lib)
 
 if(BLAINN_EXCLUDE_EDITOR)
     target_include_directories(${PROJECT_NAME} PUBLIC

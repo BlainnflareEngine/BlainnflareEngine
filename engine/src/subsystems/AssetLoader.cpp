@@ -79,10 +79,10 @@ void AssetLoader::ProcessNode(const std::filesystem::path &path, const aiNode &n
 }
 
 
-MeshData AssetLoader::ProcessMesh(const Path &path, const aiMesh &mesh, const aiScene &scene, const aiNode &node,
+MeshData<> AssetLoader::ProcessMesh(const Path &path, const aiMesh &mesh, const aiScene &scene, const aiNode &node,
                                   const Mat4 &parentMatrix, Model &model)
 {
-    MeshData result_mesh = MeshData();
+    MeshData<> result_mesh = MeshData<>();
     result_mesh.parentMatrix = parentMatrix;
 
     for (size_t i = 0; i < mesh.mNumVertices; ++i)

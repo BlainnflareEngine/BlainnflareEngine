@@ -48,6 +48,7 @@ struct MeshHandle : Handle
 {
     MeshHandle(const unsigned int index, AssetManager &manager = AssetManager::GetInstance());
     virtual ~MeshHandle() override;
+
     Model &GetMesh() const;
 };
 
