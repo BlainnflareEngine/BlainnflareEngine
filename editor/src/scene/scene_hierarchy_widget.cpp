@@ -14,6 +14,8 @@
 #include "context-menu/AddToSceneContextMenu.h"
 #include "ui_scene_hierarchy_widget.h"
 
+#include <QMimeData>
+
 namespace editor
 {
 scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
@@ -30,6 +32,10 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
     setSelectionMode(SingleSelection);
     setContextMenuPolicy(Qt::CustomContextMenu);
     setItemDelegate(new EntityDelegate(this));
+    setDragEnabled(true);
+    setAcceptDrops(true);
+    setDropIndicatorShown(true);
+    setDragDropMode(InternalMove);
 
     m_addToSceneMenu = new AddToSceneContextMenu(*this, this);
 
@@ -44,8 +50,15 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
                                     [this](const Blainn::SceneEventPointer &event) { this->OnEntityCreated(event); });
     Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityDestroyed,
                                     [this](const Blainn::SceneEventPointer &event) { this->OnEntityDestroyed(event); });
+    Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityChanged,
+                                    [this](const Blainn::SceneEventPointer &event) { this->OnEntityDestroyed(event); });
     Blainn::Scene::AddEventListener(Blainn::SceneEventType::SceneChanged,
                                     [this](const Blainn::SceneEventPointer &event) { this->OnSceneChanged(event); });
+
+    connect(m_sceneModel, &SceneItemModel::rowsMoved, this, [this](...) {
+        this->viewport()->update();
+        BF_DEBUG("Update view!!!");
+    });
 }
 
 scene_hierarchy_widget::~scene_hierarchy_widget()
@@ -73,7 +86,7 @@ void scene_hierarchy_widget::CreateEntityInHierarchy(Blainn::Entity &entity, con
 
     if (parent.IsValid())
     {
-        newIndex = GetSceneModel().AddNewEntity(entity, SceneItemModel::FindIndexByEntity(m_sceneModel, parent));
+        newIndex = GetSceneModel().AddNewEntity(entity, SceneItemModel::FindIndexByEntity(m_sceneModel, parent.GetUUID()));
     }
     else
     {
@@ -109,7 +122,7 @@ void scene_hierarchy_widget::CreateEntityInHierarchy(Blainn::Entity &&entity, bo
 
     if (parent.IsValid())
     {
-        newIndex = GetSceneModel().AddNewEntity(entity, SceneItemModel::FindIndexByEntity(m_sceneModel, parent));
+        newIndex = GetSceneModel().AddNewEntity(entity, SceneItemModel::FindIndexByEntity(m_sceneModel, parent.GetUUID()));
     }
     else
     {
@@ -161,17 +174,15 @@ void scene_hierarchy_widget::OnEntityDestroyed(const Blainn::SceneEventPointer &
         return;
     }
 
-    QModelIndex nodeIndex = SceneItemModel::FindIndexByEntity(model, destroyedEntity);
+    QModelIndex nodeIndex = SceneItemModel::FindIndexByEntity(model, entityEvent->GetUUID());
 
     if (!nodeIndex.isValid())
     {
-        BF_ERROR("Index not found for entity!");
         return;
     }
 
     if (nodeIndex.row() >= model->rowCount(nodeIndex.parent()))
     {
-        BF_ERROR("Row index out of bounds!");
         return;
     }
 
@@ -199,6 +210,11 @@ void scene_hierarchy_widget::OnSceneChanged(const Blainn::SceneEventPointer &eve
 }
 
 
+void scene_hierarchy_widget::OnEntityReparented(const Blainn::SceneEventPointer &event)
+{
+}
+
+
 void scene_hierarchy_widget::OnItemDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
                                                const QVector<int> &roles)
 {
@@ -206,7 +222,6 @@ void scene_hierarchy_widget::OnItemDataChanged(const QModelIndex &topLeft, const
 
 
     QString newName = topLeft.data(Qt::DisplayRole).toString();
-    BF_DEBUG("Item renamed to: {0}", ToString(newName))
 
     if (EntityNode *node = SceneItemModel::GetNodeFromIndex(topLeft))
     {

@@ -5,10 +5,12 @@
 #include "SceneItemModel.h"
 
 #include "EASTL/sort.h"
+#include "Engine.h"
 #include "EntityNodeComparator .h"
 #include "FileSystemUtils.h"
 
 #include <QMessageBox>
+#include <QMimeData>
 
 
 editor::SceneItemModel::SceneItemModel(QObject *parent)
@@ -25,6 +27,8 @@ editor::SceneItemModel::~SceneItemModel()
 
 QModelIndex editor::SceneItemModel::AddNewEntity(const Blainn::Entity &entity, const QModelIndex &parentIndex)
 {
+    if (!entity.IsValid()) return QModelIndex();
+
     EntityNode *parentNode = nullptr;
     QVector<EntityNode *> *targetCollection = &m_rootNodes;
 
@@ -34,9 +38,9 @@ QModelIndex editor::SceneItemModel::AddNewEntity(const Blainn::Entity &entity, c
         targetCollection = &parentNode->children;
     }
 
-    EntityNode *newNode = new EntityNode(entity, parentNode);
+    EntityNode *newNode = new EntityNode(entity.GetUUID(), parentNode);
 
-    newNode->SetName(editor::ToQString(entity.Name()));
+    newNode->SetName(ToQString(entity.Name()));
 
     int newRow = targetCollection->size();
     beginInsertRows(parentIndex, newRow, newRow);
@@ -49,10 +53,12 @@ QModelIndex editor::SceneItemModel::AddNewEntity(const Blainn::Entity &entity, c
 
 QModelIndex editor::SceneItemModel::index(int row, int column, const QModelIndex &parent) const
 {
-    if (!hasIndex(row, column, parent)) return QModelIndex();
+    if (!hasIndex(row, column, parent))
+    {
+        return QModelIndex();
+    }
 
     EntityNode *parentNode = nullptr;
-
     if (parent.isValid())
     {
         parentNode = static_cast<EntityNode *>(parent.internalPointer());
@@ -70,8 +76,7 @@ QModelIndex editor::SceneItemModel::index(int row, int column, const QModelIndex
     {
         if (row < m_rootNodes.size())
         {
-            EntityNode *rootNode = m_rootNodes[row];
-            return createIndex(row, column, rootNode);
+            return createIndex(row, column, m_rootNodes[row]);
         }
     }
 
@@ -86,10 +91,13 @@ QModelIndex editor::SceneItemModel::parent(const QModelIndex &child) const
     EntityNode *childNode = static_cast<EntityNode *>(child.internalPointer());
     EntityNode *parentNode = childNode->m_parent;
 
-    if (!parentNode) return QModelIndex();
+    if (!parentNode)
+    {
+        return QModelIndex();
+    }
 
     EntityNode *grandParent = parentNode->m_parent;
-    int row = 0;
+    int row = -1;
 
     if (grandParent)
     {
@@ -100,7 +108,10 @@ QModelIndex editor::SceneItemModel::parent(const QModelIndex &child) const
         row = m_rootNodes.indexOf(parentNode);
     }
 
-    if (row == -1) return QModelIndex();
+    if (row == -1)
+    {
+        return QModelIndex();
+    }
 
     return createIndex(row, 0, parentNode);
 }
@@ -109,7 +120,6 @@ QModelIndex editor::SceneItemModel::parent(const QModelIndex &child) const
 int editor::SceneItemModel::rowCount(const QModelIndex &parent) const
 {
     if (!parent.isValid()) return m_rootNodes.size();
-
 
     EntityNode *parentNode = static_cast<EntityNode *>(parent.internalPointer());
     return parentNode ? parentNode->children.size() : 0;
@@ -133,8 +143,12 @@ QVariant editor::SceneItemModel::data(const QModelIndex &index, int role) const
 
     EntityNode *node = static_cast<EntityNode *>(index.internalPointer());
 
-    // we display only name for now
-    // if we will use more than 1 column we should return more info
+    Blainn::Entity entity = node->GetEntity();
+    if (entity.IsValid())
+    {
+        return ToQString(entity.Name());
+    }
+
     return node->GetName();
 }
 
@@ -178,14 +192,9 @@ bool editor::SceneItemModel::IsNameDuplicate(const QString &name, const QModelIn
 
 Qt::ItemFlags editor::SceneItemModel::flags(const QModelIndex &index) const
 {
-    Qt::ItemFlags defaultFlags = QAbstractItemModel::flags(index);
-
-    if (index.isValid())
-    {
-        return defaultFlags | Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
-    }
-
-    return defaultFlags;
+    if (!index.isValid()) return Qt::ItemIsDropEnabled;
+    return QAbstractItemModel::flags(index) | Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable
+           | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
 }
 
 
@@ -197,11 +206,11 @@ editor::EntityNode *editor::SceneItemModel::GetNodeFromIndex(const QModelIndex &
 }
 
 
-QModelIndex editor::SceneItemModel::FindIndexByEntity(SceneItemModel *model, const Blainn::Entity &entity)
+QModelIndex editor::SceneItemModel::FindIndexByEntity(SceneItemModel *model, const Blainn::uuid &id)
 {
     // TODO: recursive deletion will have bad performance in future
     // This is future Ivan problem :)
-    return FindIndexByEntityRecursive(model, QModelIndex(), entity);
+    return FindIndexByIDRecursive(model, QModelIndex(), id);
 }
 
 
@@ -267,8 +276,145 @@ void editor::SceneItemModel::SortAccordingToMeta(eastl::shared_ptr<SceneMeta> &m
 }
 
 
-QModelIndex editor::SceneItemModel::FindIndexByEntityRecursive(SceneItemModel *model, const QModelIndex &parent,
-                                                               const Blainn::Entity &entity)
+QStringList editor::SceneItemModel::mimeTypes() const
+{
+    return {MIME_ENTITY_UUID};
+}
+
+
+Qt::DropActions editor::SceneItemModel::supportedDropActions() const
+{
+    return Qt::MoveAction;
+}
+
+
+void editor::SceneItemModel::UpdateNodeHierarchy(const Blainn::uuid &nodeUuid, EntityNode *newParent)
+{
+    EntityNode *node = nullptr;
+    QVector<EntityNode *> *oldCollection = &m_rootNodes;
+    int oldRow = -1;
+
+    for (int i = 0; i < m_rootNodes.size(); ++i)
+    {
+        if (m_rootNodes[i]->GetUUID() == nodeUuid)
+        {
+            node = m_rootNodes[i];
+            oldRow = i;
+            break;
+        }
+    }
+
+    if (!node)
+    {
+        for (EntityNode *root : m_rootNodes)
+        {
+            if (FindAndRemoveNode(root, nodeUuid, &node, &oldCollection, &oldRow)) break;
+        }
+    }
+
+    if (!node) return;
+
+    node->m_parent = newParent;
+
+    if (oldRow != -1 && oldCollection)
+    {
+        oldCollection->remove(oldRow);
+    }
+
+    if (newParent)
+    {
+        newParent->children.append(node);
+    }
+    else
+    {
+        m_rootNodes.append(node);
+    }
+}
+
+
+bool editor::SceneItemModel::FindAndRemoveNode(EntityNode *parent, const Blainn::uuid &targetUuid,
+                                               EntityNode **foundNode, QVector<EntityNode *> **collection, int *row)
+{
+    for (int i = 0; i < parent->children.size(); ++i)
+    {
+        EntityNode *child = parent->children[i];
+        if (child->GetUUID() == targetUuid)
+        {
+            *foundNode = child;
+            *collection = &parent->children;
+            *row = i;
+            return true;
+        }
+
+        if (FindAndRemoveNode(child, targetUuid, foundNode, collection, row)) return true;
+    }
+    return false;
+}
+
+
+bool editor::SceneItemModel::FullRebuildModel()
+{
+    beginResetModel();
+    qDeleteAll(m_rootNodes);
+    m_rootNodes.clear();
+
+    auto scene = Blainn::Engine::GetActiveScene();
+    if (!scene)
+    {
+        endResetModel();
+        return false;
+    }
+
+    auto view = scene->GetAllEntitiesWith<Blainn::IDComponent, Blainn::RelationshipComponent>();
+    eastl::vector<Blainn::Entity> rootEntities;
+    eastl::unordered_map<Blainn::uuid, EntityNode *> nodeMap;
+
+    for (auto [entityHandle, idComp, relationshipComp] : view.each())
+    {
+        Blainn::Entity entity(entityHandle, scene.get());
+        EntityNode *node = new EntityNode(entity.GetUUID(), nullptr);
+        nodeMap[entity.GetUUID()] = node;
+    }
+
+    for (auto &pair : nodeMap)
+    {
+        Blainn::Entity entity = scene->TryGetEntityWithUUID(pair.first);
+        if (!entity.IsValid()) continue;
+
+        pair.second->SetName(ToQString(entity.Name()));
+
+        Blainn::Entity parent = entity.GetParent();
+        if (parent.IsValid())
+        {
+            auto parentIt = nodeMap.find(parent.GetUUID());
+            if (parentIt != nodeMap.end())
+            {
+                pair.second->m_parent = parentIt->second;
+                parentIt->second->children.append(pair.second);
+            }
+        }
+        else
+        {
+            rootEntities.push_back(entity);
+        }
+    }
+
+    for (auto &entity : rootEntities)
+    {
+        auto it = nodeMap.find(entity.GetUUID());
+        if (it != nodeMap.end())
+        {
+            m_rootNodes.append(it->second);
+        }
+    }
+
+    endResetModel();
+    return true;
+}
+
+
+QModelIndex editor::SceneItemModel::FindIndexByIDRecursive(SceneItemModel *model, const QModelIndex &parent,
+                                                               const Blainn::uuid &id)
 {
     for (int row = 0; row < model->rowCount(parent); ++row)
     {
@@ -277,12 +423,14 @@ QModelIndex editor::SceneItemModel::FindIndexByEntityRecursive(SceneItemModel *m
 
         EntityNode *node = GetNodeFromIndex(currentIndex);
 
-        if (node && node->GetEntity() == entity)
+        std::string uid = node->GetUUID().str();
+        std::string uid2 = id.str();
+        if (node && node->GetUUID() == id)
         {
             return currentIndex;
         }
 
-        if (auto foundIndex = FindIndexByEntityRecursive(model, currentIndex, entity); foundIndex.isValid())
+        if (auto foundIndex = FindIndexByIDRecursive(model, currentIndex, id); foundIndex.isValid())
         {
             return foundIndex;
         }

@@ -112,6 +112,8 @@ private:
         s_postUpdateQueue.enqueue(func);
     }
 
+    void ReportEntityReparent(Entity entity);
+
 private:
     uuid m_SceneID;
     entt::entity m_SceneEntity{entt::null};

@@ -44,6 +44,7 @@ void Entity::SetParent(Entity parent)
         currentParent.RemoveChild(*this);
 
     SetParentUUID(parent.GetUUID());
+    m_Scene->ReportEntityReparent(*this);
 
     if (parent)
     {
@@ -63,6 +64,7 @@ bool Entity::RemoveChild(Entity child)
     if (it)
     {
         children.erase(it);
+        m_Scene->ReportEntityReparent(child);
         return true;
     }
     return false;

@@ -43,22 +43,24 @@ private:
 class EntityEvent : public SceneEvent
 {
 public:
-    EntityEvent(const Entity &entity, bool sceneChanged = false);
+    EntityEvent(const Entity &entity, const uuid &id, bool sceneChanged);
 
     ~EntityEvent() override {};
 
     [[nodiscard]] Entity GetEntity() const;
+    [[nodiscard]] uuid GetUUID() const;
     [[nodiscard]] bool IsSceneChanged() const;
 
 protected:
     Entity m_entity;
+    uuid m_uuid;
     bool m_isSceneChanged = false;
 };
 
 class EntityCreatedEvent : public EntityEvent
 {
 public:
-    EntityCreatedEvent(const Entity &entity, bool sceneChanged = false);
+    EntityCreatedEvent(const Entity &entity, const uuid &id, bool sceneChanged = false);
 
     ~EntityCreatedEvent() override {};
 
@@ -70,7 +72,7 @@ public:
 class EntityDestroyedEvent : public EntityEvent
 {
 public:
-    EntityDestroyedEvent(const Entity &entity, bool sceneChanged = false);
+    EntityDestroyedEvent(const Entity &entity, const uuid &id, bool sceneChanged = false);
 
     ~EntityDestroyedEvent() override {};
 
@@ -80,10 +82,18 @@ public:
 class EntityChangedEvent : public EntityEvent
 {
 public:
-    EntityChangedEvent(const Entity &entity, bool sceneChanged = false);
+    EntityChangedEvent(const Entity &entity, const uuid &id, bool sceneChanged = false);
 
     ~EntityChangedEvent() override {};
 
+    SceneEventType GetEventType() override;
+};
+
+class EntityReparentedEvent : public EntityChangedEvent
+{
+public:
+    EntityReparentedEvent(const Entity &entity, const uuid &id);
+    ~EntityReparentedEvent() override {};
     SceneEventType GetEventType() override;
 };
 

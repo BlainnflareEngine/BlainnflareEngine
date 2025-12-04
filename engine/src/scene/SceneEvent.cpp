@@ -24,8 +24,9 @@ eastl::string &Blainn::SceneChangedEvent::GetName()
 }
 
 
-Blainn::EntityEvent::EntityEvent(const Entity &entity, bool sceneChanged)
+Blainn::EntityEvent::EntityEvent(const Entity &entity, const uuid &id, bool sceneChanged)
     : m_entity(entity)
+    , m_uuid(id)
     , m_isSceneChanged(sceneChanged)
 {
 }
@@ -37,14 +38,20 @@ Blainn::Entity Blainn::EntityEvent::GetEntity() const
 }
 
 
+Blainn::uuid Blainn::EntityEvent::GetUUID() const
+{
+    return m_uuid;
+}
+
+
 bool Blainn::EntityEvent::IsSceneChanged() const
 {
     return m_isSceneChanged;
 }
 
 
-Blainn::EntityCreatedEvent::EntityCreatedEvent(const Entity &entity, bool sceneChanged)
-    : EntityEvent(entity, sceneChanged)
+Blainn::EntityCreatedEvent::EntityCreatedEvent(const Entity &entity, const uuid &id, bool sceneChanged)
+    : EntityEvent(entity, id, sceneChanged)
 {
 }
 
@@ -61,8 +68,8 @@ Blainn::Entity Blainn::EntityCreatedEvent::GetParent() const
 }
 
 
-Blainn::EntityDestroyedEvent::EntityDestroyedEvent(const Entity &entity, bool sceneChanged)
-    : EntityEvent(entity, sceneChanged)
+Blainn::EntityDestroyedEvent::EntityDestroyedEvent(const Entity &entity, const uuid &id, bool sceneChanged)
+    : EntityEvent(entity, id, sceneChanged)
 {
 }
 
@@ -73,13 +80,25 @@ Blainn::SceneEventType Blainn::EntityDestroyedEvent::GetEventType()
 }
 
 
-Blainn::EntityChangedEvent::EntityChangedEvent(const Entity &entity, bool sceneChanged)
-    : EntityEvent(entity, sceneChanged)
+Blainn::EntityChangedEvent::EntityChangedEvent(const Entity &entity, const uuid &id, bool sceneChanged)
+    : EntityEvent(entity, id, sceneChanged)
 {
 }
 
 
 Blainn::SceneEventType Blainn::EntityChangedEvent::GetEventType()
+{
+    return SceneEventType::EntityChanged;
+}
+
+
+Blainn::EntityReparentedEvent::EntityReparentedEvent(const Entity &entity, const uuid &id)
+    : EntityChangedEvent(entity, id, false)
+{
+}
+
+
+Blainn::SceneEventType Blainn::EntityReparentedEvent::GetEventType()
 {
     return SceneEventType::EntityChanged;
 }

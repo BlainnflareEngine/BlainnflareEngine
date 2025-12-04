@@ -136,6 +136,7 @@ set(EDITOR_SOURCES
         include/inspector/entity/scripting/scripting_widget.h
         src/inspector/entity/scripting/scripting_item_widget.cpp
         include/inspector/entity/scripting/scripting_item_widget.h
+        include/viewport_widget.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

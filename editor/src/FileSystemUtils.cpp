@@ -298,10 +298,11 @@ import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info)
 
 std::string ToString(const QString &str)
 {
-    return str.toUtf8().constData();
+    QByteArray utf8 = str.toUtf8();
+    return std::string(utf8.constData(), utf8.size());
 }
 
-const char * ToCString(const QString &str)
+const char *ToCString(const QString &str)
 {
     return str.toUtf8().constData();
 }
