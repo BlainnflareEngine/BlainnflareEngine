@@ -160,7 +160,7 @@ Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name, bool o
 
     SortEntities();
 
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged));
 
     return entity;
 }
@@ -183,7 +183,7 @@ Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool
 
     if (shouldSort) SortEntities();
 
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged));
 
     return entity;
 }
@@ -208,7 +208,7 @@ Entity Scene::CreateChildEntityWithID(Entity parent, const uuid &id, const eastl
 
     SortEntities();
 
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, onSceneChanged));
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged));
 
     return entity;
 }
@@ -303,7 +303,7 @@ void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool firs
     }
 
     // before actually destroying remove components that might require ID of the entity
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity));
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity, id));
 
     ScriptingSubsystem::DestroyScriptingComponent(entity);
     m_Registry.destroy(entity);
@@ -448,6 +448,7 @@ void Scene::ParentEntity(Entity entity, Entity parent)
     parent.Children().push_back(entity.GetUUID());
 
     ConvertToLocalSpace(entity);
+    ReportEntityReparent(entity);
 }
 
 void Scene::UnparentEntity(Entity entity, bool convertToWorldSpace)
@@ -456,12 +457,13 @@ void Scene::UnparentEntity(Entity entity, bool convertToWorldSpace)
     if (!parent) return;
 
     auto &parentChildren = parent.Children();
-    parentChildren.erase(std::remove(parentChildren.begin(), parentChildren.end(), entity.GetUUID()),
+    parentChildren.erase(eastl::remove(parentChildren.begin(), parentChildren.end(), entity.GetUUID()),
                          parentChildren.end());
 
     if (convertToWorldSpace) ConvertToWorldSpace(entity);
 
     entity.SetParentUUID(0);
+    ReportEntityReparent(entity);
 }
 
 Entity Scene::DuplicateEntity(Entity entity)
@@ -521,4 +523,10 @@ void Scene::SortEntities()
     //         auto rhsEntity = m_EntityIdMap.find(rhs.ID);
     //         return static_cast<uint32_t>(lhsEntity->second) < static_cast<uint32_t>(rhsEntity->second);
     //     });
+}
+
+
+void Scene::ReportEntityReparent(Entity entity)
+{
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityReparentedEvent>(entity, entity.GetUUID()));
 }

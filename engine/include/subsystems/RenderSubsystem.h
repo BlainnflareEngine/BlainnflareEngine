@@ -85,6 +85,7 @@ public:
     void Init(HWND window);
     void SetWindowParams(HWND window);
     void Render(float deltaTime);
+    void OnResize(UINT newWidth, UINT newHeight);
     void Destroy();
 
     void CreateAttachRenderComponent(Entity entity);
@@ -108,7 +109,6 @@ private:
 
     VOID Present();
 #pragma endregion BoilerplateD3D12
-    void OnResize(UINT newWidth, UINT newHeight);
 
     void LoadPipeline();
     void LoadGraphicsFeatures();

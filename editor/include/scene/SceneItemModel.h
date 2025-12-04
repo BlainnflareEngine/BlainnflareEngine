@@ -10,6 +10,8 @@
 
 namespace editor
 {
+inline static const char *const MIME_ENTITY_UUID = "application/x-blainn-entity-uuid";
+
 class SceneItemModel : public QAbstractItemModel
 {
     Q_OBJECT
@@ -38,17 +40,26 @@ public:
 
     static EntityNode *GetNodeFromIndex(const QModelIndex &index);
 
-    static QModelIndex FindIndexByEntity(SceneItemModel *model, const Blainn::Entity &entity);
+    static QModelIndex FindIndexByEntity(SceneItemModel *model, const Blainn::uuid &id);
 
     bool removeRows(int row, int count, const QModelIndex &parent) override;
 
     void SortAccordingToMeta(eastl::shared_ptr<SceneMeta> &meta);
 
+    QStringList mimeTypes() const override;
+
+    Qt::DropActions supportedDropActions() const override;
+
 private:
     QVector<EntityNode *> m_rootNodes;
 
-    static QModelIndex FindIndexByEntityRecursive(SceneItemModel *model, const QModelIndex &parent,
-                                                  const Blainn::Entity &entity);
+    void UpdateNodeHierarchy(const Blainn::uuid &nodeUuid, EntityNode *newParent);
+    bool FindAndRemoveNode(EntityNode *parent, const Blainn::uuid &targetUuid, EntityNode **foundNode,
+                           QVector<EntityNode *> **collection, int *row);
+    bool FullRebuildModel();
+
+    static QModelIndex FindIndexByIDRecursive(SceneItemModel *model, const QModelIndex &parent, const Blainn::uuid &id);
+
 
     static void SortNodeChildren(EntityNode *node, const eastl::shared_ptr<SceneMeta> &meta);
 };

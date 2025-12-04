@@ -30,12 +30,14 @@ bool Blainn::Input::IsKeyReleased(KeyCode key)
 
 bool Blainn::Input::IsMouseButtonPressed(MouseButton button)
 {
-    return s_mouseButtonStates.find(button) != s_mouseButtonStates.end() && s_mouseButtonStates[button] == ButtonState::Pressed;
+    return s_mouseButtonStates.find(button) != s_mouseButtonStates.end()
+           && s_mouseButtonStates[button] == ButtonState::Pressed;
 }
 
 bool Blainn::Input::IsMouseButtonHeld(MouseButton button)
 {
-    return s_mouseButtonStates.find(button) != s_mouseButtonStates.end() && s_mouseButtonStates[button] == ButtonState::Held;
+    return s_mouseButtonStates.find(button) != s_mouseButtonStates.end()
+           && s_mouseButtonStates[button] == ButtonState::Held;
 }
 
 bool Blainn::Input::IsMouseButtonDown(MouseButton button)
@@ -45,7 +47,8 @@ bool Blainn::Input::IsMouseButtonDown(MouseButton button)
 
 bool Blainn::Input::IsMouseButtonReleased(MouseButton button)
 {
-    return s_mouseButtonStates.find(button) != s_mouseButtonStates.end() && s_mouseButtonStates[button] == ButtonState::Released;
+    return s_mouseButtonStates.find(button) != s_mouseButtonStates.end()
+           && s_mouseButtonStates[button] == ButtonState::Released;
 }
 
 
@@ -71,25 +74,27 @@ void Blainn::Input::UpdateMousePosition(const float x, const float y)
 
 void Blainn::Input::UpdateMousePosition(const MousePosition newPos)
 {
+    s_mouseDelta = s_mousePosition - newPos;
+    BF_DEBUG("MousePosition updated {} {}", s_mouseDelta.X, s_mouseDelta.Y);
+
     s_mousePosition = newPos;
     s_inputEventQueue.enqueue(InputEventType::MouseMoved, eastl::make_shared<MouseMovedEvent>(newPos.X, newPos.Y));
+    s_inputEventQueue.enqueue(InputEventType::MouseDelta, eastl::make_shared<MouseMovedEvent>(s_mouseDelta.X, s_mouseDelta.Y));
 }
 
 void Blainn::Input::TransitionPressedKeys()
 {
-    for (const auto& [key, keyState] : s_keyStates)
+    for (const auto &[key, keyState] : s_keyStates)
     {
-        if (keyState == KeyState::Pressed)
-            UpdateKeyState(key, KeyState::Held);
+        if (keyState == KeyState::Pressed) UpdateKeyState(key, KeyState::Held);
     }
 }
 
 void Blainn::Input::TransitionPressedButtons()
 {
-    for (const auto& [button, buttonState] : s_mouseButtonStates)
+    for (const auto &[button, buttonState] : s_mouseButtonStates)
     {
-        if (buttonState == ButtonState::Pressed)
-            UpdateButtonState(button, ButtonState::Held);
+        if (buttonState == ButtonState::Pressed) UpdateButtonState(button, ButtonState::Held);
     }
 }
 

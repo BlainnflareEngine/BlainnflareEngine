@@ -39,6 +39,7 @@ public:
     void OnEntityCreated(const Blainn::SceneEventPointer &event);
     void OnEntityDestroyed(const Blainn::SceneEventPointer &event);
     void OnSceneChanged(const Blainn::SceneEventPointer &event);
+    void OnEntityReparented(const Blainn::SceneEventPointer &event);
 
 public slots:
 

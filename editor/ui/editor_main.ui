@@ -449,7 +449,7 @@
            <property name="currentIndex">
             <number>0</number>
            </property>
-           <widget class="QWidget" name="viewportTab">
+           <widget class="viewport_widget" name="viewportTab">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>1</horstretch>
@@ -839,6 +839,12 @@
    <class>scene_hierarchy_widget</class>
    <extends>QTreeView</extends>
    <header>scene_hierarchy_widget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>viewport_widget</class>
+   <extends>QWidget</extends>
+   <header location="global">viewport_widget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

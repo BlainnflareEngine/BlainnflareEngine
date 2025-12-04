@@ -13,6 +13,7 @@ namespace Blainn
 enum class InputEventType
 {
     MouseMoved,
+    MouseDelta,
     MouseButtonPressed,
     MouseButtonReleased,
     MouseScrolled,

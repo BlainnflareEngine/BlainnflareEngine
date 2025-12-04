@@ -6,7 +6,7 @@
 
 #include "FileSystemUtils.h"
 #include "scene/Entity.h"
-
+#include "Engine.h"
 
 #include <QList>
 
@@ -18,11 +18,11 @@ private:
     Q_OBJECT
 
 public:
-    EntityNode(const Blainn::Entity &entity, EntityNode *parent = nullptr)
+    EntityNode(const Blainn::uuid &entityID, EntityNode *parent = nullptr)
         : m_parent(parent)
-        , m_entity(entity)
+        , m_entityID(entityID)
     {
-        children.reserve(4);
+        children.reserve(2);
     }
 
 
@@ -38,8 +38,9 @@ public:
 
         emit OnTagChanged(m_tag);
 
-        if (m_entity && m_entity.HasComponent<Blainn::TagComponent>())
-            m_entity.GetComponent<Blainn::TagComponent>().Tag = ToEASTLString(newName);
+        auto entity = GetEntity();
+        if (entity && entity.HasComponent<Blainn::TagComponent>())
+            entity.GetComponent<Blainn::TagComponent>().Tag = ToEASTLString(newName);
     }
 
 
@@ -52,9 +53,16 @@ public:
     QVector<EntityNode *> children = {}; // can't use smart ptr because qDeleteAll uses raw ptr
     EntityNode *m_parent = nullptr;
 
-    Blainn::Entity &GetEntity()
+    Blainn::Entity GetEntity() const
     {
-        return m_entity;
+        auto scene = Blainn::Engine::GetActiveScene();
+        if (!scene) return Blainn::Entity{};
+        return scene->TryGetEntityWithUUID(m_entityID);
+    }
+
+    Blainn::uuid& GetUUID()
+    {
+        return m_entityID;
     }
 
 signals:
@@ -62,6 +70,6 @@ signals:
 
 private:
     QString m_tag;
-    Blainn::Entity m_entity;
+    Blainn::uuid m_entityID;
 };
 } // namespace editor
