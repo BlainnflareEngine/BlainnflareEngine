@@ -18,9 +18,9 @@ using namespace Blainn;
 void Blainn::RegisterInputTypes(sol::state &luaState)
 {
     luaState.new_enum<true>("InputEventType", "MouseMoved", InputEventType::MouseMoved, "MouseButtonPressed",
-                            InputEventType::MouseButtonPressed, "MouseButtonReleased",
+                            InputEventType::MouseButtonPressed, "MouseButtonReleased",InputEventType::MouseButtonHeld, "MouseButtonHeld",
                             InputEventType::MouseButtonReleased, "MouseScrolled", InputEventType::MouseScrolled,
-                            "KeyPressed", InputEventType::KeyPressed, "KeyReleased", InputEventType::KeyReleased);
+                            "KeyPressed", InputEventType::KeyPressed, "KeyReleased", InputEventType::KeyReleased, "KeyHeld", InputEventType::KeyHeld);
 
     luaState.new_enum<true>("MouseButton", "Left", MouseButton::Left, "Right", MouseButton::Right, "Middle",
                             MouseButton::Middle, "X1", MouseButton::X1, "X2", MouseButton::X2);
@@ -56,6 +56,7 @@ void Blainn::RegisterInputTypes(sol::state &luaState)
         }
         case InputEventType::MouseButtonPressed:
         case InputEventType::MouseButtonReleased:
+        case InputEventType::MouseButtonHeld:
         {
             MouseButtonEvent *mbe = dynamic_cast<MouseButtonEvent *>(ev.get());
             if (mbe)
@@ -66,6 +67,7 @@ void Blainn::RegisterInputTypes(sol::state &luaState)
         }
         case InputEventType::KeyPressed:
         case InputEventType::KeyReleased:
+        case InputEventType::KeyHeld:
         {
             KeyboardEvent *kbe = dynamic_cast<KeyboardEvent *>(ev.get());
             if (kbe)

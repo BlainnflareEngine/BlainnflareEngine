@@ -14,13 +14,13 @@ end
 
 function OnStart()
     Log.Info("Test2 onStart called")
-    Input.AddEventListener(InputEventType.KeyPressed,
+    Input.AddEventListener(InputEventType.KeyHeld,
         function(ev)
         Log.Info("key pressed listener from script: " .. tostring(ev.key))
         end
     )
 
-    Input.AddEventListener(InputEventType.KeyPressed,
+    Input.AddEventListener(InputEventType.KeyHeld,
         function(ev)
             local scene = Engine.GetActiveScene()
             local e = scene:GetEntityWithUUID(OwningEntity)
