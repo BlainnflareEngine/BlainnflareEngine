@@ -57,5 +57,6 @@ logs/*
 CMakeFiles/
 # client local machine's specific file
 CMakeSettings.json
+CMakePresets.json
 /out
 cmake-build-debug
