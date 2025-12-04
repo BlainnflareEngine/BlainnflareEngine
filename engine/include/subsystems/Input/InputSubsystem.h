@@ -5,11 +5,12 @@
 
 #pragma once
 #include "EASTL/shared_ptr.h"
+#include "EASTL/unordered_map.h"
+#include "InputEvent.h"
+#include "KeyCodes.h"
+#include "aliases.h"
 #include "eventpp/eventqueue.h"
 #include "helpers.h"
-#include "KeyCodes.h"
-#include "InputEvent.h"
-#include "EASTL/unordered_map.h"
 
 namespace Blainn
 {
@@ -19,6 +20,15 @@ public:
     struct MousePosition
     {
         float X, Y;
+        MousePosition &&operator+(const MousePosition &mouse_position) const
+        {
+            return {X + mouse_position.X, Y + mouse_position.Y};
+        }
+
+        MousePosition &&operator-(const MousePosition &mouse_position) const
+        {
+            return {X - mouse_position.X, Y - mouse_position.Y};
+        }
     };
 
     static bool IsKeyPressed(KeyCode key);
@@ -45,14 +55,17 @@ public:
 
     // I recommend getting the type by using auto since the type is quite deep in the hierarchy
     // also it sucks ass, might need to make it a template function to get the type...
-    static void AddEventListener(InputEventType eventType, eastl::function<void(const InputEventPointer&)> listener);
+    static void AddEventListener(InputEventType eventType, eastl::function<void(const InputEventPointer &)> listener);
     static void ProcessEvents();
-private:
-    inline static eventpp::EventQueue <InputEventType, void(const InputEventPointer&), InputEventPolicy> s_inputEventQueue;
 
-    inline static eastl::unordered_map <KeyCode, KeyState> s_keyStates;
-    inline static eastl::unordered_map <MouseButton, ButtonState> s_mouseButtonStates;
+private:
+    inline static eventpp::EventQueue<InputEventType, void(const InputEventPointer &), InputEventPolicy>
+        s_inputEventQueue;
+
+    inline static eastl::unordered_map<KeyCode, KeyState> s_keyStates;
+    inline static eastl::unordered_map<MouseButton, ButtonState> s_mouseButtonStates;
 
     inline static MousePosition s_mousePosition;
+    inline static MousePosition s_mouseDelta;
 };
-}
+} // namespace Blainn
