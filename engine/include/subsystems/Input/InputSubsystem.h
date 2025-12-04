@@ -20,14 +20,29 @@ public:
     struct MousePosition
     {
         float X, Y;
-        MousePosition &&operator+(const MousePosition &mouse_position) const
+
+        MousePosition operator+(const MousePosition& other) const
         {
-            return {X + mouse_position.X, Y + mouse_position.Y};
+            return {X + other.X, Y + other.Y};
         }
 
-        MousePosition &&operator-(const MousePosition &mouse_position) const
+        MousePosition operator-(const MousePosition& other) const
         {
-            return {X - mouse_position.X, Y - mouse_position.Y};
+            return {X - other.X, Y - other.Y};
+        }
+        
+        MousePosition &operator+=(const MousePosition &other)
+        {
+            X += other.X;
+            Y += other.Y;
+            return *this;
+        }
+
+        MousePosition &operator-=(const MousePosition &other)
+        {
+            X -= other.X;
+            Y -= other.Y;
+            return *this;
         }
     };
 
