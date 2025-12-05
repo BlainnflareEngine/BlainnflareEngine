@@ -46,11 +46,13 @@ public:
     Texture &GetTextureByIndex(unsigned int index);
     Texture &GetTextureByHandle(const TextureHandle &handle);
 
-    bool HasMaterial(const Path &path);
+    bool HasMaterial(const Path &relativePath);
     eastl::shared_ptr<MaterialHandle> GetMaterial(const Path &path);
     eastl::shared_ptr<MaterialHandle> LoadMaterial(const Path &path);
     Material &GetMaterialByIndex(unsigned int index);
     Material &GetMaterialByHandle(const MaterialHandle &handle);
+    static eastl::shared_ptr<MaterialHandle> GetDefaultMaterialHandle();
+    Path GetMaterialPath(const MaterialHandle &handle);
 
     static bool SceneExists(const Path &relativePath);
     static void OpenScene(const Path &relativePath);
@@ -66,7 +68,7 @@ private:
 
 
     void AddTextureWhenLoaded(const Path &path, const unsigned int index, const TextureType type);
-    void AddMaterialWhenLoaded(const Path &path, const unsigned int index);
+    void AddMaterialWhenLoaded(const Path &relativePath, const unsigned int index);
     void AddMeshWhenLoaded(const Path &relativePath, const unsigned int index, const ImportMeshData data);
 
     Texture &GetDefaultTexture();

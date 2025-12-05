@@ -16,10 +16,14 @@ public:
 
 protected:
     void UpdatePath();
-    void SetNewPath(const QString& newPath);
+    void UpdateMaterial();
+
+    void SetNewPath(const QString &oldPath, const QString &newPath);
+    void SetNewMaterial(const QString &oldPath, const QString &newPath);
     virtual void DeleteComponent() override;
 
-    path_input_field *m_path_input_field;
+    path_input_field *m_path_input;
+    path_input_field *m_material_input;
 };
 
 } // namespace editor
