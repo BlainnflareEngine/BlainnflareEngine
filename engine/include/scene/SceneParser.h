@@ -97,16 +97,44 @@ inline MeshComponent GetMesh(const YAML::Node &node)
         return mesh;
     }
 
+    Path relativeMeshPath;
+    Path absolutMeshPath;
+    Path relativeMaterialPath;
+    Path absolutMaterialPath;
+
+    if (node["Material"])
+    {
+        relativeMaterialPath = node["Material"].as<std::string>();
+        absolutMaterialPath = Engine::GetContentDirectory() / relativeMaterialPath;
+    }
+
     if (node["Path"])
     {
-        Path relativePath = node["Path"].as<std::string>();
-        Path absolutPath = Engine::GetContentDirectory() / relativePath;
+        relativeMeshPath = node["Path"].as<std::string>();
+        absolutMeshPath = Engine::GetContentDirectory() / relativeMeshPath;
+    }
 
-        if (!std::filesystem::is_regular_file(absolutPath)) return mesh;
+    if (!std::filesystem::is_regular_file(absolutMeshPath))
+    {
+        mesh.m_meshHandle = AssetManager::GetInstance().GetDefaultMesh();
+    }
+    else
+    {
+        mesh.m_meshHandle =
+            AssetManager::GetInstance().HasMesh(relativeMeshPath)
+                ? AssetManager::GetInstance().GetMesh(relativeMeshPath)
+                : AssetManager::GetInstance().LoadMesh(relativeMeshPath, ImportMeshData::GetMeshData(absolutMeshPath));
+    }
 
-        return AssetManager::GetInstance().HasMesh(relativePath)
-                   ? AssetManager::GetInstance().GetMesh(relativePath)
-                   : AssetManager::GetInstance().LoadMesh(relativePath, ImportMeshData::GetMeshData(absolutPath));
+    if (!std::filesystem::is_regular_file(absolutMaterialPath))
+    {
+        mesh.m_materialHandle = AssetManager::GetInstance().GetDefaultMaterialHandle();
+    }
+    else
+    {
+        mesh.m_materialHandle = AssetManager::GetInstance().HasMaterial(relativeMaterialPath)
+                                    ? AssetManager::GetInstance().GetMaterial(relativeMaterialPath)
+                                    : AssetManager::GetInstance().LoadMaterial(relativeMaterialPath);
     }
 
     return mesh;

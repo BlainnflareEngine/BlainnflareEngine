@@ -104,9 +104,10 @@ public:
         auto &mesh = entity.GetComponent<MeshComponent>();
 
         out << YAML::Key << "MeshComponent" << YAML::Value << YAML::BeginMap;
-        auto a = AssetManager::GetInstance().GetMeshPath(*mesh.m_meshHandle).string();
         out << YAML::Key << "Path" << YAML::Value
             << AssetManager::GetInstance().GetMeshPath(*mesh.m_meshHandle).string();
+        out << YAML::Key << "Material" << YAML::Value
+            << AssetManager::GetInstance().GetMaterialPath(*mesh.m_materialHandle).string();
         out << YAML::EndMap;
     }
 };

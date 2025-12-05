@@ -15,7 +15,7 @@ template<typename TVertex = BlainnVertex, typename TIndex = uint32_t>
 struct MeshData
 {
     static_assert(std::is_same<TIndex, unsigned>() || std::is_same<TIndex, unsigned short>());
-    struct MaterialHandle;
+    //struct MaterialHandle;
 
     MeshData(uint8_t numLODs = 1u)
         : NumLODs(numLODs)
@@ -27,7 +27,7 @@ struct MeshData
     MeshData(const eastl::vector<TVertex>& vertices, const eastl::vector<TIndex>& indices, const eastl::shared_ptr<MaterialHandle> &materialHandle, uint8_t numLODs = 1u)
         : vertices(vertices)
         , indices(indices)
-        , materialHandle(materialHandle)
+        //, materialHandle(materialHandle)
         , NumLODs(numLODs)
     {
 
@@ -37,7 +37,7 @@ struct MeshData
     eastl::vector<TVertex> vertices;
     eastl::vector<TIndex> indices;
     Mat4 parentMatrix;
-    eastl::shared_ptr<MaterialHandle> materialHandle;
+    //eastl::shared_ptr<MaterialHandle> materialHandle;
     uint8_t NumLODs; 
 };
 } // namespace Blainn
