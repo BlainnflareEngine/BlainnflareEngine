@@ -60,8 +60,7 @@ eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, cons
 }
 
 
-void AssetLoader::ProcessNode(const std::filesystem::path &path, const aiNode &node, const aiScene &scene,
-                              const Mat4 &parentMatrix, Model &model)
+void AssetLoader::ProcessNode(const Path &path, const aiNode &node, const aiScene &scene, const Mat4 &parentMatrix, Model &model)
 {
     Mat4 nodeTransform = Mat4(&node.mTransformation.a1).Transpose() * parentMatrix;
 

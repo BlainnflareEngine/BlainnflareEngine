@@ -158,6 +158,11 @@ namespace Blainn
     }
 
 
+    bool AssetManager::HasMaterial(const Path &path)
+    {
+        return m_materialPaths.find(ToEASTLString(path.string())) != m_materialPaths.end();
+    }
+
     eastl::shared_ptr<MaterialHandle> AssetManager::GetMaterial(const Path &path)
     {
         if (auto it = m_materialPaths.find(ToEASTLString(path.string())); it != m_materialPaths.end())
@@ -360,9 +365,9 @@ namespace Blainn
         // TODO: remove asset if refCount == 0
     }
 
-    void AssetManager::CreateTextureDataResource(const eastl::shared_ptr<Texture>& texture)
+    void AssetManager::CreateTextureDataResource(const eastl::shared_ptr<Texture> &texture)
     {
-        //auto gfxDevice = Engine::GetGraphicsDevice();
+        texture->CreateBufferResources();
     }
 
     void AssetManager::CreateMeshDataResource(const eastl::shared_ptr<Model>& model)
