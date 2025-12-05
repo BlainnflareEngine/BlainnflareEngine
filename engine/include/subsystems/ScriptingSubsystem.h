@@ -67,6 +67,10 @@ public:
         return component->scripts.at(scriptUuid).CustomCall(functionName, std::forward<Args>(args)...);
     }
 
+    static uuid GetEntityUUIDByScriptUUID(const uuid &scriptUuid) {
+        return m_scriptEntityConnections[scriptUuid].GetUUID();
+    }
+
 private:
     ScriptingSubsystem() = delete;
 

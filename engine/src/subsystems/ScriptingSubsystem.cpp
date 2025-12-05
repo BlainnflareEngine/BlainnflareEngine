@@ -46,8 +46,8 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
     {
         m_scriptTestEntity = Engine::GetActiveScene()->CreateEntity("LuaScriptTestEntity");
         CreateAttachScriptingComponent(m_scriptTestEntity);
-        m_scriptTestUuid1 =
-            ScriptingSubsystem::LoadScript(m_scriptTestEntity, "scripts/test1.lua", true).value_or(uuid());
+        //m_scriptTestUuid1 =
+        //    ScriptingSubsystem::LoadScript(m_scriptTestEntity, "scripts/test1.lua", true).value_or(uuid());
         m_scriptTestUuid2 =
             ScriptingSubsystem::LoadScript(m_scriptTestEntity, "./scripts/test2.lua", true).value_or(uuid());
 
@@ -137,7 +137,7 @@ eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const Path &
 
     eastl::unordered_map<uuid, LuaScript> &scripts = component->scripts;
     LuaScript luaScript;
-    if (!luaScript.Load(scriptLoadPath)) return eastl::optional<uuid>();
+    if (!luaScript.Load(scriptLoadPath, entity)) return eastl::optional<uuid>();
     if (callOnStart) luaScript.OnStartCall();
 
     uuid scriptUuid = luaScript.GetId();

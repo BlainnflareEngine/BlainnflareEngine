@@ -35,6 +35,16 @@ public:
     EVENT_CLASS_TYPE(KeyPressed)
 };
 
+class KeyHeldEvent final : public KeyboardEvent
+{
+public:
+    KeyHeldEvent(const KeyCode key)
+        : KeyboardEvent(key)
+    {}
+
+    EVENT_CLASS_TYPE(KeyHeld)
+};
+
 class KeyReleasedEvent final : public KeyboardEvent
 {
 public:

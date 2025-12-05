@@ -15,10 +15,12 @@ enum class InputEventType
     MouseMoved,
     MouseDelta,
     MouseButtonPressed,
+    MouseButtonHeld,
     MouseButtonReleased,
     MouseScrolled,
     KeyPressed,
-    KeyReleased
+    KeyReleased,
+    KeyHeld,
 };
 
 enum InputEventCategory
