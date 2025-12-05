@@ -12,12 +12,7 @@ class QLabel;
 class QPushButton;
 namespace editor
 {
-QT_BEGIN_NAMESPACE
-namespace Ui
-{
-class material_inspector_content;
-}
-QT_END_NAMESPACE
+class path_input_field;
 
 class material_inspector_content : public browser_item_inspector_content
 {
@@ -25,14 +20,17 @@ class material_inspector_content : public browser_item_inspector_content
 
 public:
     explicit material_inspector_content(const QString &file, QWidget *parent = nullptr);
-    ~material_inspector_content() override;
 
 private:
-    Ui::material_inspector_content *ui;
+    void connectPathField(path_input_field *field, const QString &yamlKey);
 
-    static QString GetPathString(const std::string &path);
+    QLabel *m_nameLabel = nullptr;
 
-    void setupFileBrowse(QPushButton* button, QLabel* label, const QString& yamlKey,
-                         const QString& dialogTitle, const QString& filter);
+    path_input_field *m_shaderField = nullptr;
+    path_input_field *m_albedoField = nullptr;
+    path_input_field *m_normalField = nullptr;
+    path_input_field *m_metallicField = nullptr;
+    path_input_field *m_roughnessField = nullptr;
+    path_input_field *m_aoField = nullptr;
 };
 } // namespace editor

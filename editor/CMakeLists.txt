@@ -60,7 +60,6 @@ set(EDITOR_SOURCES
         src/FileSystemUtils.cpp
         src/dialog/create_material_dialog.cpp
         include/dialog/create_material_dialog.h
-        ui/dialog/create_material_dialog.ui
         src/content-browser/IconProvider.cpp
         include/content-browser/IconProvider.h
         ${RESOURCES}

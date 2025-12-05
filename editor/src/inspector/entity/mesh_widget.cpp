@@ -19,9 +19,9 @@ namespace editor
 mesh_widget::mesh_widget(const Blainn::Entity &entity, QWidget *parent)
     : component_widget_base(entity, "Mesh", parent)
 {
-    m_path_input = new path_input_field("Mesh path", formats::supported3DFormats, this);
+    m_path_input = new path_input_field("Mesh", formats::supported3DFormats, this);
 
-    m_material_input = new path_input_field("Material path", {formats::materialFormat}, this);
+    m_material_input = new path_input_field("Material", {formats::materialFormat}, this);
 
     layout()->addWidget(m_path_input);
     layout()->addWidget(m_material_input);
