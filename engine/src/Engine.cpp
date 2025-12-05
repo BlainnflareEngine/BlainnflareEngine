@@ -38,7 +38,7 @@ void Engine::Init()
     ScriptingSubsystem::Init();
 
     // TODO: -- remove --  test asset manager
-    auto a = AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), TextureType::ALBEDO);
+    //auto a = AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), TextureType::ALBEDO);
 
     // TODO: -- remove -- test input
     Input::AddEventListener(InputEventType::KeyPressed,

@@ -42,10 +42,10 @@ void AssetManager::Init()
     m_meshes.reserve(MAX_MESHES);
 
     // TODO: create default texture
-    m_textures.emplace(m_loader->LoadTexture(Engine::GetContentDirectory() / "Default.png", TextureType::ALBEDO));
+    m_textures.emplace(m_loader->LoadTexture(Engine::GetContentDirectory() / "Textures\\Default.dds", TextureType::ALBEDO));
 
     // TODO: create default material
-    Material material = Material(Engine::GetContentDirectory() / "Default.mat", "Default");
+    Material material = Material(Engine::GetContentDirectory() / "Materials\\Default.mat", "Default");
     m_materials.emplace(eastl::make_shared<Material>(material));
 
     auto defaultMeshData = PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f);
@@ -286,8 +286,8 @@ void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int ind
     auto str = "Placing texture to index " + std::to_string(index);
     BF_INFO(str);
 
-    // create cpu, gpu d3d12 resources
-    CreateTextureDataResource(m_textures[index]);
+    //// create cpu, gpu d3d12 resources
+    //CreateTextureDataResource(m_textures[index]);
 }
 
 
@@ -378,10 +378,10 @@ void AssetManager::DecreaseMeshRefCount(const unsigned int index)
     // TODO: remove asset if refCount == 0
 }
 
-    void AssetManager::CreateTextureDataResource(const eastl::shared_ptr<Texture> &texture)
-    {
-        texture->CreateBufferResources();
-    }
+void AssetManager::CreateTextureDataResource(const eastl::shared_ptr<Texture> &texture)
+{
+    texture->CreateBufferResources();
+}
 
 void AssetManager::CreateMeshDataResource(const eastl::shared_ptr<Model> &model)
 {

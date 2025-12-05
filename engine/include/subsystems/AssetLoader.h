@@ -39,6 +39,7 @@ namespace Blainn
         eastl::shared_ptr<Model> ImportModel(const Path &relativePath, const ImportMeshData &data);
 
         eastl::shared_ptr<Texture> LoadTexture(const Path &path, TextureType type);
+        void CreateTextureResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource> &resource);
 
         eastl::shared_ptr<Material> LoadMaterial(const Path &path);
 

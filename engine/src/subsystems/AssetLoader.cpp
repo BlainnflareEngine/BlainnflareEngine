@@ -12,6 +12,12 @@
 #include "file-system/Model.h"
 #include "file-system/Texture.h"
 
+#include "Render/Device.h"
+#include "Render/CommandQueue.h"
+
+#include <DirectXTK12/Inc/DDSTextureLoader.h>
+#include <DirectXTK12/Inc/ResourceUploadBatch.h>
+
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -160,8 +166,49 @@ eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const Text
     BF_INFO("I am loading a very big texture...");
     BF_INFO("Loading texture completed!");
 
-    auto temp = Microsoft::WRL::ComPtr<ID3D12Resource>();
+    Microsoft::WRL::ComPtr<ID3D12Resource> temp;
+    CreateTextureResources(path, temp);
+
     return eastl::make_shared<Texture>(path, temp, type);
+}
+
+void AssetLoader::CreateTextureResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource>& resource)
+{
+    auto device = Device::GetInstance().GetDevice2().Get();
+    auto commandQueue = Device::GetInstance().GetCommandQueue();
+
+    ResourceUploadBatch upload(device);
+    upload.Begin();
+
+    // Only for DDS
+    ThrowIfFailed(CreateDDSTextureFromFile(device, upload, path.wstring().c_str(), resource.ReleaseAndGetAddressOf()));
+
+    // Create default upload heap manually
+    {
+        /* auto desc = CD3DX12_RESOURCE_DESC(
+            D3D12_RESOURCE_DIMENSION_TEXTURE2D, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, c_texture_size,
+            c_texture_size, 1, 1, DXGI_FORMAT_R8G8_SNORM, 1, 0, D3D12_TEXTURE_LAYOUT_UNKNOWN,
+        D3D12_RESOURCE_FLAG_NONE);
+
+        CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
+
+        ThrowIfFailed(device->CreateCommittedResource(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &desc,
+                                                        D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+                                                        IID_PPV_ARGS(&m_resource)));
+
+        D3D12_SUBRESOURCE_DATA initData = {mydata, c_texture_size * 2, 0};
+        upload.Upload(tex.Get(), 0, &initData, 1);
+
+        upload.Transition(tex.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);*/
+    }
+    
+
+
+    // Upload the resources to the GPU.
+    auto finish = upload.End(commandQueue->GetCommandQueue().Get());
+
+    // Wait for the upload thread to terminate
+    finish.wait();
 }
 
 
