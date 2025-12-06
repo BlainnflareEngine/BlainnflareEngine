@@ -24,8 +24,12 @@ set(CMAKE_CONFIGURATION_TYPES
 
 # These definitions apply to all the projects
 add_compile_definitions(
-        "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:TRACY_ENABLE;BLAINN_HAS_CONSOLE>"
+        "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:BLAINN_HAS_CONSOLE>"
 )
+
+if(TRACY_ENABLE)
+    add_compile_definitions("TRACY_ENABLE;BLAINN_ENABLE_PROFILING=1")
+endif()
 
 set(PROJECT_NAME
         BlainnflareEngine)

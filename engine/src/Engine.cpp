@@ -86,8 +86,6 @@ void Engine::Update(float deltaTime)
     // this trace doesn't make sense, it exactly matches the frame
     BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop");
 
-    std::counting_semaphore<1> updateDoneSem(0);
-
     Input::ProcessEvents();
 
     // test
@@ -99,14 +97,10 @@ void Engine::Update(float deltaTime)
     if (testAccumulator >= 1000.0f)
     {
         // std::cout << "Engine second" << std::endl;
-        // BF_WARN("FPS: {}", fpsCounter - fpsCounterPrevValue);
+        BF_WARN("FPS: {}", fpsCounter - fpsCounterPrevValue);
         fpsCounterPrevValue = fpsCounter;
 
-        // TODO: -- remove -- test input
-        // Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Pressed);
-        // Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Released);
-
-        testAccumulator = 0.0f;
+        testAccumulator -= 1000.0f;
     }
 
     // TODO: remove physics test
@@ -153,18 +147,7 @@ void Engine::Update(float deltaTime)
 
     ScriptingSubsystem::Update(*s_activeScene, deltaTime);
 
-    vgjs::schedule(
-        [deltaTime, &updateDoneSem]() -> void
-        {
-            m_renderFunc(deltaTime);
-            // std::cout << "render update" << std::endl;
-            updateDoneSem.release();
-        },
-        vgjs::tag_t{1});
-    vgjs::schedule(vgjs::tag_t{1});
-
-    updateDoneSem.acquire();
-    //  std::cout << "loop done" << std::endl;
+    RenderSubsystem::GetInstance().Render(deltaTime);
 
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;
