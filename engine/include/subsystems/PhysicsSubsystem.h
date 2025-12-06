@@ -51,11 +51,13 @@ struct PhysicsComponentSettings
     ComponentShapeType shapeType;
     JPH::EActivation activate = JPH::EActivation::DontActivate;
     PhysicsComponentMotionType motionType = PhysicsComponentMotionType::Dynamic;
-    JPH::ObjectLayer layer = 0;
+    JPH::ObjectLayer layer = Layers::MOVING;
     Vec3 position = Vec3::Zero;
     Quat rotation = Quat::Identity;
     // TODO: scale?
     bool isTrigger = false;
+    float gravityFactor = 1.0f;
+
     float radius = 0.5f;                       // sphere, capsule, cylinder
     Vec3 halfExtents = Vec3{0.5f, 0.5f, 0.5f}; // box
     float halfCylinderHeight = 0.5f;           // capsule, cylinder
@@ -75,9 +77,9 @@ public:
 
     // TODO: QueuePhysicsComponentCreation()?;
 
-    static void CreateComponent(PhysicsComponentSettings &settings);
-    static bool HasComponent(Entity entity);
-    static void DestroyComponent(Entity entity);
+    static void CreateAttachPhysicsComponent(PhysicsComponentSettings &settings);
+    static bool HasPhysicsComponent(Entity entity);
+    static void DestroyPhysicsComponent(Entity entity);
     static JPH::BodyID GetBodyId(Entity entity);
 
     bool IsBodyActive(Entity entity);
@@ -95,7 +97,7 @@ public:
 private:
     PhysicsSubsystem() = delete;
 
-    inline static constexpr float m_physicsUpdatePeriodMs = 1000.0 / 120.0; // 120 Hz
+    inline static constexpr float m_physicsUpdatePeriodMs = 1000.0 / 30.0;
     inline static eastl::unique_ptr<Blainn::PeriodicTimeline<eastl::chrono::milliseconds>> m_physicsTimeline =
         nullptr; // initialized in Init()
 
@@ -110,6 +112,7 @@ private:
     inline static eastl::unique_ptr<JPH::JobSystemSingleThreaded> m_joltJobSystem = nullptr;
     inline static eastl::unique_ptr<JPH::TempAllocatorImpl> m_joltTempAllocator = nullptr;
     inline static eastl::unique_ptr<JPH::PhysicsSystem> m_joltPhysicsSystem = nullptr;
+    inline static eastl::unique_ptr<JPH::Factory> m_factory = nullptr;
 
     inline static eastl::unique_ptr<BPLayerInterfaceImpl> m_broadPhaseLayerInterface = nullptr;
     inline static eastl::unique_ptr<ObjectVsBroadPhaseLayerFilterImpl> m_objectVsBroadPhaseLayerFilter = nullptr;
@@ -120,5 +123,7 @@ private:
     inline static constexpr uint32_t cNumBodyMutexes = 0; // Autodetect
     inline static constexpr uint32_t cMaxBodyPairs = 65536;
     inline static constexpr uint32_t cMaxContactConstraints = 20480;
+
+    // TODO: event queue
 };
 } // namespace Blainn

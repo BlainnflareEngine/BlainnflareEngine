@@ -8,21 +8,25 @@
 #include <Jolt/Physics/Body/BodyLockInterface.h>
 
 #include "aliases.h"
+#include "helpers.h"
 
 namespace Blainn
 {
 
+// хотел сделать с одним локом, но увы, будет лочить на каждый set
 class BodyUpdater
 {
 public:
     BodyUpdater(const JPH::BodyLockInterfaceLocking &bodyLockInterface, JPH::BodyInterface &bodyInterface,
                 JPH::BodyID bodyId)
-        : m_bodyInterface(bodyInterface)
+        : m_bodyLockInterface(bodyLockInterface)
+        , m_bodyInterface(bodyInterface)
         , m_bodyId(bodyId)
-        , m_bodyLock(bodyLockInterface, bodyId)
+    //, m_bodyLock(bodyLockInterface, bodyId)
     {
-        assert(m_bodyLock.Succeeded());
+        // assert(m_bodyLock.Succeeded());
     }
+    NO_COPY_DEFAULT_MOVE(BodyUpdater);
     ~BodyUpdater() = default;
 
     BodyUpdater &SetPosition(Vec3 position, JPH::EActivation activation = JPH::EActivation::Activate);
@@ -42,7 +46,8 @@ public:
     BodyUpdater &AddForce(Vec3 force);
 
 private:
-    JPH::BodyLockWrite m_bodyLock;
+    // JPH::BodyLockWrite m_bodyLock;
+    const JPH::BodyLockInterfaceLocking &m_bodyLockInterface;
     JPH::BodyInterface &m_bodyInterface;
     JPH::BodyID m_bodyId;
 };

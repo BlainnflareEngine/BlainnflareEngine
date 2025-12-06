@@ -11,6 +11,8 @@ JPH::ValidateResult ContactListenerImpl::OnContactValidate(const JPH::Body &inBo
                                                            JPH::RVec3Arg inBaseOffset,
                                                            const JPH::CollideShapeResult &inCollisionResult)
 {
+    BF_INFO("PHYSICS ON CONTACT VALIDATE");
+
     // Check ordering contract between body 1 and body 2
     bool contract = inBody1.GetMotionType() >= inBody2.GetMotionType()
                     || (inBody1.GetMotionType() == inBody2.GetMotionType() && inBody1.GetID() < inBody2.GetID());
@@ -32,6 +34,8 @@ JPH::ValidateResult ContactListenerImpl::OnContactValidate(const JPH::Body &inBo
 void ContactListenerImpl::OnContactAdded(const JPH::Body &inBody1, const JPH::Body &inBody2,
                                          const JPH::ContactManifold &inManifold, JPH::ContactSettings &ioSettings)
 {
+    BF_INFO("PHYSICS ON CONTACT ADDED");
+
     // Expect bodies to be sorted
     if (!(inBody1.GetID() < inBody2.GetID())) JPH_BREAKPOINT;
 
@@ -59,6 +63,8 @@ void ContactListenerImpl::OnContactAdded(const JPH::Body &inBody1, const JPH::Bo
 void ContactListenerImpl::OnContactPersisted(const JPH::Body &inBody1, const JPH::Body &inBody2,
                                              const JPH::ContactManifold &inManifold, JPH::ContactSettings &ioSettings)
 {
+    BF_INFO("PHYSICS ON CONTACT PERSISTED");
+
     // Expect bodies to be sorted
     if (!(inBody1.GetID() < inBody2.GetID())) JPH_BREAKPOINT;
 
@@ -86,6 +92,8 @@ void ContactListenerImpl::OnContactPersisted(const JPH::Body &inBody1, const JPH
 
 void ContactListenerImpl::OnContactRemoved(const JPH::SubShapeIDPair &inSubShapePair)
 {
+    BF_INFO("PHYSICS ON CONTACT REMOVED");
+
     // Expect bodies to be sorted
     if (!(inSubShapePair.GetBody1ID() < inSubShapePair.GetBody2ID())) JPH_BREAKPOINT;
 

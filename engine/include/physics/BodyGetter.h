@@ -8,6 +8,7 @@
 #include <Jolt/Physics/Body/BodyLockInterface.h>
 
 #include "aliases.h"
+#include "helpers.h"
 
 namespace Blainn
 {
@@ -23,11 +24,12 @@ public:
     {
         assert(m_bodyLock.Succeeded());
     }
+    NO_COPY_DEFAULT_MOVE(BodyGetter);
     ~BodyGetter() = default;
 
     Vec3 GetPosition();
     Quat GetRotation();
-    Vec3 GetScale();
+    Vec3 GetScale(); // TODO:?
 
     JPH::RefConst<JPH::Shape> GetShape();
 

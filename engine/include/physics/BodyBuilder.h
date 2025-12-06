@@ -18,12 +18,14 @@ public:
 
     BodyBuilder &SetMotionType(JPH::EMotionType motionType);
     BodyBuilder &SetShape(JPH::Shape *shape);
+    BodyBuilder &SetLayer(JPH::ObjectLayer layer);
 
     BodyBuilder &SetPosition(Vec3 vec);
     BodyBuilder &SetRotation(Quat quat);
     BodyBuilder &SetLinearVelocity(Vec3 vec);
     BodyBuilder &SetAngularVelocity(Vec3 vec);
     BodyBuilder &SetIsTrigger(bool isTrigger);
+    BodyBuilder &SetGravityFactor(float factor);
 
     JPH::BodyID Build(JPH::EActivation activate = JPH::EActivation::DontActivate);
 

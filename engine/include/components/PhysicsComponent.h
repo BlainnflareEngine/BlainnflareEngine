@@ -26,6 +26,7 @@ struct PhysicsComponent
     JPH::BodyID bodyId = JPH::BodyID();
     ComponentShapeType shapeType = ComponentShapeType::Empty;
     ShapeHierarchy shapeHierarchy = {};
-    // TODO: simulation enabled, gravity, other settings?
+    // eastl::unique_ptr<JPH::Shape> shapePtr = nullptr;
+    //  TODO: simulation enabled, gravity, other settings?
 };
 } // namespace Blainn
