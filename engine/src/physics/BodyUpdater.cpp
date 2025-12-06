@@ -18,12 +18,14 @@ BodyUpdater &Blainn::BodyUpdater::SetRotation(Quat rotation, JPH::EActivation ac
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::SetScale(Vec3 scale)
+// some cringe
+BodyUpdater &Blainn::BodyUpdater::SetScale(Vec3 scale, Vec3 prevScale)
 {
+    JPH::Vec3 newShapeScale(ToJoltVec3(scale / prevScale));
+
     JPH::BodyLockWrite bodyLock(m_bodyLockInterface, m_bodyId);
     JPH::Body &body = bodyLock.GetBody();
-    // TODO: оно возвращает новый shape?
-    JPH::Shape::ShapeResult res = body.GetShape()->ScaleShape(ToJoltVec3(scale));
+    JPH::Shape::ShapeResult res = body.GetShape()->ScaleShape(newShapeScale);
     return *this;
 }
 

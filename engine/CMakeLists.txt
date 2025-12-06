@@ -103,6 +103,7 @@ set(ENGINE_SOURCES
         src/subsystems/PhysicsSubsystem.cpp
         include/components/PhysicsComponent.h
         include/physics/RayCastResult.h
+        include/physics/PhysicsEvents.h
         include/physics/ShapeFactory.h
         src/physics/ShapeFactory.cpp
         include/physics/BodyBuilder.h

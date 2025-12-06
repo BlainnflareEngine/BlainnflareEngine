@@ -26,7 +26,7 @@ struct PhysicsComponent
     JPH::BodyID bodyId = JPH::BodyID();
     ComponentShapeType shapeType = ComponentShapeType::Empty;
     ShapeHierarchy shapeHierarchy = {};
-    // eastl::unique_ptr<JPH::Shape> shapePtr = nullptr;
-    //  TODO: simulation enabled, gravity, other settings?
+    Vec3 prevFrameScale = Vec3::One; // for rescale tracking
+    bool controlParentTransform = true;
 };
 } // namespace Blainn

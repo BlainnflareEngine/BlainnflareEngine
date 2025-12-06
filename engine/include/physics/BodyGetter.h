@@ -10,6 +10,8 @@
 #include "aliases.h"
 #include "helpers.h"
 
+#include "physics/PhysicsTypes.h"
+
 namespace Blainn
 {
 
@@ -21,6 +23,7 @@ public:
         : m_bodyInterface(bodyInterface)
         , m_bodyId(bodyId)
         , m_bodyLock(bodyLockInterface, bodyId)
+        , m_body(m_bodyLock.GetBody())
     {
         assert(m_bodyLock.Succeeded());
     }
@@ -38,12 +41,14 @@ public:
     Vec3 GetAngularVelocity();
     float GetMaxAngularVelocity();
     float GetGravityFactor();
-    JPH::ObjectLayer GetObjectLayer();
+    ObjectLayer GetObjectLayer();
+    bool isTrigger();
 
 private:
     JPH::BodyLockRead m_bodyLock;
     JPH::BodyInterface &m_bodyInterface;
     JPH::BodyID m_bodyId;
+    const JPH::Body &m_body;
 };
 
 } // namespace Blainn

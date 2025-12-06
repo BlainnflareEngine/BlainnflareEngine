@@ -74,9 +74,6 @@ BodyBuilder &Blainn::BodyBuilder::SetGravityFactor(float factor)
 
 JPH::BodyID BodyBuilder::Build(JPH::EActivation activate /*= JPH::EActivation::Activate*/)
 {
-    // TODO: remove or change
-    SetIsTrigger(true);
-
     m_settings.mAllowSleeping = false;
     JPH::BodyInterface &interf = PhysicsSubsystem::GetPhysicsSystem().GetBodyInterface();
     return interf.CreateAndAddBody(m_settings, activate);

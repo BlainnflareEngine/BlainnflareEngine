@@ -31,7 +31,7 @@ public:
 
     BodyUpdater &SetPosition(Vec3 position, JPH::EActivation activation = JPH::EActivation::Activate);
     BodyUpdater &SetRotation(Quat rotation, JPH::EActivation activation = JPH::EActivation::Activate);
-    BodyUpdater &SetScale(Vec3 scale);
+    BodyUpdater &SetScale(Vec3 scale, Vec3 prevScale);
 
     BodyUpdater &SetVelocity(Vec3 velocity);
     BodyUpdater &SetMaxLinearVelocity(float maxVelocity);
