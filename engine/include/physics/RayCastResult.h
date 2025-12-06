@@ -6,7 +6,7 @@ namespace Blainn
 {
 struct RayCastResult
 {
-    uuid bodyId;
+    uuid entityId;
     Vec3 hitPoint;
     Vec3 hitNormal;
     float distance;
