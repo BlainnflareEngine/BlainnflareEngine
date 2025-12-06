@@ -665,10 +665,6 @@ void Blainn::RenderSubsystem::AddMeshToRenderComponent(Entity entity, eastl::sha
     }
 }
 
-void Blainn::RenderSubsystem::OnKeyboardInput(float deltaTime)
-{
-}
-
 void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 {
     const auto &renderEntitiesView =

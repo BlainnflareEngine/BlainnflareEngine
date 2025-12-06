@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Render/DXHelpers.h"
+#include "Subsystems/Input/InputEvent.h"
 
 namespace Blainn
 {
@@ -16,7 +17,7 @@ namespace Blainn
         XMMATRIX GetViewMatrix() const;
         XMMATRIX GetPerspectiveProjectionMatrix() const;
         XMMATRIX GetOrthoProjectionMatrix() const;
-        FORCEINLINE const BoundingFrustum& GetCameraFrustum() const { return m_frustum; }
+        //FORCEINLINE const BoundingFrustum& GetCameraFrustum() const { return m_frustum; }
         
         FORCEINLINE float GetNearZ() const { return m_nearZ; }
         FORCEINLINE float GetFarZ() const { return m_farZ; }
@@ -29,13 +30,15 @@ namespace Blainn
         FORCEINLINE float GetFarWindowHeight() const{ return m_farWindowHeight; }
         FORCEINLINE float GetFarWindowWidth() const { return m_farWindowHeight * m_aspectRatio; }
         
-        
         XMFLOAT3 GetPosition3f() const;
         XMVECTOR GetPosition() const;
         void SetPosition(float x, float y, float z);
         void SetPosition(const XMFLOAT3& v);
         
         // Translation
+        void Move(const InputEventPointer &event);
+        void SetAcceleration(bool useAcceleration) { m_bUseAcceleration = useAcceleration; }
+
         void MoveRight(float d);
         void MoveForward(float d);
         void MoveUp(float d);
@@ -57,9 +60,13 @@ namespace Blainn
         float m_nearWindowHeight;
         float m_farWindowHeight;
         
-        bool m_isDirty = false;
+        float m_cameraSpeed = 0.01f;
+        float m_cameraAcceleration = 10.0f;
         
-        BoundingFrustum m_frustum;
+        bool m_isDirty = false;
+        bool m_bUseAcceleration = false;
+
+        //BoundingFrustum m_frustum;
         
         XMMATRIX m_view = XMMatrixIdentity();
         XMMATRIX m_persProj = XMMatrixIdentity();

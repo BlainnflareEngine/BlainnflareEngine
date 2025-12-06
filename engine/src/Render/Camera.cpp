@@ -1,6 +1,11 @@
+#include <pch.h>
 #include "Render/Camera.h"
 #include "Render/FreyaMath.h"
+#include "Subsystems/Input/InputSubsystem.h"
+#include "Subsystems/Input/KeyboardEvents.h"
 
+namespace Blainn
+{
 Blainn::Camera::Camera()
     : m_nearZ(1.0f)
     , m_farZ(1000.0f)
@@ -28,6 +33,9 @@ void Blainn::Camera::Update(float deltaTime)
 	m_view = XMMatrixLookAtLH(pos, target, up);
 
 	m_isDirty = false;
+    XMFLOAT3 position = GetPosition3f();
+
+	BF_DEBUG("Camera position: {0}, {1}, {2}", position.x, position.y, position.z);
 }
 
 void Blainn::Camera::Reset(float fovAngleYDegrees, float aspectRatio, float nearZ, float farZ)
@@ -43,7 +51,63 @@ void Blainn::Camera::Reset(float fovAngleYDegrees, float aspectRatio, float near
 	m_persProj = XMMatrixPerspectiveFovLH(m_fovYRad, m_aspectRatio, m_nearZ, m_farZ);
 	m_orthProj = XMMatrixOrthographicLH(GetNearWindowWidth(), GetNearWindowHeight(), nearZ, farZ);
 
-	BoundingFrustum::CreateFromMatrix(m_frustum, m_persProj);
+	// For frustum culling
+	//BoundingFrustum::CreateFromMatrix(m_frustum, m_persProj);
+
+	Input::AddEventListener(InputEventType::KeyHeld, 
+                            [this](const InputEventPointer &event)
+                            {
+                                Move(event);
+                                const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent *>(event.get());
+                                auto key = keyEvent->GetKey();
+
+								switch (key)
+								{
+                                    case Blainn::KeyCode::LeftShift:
+                                    SetAcceleration(true);
+									break;
+								}
+                            });
+
+	Input::AddEventListener(InputEventType::KeyReleased,
+                            [this](const InputEventPointer &event)
+                            {
+                                const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent *>(event.get());
+                                auto key = keyEvent->GetKey();
+
+                                switch (key)
+                                {
+                                case Blainn::KeyCode::LeftShift:
+                                    SetAcceleration(false);
+                                    break;
+                                }
+                            });
+
+	Input::AddEventListener(InputEventType::
+}
+
+void Camera::Move(const InputEventPointer &event)
+{
+    const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent *>(event.get());
+
+	auto key = keyEvent->GetKey();
+
+	float currCamSpeed = m_cameraSpeed;
+    if (m_bUseAcceleration) currCamSpeed *= m_cameraAcceleration;
+
+	switch (key)
+    {
+    case Blainn::KeyCode::A: MoveRight(-currCamSpeed);
+        break;
+    case Blainn::KeyCode::D: MoveRight(currCamSpeed);
+        break;
+    case Blainn::KeyCode::S: MoveForward(-currCamSpeed);
+        break;
+    case Blainn::KeyCode::W: MoveForward(currCamSpeed);
+        break;
+    }
+
+	m_isDirty = true;
 }
 
 XMMATRIX Blainn::Camera::GetViewMatrix() const
@@ -141,3 +205,4 @@ void Blainn::Camera::AdjustPitch(float angle)
 	XMStoreFloat3(&m_forward, XMVector3TransformNormal(XMLoadFloat3(&m_forward), R));
 	m_isDirty = true;
 }
+} // namespace Blainn
