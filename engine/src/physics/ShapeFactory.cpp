@@ -2,13 +2,7 @@
 
 #include "physics/ShapeFactory.h"
 
-#include <Jolt/Physics/Collision/Shape/BoxShape.h>
-#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
-#include <Jolt/Physics/Collision/Shape/CylinderShape.h>
-#include <Jolt/Physics/Collision/Shape/SphereShape.h>
-
 #include "physics/Conversion.h"
-#include "tools/random.h"
 
 using namespace Blainn;
 

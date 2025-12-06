@@ -99,7 +99,9 @@ target_link_libraries(pch INTERFACE
         TracyClient
         yaml-cpp
         DirectXTK12
-        D3D12MemoryAllocator)
+        D3D12MemoryAllocator
+        Jolt
+)
 
 target_include_directories(pch INTERFACE
         "${CMAKE_SOURCE_DIR}/libs/uuid_v4"

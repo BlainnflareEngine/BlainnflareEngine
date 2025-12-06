@@ -1,32 +1,20 @@
+#include "pch.h"
+
 #include "subsystems/PhysicsSubsystem.h"
 
-#include <cassert>
-
-#include <Jolt/Jolt.h>
-#include <Jolt/Physics/Body/Body.h>
-#include <Jolt/Physics/Body/BodyCreationSettings.h>
-#include <Jolt/Physics/Body/BodyManager.h>
-#include <Jolt/Physics/Collision/BroadPhase/BroadPhase.h>
-#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
-#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayerInterfaceMask.h>
-#include <Jolt/Physics/Collision/CastResult.h>
-#include <Jolt/Physics/Collision/ContactListener.h>
-#include <Jolt/Physics/Collision/NarrowPhaseQuery.h>
-#include <Jolt/Physics/Collision/RayCast.h>
-#include <Jolt/Physics/PhysicsSettings.h>
-#include <Jolt/Physics/PhysicsSystem.h>
-
 #include "Engine.h"
-#include "PhysicsSubsystem.h"
+#include "subsystems/Log.h"
+
 #include "physics/BodyBuilder.h"
 #include "physics/ContactListenerImpl.h"
 #include "physics/Layers.h"
 #include "physics/RayCastResult.h"
 #include "physics/ShapeFactory.h"
+
 #include "scene/BasicComponents.h"
 #include "scene/Scene.h"
 #include "scene/TransformComponent.h"
-#include "subsystems/Log.h"
+
 
 using namespace Blainn;
 
@@ -38,10 +26,13 @@ void PhysicsSubsystem::Init(Timeline<eastl::chrono::milliseconds> &globalTimelin
     JPH::RegisterDefaultAllocator();
     m_joltTempAllocator = eastl::make_unique<JPH::TempAllocatorImpl>(32 * 1024 * 1024);
 
-    // TODO: change to job system
+    // can be changed to job system
     m_joltJobSystem = eastl::make_unique<JPH::JobSystemSingleThreaded>(JPH::cMaxPhysicsJobs);
-    // Create physics system
+
     m_joltPhysicsSystem = eastl::make_unique<JPH::PhysicsSystem>();
+
+    m_factory = eastl::make_unique<JPH::Factory>();
+    JPH::Factory::sInstance = m_factory.get();
 
     m_broadPhaseLayerInterface = eastl::make_unique<BPLayerInterfaceImpl>();
     m_objectVsBroadPhaseLayerFilter = eastl::make_unique<ObjectVsBroadPhaseLayerFilterImpl>();
@@ -55,102 +46,148 @@ void PhysicsSubsystem::Init(Timeline<eastl::chrono::milliseconds> &globalTimelin
     m_joltPhysicsSystem->SetPhysicsSettings(mPhysicsSettings);
 
     m_contactListener = eastl::make_unique<ContactListenerImpl>();
+    m_joltPhysicsSystem->SetContactListener(m_contactListener.get());
+
+    JPH::RegisterTypes();
+
     // Optimize the broadphase to make the first update fast
     m_joltPhysicsSystem->OptimizeBroadPhase();
-
-    // TODO: reserve m_bodyCreationQueue and m_PhysicsComponents
 
     m_isInitialized = true;
 }
 
 void PhysicsSubsystem::Destroy()
 {
-    // TODO:
+    // TODO: ?
 }
 
 void PhysicsSubsystem::Update()
 {
     assert(m_isInitialized && "PhysicsSubsystem not initialized. Call PhysicsSubsystem::Init() before using it.");
 
-    float deltaTimeMs = m_physicsTimeline->Tick();
-    if (deltaTimeMs == 0.0f) return;
+    float deltaTime = m_physicsTimeline->Tick();
 
-    Scene &activeScene = Engine::GetActiveScene();
-    auto enities = activeScene.GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
+    // TODO: remove test
+    static float testAccumulator;
+    testAccumulator += deltaTime;
+    // ---
 
-    for (auto entityComponents : enities.each())
+    if (deltaTime == 0.0f) return;
+    deltaTime /= 1000.0f;
+
+    // TODO: remove test
+    static int fpsCounterPrevValue;
+    static int fpsCounter;
+    fpsCounter++;
+    if (testAccumulator >= 1000.0f)
     {
-        const IDComponent &idComp = std::get<1>(entityComponents);
-        Entity entity = activeScene.GetEntityWithUUID(idComp.ID);
+        BF_WARN("Physics FPS: {} ; deltaTime {}", fpsCounter - fpsCounterPrevValue, deltaTime);
+        fpsCounterPrevValue = fpsCounter;
+
+        testAccumulator -= 1000.0f;
+    }
+    // ---
+
+    eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
+    auto enities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
+
+    for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
+    {
+        Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
 
         Vec3 translation, scale;
         Quat rotation;
-        activeScene.GetWorldSpaceTransformMatrix(entity).Decompose(scale, rotation, translation);
+        activeScene->GetWorldSpaceTransformMatrix(entity).Decompose(scale, rotation, translation);
 
         BodyUpdater bodyUpdater = GetBodyUpdater(entity);
-        bodyUpdater.SetPosition(translation).SetRotation(rotation).SetScale(scale);
+        bodyUpdater.SetPosition(translation).SetRotation(rotation);
+
+        if (scale != physicsComp.prevFrameScale)
+        {
+            bodyUpdater.SetScale(scale, physicsComp.prevFrameScale);
+            physicsComp.prevFrameScale = scale;
+        }
     }
 
-    m_joltPhysicsSystem->Update(deltaTimeMs, 1, m_joltTempAllocator.get(), m_joltJobSystem.get());
+    m_joltPhysicsSystem->Update(deltaTime, physicsUpdateSubsteps, m_joltTempAllocator.get(), m_joltJobSystem.get());
 
-    for (auto entityComponents : enities.each())
+    for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
     {
-        const IDComponent &idComp = std::get<1>(entityComponents);
-        TransformComponent &transformComp = std::get<2>(entityComponents);
-        Entity entity = activeScene.GetEntityWithUUID(idComp.ID);
+        Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
 
         BodyGetter bodyGetter = GetBodyGetter(entity);
+        if (bodyGetter.isTrigger()) continue;
+
         transformComp.Translation = bodyGetter.GetPosition();
         transformComp.SetRotation(bodyGetter.GetRotation());
-        activeScene.SetFromWorldSpaceTransformMatrix(entity, transformComp.GetTransform());
+        activeScene->SetFromWorldSpaceTransformMatrix(entity, transformComp.GetTransform());
     }
+
+    ProcessEvents();
 }
 
-void Blainn::PhysicsSubsystem::StartSimulation()
+void PhysicsSubsystem::StartSimulation()
 {
     m_physicsTimeline->Start();
 }
 
-void Blainn::PhysicsSubsystem::StopSimulation()
+void PhysicsSubsystem::StopSimulation()
 {
     m_physicsTimeline->Pause();
 }
 
-void Blainn::PhysicsSubsystem::CreateComponent(PhysicsComponentSettings &settings)
+void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &settings)
 {
+    TransformComponent *transformComponentPtr = settings.entity.TryGetComponent<TransformComponent>();
+    if (!transformComponentPtr)
+    {
+        BF_ERROR("Entity must have transform component to create physics component");
+        return;
+    }
+
     PhysicsComponent *componentPtr = settings.entity.TryGetComponent<PhysicsComponent>();
-    assert(!componentPtr && "Entity already has physics component on creation");
+
+    if (componentPtr)
+    {
+        BF_ERROR("Entity already has physics component");
+        return;
+    }
 
     uuid parentId = settings.entity.GetUUID();
 
     PhysicsComponent component;
     component.parentId = parentId;
-    component.shapeType = settings.shapeType;
+    component.shapeType = settings.shapeSettings.shapeType;
+    component.prevFrameScale = transformComponentPtr->Scale;
 
-    switch (settings.shapeType)
+    switch (settings.shapeSettings.shapeType)
     {
     case ComponentShapeType::Sphere:
-        component.shapeHierarchy = ShapeFactory::CreateSphereShape(settings.radius);
+        component.shapeHierarchy = ShapeFactory::CreateSphereShape(settings.shapeSettings.radius);
         break;
     case ComponentShapeType::Box:
-        component.shapeHierarchy = ShapeFactory::CreateBoxShape(settings.halfExtents);
+        component.shapeHierarchy = ShapeFactory::CreateBoxShape(settings.shapeSettings.halfExtents);
         break;
     case ComponentShapeType::Capsule:
-        component.shapeHierarchy = ShapeFactory::CreateCapsuleShape(settings.halfCylinderHeight, settings.radius);
+        component.shapeHierarchy =
+            ShapeFactory::CreateCapsuleShape(settings.shapeSettings.halfCylinderHeight, settings.shapeSettings.radius);
         break;
     case ComponentShapeType::Cylinder:
-        component.shapeHierarchy = ShapeFactory::CreateCylinderShape(settings.halfCylinderHeight, settings.radius);
+        component.shapeHierarchy =
+            ShapeFactory::CreateCylinderShape(settings.shapeSettings.halfCylinderHeight, settings.shapeSettings.radius);
     default:
         BF_ERROR("Invalid physics shape type");
         return;
     }
 
     BodyBuilder builder;
-    builder.SetMotionType(settings.motionType);
-    builder.SetPosition(settings.position);
-    builder.SetRotation(settings.rotation);
-    builder.SetShape(component.shapeHierarchy.shapePtr.get());
-    builder.SetIsTrigger(settings.isTrigger);
+    builder.SetMotionType(settings.motionType)
+        .SetPosition(transformComponentPtr->Translation)
+        .SetRotation(transformComponentPtr->GetRotation())
+        .SetShape(component.shapeHierarchy.shapePtr.get())
+        .SetIsTrigger(settings.isTrigger)
+        .SetGravityFactor(settings.gravityFactor)
+        .SetLayer(settings.layer);
 
     component.bodyId = builder.Build(settings.activate);
     m_bodyEntityConnections.try_emplace(component.bodyId, parentId);
@@ -158,12 +195,12 @@ void Blainn::PhysicsSubsystem::CreateComponent(PhysicsComponentSettings &setting
     settings.entity.AddComponent<PhysicsComponent>(eastl::move(component));
 }
 
-bool Blainn::PhysicsSubsystem::HasComponent(Entity entity)
+bool PhysicsSubsystem::HasPhysicsComponent(Entity entity)
 {
     return entity.HasComponent<PhysicsComponent>();
 }
 
-void Blainn::PhysicsSubsystem::DestroyComponent(Entity entity)
+void PhysicsSubsystem::DestroyPhysicsComponent(Entity entity)
 {
     PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
     JPH::BodyInterface &bodyInterface = m_joltPhysicsSystem->GetBodyInterface();
@@ -173,14 +210,25 @@ void Blainn::PhysicsSubsystem::DestroyComponent(Entity entity)
     entity.RemoveComponent<PhysicsComponent>();
 }
 
-JPH::BodyID Blainn::PhysicsSubsystem::GetBodyId(Entity entity)
+JPH::BodyID PhysicsSubsystem::GetBodyId(Entity entity)
 {
     PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
     return component.bodyId;
 }
 
 
-JPH::PhysicsSystem &Blainn::PhysicsSubsystem::GetPhysicsSystem()
+PhysicsSubsystem::PhysicsEventHandle PhysicsSubsystem::AddEventListener(
+    const PhysicsEventType eventType, eastl::function<void(const eastl::shared_ptr<PhysicsEvent> &)> listener)
+{
+    return s_physicsEventQueue.appendListener(eventType, listener);
+}
+
+void PhysicsSubsystem::RemoveEventListener(const PhysicsEventType eventType, const PhysicsEventHandle &handle)
+{
+    s_physicsEventQueue.removeListener(eventType, handle);
+}
+
+JPH::PhysicsSystem &PhysicsSubsystem::GetPhysicsSystem()
 {
     return *m_joltPhysicsSystem;
 }
@@ -210,32 +258,44 @@ eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 direc
     return eastl::optional<RayCastResult>(eastl::move(rayCastResult));
 }
 
-bool Blainn::PhysicsSubsystem::IsBodyActive(Entity entity)
+
+void Blainn::PhysicsSubsystem::ProcessEvents()
+{
+    // TODO: remove?
+    // eastl::function<void()> fn;
+    // while (s_postUpdateQueue.try_dequeue(fn))
+    // {
+    //     fn();
+    // }
+
+    s_physicsEventQueue.process();
+}
+bool PhysicsSubsystem::IsBodyActive(Entity entity)
 {
     PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
     return m_joltPhysicsSystem->GetBodyInterface().IsActive(component.bodyId);
 }
 
-void Blainn::PhysicsSubsystem::ActivateBody(Entity entity)
+void PhysicsSubsystem::ActivateBody(Entity entity)
 {
     PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
     m_joltPhysicsSystem->GetBodyInterface().ActivateBody(component.bodyId);
 }
 
-void Blainn::PhysicsSubsystem::DeactivateBody(Entity entity)
+void PhysicsSubsystem::DeactivateBody(Entity entity)
 {
     PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
     m_joltPhysicsSystem->GetBodyInterface().DeactivateBody(component.bodyId);
 }
 
-BodyUpdater Blainn::PhysicsSubsystem::GetBodyUpdater(Entity entity)
+BodyUpdater PhysicsSubsystem::GetBodyUpdater(Entity entity)
 {
     PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
     return BodyUpdater(m_joltPhysicsSystem->GetBodyLockInterface(), m_joltPhysicsSystem->GetBodyInterface(),
                        component.bodyId);
 }
 
-BodyGetter Blainn::PhysicsSubsystem::GetBodyGetter(Entity entity)
+BodyGetter PhysicsSubsystem::GetBodyGetter(Entity entity)
 {
     PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
     return BodyGetter(m_joltPhysicsSystem->GetBodyLockInterface(), m_joltPhysicsSystem->GetBodyInterface(),

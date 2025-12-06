@@ -2,11 +2,6 @@
 
 #include "physics/BodyBuilder.h"
 
-#include <Jolt/Jolt.h>
-#include <Jolt/Physics/Body/Body.h>
-#include <Jolt/Physics/Body/BodyInterface.h>
-#include <Jolt/Physics/PhysicsSystem.h>
-
 #include "aliases.h"
 #include "subsystems/PhysicsSubsystem.h"
 
@@ -24,6 +19,12 @@ BodyBuilder &BodyBuilder::SetShape(JPH::Shape *shape)
     return *this;
 }
 
+
+BodyBuilder &Blainn::BodyBuilder::SetLayer(JPH::ObjectLayer layer)
+{
+    m_settings.mObjectLayer = layer;
+    return *this;
+}
 BodyBuilder &BodyBuilder::SetPosition(Vec3 vec)
 {
     m_settings.mPosition = ToJoltRVec3(vec);
@@ -59,8 +60,16 @@ BodyBuilder &Blainn::BodyBuilder::SetIsTrigger(bool isTrigger)
     return *this;
 }
 
+
+BodyBuilder &Blainn::BodyBuilder::SetGravityFactor(float factor)
+{
+    m_settings.mGravityFactor = factor;
+    return *this;
+}
+
 JPH::BodyID BodyBuilder::Build(JPH::EActivation activate /*= JPH::EActivation::Activate*/)
 {
+    m_settings.mAllowSleeping = false;
     JPH::BodyInterface &interf = PhysicsSubsystem::GetPhysicsSystem().GetBodyInterface();
     return interf.CreateAndAddBody(m_settings, activate);
 }

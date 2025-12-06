@@ -8,54 +8,50 @@ using namespace Blainn;
 
 Vec3 Blainn::BodyGetter::GetPosition()
 {
-    const JPH::Body &body = m_bodyLock.GetBody();
-    return ToBlainnVec3(body.GetPosition());
+    return ToBlainnVec3(m_body.GetPosition());
 }
 
 Quat Blainn::BodyGetter::GetRotation()
 {
-    const JPH::Body &body = m_bodyLock.GetBody();
-    return ToBlainnQuat(body.GetRotation());
+    return ToBlainnQuat(m_body.GetRotation());
 }
 
 JPH::RefConst<JPH::Shape> Blainn::BodyGetter::GetShape()
 {
-    const JPH::Body &body = m_bodyLock.GetBody();
-    return body.GetShape();
+    return m_body.GetShape();
 }
 
 Vec3 BodyGetter::GetVelocity()
 {
-    const JPH::Body &body = m_bodyLock.GetBody();
-    return ToBlainnVec3(body.GetLinearVelocity());
+    return ToBlainnVec3(m_body.GetLinearVelocity());
 }
 
 float BodyGetter::GetMaxLinearVelocity()
 {
-    const JPH::Body &body = m_bodyLock.GetBody();
-    return body.GetMotionProperties()->GetMaxLinearVelocity();
+    return m_body.GetMotionProperties()->GetMaxLinearVelocity();
 }
 
 Vec3 BodyGetter::GetAngularVelocity()
 {
-    const JPH::Body &body = m_bodyLock.GetBody();
-    return ToBlainnVec3(body.GetAngularVelocity());
+    return ToBlainnVec3(m_body.GetAngularVelocity());
 }
 
 float BodyGetter::GetMaxAngularVelocity()
 {
-    const JPH::Body &body = m_bodyLock.GetBody();
-    return body.GetMotionProperties()->GetMaxAngularVelocity();
+    return m_body.GetMotionProperties()->GetMaxAngularVelocity();
 }
 
 float BodyGetter::GetGravityFactor()
 {
-    const JPH::Body &body = m_bodyLock.GetBody();
-    return body.GetMotionProperties()->GetGravityFactor();
+    return m_body.GetMotionProperties()->GetGravityFactor();
 }
 
 JPH::ObjectLayer BodyGetter::GetObjectLayer()
 {
-    const JPH::Body &body = m_bodyLock.GetBody();
-    return body.GetObjectLayer();
+    return m_body.GetObjectLayer();
+}
+
+bool Blainn::BodyGetter::isTrigger()
+{
+    return m_body.IsSensor();
 }

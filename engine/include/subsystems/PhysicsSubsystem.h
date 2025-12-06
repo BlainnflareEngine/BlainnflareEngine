@@ -8,10 +8,8 @@
 #include <EASTL/vector.h>
 
 #include <Jolt/Jolt.h>
-
 #include <Jolt/Core/JobSystemSingleThreaded.h>
 #include <Jolt/Core/TempAllocator.h>
-#include <Jolt/Physics/EActivation.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 
 #include "components/PhysicsComponent.h"
@@ -19,7 +17,9 @@
 #include "physics/BodyUpdater.h"
 #include "physics/ContactListenerImpl.h"
 #include "physics/Layers.h"
+#include "physics/PhysicsEvents.h"
 #include "physics/PhysicsTypes.h"
+#include "physics/PhysicsCreationSettings.h"
 #include "scene/Scene.h"
 #include "tools/PeriodicTimeline.h"
 
@@ -37,30 +37,6 @@ class BPLayerInterfaceImpl;
 class ObjectVsBroadPhaseLayerFilterImpl;
 class RayCastResult;
 
-
-// структура для указания настроек физического компонента при создании
-struct PhysicsComponentSettings
-{
-    PhysicsComponentSettings(Entity entityIn, ComponentShapeType shapeTypeIn)
-        : entity(entityIn)
-        , shapeType(shapeTypeIn)
-    {
-    }
-
-    Entity entity;
-    ComponentShapeType shapeType;
-    JPH::EActivation activate = JPH::EActivation::DontActivate;
-    PhysicsComponentMotionType motionType = PhysicsComponentMotionType::Dynamic;
-    JPH::ObjectLayer layer = 0;
-    Vec3 position = Vec3::Zero;
-    Quat rotation = Quat::Identity;
-    // TODO: scale?
-    bool isTrigger = false;
-    float radius = 0.5f;                       // sphere, capsule, cylinder
-    Vec3 halfExtents = Vec3{0.5f, 0.5f, 0.5f}; // box
-    float halfCylinderHeight = 0.5f;           // capsule, cylinder
-};
-
 class PhysicsSubsystem
 {
 public:
@@ -75,9 +51,9 @@ public:
 
     // TODO: QueuePhysicsComponentCreation()?;
 
-    static void CreateComponent(PhysicsComponentSettings &settings);
-    static bool HasComponent(Entity entity);
-    static void DestroyComponent(Entity entity);
+    static void CreateAttachPhysicsComponent(PhysicsComponentSettings &settings);
+    static bool HasPhysicsComponent(Entity entity);
+    static void DestroyPhysicsComponent(Entity entity);
     static JPH::BodyID GetBodyId(Entity entity);
 
     bool IsBodyActive(Entity entity);
@@ -85,9 +61,16 @@ public:
     static void DeactivateBody(Entity entity);
 
     static BodyUpdater GetBodyUpdater(Entity entity);
+    static void ReplaceBodyShape(ShapeCreationSettings &settings);
     static BodyGetter GetBodyGetter(Entity entity);
 
     static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance);
+
+    using PhysicsEventHandle =
+        eventpp::internal_::CallbackListBase<void(const eastl::shared_ptr<PhysicsEvent> &), PhysicsEventPolicy>::Handle;
+    static PhysicsEventHandle AddEventListener(const PhysicsEventType eventType,
+                                               eastl::function<void(const eastl::shared_ptr<PhysicsEvent> &)> listener);
+    static void RemoveEventListener(const PhysicsEventType eventType, const PhysicsEventHandle &handle);
 
     // TODO: hide somehow?
     static JPH::PhysicsSystem &GetPhysicsSystem();
@@ -95,7 +78,15 @@ public:
 private:
     PhysicsSubsystem() = delete;
 
-    inline static constexpr float m_physicsUpdatePeriodMs = 1000.0 / 120.0; // 120 Hz
+    static void ProcessEvents();
+
+    inline static eventpp::EventQueue<PhysicsEventType, void(const eastl::shared_ptr<PhysicsEvent> &),
+                                      PhysicsEventPolicy>
+        s_physicsEventQueue;
+
+    inline static const int physicsUpdateFrequency = 30;
+    inline static const int physicsUpdateSubsteps = 4;
+    inline static const float m_physicsUpdatePeriodMs = 1000.0 / static_cast<float>(physicsUpdateFrequency);
     inline static eastl::unique_ptr<Blainn::PeriodicTimeline<eastl::chrono::milliseconds>> m_physicsTimeline =
         nullptr; // initialized in Init()
 
@@ -103,13 +94,11 @@ private:
 
     inline static eastl::unordered_map<JPH::BodyID, uuid> m_bodyEntityConnections{};
 
-    // static eastl::unordered_map<uuid, PhysicsComponent> m_physicsComponents;
-    // static eastl::vector<eastl::pair<uuid, PhysicsComponent>> m_physicsComponentCreationQueue;
-
     inline static constexpr uint32_t m_maxConcurrentJobs = 8;
     inline static eastl::unique_ptr<JPH::JobSystemSingleThreaded> m_joltJobSystem = nullptr;
     inline static eastl::unique_ptr<JPH::TempAllocatorImpl> m_joltTempAllocator = nullptr;
     inline static eastl::unique_ptr<JPH::PhysicsSystem> m_joltPhysicsSystem = nullptr;
+    inline static eastl::unique_ptr<JPH::Factory> m_factory = nullptr;
 
     inline static eastl::unique_ptr<BPLayerInterfaceImpl> m_broadPhaseLayerInterface = nullptr;
     inline static eastl::unique_ptr<ObjectVsBroadPhaseLayerFilterImpl> m_objectVsBroadPhaseLayerFilter = nullptr;
@@ -120,5 +109,7 @@ private:
     inline static constexpr uint32_t cNumBodyMutexes = 0; // Autodetect
     inline static constexpr uint32_t cMaxBodyPairs = 65536;
     inline static constexpr uint32_t cMaxContactConstraints = 20480;
+
+    friend class ContactListenerImpl;
 };
 } // namespace Blainn
