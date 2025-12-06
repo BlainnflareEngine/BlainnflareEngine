@@ -332,27 +332,10 @@ void Blainn::RenderSubsystem::CreateDescriptorHeaps()
     // csm + GBuffer
     m_cbvSrvUavDescriptorSize = m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE handle =
-        CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvHeap->GetCPUDescriptorHandleForHeapStart());
+    CD3DX12_CPU_DESCRIPTOR_HANDLE handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvHeap->GetCPUDescriptorHandleForHeapStart());
 
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     ZeroMemory(&srvDesc, sizeof(srvDesc));
-
-    /*for (auto &e : m_textures)
-    {
-        auto &texD3DResource = e.second->Resource;
-        srvDesc.Format = texD3DResource->GetDesc().Format;
-        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-        srvDesc.Texture2D.MostDetailedMip = 0u;
-        srvDesc.Texture2D.MipLevels = texD3DResource->GetDesc().MipLevels;
-        srvDesc.Texture2D.PlaneSlice;
-        srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-
-        m_device->CreateShaderResourceView(texD3DResource.Get(), &srvDesc, handle);
-
-        handle.Offset(1, m_cbvSrvUavDescriptorSize);
-    }*/
 
     UINT m_cascadeShadowMapHeapIndex = 0u;
 
@@ -409,6 +392,22 @@ void Blainn::RenderSubsystem::CreateDescriptorHeaps()
     }
 
     m_GBuffer->CreateDescriptors();
+
+    /*for (auto &e : m_textures)
+    {
+        auto &texD3DResource = e.second->Resource;
+        srvDesc.Format = texD3DResource->GetDesc().Format;
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srvDesc.Texture2D.MostDetailedMip = 0u;
+        srvDesc.Texture2D.MipLevels = texD3DResource->GetDesc().MipLevels;
+        srvDesc.Texture2D.PlaneSlice;
+        srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+
+        m_device->CreateShaderResourceView(texD3DResource.Get(), &srvDesc, handle);
+
+        handle.Offset(1, m_cbvSrvUavDescriptorSize);
+    }*/
 }
 
 void Blainn::RenderSubsystem::CreateRootSignature()

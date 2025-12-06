@@ -62,6 +62,8 @@ eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, cons
 
     ProcessNode(relativePath, *scene->mRootNode, *scene, Mat4::Identity, model);
 
+
+
     return eastl::make_shared<Model>(model);
 }
 
@@ -202,8 +204,6 @@ void AssetLoader::CreateTextureResources(const Path &path, Microsoft::WRL::ComPt
         upload.Transition(tex.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);*/
     }
     
-
-
     // Upload the resources to the GPU.
     auto finish = upload.End(commandQueue->GetCommandQueue().Get());
 
