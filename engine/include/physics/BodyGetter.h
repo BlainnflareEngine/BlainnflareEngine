@@ -1,12 +1,5 @@
 #pragma once
 
-#include <cassert>
-
-#include <Jolt/Jolt.h>
-#include <Jolt/Physics/Body/BodyInterface.h>
-#include <Jolt/Physics/Body/BodyLock.h>
-#include <Jolt/Physics/Body/BodyLockInterface.h>
-
 #include "aliases.h"
 #include "helpers.h"
 

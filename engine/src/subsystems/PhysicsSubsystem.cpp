@@ -1,33 +1,20 @@
+#include "pch.h"
+
 #include "subsystems/PhysicsSubsystem.h"
 
-#include <cassert>
-
-#include <Jolt/Jolt.h>
-#include <Jolt/Physics/Body/Body.h>
-#include <Jolt/Physics/Body/BodyCreationSettings.h>
-#include <Jolt/Physics/Body/BodyManager.h>
-#include <Jolt/Physics/Collision/BroadPhase/BroadPhase.h>
-#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
-#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayerInterfaceMask.h>
-#include <Jolt/Physics/Collision/CastResult.h>
-#include <Jolt/Physics/Collision/ContactListener.h>
-#include <Jolt/Physics/Collision/NarrowPhaseQuery.h>
-#include <Jolt/Physics/Collision/RayCast.h>
-#include <Jolt/Physics/PhysicsSettings.h>
-#include <Jolt/Physics/PhysicsSystem.h>
-#include <Jolt/RegisterTypes.h>
-
 #include "Engine.h"
+#include "subsystems/Log.h"
+
 #include "physics/BodyBuilder.h"
 #include "physics/ContactListenerImpl.h"
 #include "physics/Layers.h"
 #include "physics/RayCastResult.h"
 #include "physics/ShapeFactory.h"
+
 #include "scene/BasicComponents.h"
 #include "scene/Scene.h"
 #include "scene/TransformComponent.h"
-#include "subsystems/Log.h"
-#include "PhysicsSubsystem.h"
+
 
 using namespace Blainn;
 
@@ -39,7 +26,7 @@ void PhysicsSubsystem::Init(Timeline<eastl::chrono::milliseconds> &globalTimelin
     JPH::RegisterDefaultAllocator();
     m_joltTempAllocator = eastl::make_unique<JPH::TempAllocatorImpl>(32 * 1024 * 1024);
 
-    // TODO: change to job system
+    // can be changed to job system
     m_joltJobSystem = eastl::make_unique<JPH::JobSystemSingleThreaded>(JPH::cMaxPhysicsJobs);
 
     m_joltPhysicsSystem = eastl::make_unique<JPH::PhysicsSystem>();
@@ -78,9 +65,28 @@ void PhysicsSubsystem::Update()
 {
     assert(m_isInitialized && "PhysicsSubsystem not initialized. Call PhysicsSubsystem::Init() before using it.");
 
+    float deltaTime = m_physicsTimeline->Tick();
 
-    float deltaTime = m_physicsTimeline->Tick() / 1000.0f;
+    // TODO: remove test
+    static float testAccumulator;
+    testAccumulator += deltaTime;
+    // ---
+
     if (deltaTime == 0.0f) return;
+    deltaTime /= 1000.0f;
+
+    // TODO: remove test
+    static int fpsCounterPrevValue;
+    static int fpsCounter;
+    fpsCounter++;
+    if (testAccumulator >= 1000.0f)
+    {
+        BF_WARN("Physics FPS: {} ; deltaTime {}", fpsCounter - fpsCounterPrevValue, deltaTime);
+        fpsCounterPrevValue = fpsCounter;
+
+        testAccumulator -= 1000.0f;
+    }
+    // ---
 
     eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
     auto enities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
@@ -103,7 +109,7 @@ void PhysicsSubsystem::Update()
         }
     }
 
-    m_joltPhysicsSystem->Update(deltaTime, 4, m_joltTempAllocator.get(), m_joltJobSystem.get());
+    m_joltPhysicsSystem->Update(deltaTime, physicsUpdateSubsteps, m_joltTempAllocator.get(), m_joltJobSystem.get());
 
     for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
     {
@@ -132,6 +138,13 @@ void PhysicsSubsystem::StopSimulation()
 
 void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &settings)
 {
+    TransformComponent *transformComponentPtr = settings.entity.TryGetComponent<TransformComponent>();
+    if (!transformComponentPtr)
+    {
+        BF_ERROR("Entity must have transform component to create physics component");
+        return;
+    }
+
     PhysicsComponent *componentPtr = settings.entity.TryGetComponent<PhysicsComponent>();
 
     if (componentPtr)
@@ -144,22 +157,24 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
 
     PhysicsComponent component;
     component.parentId = parentId;
-    component.shapeType = settings.shapeType;
-    component.prevFrameScale = settings.scale;
+    component.shapeType = settings.shapeSettings.shapeType;
+    component.prevFrameScale = transformComponentPtr->Scale;
 
-    switch (settings.shapeType)
+    switch (settings.shapeSettings.shapeType)
     {
     case ComponentShapeType::Sphere:
-        component.shapeHierarchy = ShapeFactory::CreateSphereShape(settings.radius);
+        component.shapeHierarchy = ShapeFactory::CreateSphereShape(settings.shapeSettings.radius);
         break;
     case ComponentShapeType::Box:
-        component.shapeHierarchy = ShapeFactory::CreateBoxShape(settings.halfExtents);
+        component.shapeHierarchy = ShapeFactory::CreateBoxShape(settings.shapeSettings.halfExtents);
         break;
     case ComponentShapeType::Capsule:
-        component.shapeHierarchy = ShapeFactory::CreateCapsuleShape(settings.halfCylinderHeight, settings.radius);
+        component.shapeHierarchy =
+            ShapeFactory::CreateCapsuleShape(settings.shapeSettings.halfCylinderHeight, settings.shapeSettings.radius);
         break;
     case ComponentShapeType::Cylinder:
-        component.shapeHierarchy = ShapeFactory::CreateCylinderShape(settings.halfCylinderHeight, settings.radius);
+        component.shapeHierarchy =
+            ShapeFactory::CreateCylinderShape(settings.shapeSettings.halfCylinderHeight, settings.shapeSettings.radius);
     default:
         BF_ERROR("Invalid physics shape type");
         return;
@@ -167,8 +182,8 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
 
     BodyBuilder builder;
     builder.SetMotionType(settings.motionType)
-        .SetPosition(settings.position)
-        .SetRotation(settings.rotation)
+        .SetPosition(transformComponentPtr->Translation)
+        .SetRotation(transformComponentPtr->GetRotation())
         .SetShape(component.shapeHierarchy.shapePtr.get())
         .SetIsTrigger(settings.isTrigger)
         .SetGravityFactor(settings.gravityFactor)

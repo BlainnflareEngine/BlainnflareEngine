@@ -1,12 +1,7 @@
 #pragma once
 
-#include "EASTL/shared_ptr.h"
-
-#include "Jolt/Jolt.h"
-#include "Jolt/Physics/Body/BodyCreationSettings.h"
-#include "Jolt/Physics/EActivation.h"
-
 #include "aliases.h"
+
 #include "physics/Conversion.h"
 
 namespace Blainn

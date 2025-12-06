@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "physics/BodyGetter.h"
+
 #include "physics/Conversion.h"
 
 using namespace Blainn;
@@ -52,5 +53,5 @@ JPH::ObjectLayer BodyGetter::GetObjectLayer()
 
 bool Blainn::BodyGetter::isTrigger()
 {
-    m_body.IsSensor();
+    return m_body.IsSensor();
 }

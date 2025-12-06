@@ -19,6 +19,7 @@
 #include "physics/Layers.h"
 #include "physics/PhysicsEvents.h"
 #include "physics/PhysicsTypes.h"
+#include "physics/PhysicsCreationSettings.h"
 #include "scene/Scene.h"
 #include "tools/PeriodicTimeline.h"
 
@@ -35,33 +36,6 @@ class BodyBuilder;
 class BPLayerInterfaceImpl;
 class ObjectVsBroadPhaseLayerFilterImpl;
 class RayCastResult;
-
-
-// структура для указания настроек физического компонента при создании
-struct PhysicsComponentSettings
-{
-    PhysicsComponentSettings(Entity entityIn, ComponentShapeType shapeTypeIn)
-        : entity(entityIn)
-        , shapeType(shapeTypeIn)
-    {
-    }
-
-    Entity entity;
-    ComponentShapeType shapeType;
-
-    EActivation activate = EActivation::DontActivate;
-    PhysicsComponentMotionType motionType = PhysicsComponentMotionType::Dynamic;
-    ObjectLayer layer = Layers::MOVING;
-    // Vec3 position = Vec3::Zero;
-    // Quat rotation = Quat::Identity;
-    // Vec3 scale = Vec3::One;
-    bool isTrigger = false; // if false controls parent transform
-    float gravityFactor = 1.0f;
-
-    float radius = 0.5f;                       // sphere, capsule, cylinder
-    Vec3 halfExtents = Vec3{0.5f, 0.5f, 0.5f}; // box
-    float halfCylinderHeight = 0.5f;           // capsule, cylinder
-};
 
 class PhysicsSubsystem
 {
@@ -87,6 +61,7 @@ public:
     static void DeactivateBody(Entity entity);
 
     static BodyUpdater GetBodyUpdater(Entity entity);
+    static void ReplaceBodyShape(ShapeCreationSettings &settings);
     static BodyGetter GetBodyGetter(Entity entity);
 
     static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance);
@@ -109,7 +84,9 @@ private:
                                       PhysicsEventPolicy>
         s_physicsEventQueue;
 
-    inline static constexpr float m_physicsUpdatePeriodMs = 1000.0 / 30.0;
+    inline static const int physicsUpdateFrequency = 30;
+    inline static const int physicsUpdateSubsteps = 4;
+    inline static const float m_physicsUpdatePeriodMs = 1000.0 / static_cast<float>(physicsUpdateFrequency);
     inline static eastl::unique_ptr<Blainn::PeriodicTimeline<eastl::chrono::milliseconds>> m_physicsTimeline =
         nullptr; // initialized in Init()
 

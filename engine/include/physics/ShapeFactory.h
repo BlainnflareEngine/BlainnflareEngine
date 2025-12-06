@@ -1,11 +1,5 @@
 #pragma once
 
-#include <EASTL/unique_ptr.h>
-
-#include <Jolt/Jolt.h>
-#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
-#include <Jolt/Physics/Collision/Shape/Shape.h>
-
 #include "aliases.h"
 
 namespace Blainn

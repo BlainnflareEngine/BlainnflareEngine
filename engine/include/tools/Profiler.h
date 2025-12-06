@@ -4,18 +4,15 @@
 
 #pragma once
 
-#define BLAINN_ENABLE_PROFILING 0
+//#define BLAINN_ENABLE_PROFILING 1
 
 #if BLAINN_ENABLE_PROFILING
 #include <tracy/Tracy.hpp>
-#endif
 
-#if BLAINN_ENABLE_PROFILING
 /*
  * This is used to mark that a frame has been finished
  */
 #define BLAINN_PROFILE_MARK_FRAME           FrameMark
-
 
 /*
  * These macros are used to include the profilers
@@ -29,10 +26,10 @@
  *
  * BLAINN_PROFILE_THREAD assigns a name to a thread
  */
-#define BLAINN_PROFILE_FUNC(...)            //ZoneScoped##__VA_OPT__(N(__VA_ARGS__))
-#define BLAINN_PROFILE_SCOPE(...)           //BLAINN_PROFILE_FUNC(__VA_ARGS__)
-#define BLAINN_PROFILE_SCOPE_DYNAMIC(NAME)  //ZoneScoped; ZoneName(NAME, strlen(NAME))
-#define BLAINN_PROFILE_THREAD(...)          //tracy::SetThreadName(__VA_ARGS__);
+#define BLAINN_PROFILE_FUNC(...)            ZoneScoped//(,##__VA_ARGS__)
+#define BLAINN_PROFILE_SCOPE(name)          ZoneScopedN(#name)
+#define BLAINN_PROFILE_SCOPE_DYNAMIC(NAME)  ZoneScoped; ZoneName(NAME, strlen(NAME))
+#define BLAINN_PROFILE_THREAD(...)          tracy::SetThreadName(__VA_ARGS__);
 
 #else
 

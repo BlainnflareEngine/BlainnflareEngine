@@ -102,6 +102,7 @@ set(ENGINE_SOURCES
         include/subsystems/PhysicsSubsystem.h
         src/subsystems/PhysicsSubsystem.cpp
         include/components/PhysicsComponent.h
+        include/physics/PhysicsCreationSettings.h
         include/physics/RayCastResult.h
         include/physics/PhysicsEvents.h
         include/physics/ShapeFactory.h

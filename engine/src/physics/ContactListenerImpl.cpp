@@ -2,10 +2,6 @@
 
 #include "physics/ContactListenerImpl.h"
 
-#include <Jolt/Core/QuickSort.h>
-#include <Jolt/Physics/Body/Body.h>
-#include <Jolt/Physics/Collision/CollideShape.h>
-
 #include "subsystems/PhysicsSubsystem.h"
 
 using namespace Blainn;
@@ -33,10 +29,10 @@ JPH::ValidateResult ContactListenerImpl::OnContactValidate(const JPH::Body &inBo
 void ContactListenerImpl::OnContactAdded(const JPH::Body &inBody1, const JPH::Body &inBody2,
                                          const JPH::ContactManifold &inManifold, JPH::ContactSettings &ioSettings)
 {
+    BF_INFO("PHYSICS ON CONTACT ADDED");
+
     JPH::BodyID bodyID1 = inBody1.GetID();
     JPH::BodyID bodyID2 = inBody2.GetID();
-
-    // BF_INFO("PHYSICS ON CONTACT ADDED");
 
     // Expect bodies to be sorted
     if (!(bodyID1 < bodyID2)) JPH_BREAKPOINT;
@@ -80,7 +76,8 @@ void ContactListenerImpl::OnContactPersisted(const JPH::Body &inBody1, const JPH
 
 void ContactListenerImpl::OnContactRemoved(const JPH::SubShapeIDPair &inSubShapePair)
 {
-    // BF_INFO("PHYSICS ON CONTACT REMOVED");
+    BF_INFO("PHYSICS ON CONTACT REMOVED");
+
     JPH::BodyID bodyID1 = inSubShapePair.GetBody1ID();
     JPH::BodyID bodyID2 = inSubShapePair.GetBody2ID();
 

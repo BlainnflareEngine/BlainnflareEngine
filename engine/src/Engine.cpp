@@ -86,8 +86,6 @@ void Engine::Update(float deltaTime)
     // this trace doesn't make sense, it exactly matches the frame
     BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop");
 
-    // std::counting_semaphore<1> updateDoneSem(0);
-
     Input::ProcessEvents();
 
     // test
@@ -99,16 +97,13 @@ void Engine::Update(float deltaTime)
     if (testAccumulator >= 1000.0f)
     {
         // std::cout << "Engine second" << std::endl;
-        // BF_WARN("FPS: {}", fpsCounter - fpsCounterPrevValue);
+        BF_WARN("FPS: {}", fpsCounter - fpsCounterPrevValue);
         fpsCounterPrevValue = fpsCounter;
 
-        // TODO: -- remove -- test input
-        // Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Pressed);
-        // Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Released);
-
-        testAccumulator = 0.0f;
+        testAccumulator -= 1000.0f;
     }
 
+    // TODO: remove physics test
     static std::atomic<bool> one;
     if (!one)
     {
@@ -119,7 +114,6 @@ void Engine::Update(float deltaTime)
         s_activeScene->CreateAttachMeshComponent(e1, "Models/Cube.fbx", ImportMeshData{});
         PhysicsComponentSettings physicsSettings1(e1, ComponentShapeType::Box);
         physicsSettings1.activate = JPH::EActivation::Activate;
-        physicsSettings1.position = t.Translation;
         PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings1);
 
         Entity e2 = s_activeScene->CreateEntity("PhysicsTestEntity2");
@@ -129,9 +123,8 @@ void Engine::Update(float deltaTime)
         s_activeScene->CreateAttachMeshComponent(e2, "Models/Cube.fbx", ImportMeshData{});
         PhysicsComponentSettings physicsSettings2(e2, ComponentShapeType::Box);
         physicsSettings2.activate = JPH::EActivation::Activate;
-        physicsSettings2.position = t.Translation;
         physicsSettings2.motionType = PhysicsComponentMotionType::Static;
-        physicsSettings2.halfExtents = Vec3(5.0f, 1.0f, 5.0f);
+        physicsSettings2.shapeSettings.halfExtents = Vec3(5.0f, 1.0f, 5.0f);
         physicsSettings2.layer = Layers::NON_MOVING;
         PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings2);
 
@@ -142,7 +135,6 @@ void Engine::Update(float deltaTime)
         s_activeScene->CreateAttachMeshComponent(e3, "Models/Cube.fbx", ImportMeshData{});
         PhysicsComponentSettings physicsSettings3(e3, ComponentShapeType::Box);
         physicsSettings3.activate = JPH::EActivation::Activate;
-        physicsSettings3.position = t.Translation;
         physicsSettings3.gravityFactor = -1.0f;
         PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings3);
 
@@ -156,19 +148,6 @@ void Engine::Update(float deltaTime)
     ScriptingSubsystem::Update(*s_activeScene, deltaTime);
 
     RenderSubsystem::GetInstance().Render(deltaTime);
-    // vgjs::schedule(
-    //     [deltaTime //, &updateDoneSem
-    // ]() -> void
-    //     {
-    //         m_renderFunc(deltaTime);
-    //         // std::cout << "render update" << std::endl;
-    //         // updateDoneSem.release();
-    //     },
-    //     vgjs::tag_t{1});
-    // vgjs::schedule(vgjs::tag_t{1});
-
-    // updateDoneSem.acquire();
-    //  std::cout << "loop done" << std::endl;
 
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;
