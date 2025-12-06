@@ -52,9 +52,9 @@ struct PhysicsComponentSettings
     EActivation activate = EActivation::DontActivate;
     PhysicsComponentMotionType motionType = PhysicsComponentMotionType::Dynamic;
     ObjectLayer layer = Layers::MOVING;
-    Vec3 position = Vec3::Zero;
-    Quat rotation = Quat::Identity;
-    Vec3 scale = Vec3::One;
+    // Vec3 position = Vec3::Zero;
+    // Quat rotation = Quat::Identity;
+    // Vec3 scale = Vec3::One;
     bool isTrigger = false; // if false controls parent transform
     float gravityFactor = 1.0f;
 
