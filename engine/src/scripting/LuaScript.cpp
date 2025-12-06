@@ -12,7 +12,7 @@ LuaScript::LuaScript()
     m_id = Rand::getRandomUUID();
 }
 
-bool LuaScript::Load(const Path &scriptPath)
+bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
 {
     m_scriptPath = scriptPath;
 
@@ -27,6 +27,7 @@ bool LuaScript::Load(const Path &scriptPath)
 
     sol::protected_function scriptAsFunc = script.get<sol::protected_function>();
     m_environment = sol::environment(lua, sol::create, lua.globals());
+    m_environment["OwningEntity"] = owningEntity.GetUUID().str();
     sol::set_environment(m_environment, scriptAsFunc);
     // load lua functions to environment
     sol::protected_function_result result = script();

@@ -37,7 +37,8 @@ template <typename T> const T *Entity::TryGetComponent() const
 template <typename T> bool Entity::HasComponent()
 {
     assert(IsValid());
-    return m_Scene->m_Registry.all_of<T>(m_EntityHandle);
+    bool has = m_Scene->m_Registry.all_of<T>(m_EntityHandle);
+    return has;;
 }
 template <typename T> bool Entity::HasComponent() const
 {

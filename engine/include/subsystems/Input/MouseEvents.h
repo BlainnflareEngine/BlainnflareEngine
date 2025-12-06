@@ -71,6 +71,15 @@ public:
     EVENT_CLASS_TYPE(MouseButtonPressed)
 };
 
+class MouseButtonHeldEvent : public MouseButtonEvent
+{
+public:
+    MouseButtonHeldEvent(const MouseButton button)
+        : MouseButtonEvent(button) {}
+
+    EVENT_CLASS_TYPE(MouseButtonHeld)
+};
+
 class MouseButtonReleasedEvent : public MouseButtonEvent
 {
 public:

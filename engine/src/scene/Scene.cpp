@@ -503,7 +503,7 @@ Mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
 
     if (parent) return GetWorldSpaceTransformMatrix(parent);
 
-    return transform * entity.Transform().GetTransform();
+    return entity.Transform().GetTransform() * transform;
 }
 
 TransformComponent Scene::GetWorldSpaceTransform(Entity entity)

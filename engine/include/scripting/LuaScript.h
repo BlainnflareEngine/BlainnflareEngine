@@ -1,6 +1,7 @@
 #pragma once
 
 #include "aliases.h"
+#include "scene/Entity.h"
 
 namespace Blainn
 {
@@ -9,7 +10,7 @@ class LuaScript
 public:
     LuaScript();
 
-    bool Load(const Path &path);
+    bool Load(const Path &path, const Entity &owningEntity);
     bool IsLoaded() const;
 
     const Path &GetScriptPath() const;

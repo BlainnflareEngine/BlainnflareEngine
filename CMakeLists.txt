@@ -24,8 +24,12 @@ set(CMAKE_CONFIGURATION_TYPES
 
 # These definitions apply to all the projects
 add_compile_definitions(
-        "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:TRACY_ENABLE;BLAINN_HAS_CONSOLE>"
+        "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:BLAINN_HAS_CONSOLE>"
 )
+
+if(TRACY_ENABLE)
+    add_compile_definitions("TRACY_ENABLE;BLAINN_ENABLE_PROFILING=1")
+endif()
 
 set(PROJECT_NAME
         BlainnflareEngine)
@@ -203,3 +207,9 @@ endif ()
 message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 message("CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
 message("CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/content"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/content"
+)
