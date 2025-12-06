@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "entity_inspector_content.h"
+
+
 #include <qstring.h>
 
 namespace editor
@@ -19,6 +22,7 @@ class InspectorFabric
 {
 public:
     inspector_content_base *GetInspector(const QString &file);
+    entity_inspector_content *GetEntityInspector(const EntityInspectorData &data);
 
 private:
     material_inspector_content *GetMaterialInspector(const QString &file);

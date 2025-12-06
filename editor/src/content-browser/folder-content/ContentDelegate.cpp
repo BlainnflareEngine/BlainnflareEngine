@@ -51,7 +51,7 @@ void ContentDelegate::paint(QPainter *painter, const QStyleOptionViewItem &optio
 
     auto file = QFileInfo(m_model->filePath(sourceIndex));
 
-    if (supportedTextureFormats.contains(file.suffix())) DrawTexturePreview(file, painter, option, index);
+    if (formats::supportedTextureFormats.contains(file.suffix())) DrawTexturePreview(file, painter, option, index);
     else DrawStandard(painter, option, index);
 
     painter->restore();

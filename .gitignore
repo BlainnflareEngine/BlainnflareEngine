@@ -42,8 +42,9 @@
 
 # BlainnflareEngine
 build/
-.vscode/
 .vs/
+.vscode/*
+!vscode/launch.json
 [Cc]onfig/
 *.sln
 libs/*
@@ -54,5 +55,8 @@ libs/lua/*
 logs/*
 .idea/
 CMakeFiles/
+# client local machine's specific file
+CMakeSettings.json
+CMakePresets.json
 /out
 cmake-build-debug

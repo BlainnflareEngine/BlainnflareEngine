@@ -95,37 +95,61 @@ QString create_material_dialog::GetShaderPath() const
 
 void create_material_dialog::OnSelectAlbedo()
 {
-    SelectFile(*ui->AlbedoPath, Filters::TextureFilter);
+    QString initialDir =
+        ui->AlbedoPath->text().isEmpty() ? QDir::currentPath() : QFileInfo(ui->AlbedoPath->text()).absolutePath();
+
+    SelectFileAsync(this, "Select Albedo Texture", initialDir, filters::TextureFilter,
+                    [this](const QString &filePath) { ui->AlbedoPath->setText(filePath); });
 }
 
 
 void create_material_dialog::OnSelectNormal()
 {
-    SelectFile(*ui->NormaPath, Filters::TextureFilter);
+    QString initialDir =
+        ui->NormaPath->text().isEmpty() ? QDir::currentPath() : QFileInfo(ui->NormaPath->text()).absolutePath();
+
+    SelectFileAsync(this, "Select Normal Texture", initialDir, filters::TextureFilter,
+                    [this](const QString &filePath) { ui->NormaPath->setText(filePath); });
 }
 
 
 void create_material_dialog::OnSelectMetallic()
 {
-    SelectFile(*ui->MetallicPath, Filters::TextureFilter);
+    QString initialDir =
+        ui->MetallicPath->text().isEmpty() ? QDir::currentPath() : QFileInfo(ui->MetallicPath->text()).absolutePath();
+
+    SelectFileAsync(this, "Select Metallic Texture", initialDir, filters::TextureFilter,
+                    [this](const QString &filePath) { ui->MetallicPath->setText(filePath); });
 }
 
 
 void create_material_dialog::OnSelectRoughness()
 {
-    SelectFile(*ui->RoughnessPath, Filters::TextureFilter);
+    QString initialDir =
+        ui->RoughnessPath->text().isEmpty() ? QDir::currentPath() : QFileInfo(ui->RoughnessPath->text()).absolutePath();
+
+    SelectFileAsync(this, "Select Roughness Texture", initialDir, filters::TextureFilter,
+                    [this](const QString &filePath) { ui->RoughnessPath->setText(filePath); });
 }
 
 
 void create_material_dialog::OnSelectAO()
 {
-    SelectFile(*ui->AOPath, Filters::TextureFilter);
+    QString initialDir =
+        ui->AOPath->text().isEmpty() ? QDir::currentPath() : QFileInfo(ui->AOPath->text()).absolutePath();
+
+    SelectFileAsync(this, "Select AO Texture", initialDir, filters::TextureFilter,
+                    [this](const QString &filePath) { ui->AOPath->setText(filePath); });
 }
 
 
 void create_material_dialog::OnSelectShader()
 {
-    SelectFile(*ui->ShaderPath, Filters::ShaderFilter);
+    QString initialDir =
+        ui->ShaderPath->text().isEmpty() ? QDir::currentPath() : QFileInfo(ui->ShaderPath->text()).absolutePath();
+
+    SelectFileAsync(this, "Select AO Texture", initialDir, filters::ShaderFilter,
+                    [this](const QString &filePath) { ui->ShaderPath->setText(filePath); });
 }
 
 

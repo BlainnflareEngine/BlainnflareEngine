@@ -3,9 +3,13 @@
 #include "subsystems/ScriptingSubsystem.h"
 
 #include <cassert>
+#include <sol/sol.hpp>
 
+
+#include "Engine.h"
 #include "ScriptingSubsystem.h"
-#include "tools/random.h"
+#include "scene/Scene.h"
+#include "scripting/TypeRegistration.h"
 
 using namespace Blainn;
 
@@ -15,6 +19,7 @@ void ScriptingSubsystem::Init()
                          sol::lib::os, sol::lib::io);
 
     RegisterBlainnTypes();
+
     m_isInitialized = true;
 }
 
@@ -34,6 +39,39 @@ void ScriptingSubsystem::Destroy()
 
 void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
 {
+#ifdef BLAINN_TEST_LUA_SCRIPTS
+
+    static bool create;
+    if (!create)
+    {
+        m_scriptTestEntity = Engine::GetActiveScene()->CreateEntity("LuaScriptTestEntity");
+        CreateAttachScriptingComponent(m_scriptTestEntity);
+        //m_scriptTestUuid1 =
+        //    ScriptingSubsystem::LoadScript(m_scriptTestEntity, "scripts/test1.lua", true).value_or(uuid());
+        m_scriptTestUuid2 =
+            ScriptingSubsystem::LoadScript(m_scriptTestEntity, "./scripts/test2.lua", true).value_or(uuid());
+
+        create = true;
+    }
+#endif
+
+    // TODO: can be replaced with profiler
+    // const int num_tests = 10;
+    // long long duration = 0;
+    // for (int j = 0; j < num_tests; j++)
+    // {
+    //     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+    //     for (int i = 0; i < 1000; i++)
+    //     {
+    //         ScriptingSubsystem::Update(*s_activeScene, deltaTime);
+    //     }
+    //     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    //     duration += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    // }
+    // long long avg = duration / num_tests;
+    // std::cout << avg << " avg microseconds" << std::endl;
+    // exit(0);
+
     auto view = scene.GetAllEntitiesWith<ScriptingComponent>();
     for (const auto &[entity, scriptingComponent] : view.each())
     {
@@ -44,16 +82,44 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
     }
 }
 
+void Blainn::ScriptingSubsystem::CreateAttachScriptingComponent(Entity entity)
+{
+    ScriptingComponent *component = entity.TryGetComponent<ScriptingComponent>();
+    if (component)
+    {
+        BF_ERROR("Entity " + entity.GetUUID().str() + " already has ScriptingComponent");
+        return;
+    }
+    entity.AddComponent<ScriptingComponent>();
+}
+
+void Blainn::ScriptingSubsystem::DestroyScriptingComponent(Entity entity)
+{
+    ScriptingComponent *component = entity.TryGetComponent<ScriptingComponent>();
+    if (!component)
+    {
+        return;
+    }
+
+    eastl::vector<uuid> scriptUuids;
+    scriptUuids.reserve(component->scripts.size());
+    eastl::transform(component->scripts.begin(), component->scripts.end(), eastl::back_inserter(scriptUuids),
+                     [](const eastl::pair<uuid, LuaScript> &pair) { return pair.first; });
+
+    for (const auto &scriptUuid : scriptUuids)
+    {
+        UnloadScript(scriptUuid);
+    }
+
+    entity.RemoveComponent<ScriptingComponent>();
+}
+
 sol::state &ScriptingSubsystem::GetLuaState()
 {
     return m_lua;
 }
-void ScriptingSubsystem::SetLuaScriptsFolder(const eastl::string &path)
-{
-    m_luaScriptsFolder = path;
-};
 
-eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const eastl::string &path, bool callOnStart)
+eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const Path &path, bool callOnStart)
 {
     ScriptingComponent *component = entity.TryGetComponent<ScriptingComponent>();
     if (!component)
@@ -62,20 +128,20 @@ eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const eastl:
         return eastl::optional<uuid>();
     }
 
-    eastl::string scriptLoadPath = m_luaScriptsFolder + path;
+    Path scriptLoadPath = Engine::GetContentDirectory() / path;
     if (!std::filesystem::exists(scriptLoadPath.c_str()))
     {
-        BF_ERROR("Script load error: script" + scriptLoadPath + "does not exist");
+        BF_ERROR("Script load error: script" + scriptLoadPath.string() + "does not exist");
         return eastl::optional<uuid>();
     }
 
     eastl::unordered_map<uuid, LuaScript> &scripts = component->scripts;
     LuaScript luaScript;
-    if (!luaScript.Load(scriptLoadPath)) return eastl::optional<uuid>();
+    if (!luaScript.Load(scriptLoadPath, entity)) return eastl::optional<uuid>();
     if (callOnStart) luaScript.OnStartCall();
 
     uuid scriptUuid = luaScript.GetId();
-    scripts[scriptUuid] = std::move(luaScript);
+    scripts[scriptUuid] = eastl::move(luaScript);
     m_scriptEntityConnections[scriptUuid] = entity;
     return eastl::optional(eastl::move(scriptUuid));
 }
@@ -107,23 +173,15 @@ void ScriptingSubsystem::UnloadScript(const uuid &scriptUuid)
 
 void Blainn::ScriptingSubsystem::RegisterBlainnTypes()
 {
-    sol::usertype<Vec2> Vec2Type = m_lua.new_usertype<Vec2>(
-        "Vec2", sol::constructors<Vec2(), Vec2(float, float)>(), sol::meta_function::subtraction,
-        [](const Vec2 &a, const Vec2 &b) { return a - b; }, sol::meta_function::addition,
-        [](const Vec2 &a, const Vec2 &b) { return a + b; }, sol::meta_function::unary_minus, [](const Vec2 &a)
-        { return -a; }, sol::meta_function::multiplication, [](const Vec2 &a, float s) { return a * s; },
-        sol::meta_function::division, [](const Vec2 &a, float s) { return a / s; }, sol::meta_function::equal_to,
-        [](const Vec2 &a, const Vec2 &b) { return a == b; });
-
-    Vec2Type["x"] = &Vec2::x;
-    Vec2Type["y"] = &Vec2::y;
-
-    Vec2Type["Length"] = &Vec2::Length;
-    Vec2Type["LengthSquared"] = &Vec2::LengthSquared;
-    Vec2Type["Normalize"] = static_cast<void (Vec2::*)()>(&Vec2::Normalize);
-    Vec2Type["Dot"] = &Vec2::Dot;
-
-    Vec2Type["Distance"] = &Vec2::Distance;
-    Vec2Type["Clamp"] = static_cast<void (Vec2::*)(const Vec2 &, const Vec2 &)>(&Vec2::Clamp);
-    Vec2Type["Lerp"] = static_cast<Vec2 (*)(const Vec2 &, const Vec2 &, float)>(&Vec2::Lerp);
+#ifdef BLAINN_REGISTER_LUA_TYPES
+    RegisterCommonTypes(m_lua);
+    RegisterInputTypes(m_lua);
+    RegisterAssetLoaderTypes(m_lua);
+    RegisterComponentTypes(m_lua);
+    RegisterEntityTypes(m_lua);
+    RegisterSceneTypes(m_lua);
+    RegisterAssetManagerTypes(m_lua);
+    RegisterEngineTypes(m_lua);
+    RegisterScriptingTypes(m_lua);
+#endif
 }

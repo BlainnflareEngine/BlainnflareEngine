@@ -23,8 +23,7 @@ public:
     explicit inspector_content_base(QWidget *parent = nullptr);
     ~inspector_content_base() override;
 
-private:
+protected:
     Ui::inspector_content_base *ui;
 };
 } // namespace editor
-

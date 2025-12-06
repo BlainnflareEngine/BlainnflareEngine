@@ -12,30 +12,35 @@ LuaScript::LuaScript()
     m_id = Rand::getRandomUUID();
 }
 
-bool LuaScript::Load(eastl::string_view scriptPath)
+bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
 {
     m_scriptPath = scriptPath;
 
     sol::state &lua = ScriptingSubsystem::GetLuaState();
-    sol::load_result script = lua.load_file(scriptPath.data());
+    sol::load_result script = lua.load_file(scriptPath.string());
     if (!script.valid())
     {
         sol::error err = script;
-        BF_ERROR("Failed to load Lua script: " + m_scriptPath + "\nError: " + err.what());
+        BF_ERROR("Failed to load Lua script: {}\nError: {}", m_scriptPath.string(), err.what());
         return false;
     }
 
     sol::protected_function scriptAsFunc = script.get<sol::protected_function>();
     m_environment = sol::environment(lua, sol::create, lua.globals());
+    m_environment["OwningEntity"] = owningEntity.GetUUID().str();
     sol::set_environment(m_environment, scriptAsFunc);
     // load lua functions to environment
     sol::protected_function_result result = script();
     if (!result.valid())
     {
         sol::error err = result;
-        BF_ERROR("Failed to execute Lua script: " + m_scriptPath + "\nError: " + err.what());
+        BF_ERROR("Failed to execute Lua script: {}\nError: {}", m_scriptPath.string(), err.what());
         return false;
     }
+
+    if (HasFunction(PredefinedFunctions::OnStart)) m_predefinedFunctions.insert(PredefinedFunctions::OnStart);
+    if (HasFunction(PredefinedFunctions::OnUpdate)) m_predefinedFunctions.insert(PredefinedFunctions::OnUpdate);
+    if (HasFunction(PredefinedFunctions::OnDestroy)) m_predefinedFunctions.insert(PredefinedFunctions::OnDestroy);
 
     m_isLoaded = true;
     return true;
@@ -46,7 +51,7 @@ bool LuaScript::IsLoaded() const
     return m_isLoaded;
 }
 
-const eastl::string &LuaScript::GetScriptPath() const
+const Path &LuaScript::GetScriptPath() const
 {
     return m_scriptPath;
 }
@@ -56,7 +61,7 @@ const uuid &Blainn::LuaScript::GetId() const
     return m_id;
 }
 
-bool Blainn::LuaScript::HasFunction(const eastl::string &functionName)
+bool Blainn::LuaScript::HasFunction(const eastl::string &functionName) const
 {
     sol::protected_function customFunc = m_environment[functionName.data()];
     if (!customFunc.valid())
@@ -68,15 +73,18 @@ bool Blainn::LuaScript::HasFunction(const eastl::string &functionName)
 
 bool LuaScript::OnStartCall()
 {
-    return CustomCall("OnStart");
+    if (!m_predefinedFunctions.contains(PredefinedFunctions::OnStart)) return false;
+    return CustomCall(PredefinedFunctions::OnStart);
 }
 
 bool LuaScript::OnUpdateCall(float deltaTimeMs)
 {
-    return CustomCall("OnUpdate", deltaTimeMs);
+    if (!m_predefinedFunctions.contains(PredefinedFunctions::OnUpdate)) return false;
+    return CustomCall(PredefinedFunctions::OnUpdate, deltaTimeMs);
 }
 
 bool LuaScript::OnDestroyCall()
 {
-    return CustomCall("OnDestroy");
+    if (!m_predefinedFunctions.contains(PredefinedFunctions::OnDestroy)) return false;
+    return CustomCall(PredefinedFunctions::OnDestroy);
 }

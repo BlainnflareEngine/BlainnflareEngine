@@ -5,6 +5,7 @@
 #pragma once
 #include "AssetLoader.h"
 #include "FreeListVector.h"
+#include "helpers.h"
 
 
 namespace Blainn
@@ -24,16 +25,20 @@ class AssetManager
     };
 
 public:
+    NO_COPY_NO_MOVE(AssetManager);
+
     static AssetManager &GetInstance();
 
     void Init();
     void Destroy();
 
-    bool MeshExists(const Path &path);
-    eastl::shared_ptr<MeshHandle> GetMesh(const Path &path);
-    eastl::shared_ptr<MeshHandle> LoadMesh(const Path &path, const ImportMeshData &data);
+    bool HasMesh(const Path &relativePath);
+    eastl::shared_ptr<MeshHandle> GetMesh(const Path &relativePath);
+    static eastl::shared_ptr<MeshHandle> GetDefaultMesh();
+    eastl::shared_ptr<MeshHandle> LoadMesh(const Path &relativePath, const ImportMeshData &data);
     Model &GetMeshByIndex(unsigned int index);
     Model &GetMeshByHandle(const MeshHandle &handle);
+    Path GetMeshPath(const MeshHandle &handle);
 
     bool HasTexture(const Path &path);
     eastl::shared_ptr<TextureHandle> GetTexture(const Path &path);
@@ -47,13 +52,12 @@ public:
     Material &GetMaterialByIndex(unsigned int index);
     Material &GetMaterialByHandle(const MaterialHandle &handle);
 
+    static bool SceneExists(const Path &relativePath);
+    static void OpenScene(const Path &relativePath);
+    static void CreateScene(const Path &relativePath);
 
 private:
     AssetManager() = default;
-    AssetManager(const AssetManager &) = delete;
-    AssetManager &operator=(const AssetManager &) = delete;
-    AssetManager(const AssetManager &&) = delete;
-    AssetManager &operator=(const AssetManager &&) = delete;
 
     friend struct MeshHandle;
     friend struct MaterialHandle;
@@ -63,7 +67,7 @@ private:
 
     void AddTextureWhenLoaded(const Path &path, const unsigned int index, const TextureType type);
     void AddMaterialWhenLoaded(const Path &path, const unsigned int index);
-    void AddModelWhenLoaded(const Path &path, const unsigned int index, const ImportMeshData data);
+    void AddMeshWhenLoaded(const Path &relativePath, const unsigned int index, const ImportMeshData data);
 
     Texture &GetDefaultTexture();
     Material &GetDefaultMaterial();
@@ -75,6 +79,11 @@ private:
     void DecreaseTextureRefCount(const unsigned int index);
     void DecreaseMaterialRefCount(const unsigned int index);
     void DecreaseMeshRefCount(const unsigned int index);
+
+private:
+    // Connect with render subsystem resource creating
+    void CreateTextureDataResource(const eastl::shared_ptr<Texture> &texture);
+    void CreateMeshDataResource(const eastl::shared_ptr<Model> &model);
 
 private:
     inline static eastl::unique_ptr<AssetLoader> m_loader;

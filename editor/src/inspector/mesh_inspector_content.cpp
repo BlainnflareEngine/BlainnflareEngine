@@ -22,7 +22,7 @@ mesh_inspector_content::mesh_inspector_content(const QString &file, QWidget *par
     ui->setupUi(this);
 
     QFileInfo fileInfo = QFileInfo(file);
-    QString metaFile = fileInfo.absoluteFilePath().append(".").append(metaFormat);
+    QString metaFile = fileInfo.absoluteFilePath().append(".").append(formats::metaFormat);
 
     YAML::Node meta = YAML::LoadFile(ToString(metaFile));
     if (meta.IsDefined())

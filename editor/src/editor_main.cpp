@@ -2,20 +2,18 @@
 // Created by gorev on 21.09.2025.
 //
 
-// You may need to build the project (run Qt uic code generator) to get "ui_editor_main.h" resolved
 
 #include "editor_main.h"
 
 #include "Editor.h"
 #include "EditorSink.h"
+#include "Engine.h"
 #include "SettingsData.h"
 #include "editor_settings.h"
 #include "folder_content_widget.h"
 #include "ui_editor_main.h"
 
 #include <QListView>
-#include <QResource>
-#include <iostream>
 
 namespace editor
 {
@@ -44,11 +42,25 @@ editor_main::editor_main(QWidget *parent)
     connect(ui->folderContent, &folder_content_widget::FolderSelected, ui->pathBar, &path_bar_widget::SetCurrentPath);
 
 
-    connect(ui->actionEditor_settings, &QAction::triggered, this, &editor_main::OnOpenSettings);
+    connect(ui->Entities->selectionModel(), &QItemSelectionModel::selectionChanged, ui->folderContent->GetListView(),
+            &QListView::clearSelection);
+    connect(ui->folderContent->GetListView()->selectionModel(), &QItemSelectionModel::selectionChanged, ui->Entities,
+            &QTreeView::clearSelection);
+
 
     connect(ui->ClearConsoleButton, &QPushButton::clicked, ui->consoleMessages, &console_messages_widget::ClearConsole);
 
     connect(ui->AddToScene, &QPushButton::clicked, this, &editor_main::OpenAddToScene);
+
+
+    // Action bar
+    ui->actionSave->setShortcut(Qt::CTRL + Qt::Key_S);
+    ui->actionSave->setIcon(QIcon(":/icons/save.png"));
+    ui->actionEditor_settings->setShortcut(Qt::CTRL + Qt::Key_P);
+    ui->actionEditor_settings->setIcon(QIcon(":/icons/settings.png"));
+
+    connect(ui->actionEditor_settings, &QAction::triggered, this, &editor_main::OnOpenSettings);
+    connect(ui->actionSave, &QAction::triggered, this, &editor_main::OnSaveScene);
 }
 
 
@@ -60,7 +72,7 @@ editor_main::~editor_main()
 
 HWND editor_main::GetViewportHWND() const
 {
-    return reinterpret_cast<HWND>(ui->sceneTab->winId());
+    return reinterpret_cast<HWND>(ui->viewportTab->winId());
 }
 
 
@@ -102,10 +114,16 @@ void editor_main::OpenAddToScene() const
 
 void editor_main::OnOpenSettings()
 {
-    SettingsData data = SettingsData(Blainn::Editor::GetInstance().GetContentDirectory());
-    eastl::unique_ptr<editor_settings> settings = eastl::make_unique<editor_settings>(data, this);
+    SettingsData data = SettingsData(Blainn::Engine::GetContentDirectory());
+    editor_settings *settings = new editor_settings(data, this);
     settings->show();
-    settings->exec();
+}
+
+
+void editor_main::OnSaveScene()
+{
+    Blainn::Engine::GetActiveScene()->SaveScene();
+    ui->Entities->SaveCurrentMeta();
 }
 
 } // namespace editor

@@ -37,9 +37,13 @@ struct RelationshipComponent
     eastl::vector<uuid> Children;
 
     RelationshipComponent() = default;
-    RelationshipComponent(RelationshipComponent &) = default;
+    RelationshipComponent(const RelationshipComponent &other)
+        : ParentHandle(other.ParentHandle)
+        , Children(other.Children)
+    {
+    }
 
-    RelationshipComponent(uuid parent)
+    RelationshipComponent(const uuid &parent)
         : ParentHandle(parent)
     {
     }

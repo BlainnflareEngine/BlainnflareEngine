@@ -20,7 +20,6 @@ inspector_widget::inspector_widget(QWidget *parent)
     setWidget(new QWidget());
 
     setAutoFillBackground(false);
-    //setStyleSheet("background-color: #2D2D2D");
 }
 
 
@@ -34,11 +33,11 @@ void inspector_widget::SetItem(QWidget *item)
 {
     if (m_locked) return;
 
-    if (widget()) widget()->deleteLater();
+    if (widget())
+        widget()->deleteLater();
 
     if (!item) return;
 
-    m_item = item;
     setWidget(item);
 }
 

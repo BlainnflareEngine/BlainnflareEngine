@@ -30,12 +30,14 @@ bool Blainn::Input::IsKeyReleased(KeyCode key)
 
 bool Blainn::Input::IsMouseButtonPressed(MouseButton button)
 {
-    return s_mouseButtonStates.find(button) != s_mouseButtonStates.end() && s_mouseButtonStates[button] == ButtonState::Pressed;
+    return s_mouseButtonStates.find(button) != s_mouseButtonStates.end()
+           && s_mouseButtonStates[button] == ButtonState::Pressed;
 }
 
 bool Blainn::Input::IsMouseButtonHeld(MouseButton button)
 {
-    return s_mouseButtonStates.find(button) != s_mouseButtonStates.end() && s_mouseButtonStates[button] == ButtonState::Held;
+    return s_mouseButtonStates.find(button) != s_mouseButtonStates.end()
+           && s_mouseButtonStates[button] == ButtonState::Held;
 }
 
 bool Blainn::Input::IsMouseButtonDown(MouseButton button)
@@ -45,7 +47,8 @@ bool Blainn::Input::IsMouseButtonDown(MouseButton button)
 
 bool Blainn::Input::IsMouseButtonReleased(MouseButton button)
 {
-    return s_mouseButtonStates.find(button) != s_mouseButtonStates.end() && s_mouseButtonStates[button] == ButtonState::Released;
+    return s_mouseButtonStates.find(button) != s_mouseButtonStates.end()
+           && s_mouseButtonStates[button] == ButtonState::Released;
 }
 
 
@@ -71,42 +74,52 @@ void Blainn::Input::UpdateMousePosition(const float x, const float y)
 
 void Blainn::Input::UpdateMousePosition(const MousePosition newPos)
 {
+    s_mouseDelta = s_mousePosition - newPos;
+    BF_DEBUG("MousePosition updated {} {}", s_mouseDelta.X, s_mouseDelta.Y);
+
     s_mousePosition = newPos;
     s_inputEventQueue.enqueue(InputEventType::MouseMoved, eastl::make_shared<MouseMovedEvent>(newPos.X, newPos.Y));
+    s_inputEventQueue.enqueue(InputEventType::MouseDelta,
+                              eastl::make_shared<MouseMovedEvent>(s_mouseDelta.X, s_mouseDelta.Y));
 }
 
 void Blainn::Input::TransitionPressedKeys()
 {
-    for (const auto& [key, keyState] : s_keyStates)
+    for (const auto &[key, keyState] : s_keyStates)
     {
-        if (keyState == KeyState::Pressed)
+        if (keyState == KeyState::Pressed || keyState == KeyState::Held)
             UpdateKeyState(key, KeyState::Held);
     }
 }
 
 void Blainn::Input::TransitionPressedButtons()
 {
-    for (const auto& [button, buttonState] : s_mouseButtonStates)
+    for (const auto &[button, buttonState] : s_mouseButtonStates)
     {
-        if (buttonState == ButtonState::Pressed)
+        if (buttonState == ButtonState::Pressed || buttonState == ButtonState::Held)
             UpdateButtonState(button, ButtonState::Held);
     }
 }
 
 void Blainn::Input::UpdateKeyState(KeyCode key, KeyState state)
 {
-    s_keyStates[key] = state;
     switch (state)
     {
     case KeyState::Pressed:
+        if (s_keyStates[key] == KeyState::Held) return;
+        s_keyStates[key] = state;
+        BF_DEBUG("Key Pressed 111 {}", static_cast<int>(key))
         s_inputEventQueue.enqueue(eastl::make_shared<KeyPressedEvent>(key));
         return;
     case KeyState::Released:
+        BF_DEBUG("Key Released  11111 {}", static_cast<int>(key))
+        s_keyStates[key] = state;
         s_inputEventQueue.enqueue(eastl::make_shared<KeyReleasedEvent>(key));
         return;
     case KeyState::Held:
-        // Held should probably not generate event, this can be handled in updates
-        // of the scripts and using the Input::IsKeyHeld function.
+        s_keyStates[key] = state;
+        BF_DEBUG("Key Held {}", static_cast<int>(key))
+        s_inputEventQueue.enqueue(eastl::make_shared<KeyHeldEvent>(key));
         return;
     default:
         return;
@@ -115,18 +128,20 @@ void Blainn::Input::UpdateKeyState(KeyCode key, KeyState state)
 
 void Blainn::Input::UpdateButtonState(MouseButton button, ButtonState state)
 {
-    s_mouseButtonStates[button] = state;
     switch (state)
     {
     case ButtonState::Pressed:
+        if (s_mouseButtonStates[button] == ButtonState::Held) return;
+        s_mouseButtonStates[button] = state;
         s_inputEventQueue.enqueue(eastl::make_shared<MouseButtonPressedEvent>(button));
         return;
     case ButtonState::Released:
+        s_mouseButtonStates[button] = state;
         s_inputEventQueue.enqueue(eastl::make_shared<MouseButtonReleasedEvent>(button));
         return;
     case ButtonState::Held:
-        // Held should probably not generate event, this can be handled in updates
-        // of the scripts and using the Input::IsButtonHeld function.
+        s_mouseButtonStates[button] = state;
+        s_inputEventQueue.enqueue(eastl::make_shared<MouseButtonHeldEvent>(button));
         return;
     default:
         return;
@@ -141,5 +156,8 @@ void Blainn::Input::AddEventListener(InputEventType eventType,
 
 void Blainn::Input::ProcessEvents()
 {
+    TransitionPressedKeys();
+    TransitionPressedButtons();
+
     s_inputEventQueue.process();
 }

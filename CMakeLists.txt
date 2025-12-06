@@ -8,6 +8,8 @@ cmake_policy(SET CMP0074 OLD)
 cmake_policy(SET CMP0169 OLD)
 add_compile_options(/EHsc)
 
+option(BLAINN_EXCLUDE_EDITOR "Build the engine without the editor" OFF)
+
 # Allow VS to have the filters
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -39,7 +41,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 
 add_executable(${PROJECT_NAME} main.cpp
-        common/Vertex.h
+        common/VertexTypes.h
         common/MeshData.h
         common/ImportAssetData.h
         common/helpers.h
@@ -51,8 +53,12 @@ add_subdirectory(libs/JoltPhysics/Build)
 add_subdirectory(libs/spdlog)
 add_subdirectory(libs/tracy)
 add_subdirectory(libs/yaml-cpp)
-add_subdirectory(libs/qlementine)
 add_subdirectory(libs/sol2)
+add_subdirectory(libs/D3D12MemoryAllocator)
+
+if(NOT BLAINN_EXCLUDE_EDITOR)
+    add_subdirectory(libs/qlementine)
+endif()
 
 set (BUILD_TESTING OFF)
 add_subdirectory(libs/DIRECTXTK12)
@@ -80,7 +86,10 @@ set(LUA_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/libs/lua/lua-5.4.4/src)
 set(SOL2_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/libs/sol2/include)
 
 add_subdirectory(${ENGINE_DIR})
-add_subdirectory(${EDITOR_DIR})
+
+if(NOT BLAINN_EXCLUDE_EDITOR)
+    add_subdirectory(${EDITOR_DIR})
+endif()
 
 # PCH
 add_library(pch INTERFACE)
@@ -89,7 +98,8 @@ target_link_libraries(pch INTERFACE
         spdlog
         TracyClient
         yaml-cpp
-        DirectXTK12)
+        DirectXTK12
+        D3D12MemoryAllocator)
 
 target_include_directories(pch INTERFACE
         "${CMAKE_SOURCE_DIR}/libs/uuid_v4"
@@ -101,61 +111,81 @@ target_include_directories(pch INTERFACE
 target_precompile_headers(pch INTERFACE common/pch.h)
 
 
-
-target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_INCLUDE_EDITOR)
-
-#target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_HAS_CONSOLE)
-
-
-target_link_libraries(${PROJECT_NAME} PUBLIC
-        pch
-        ENGINE
-        EDITOR)
-
-target_include_directories(${PROJECT_NAME} PUBLIC
-        "${ENGINE_DIR}"
-        "${EDITOR_DIR}"
-        "${CMAKE_SOURCE_DIR}/libs"
-        "${LIBS_DIR}"
-        "${JobSystem_DIR}/include"
-        "${TracyClient_DIR}/public"
-        "${spdlog_DIR}/include"
-        "${CMAKE_SOURCE_DIR}/common"
-        "${uuid_v4_DIR}"
-        "${Entt_DIR}/single_include"
-        $<TARGET_PROPERTY:assimp::assimp,INTERFACE_INCLUDE_DIRECTORIES>
-        "${LIBS_DIR}/eventpp/include"
-)
+if(BLAINN_EXCLUDE_EDITOR)
+    target_link_libraries(${PROJECT_NAME} PUBLIC
+            pch
+            ENGINE)
+else()
+    target_link_libraries(${PROJECT_NAME} PUBLIC
+            pch
+            ENGINE
+            EDITOR)
+endif()
 
 
+if(BLAINN_EXCLUDE_EDITOR)
+    target_include_directories(${PROJECT_NAME} PUBLIC
+            "${ENGINE_DIR}"
+            "${CMAKE_SOURCE_DIR}/libs"
+            "${LIBS_DIR}"
+            "${JobSystem_DIR}/include"
+            "${TracyClient_DIR}/public"
+            "${spdlog_DIR}/include"
+            "${CMAKE_SOURCE_DIR}/common"
+            "${uuid_v4_DIR}"
+            "${Entt_DIR}/single_include"
+            $<TARGET_PROPERTY:assimp::assimp,INTERFACE_INCLUDE_DIRECTORIES>
+            "${LIBS_DIR}/eventpp/include"
+    )
+else()
+    target_include_directories(${PROJECT_NAME} PUBLIC
+            "${ENGINE_DIR}"
+            "${EDITOR_DIR}"
+            "${CMAKE_SOURCE_DIR}/libs"
+            "${LIBS_DIR}"
+            "${JobSystem_DIR}/include"
+            "${TracyClient_DIR}/public"
+            "${spdlog_DIR}/include"
+            "${CMAKE_SOURCE_DIR}/common"
+            "${uuid_v4_DIR}"
+            "${Entt_DIR}/single_include"
+            $<TARGET_PROPERTY:assimp::assimp,INTERFACE_INCLUDE_DIRECTORIES>
+            "${LIBS_DIR}/eventpp/include"
+    )
+endif()
 
-# Qt files deploy for Windows
-if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(DEBUG_SUFFIX "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:d>")
-    set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
-    if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
-        set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
+
+if(NOT BLAINN_EXCLUDE_EDITOR)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC BLAINN_INCLUDE_EDITOR)
+
+    # Qt files deploy for Windows
+    if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+        set(DEBUG_SUFFIX "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:d>")
+        set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
         if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
             set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
+            if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
+                set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
+            endif ()
         endif ()
-    endif ()
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${QT_INSTALL_PATH}/plugins/platforms"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
-
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${QT_INSTALL_PATH}/plugins/imageformats"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
-
-    foreach (QT_LIB Core Gui Widgets Svg)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach (QT_LIB)
-endif ()
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${QT_INSTALL_PATH}/plugins/platforms"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${QT_INSTALL_PATH}/plugins/imageformats"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/imageformats/")
+
+        foreach (QT_LIB Core Gui Widgets Svg)
+            add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                    "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
+                    "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+        endforeach (QT_LIB)
+    endif ()
+endif()
 
 # =========================================
 # debug info
@@ -173,3 +203,9 @@ endif ()
 message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 message("CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
 message("CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/content"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/content"
+)

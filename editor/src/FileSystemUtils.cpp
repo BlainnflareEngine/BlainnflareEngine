@@ -3,8 +3,10 @@
 //
 
 #include "FileSystemUtils.h"
+
 #include "../include/dialog/import_asset_dialog.h"
 #include "../include/dialog/import_model_dialog.h"
+#include "ContentFilterProxyModel.h"
 
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -78,28 +80,73 @@ void OpenFolder(const QString &path, QAbstractItemView &itemView)
     QDir dir(path);
     if (!dir.exists())
     {
-        QMessageBox::warning(nullptr, "Error", "Directory not found!");
+        BF_ERROR("Directory not found!");
         return;
     }
 
-    auto fileModel = qobject_cast<QFileSystemModel *>(itemView.model());
-    QModelIndex index = fileModel->index(path);
-    if (index.isValid())
+    QAbstractItemModel *model = itemView.model();
+    if (!model) return;
+
+    if (auto proxyModel = qobject_cast<ContentFilterProxyModel *>(model))
     {
-        fileModel->setRootPath(path);
-        if (auto treeView = qobject_cast<QTreeView *>(&itemView))
-        {
-            treeView->setCurrentIndex(index);
-            treeView->expand(index);
-            treeView->scrollTo(index);
-        }
-        if (auto listView = qobject_cast<QListView *>(&itemView))
-        {
-            QModelIndex index = fileModel->index(path);
-            listView->setRootIndex(index);
-            listView->setCurrentIndex(index);
-            listView->scrollTo(index);
-        }
+        OpenFolderWithProxy(path, itemView, *proxyModel);
+    }
+    else if (auto fileModel = qobject_cast<QFileSystemModel *>(model))
+    {
+        OpenFolderWithoutProxy(path, itemView, *fileModel);
+    }
+    else
+    {
+        QMessageBox::warning(nullptr, "Error", "Unsupported model type!");
+    }
+}
+
+
+void OpenFolderWithProxy(const QString &path, QAbstractItemView &itemView, const ContentFilterProxyModel &proxyModel)
+{
+    QFileSystemModel *fileModel = qobject_cast<QFileSystemModel *>(proxyModel.sourceModel());
+    if (!fileModel)
+    {
+        BF_ERROR("Proxy model source is not a file system model");
+        return;
+    }
+
+    QModelIndex sourceIndex = fileModel->index(path);
+    if (!sourceIndex.isValid()) return;
+
+    fileModel->setRootPath(path);
+
+    QModelIndex viewIndex = proxyModel.mapFromSource(sourceIndex);
+    if (!viewIndex.isValid()) return;
+
+    ApplyViewSettings(itemView, viewIndex, viewIndex);
+}
+
+
+void OpenFolderWithoutProxy(const QString &path, QAbstractItemView &itemView, QFileSystemModel &fileModel)
+{
+    QModelIndex sourceIndex = fileModel.index(path);
+    if (!sourceIndex.isValid()) return;
+
+    fileModel.setRootPath(path);
+
+    ApplyViewSettings(itemView, sourceIndex, sourceIndex);
+}
+
+
+void ApplyViewSettings(QAbstractItemView &itemView, const QModelIndex &rootIndex, const QModelIndex &currentIndex)
+{
+    if (auto treeView = qobject_cast<QTreeView *>(&itemView))
+    {
+        treeView->setCurrentIndex(currentIndex);
+        treeView->expand(currentIndex);
+        treeView->scrollTo(currentIndex);
+    }
+    else if (auto listView = qobject_cast<QListView *>(&itemView))
+    {
+        listView->setRootIndex(rootIndex);
+        listView->setCurrentIndex(currentIndex);
+        listView->scrollTo(currentIndex);
     }
 }
 
@@ -109,7 +156,7 @@ void OpenFolder(const QString &path, const eastl::vector<QAbstractItemView *> &i
     QDir dir(path);
     if (!dir.exists())
     {
-        QMessageBox::warning(nullptr, "Error", "Directory not found!");
+        BF_ERROR("Directory not found!");
         return;
     }
 
@@ -209,9 +256,9 @@ bool MoveRecursively(const QString &targetPath, const QString &srcPath)
         return false;
     }
 
-    if (supported3DFormats.contains(srcFile.suffix()))
+    if (formats::supported3DFormats.contains(srcFile.suffix()))
     {
-        if (!QFile::rename(srcPath + "." + metaFormat, destPath + "." + metaFormat))
+        if (!QFile::rename(srcPath + "." + formats::metaFormat, destPath + "." + formats::metaFormat))
         {
             BF_ERROR("Failed to move file {0} to {1}.", ToString(srcFile.fileName()), ToString(targetPath));
             return false;
@@ -239,7 +286,7 @@ bool WasInFolderBefore(const QString &filePath, const QString &contentFolderPath
 
 import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info)
 {
-    if (supported3DFormats.contains(QFileInfo(info.originalPath).suffix().toLower()))
+    if (formats::supported3DFormats.contains(QFileInfo(info.originalPath).suffix().toLower()))
     {
         BF_INFO("Showing model dialog.");
         return new import_model_dialog(info);
@@ -251,10 +298,31 @@ import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info)
 
 std::string ToString(const QString &str)
 {
+    QByteArray utf8 = str.toUtf8();
+    return std::string(utf8.constData(), utf8.size());
+}
+
+const char *ToCString(const QString &str)
+{
     return str.toUtf8().constData();
 }
 
 
+eastl::string ToEASTLString(const QString &str)
+{
+    return str.toUtf8().constData();
+}
+
+
+QString ToQString(const eastl::string &str)
+{
+    return QString(str.c_str());
+}
+
+
+/**
+ * This is depricated func, you should use SelectFileAsync instead
+ */
 void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir)
 {
     QString fileName = QFileDialog::getOpenFileName(
@@ -270,6 +338,32 @@ void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir
         label.setText(dir.relativeFilePath(fileName));
     }
 }
+
+
+void SelectFileAsync(QWidget *parent, const QString &title, const QString &initialDir, const QString &nameFilter,
+                     std::function<void(const QString &selectedFile)> onAccepted)
+{
+    QFileDialog *dialog = new QFileDialog(parent);
+    dialog->setWindowTitle(title);
+    dialog->setFileMode(QFileDialog::ExistingFile);
+    dialog->setNameFilter(nameFilter);
+    dialog->setDirectory(initialDir);
+    dialog->setOption(QFileDialog::DontUseNativeDialog, true);
+
+    QObject::connect(dialog, &QFileDialog::finished, dialog,
+                     [dialog, onAccepted](int result)
+                     {
+                         if (result == QDialog::Accepted && !dialog->selectedFiles().isEmpty())
+                         {
+                             QString filePath = dialog->selectedFiles().first();
+                             if (onAccepted) onAccepted(filePath);
+                         }
+                         dialog->deleteLater();
+                     });
+
+    dialog->open();
+}
+
 
 void SetValueYAML(const std::string &path, const std::string &name, const std::string &value)
 {
