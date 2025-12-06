@@ -1,22 +1,33 @@
-#include "physics/ShapeFactory.h"
 #include "pch.h"
 
+#include "physics/ShapeFactory.h"
 
-#include "Jolt/Jolt.h"
-#include "Jolt/Physics/Collision/Shape/SphereShape.h"
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/CylinderShape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
 
+#include "physics/Conversion.h"
 #include "tools/random.h"
 
 using namespace Blainn;
 
-eastl::pair<uuid, eastl::shared_ptr<JPH::Shape>> Blainn::ShapeFactory::CreateSphereShape(float radius)
+ShapeHierarchy ShapeFactory::CreateSphereShape(float radius)
 {
-    uuid id = Rand::getRandomUUID();
-    auto shapePtr = eastl::make_shared<JPH::SphereShape>(radius);
-    if (m_shapes.contains(id))
-    {
-        // TODO: log error
-    }
+    return CreateShape<JPH::SphereShape>(radius);
+}
 
-    return eastl::pair<uuid, eastl::shared_ptr<JPH::Shape>>{eastl::move(id), shapePtr};
+ShapeHierarchy ShapeFactory::CreateBoxShape(Vec3 halfExtents)
+{
+    return CreateShape<JPH::BoxShape>(ToJoltVec3(halfExtents));
+}
+
+ShapeHierarchy ShapeFactory::CreateCapsuleShape(float halfHeight, float radius)
+{
+    return CreateShape<JPH::CapsuleShape>(halfHeight, radius);
+}
+
+ShapeHierarchy ShapeFactory::CreateCylinderShape(float halfHeight, float radius)
+{
+    return CreateShape<JPH::CylinderShape>(halfHeight, radius);
 }

@@ -11,22 +11,12 @@ set(ENGINE_SOURCES
         src/Engine.cpp
         include/subsystems/RenderSubsystem.h
         src/subsystems/RenderSubsystem.cpp
-        include/subsystems/PhysicsSubsystem.h
-        src/subsystems/PhysicsSubsystem.cpp
         include/subsystems/ScriptingSubsystem.h
         src/subsystems/ScriptingSubsystem.cpp
         include/subsystems/Log.h
         src/subsystems/Log.cpp
-        include/physics/BodyBuilder.h
-        src/physics/BodyBuilder.cpp
-        include/physics/ContactListenerImpl.h
-        src/physics/ContactListenerImpl.cpp
-        include/components/PhysicsComponent.h
-        src/components/PhysicsComponent.cpp
         include/components/MeshComponent.h
         src/components/MeshComponent.cpp
-        include/physics/ShapeFactory.h
-        src/physics/ShapeFactory.cpp
         include/Render/Renderer.h
         include/Render/CommandQueue.h
         include/Render/Device.h
@@ -77,20 +67,22 @@ set(ENGINE_SOURCES
         src/file-system/Model.cpp
         include/scripting/LuaScript.h
         src/scripting/LuaScript.cpp
+        include/subsystems/input/InputSubsystem.h
+        src/subsystems/InputSubsystem.cpp
         include/file-system/TextureType.h
         include/tools/Profiler.h
         include/tools/FreeListVector.h
         include/scene/BasicComponents.h
         include/scene/EntityTemplates.h
-        include/physics/RayCastResult.h
         include/components/ScriptingComponent.h
+        include/tools/Timeline.h
+        include/tools/PeriodicTimeline.h
         include/
-        include/subsystems/input/InputSubsystem.h
         include/subsystems/input/InputEvent.h
         include/subsystems/input/KeyboardEvents.h
         include/subsystems/input/MouseEvents.h
         include/subsystems/input/KeyCodes.h
-        src/subsystems/InputSubsystem.cpp
+
         include/scene/TransformComponent.h
         include/tools/Serializer.h
         include/scene/SceneEvent.h
@@ -106,6 +98,23 @@ set(ENGINE_SOURCES
         src/scripting/type-registration/AssetLoaderToLua.cpp
         src/scripting/type-registration/ComponentsToLua.cpp
         src/scripting/type-registration/EngineToLua.cpp
+
+        include/subsystems/PhysicsSubsystem.h
+        src/subsystems/PhysicsSubsystem.cpp
+        include/components/PhysicsComponent.h
+        include/physics/RayCastResult.h
+        include/physics/PhysicsEvents.h
+        include/physics/ShapeFactory.h
+        src/physics/ShapeFactory.cpp
+        include/physics/BodyBuilder.h
+        src/physics/BodyBuilder.cpp
+        include/physics/BodyUpdater.h
+        src/physics/BodyUpdater.cpp
+        include/physics/BodyGetter.h
+        src/physics/BodyGetter.cpp
+        include/physics/ContactListenerImpl.h
+        src/physics/ContactListenerImpl.cpp
+
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})

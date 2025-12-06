@@ -12,13 +12,14 @@
 #include "scene/Scene.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
+#include "subsystems/PhysicsSubsystem.h"
 #include "subsystems/RenderSubsystem.h"
 #include "subsystems/ScriptingSubsystem.h"
 #include "tools/Profiler.h"
 
 using namespace Blainn;
 
-void Engine::Init()
+void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
 {
 #if defined(DEBUG) || defined(_DEBUG)
     // Enable the debug layer (requires the Graphics Tools "optional feature").
@@ -34,6 +35,7 @@ void Engine::Init()
     SetDefaultContentDirectory();
 
     Log::Init();
+    PhysicsSubsystem::Init(globalTimeline);
     AssetManager::GetInstance().Init();
     ScriptingSubsystem::Init();
 
@@ -71,6 +73,7 @@ void Engine::Destroy()
     AssetManager::GetInstance().Destroy();
 
     RenderSubsystem::GetInstance().Destroy();
+    PhysicsSubsystem::Destroy();
     Log::Destroy();
 
     Device::GetInstance().Destroy();
@@ -83,16 +86,21 @@ void Engine::Update(float deltaTime)
     // this trace doesn't make sense, it exactly matches the frame
     BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop");
 
-    std::counting_semaphore<1> updateDoneSem(0);
+    // std::counting_semaphore<1> updateDoneSem(0);
 
     Input::ProcessEvents();
 
     // test
     static float testAccumulator;
+    static int fpsCounterPrevValue;
+    static int fpsCounter;
+    fpsCounter++;
     testAccumulator += deltaTime;
     if (testAccumulator >= 1000.0f)
     {
-        std::cout << "Engine second" << std::endl;
+        // std::cout << "Engine second" << std::endl;
+        // BF_WARN("FPS: {}", fpsCounter - fpsCounterPrevValue);
+        fpsCounterPrevValue = fpsCounter;
 
         // TODO: -- remove -- test input
         // Blainn::Input::UpdateKeyState(KeyCode::A, KeyState::Pressed);
@@ -101,22 +109,66 @@ void Engine::Update(float deltaTime)
         testAccumulator = 0.0f;
     }
 
+    static std::atomic<bool> one;
+    if (!one)
+    {
+        Entity e1 = s_activeScene->CreateEntity("PhysicsTestEntity1");
+        TransformComponent t;
+        t.Translation = Vec3(0.0f, 3.0f, 3.0f);
+        e1.AddComponent<TransformComponent>(t);
+        s_activeScene->CreateAttachMeshComponent(e1, "Models/Cube.fbx", ImportMeshData{});
+        PhysicsComponentSettings physicsSettings1(e1, ComponentShapeType::Box);
+        physicsSettings1.activate = JPH::EActivation::Activate;
+        physicsSettings1.position = t.Translation;
+        PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings1);
+
+        Entity e2 = s_activeScene->CreateEntity("PhysicsTestEntity2");
+        t.Translation = Vec3(0.f, -2.f, 3.f);
+        t.Scale = Vec3(10.0f, 1.0f, 10.0f);
+        e2.AddComponent<TransformComponent>(t);
+        s_activeScene->CreateAttachMeshComponent(e2, "Models/Cube.fbx", ImportMeshData{});
+        PhysicsComponentSettings physicsSettings2(e2, ComponentShapeType::Box);
+        physicsSettings2.activate = JPH::EActivation::Activate;
+        physicsSettings2.position = t.Translation;
+        physicsSettings2.motionType = PhysicsComponentMotionType::Static;
+        physicsSettings2.halfExtents = Vec3(5.0f, 1.0f, 5.0f);
+        physicsSettings2.layer = Layers::NON_MOVING;
+        PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings2);
+
+        Entity e3 = s_activeScene->CreateEntity("PhysicsTestEntity1");
+        t.Translation = Vec3(0.2f, -1.f, 3.f);
+        t.Scale = Vec3(1.0f, 1.0f, 1.0f);
+        e3.AddComponent<TransformComponent>(t);
+        s_activeScene->CreateAttachMeshComponent(e3, "Models/Cube.fbx", ImportMeshData{});
+        PhysicsComponentSettings physicsSettings3(e3, ComponentShapeType::Box);
+        physicsSettings3.activate = JPH::EActivation::Activate;
+        physicsSettings3.position = t.Translation;
+        physicsSettings3.gravityFactor = -1.0f;
+        PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings3);
+
+        one = true;
+    }
+
+    PhysicsSubsystem::Update();
+
     Scene::ProcessEvents();
 
     ScriptingSubsystem::Update(*s_activeScene, deltaTime);
 
-    vgjs::schedule(
-        [deltaTime, &updateDoneSem]() -> void
-        {
-            m_renderFunc(deltaTime);
-            // std::cout << "render update" << std::endl;
-            updateDoneSem.release();
-        },
-        vgjs::tag_t{1});
-    vgjs::schedule(vgjs::tag_t{1});
+    RenderSubsystem::GetInstance().Render(deltaTime);
+    // vgjs::schedule(
+    //     [deltaTime //, &updateDoneSem
+    // ]() -> void
+    //     {
+    //         m_renderFunc(deltaTime);
+    //         // std::cout << "render update" << std::endl;
+    //         // updateDoneSem.release();
+    //     },
+    //     vgjs::tag_t{1});
+    // vgjs::schedule(vgjs::tag_t{1});
 
-    updateDoneSem.acquire();
-    // std::cout << "loop done" << std::endl;
+    // updateDoneSem.acquire();
+    //  std::cout << "loop done" << std::endl;
 
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;
