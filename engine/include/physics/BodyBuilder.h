@@ -3,6 +3,7 @@
 #include "aliases.h"
 
 #include "physics/Conversion.h"
+#include "physics/PhysicsTypes.h"
 
 namespace Blainn
 {
@@ -11,7 +12,7 @@ class BodyBuilder
 public:
     BodyBuilder() = default;
 
-    BodyBuilder &SetMotionType(JPH::EMotionType motionType);
+    BodyBuilder &SetMotionType(PhysicsComponentMotionType motionType);
     BodyBuilder &SetShape(JPH::Shape *shape);
     BodyBuilder &SetLayer(JPH::ObjectLayer layer);
 
@@ -22,7 +23,7 @@ public:
     BodyBuilder &SetIsTrigger(bool isTrigger);
     BodyBuilder &SetGravityFactor(float factor);
 
-    JPH::BodyID Build(JPH::EActivation activate = JPH::EActivation::DontActivate);
+    JPH::BodyID Build(EActivation activate = EActivation::DontActivate);
 
 private:
     JPH::BodyCreationSettings m_settings;

@@ -1,26 +1,31 @@
 #include "pch.h"
 
+#include "subsystems/PhysicsSubsystem.h"
 #include "physics/BodyGetter.h"
-
 #include "physics/Conversion.h"
 
 using namespace Blainn;
 
-Vec3 Blainn::BodyGetter::GetPosition()
+Vec3 BodyGetter::GetPosition()
 {
     return ToBlainnVec3(m_body.GetPosition());
 }
 
-Quat Blainn::BodyGetter::GetRotation()
+Quat BodyGetter::GetRotation()
 {
     return ToBlainnQuat(m_body.GetRotation());
 }
 
-JPH::RefConst<JPH::Shape> Blainn::BodyGetter::GetShape()
+JPH::RefConst<JPH::Shape> BodyGetter::GetShape()
 {
     return m_body.GetShape();
 }
 
+ComponentShapeType BodyGetter::GetShapeType()
+{
+    PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
+    return static_cast<ComponentShapeType>(component.shapeHierarchy.childPtr->GetSubType());
+}
 Vec3 BodyGetter::GetVelocity()
 {
     return ToBlainnVec3(m_body.GetLinearVelocity());
@@ -51,7 +56,12 @@ JPH::ObjectLayer BodyGetter::GetObjectLayer()
     return m_body.GetObjectLayer();
 }
 
-bool Blainn::BodyGetter::isTrigger()
+PhysicsComponentMotionType BodyGetter::GetMotionType()
+{
+    return m_body.GetMotionType();
+}
+
+bool BodyGetter::isTrigger()
 {
     return m_body.IsSensor();
 }

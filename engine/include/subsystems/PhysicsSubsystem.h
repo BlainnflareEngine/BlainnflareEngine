@@ -1,17 +1,5 @@
 #pragma once
 
-#include <cstdint>
-
-#include <EASTL/optional.h>
-#include <EASTL/unique_ptr.h>
-#include <EASTL/unordered_map.h>
-#include <EASTL/vector.h>
-
-#include <Jolt/Jolt.h>
-#include <Jolt/Core/JobSystemSingleThreaded.h>
-#include <Jolt/Core/TempAllocator.h>
-#include <Jolt/Physics/PhysicsSystem.h>
-
 #include "components/PhysicsComponent.h"
 #include "physics/BodyGetter.h"
 #include "physics/BodyUpdater.h"
@@ -54,14 +42,18 @@ public:
     static void CreateAttachPhysicsComponent(PhysicsComponentSettings &settings);
     static bool HasPhysicsComponent(Entity entity);
     static void DestroyPhysicsComponent(Entity entity);
+
     static JPH::BodyID GetBodyId(Entity entity);
+    static eastl::optional<Entity> GetEntityByBodyId(JPH::BodyID bodyId);
+
+    /// @brief does not check entity or component exist! You are warned.
+    static PhysicsComponent &GetPhysicsComponentByBodyId(JPH::BodyID bodyId);
 
     bool IsBodyActive(Entity entity);
     static void ActivateBody(Entity entity);
     static void DeactivateBody(Entity entity);
 
     static BodyUpdater GetBodyUpdater(Entity entity);
-    static void ReplaceBodyShape(ShapeCreationSettings &settings);
     static BodyGetter GetBodyGetter(Entity entity);
 
     static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance);
