@@ -1,7 +1,7 @@
 ﻿#include "input-widgets/float_input_field.h"
 
 #include "input-widgets/NumericInputWidget.h"
-#include "oclero/qlementine/style/QlementineStyle.hpp"
+#include <QStyle>
 
 #include <QLabel>
 #include <QMouseEvent>
@@ -30,11 +30,9 @@ float_input_field::float_input_field(const QString &name, float value, QWidget *
     {
         m_label->setStyleSheet(QString("QLabel {"
                                        "    color: %1;"
-                                       "    font-weight: bold;"
                                        "}")
                                    .arg(nameColor.name(QColor::HexRgb)));
     }
-
 
     layout()->addWidget(m_label);
 
@@ -47,13 +45,6 @@ float_input_field::float_input_field(const QString &name, float value, QWidget *
     m_input->setDecimals(m_decimals);
     m_input->setSingleStep(0.01);
     m_input->setValue(value);
-
-
-    m_input->setStyleSheet(R"(
-        QDoubleSpinBox {
-            border-radius: 5px;
-        }
-    )");
 
 
     connect(m_input, &NumericInputWidget::editingFinished, this, &float_input_field::OnEditingFinished);

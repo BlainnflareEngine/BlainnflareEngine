@@ -12,6 +12,14 @@ public:
     explicit NumericInputWidget(QWidget *parent = nullptr)
         : QDoubleSpinBox(parent)
     {
+        setStyleSheet(R"(
+            border-radius: 5px;
+    )");
+
+        auto f = font();
+        f.setBold(false);
+        f.setWeight(QFont::Normal);
+        setFont(f);
     }
 
     void focusOutEvent(QFocusEvent *event) override

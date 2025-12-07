@@ -24,6 +24,7 @@ public slots:
     void OnClicked();
     void OnTransformAction();
     void OnMeshAction();
+    void OnPhysicsAction();
     void OnScriptingAction();
 
 private:
@@ -32,6 +33,7 @@ private:
     QMenu *m_menu = nullptr;
     QAction *m_transformAction = nullptr;
     QAction *m_meshAction = nullptr;
+    QAction *m_physicsAction = nullptr;
     QAction *m_scriptingAction = nullptr;
 };
 

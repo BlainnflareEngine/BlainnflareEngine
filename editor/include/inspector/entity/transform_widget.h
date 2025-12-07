@@ -12,6 +12,10 @@
 
 namespace editor
 {
+class vector3_input_widget;
+}
+namespace editor
+{
 class float_input_field;
 }
 class QLineEdit;
@@ -36,17 +40,9 @@ protected:
     virtual void DeleteComponent() override;
 
 private:
-    float_input_field *m_positionX = nullptr;
-    float_input_field *m_positionY = nullptr;
-    float_input_field *m_positionZ = nullptr;
-
-    float_input_field *m_rotationX = nullptr;
-    float_input_field *m_rotationY = nullptr;
-    float_input_field *m_rotationZ = nullptr;
-
-    float_input_field *m_scaleX = nullptr;
-    float_input_field *m_scaleY = nullptr;
-    float_input_field *m_scaleZ = nullptr;
+    vector3_input_widget *m_position;
+    vector3_input_widget *m_rotation;
+    vector3_input_widget *m_scale;
 
     void CreateTransformFields();
     void LoadTransformValues();

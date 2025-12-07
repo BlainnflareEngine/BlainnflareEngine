@@ -136,6 +136,12 @@ set(EDITOR_SOURCES
         src/inspector/entity/scripting/scripting_item_widget.cpp
         include/inspector/entity/scripting/scripting_item_widget.h
         include/viewport_widget.h
+        src/inspector/entity/physics_widget.cpp
+        include/inspector/entity/physics_widget.h
+        include/inspector/input-widgets/enum_input_widget.h
+        include/inspector/input-widgets/EnumTemplates.h
+        src/inspector/input-widgets/vector3_input_widget.cpp
+        include/inspector/input-widgets/vector3_input_widget.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
