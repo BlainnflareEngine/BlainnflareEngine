@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Render/DXHelpers.h"
-#include "Subsystems/Input/InputEvent.h"
+#include "Subsystems/Input/KeyCodes.h"
 
 namespace Blainn
 {
@@ -36,9 +36,11 @@ namespace Blainn
         void SetPosition(const XMFLOAT3& v);
         
         // Translation
-        void Move(const InputEventPointer &event);
+        void Move(const KeyCode key);
+        void AdjustRotation(float x, float y);
+        void SetCameraProperties(const KeyCode key);
+    private:
         void SetAcceleration(bool useAcceleration) { m_bUseAcceleration = useAcceleration; }
-
         void MoveRight(float d);
         void MoveForward(float d);
         void MoveUp(float d);
@@ -52,7 +54,7 @@ namespace Blainn
         XMFLOAT3 m_right	= { 1.0f, 0.0f, 0.0f };
         XMFLOAT3 m_up		= { 0.0f, 1.0f, 0.0f };
         XMFLOAT3 m_forward	= { 0.0f, 0.0f, 1.0f };
-        
+
         float m_nearZ;
         float m_farZ;
         float m_fovYRad;
@@ -60,9 +62,11 @@ namespace Blainn
         float m_nearWindowHeight;
         float m_farWindowHeight;
         
-        float m_cameraSpeed = 0.01f;
+        float m_cameraSpeed = 0.1f;
         float m_cameraAcceleration = 10.0f;
         
+        // TO DO: Should be tracked
+        XMFLOAT2 m_lastMousePos = {0.0f, 0.0f};
         bool m_isDirty = false;
         bool m_bUseAcceleration = false;
 

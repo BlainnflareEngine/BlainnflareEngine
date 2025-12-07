@@ -2,7 +2,9 @@
 #include "Render/Camera.h"
 #include "Render/FreyaMath.h"
 #include "Subsystems/Input/InputSubsystem.h"
+#include "Subsystems/Input/InputEvent.h"
 #include "Subsystems/Input/KeyboardEvents.h"
+#include "Subsystems/Input/MouseEvents.h"
 
 namespace Blainn
 {
@@ -57,41 +59,30 @@ void Blainn::Camera::Reset(float fovAngleYDegrees, float aspectRatio, float near
 	Input::AddEventListener(InputEventType::KeyHeld, 
                             [this](const InputEventPointer &event)
                             {
-                                Move(event);
-                                const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent *>(event.get());
-                                auto key = keyEvent->GetKey();
-
-								switch (key)
-								{
-                                    case Blainn::KeyCode::LeftShift:
-                                    SetAcceleration(true);
-									break;
-								}
+                                const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent*>(event.get());
+								auto key = keyEvent->GetKey();
+                                
+								Move(key);
+                                SetCameraProperties(key);
                             });
 
 	Input::AddEventListener(InputEventType::KeyReleased,
                             [this](const InputEventPointer &event)
                             {
-                                const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent *>(event.get());
+                                const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent*>(event.get());
                                 auto key = keyEvent->GetKey();
-
-                                switch (key)
-                                {
-                                case Blainn::KeyCode::LeftShift:
-                                    SetAcceleration(false);
-                                    break;
-                                }
                             });
 
-	Input::AddEventListener(InputEventType::
+	Input::AddEventListener(InputEventType::MouseDelta,
+		[this](const InputEventPointer& event)
+		{ 
+			const MouseMovedEvent *mouseEvent = static_cast<const MouseMovedEvent *>(event.get());
+			AdjustRotation(mouseEvent->GetX(), -mouseEvent->GetY());
+		});
 }
 
-void Camera::Move(const InputEventPointer &event)
+void Camera::Move(const KeyCode key)
 {
-    const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent *>(event.get());
-
-	auto key = keyEvent->GetKey();
-
 	float currCamSpeed = m_cameraSpeed;
     if (m_bUseAcceleration) currCamSpeed *= m_cameraAcceleration;
 
@@ -108,6 +99,22 @@ void Camera::Move(const InputEventPointer &event)
     }
 
 	m_isDirty = true;
+}
+
+void Camera::AdjustRotation(float x, float y)
+{
+    AdjustYaw(0.01f * x);
+    AdjustPitch(0.01f * y);
+}
+
+void Camera::SetCameraProperties(const KeyCode key)
+{
+    switch (key)
+    {
+    case Blainn::KeyCode::LeftShift:
+        SetAcceleration(true);
+        break;
+    }
 }
 
 XMMATRIX Blainn::Camera::GetViewMatrix() const
