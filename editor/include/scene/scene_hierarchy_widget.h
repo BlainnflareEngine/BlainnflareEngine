@@ -58,7 +58,7 @@ private:
     AddToSceneContextMenu *m_addToSceneMenu;
     eastl::shared_ptr<SceneMeta> m_sceneMeta;
 
-    void CreateEntityInHierarchy(Blainn::Entity& entity, bool bSceneChanged = false);
-    void CreateEntityInHierarchy(Blainn::Entity&& entity, bool bSceneChanged = false);
+    void CreateEntityInHierarchy(Blainn::Entity& entity, bool bSceneChanged = false, bool bCreatedInEditor = false);
+    void CreateEntityInHierarchy(Blainn::Entity&& entity, bool bSceneChanged = false, bool bCreatedInEditor = false);
 };
 }; // namespace editor

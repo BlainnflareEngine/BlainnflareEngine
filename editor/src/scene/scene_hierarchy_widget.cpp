@@ -55,10 +55,12 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
     Blainn::Scene::AddEventListener(Blainn::SceneEventType::SceneChanged,
                                     [this](const Blainn::SceneEventPointer &event) { this->OnSceneChanged(event); });
 
-    connect(m_sceneModel, &SceneItemModel::rowsMoved, this, [this](...) {
-        this->viewport()->update();
-        BF_DEBUG("Update view!!!");
-    });
+    connect(m_sceneModel, &SceneItemModel::rowsMoved, this,
+            [this](...)
+            {
+                this->viewport()->update();
+                BF_DEBUG("Update view!!!");
+            });
 }
 
 scene_hierarchy_widget::~scene_hierarchy_widget()
@@ -79,14 +81,16 @@ SceneItemModel &scene_hierarchy_widget::GetSceneModel() const
 }
 
 
-void scene_hierarchy_widget::CreateEntityInHierarchy(Blainn::Entity &entity, const bool bSceneChanged)
+void scene_hierarchy_widget::CreateEntityInHierarchy(Blainn::Entity &entity, const bool bSceneChanged,
+                                                     bool bCreatedInEditor)
 {
     Blainn::Entity parent = entity.GetParent();
     QModelIndex newIndex;
 
     if (parent.IsValid())
     {
-        newIndex = GetSceneModel().AddNewEntity(entity, SceneItemModel::FindIndexByEntity(m_sceneModel, parent.GetUUID()));
+        newIndex =
+            GetSceneModel().AddNewEntity(entity, SceneItemModel::FindIndexByEntity(m_sceneModel, parent.GetUUID()));
     }
     else
     {
@@ -97,7 +101,7 @@ void scene_hierarchy_widget::CreateEntityInHierarchy(Blainn::Entity &entity, con
     {
         if (newIndex.isValid()) expand(newIndex);
 
-        if (!bSceneChanged)
+        if (!bSceneChanged && bCreatedInEditor)
         {
             setCurrentIndex(newIndex);
             edit(newIndex);
@@ -115,14 +119,15 @@ void scene_hierarchy_widget::CreateEntityInHierarchy(Blainn::Entity &entity, con
 }
 
 
-void scene_hierarchy_widget::CreateEntityInHierarchy(Blainn::Entity &&entity, bool bSceneChanged)
+void scene_hierarchy_widget::CreateEntityInHierarchy(Blainn::Entity &&entity, bool bSceneChanged, bool bCreatedInEditor)
 {
     Blainn::Entity parent = entity.GetParent();
     QModelIndex newIndex;
 
     if (parent.IsValid())
     {
-        newIndex = GetSceneModel().AddNewEntity(entity, SceneItemModel::FindIndexByEntity(m_sceneModel, parent.GetUUID()));
+        newIndex =
+            GetSceneModel().AddNewEntity(entity, SceneItemModel::FindIndexByEntity(m_sceneModel, parent.GetUUID()));
     }
     else
     {
@@ -133,7 +138,7 @@ void scene_hierarchy_widget::CreateEntityInHierarchy(Blainn::Entity &&entity, bo
     {
         if (newIndex.isValid()) expand(newIndex);
 
-        if (!bSceneChanged)
+        if (!bSceneChanged && bCreatedInEditor)
         {
             setCurrentIndex(newIndex);
             edit(newIndex);
@@ -157,7 +162,7 @@ void scene_hierarchy_widget::OnEntityCreated(const Blainn::SceneEventPointer &ev
     if (entityEvent->IsSceneChanged()) return;
     if (!entityEvent->GetEntity().IsValid()) return;
 
-    CreateEntityInHierarchy(entityEvent->GetEntity(), entityEvent->IsSceneChanged());
+    CreateEntityInHierarchy(entityEvent->GetEntity(), entityEvent->IsSceneChanged(), entityEvent->CreatedByEditor());
 }
 
 

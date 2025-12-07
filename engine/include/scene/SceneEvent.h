@@ -60,13 +60,17 @@ protected:
 class EntityCreatedEvent : public EntityEvent
 {
 public:
-    EntityCreatedEvent(const Entity &entity, const uuid &id, bool sceneChanged = false);
+    EntityCreatedEvent(const Entity &entity, const uuid &id, bool sceneChanged = false, bool createdByEditor = false);
 
     ~EntityCreatedEvent() override {};
 
     SceneEventType GetEventType() override;
 
     [[nodiscard]] Entity GetParent() const;
+    [[nodiscard]] bool CreatedByEditor() const;
+
+private:
+    bool m_createdByEditor = false;
 };
 
 class EntityDestroyedEvent : public EntityEvent
