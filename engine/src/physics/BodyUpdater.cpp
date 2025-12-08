@@ -91,17 +91,18 @@ BodyUpdater &BodyUpdater::AddForce(Vec3 force)
     return *this;
 }
 
-BodyUpdater &BodyUpdater::ReplaceBodyShape(ShapeCreationSettings &settings)
+BodyUpdater &BodyUpdater::ReplaceBodyShape(ShapeCreationSettings &settings, EActivation activation)
 {
-    eastl::optional<ShapeHierarchy> hierarchy = ShapeFactory::CreateShape(settings);
+    eastl::optional<Blainn::ShapeHierarchy> hierarchy = ShapeFactory::CreateShape(settings);
     if (!hierarchy.has_value())
     {
-        BF_ERROR("Error in replacing physics body shape");
+        BF_ERROR("Error in replacing physics body shape - shape not created");
         return *this;
     }
 
+    m_bodyInterface.SetShape(m_bodyId, hierarchy.value().shapePtr.GetPtr(), true, activation);
     PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
-    component.shapeHierarchy = eastl::move(hierarchy.value());
+    component.UpdateShape(settings.shapeType, hierarchy.value());
 
     return *this;
 }
@@ -118,15 +119,21 @@ BodyUpdater &BodyUpdater::SetSphereShapeSettings(float radius)
     const ComponentShapeType sphereShapeType = ComponentShapeType::Sphere;
 
     PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
-    if (static_cast<ComponentShapeType>(component.shapeHierarchy.childPtr->GetSubType()) != sphereShapeType)
+    if (component.GetShapeType() != sphereShapeType)
     {
         BF_ERROR("shape is not sphere, cannot set sphere settings");
         return *this;
     }
 
+    EActivation isActive;
+    {
+        const JPH::Body &body = JPH::BodyLockRead(m_bodyLockInterface, m_bodyId).GetBody();
+        isActive = body.IsActive() ? EActivation::Activate : EActivation::DontActivate;
+    }
+
     ShapeCreationSettings newShapeSettings(sphereShapeType);
     newShapeSettings.radius = radius;
-    ReplaceBodyShape(newShapeSettings);
+    ReplaceBodyShape(newShapeSettings, isActive);
 
     return *this;
 }
@@ -136,15 +143,21 @@ BodyUpdater &Blainn::BodyUpdater::SetBoxShapeSettings(Vec3 halfExtents)
     const ComponentShapeType boxShapeType = ComponentShapeType::Box;
 
     PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
-    if (static_cast<ComponentShapeType>(component.shapeHierarchy.childPtr->GetSubType()) != boxShapeType)
+    if (component.GetShapeType() != boxShapeType)
     {
         BF_ERROR("shape is not box, cannot set box settings");
         return *this;
     }
 
+    EActivation isActive;
+    {
+        const JPH::Body &body = JPH::BodyLockRead(m_bodyLockInterface, m_bodyId).GetBody();
+        isActive = body.IsActive() ? EActivation::Activate : EActivation::DontActivate;
+    }
+
     ShapeCreationSettings newShapeSettings(boxShapeType);
     newShapeSettings.halfExtents = halfExtents;
-    ReplaceBodyShape(newShapeSettings);
+    ReplaceBodyShape(newShapeSettings, isActive);
 
     return *this;
 }
@@ -154,16 +167,22 @@ BodyUpdater &Blainn::BodyUpdater::SetCapsuleShapeSettings(float halfCylinderHeig
     const ComponentShapeType capsuleShapeType = ComponentShapeType::Capsule;
 
     PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
-    if (static_cast<ComponentShapeType>(component.shapeHierarchy.childPtr->GetSubType()) != capsuleShapeType)
+    if (component.GetShapeType() != capsuleShapeType)
     {
         BF_ERROR("shape is not capsule, cannot set capsule settings");
         return *this;
     }
 
+    EActivation isActive;
+    {
+        const JPH::Body &body = JPH::BodyLockRead(m_bodyLockInterface, m_bodyId).GetBody();
+        isActive = body.IsActive() ? EActivation::Activate : EActivation::DontActivate;
+    }
+
     ShapeCreationSettings newShapeSettings(capsuleShapeType);
     newShapeSettings.halfCylinderHeight = halfCylinderHeight;
     newShapeSettings.radius = radius;
-    ReplaceBodyShape(newShapeSettings);
+    ReplaceBodyShape(newShapeSettings, isActive);
 
     return *this;
 }
@@ -173,16 +192,22 @@ BodyUpdater &Blainn::BodyUpdater::SetCylinderShapeSettings(float halfCylinderHei
     const ComponentShapeType cylinderShapeType = ComponentShapeType::Cylinder;
 
     PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
-    if (static_cast<ComponentShapeType>(component.shapeHierarchy.childPtr->GetSubType()) != cylinderShapeType)
+    if (component.GetShapeType() != cylinderShapeType)
     {
         BF_ERROR("shape is not cylinder, cannot set cylinder settings");
         return *this;
     }
 
+    EActivation isActive;
+    {
+        const JPH::Body &body = JPH::BodyLockRead(m_bodyLockInterface, m_bodyId).GetBody();
+        isActive = body.IsActive() ? EActivation::Activate : EActivation::DontActivate;
+    }
+
     ShapeCreationSettings newShapeSettings(cylinderShapeType);
     newShapeSettings.halfCylinderHeight = halfCylinderHeight;
     newShapeSettings.radius = radius;
-    ReplaceBodyShape(newShapeSettings);
+    ReplaceBodyShape(newShapeSettings, isActive);
 
     return *this;
 }

@@ -24,7 +24,7 @@ JPH::RefConst<JPH::Shape> BodyGetter::GetShape()
 ComponentShapeType BodyGetter::GetShapeType()
 {
     PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
-    return static_cast<ComponentShapeType>(component.shapeHierarchy.childPtr->GetSubType());
+    return component.GetShapeType();
 }
 Vec3 BodyGetter::GetVelocity()
 {

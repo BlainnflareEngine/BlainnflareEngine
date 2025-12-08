@@ -82,7 +82,7 @@ void PhysicsSubsystem::Update()
     fpsCounter++;
     if (testAccumulator >= 1000.0f)
     {
-        BF_WARN("Physics FPS: {} ; deltaTime {}", fpsCounter - fpsCounterPrevValue, deltaTime);
+        // BF_WARN("Physics FPS: {} ; deltaTime {}", fpsCounter - fpsCounterPrevValue, deltaTime);
         fpsCounterPrevValue = fpsCounter;
 
         testAccumulator -= 1000.0f;
@@ -158,7 +158,6 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
 
     PhysicsComponent component;
     component.parentId = parentId;
-    component.shapeType = settings.shapeSettings.shapeType;
     component.prevFrameScale = transformComponentPtr->Scale;
 
     eastl::optional<ShapeHierarchy> createdShapeHierarchy = ShapeFactory::CreateShape(settings.shapeSettings);
@@ -168,13 +167,14 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
         BF_ERROR("Error in creating shape for physics component");
         return;
     }
-    component.shapeHierarchy = eastl::move(createdShapeHierarchy.value());
+    component.UpdateShape(settings.shapeSettings.shapeType, createdShapeHierarchy.value());
+
 
     BodyBuilder builder;
     builder.SetMotionType(settings.motionType)
         .SetPosition(transformComponentPtr->Translation)
         .SetRotation(transformComponentPtr->GetRotation())
-        .SetShape(component.shapeHierarchy.shapePtr.get())
+        .SetShape(component.GetHierarchy().shapePtr.GetPtr())
         .SetIsTrigger(settings.isTrigger)
         .SetGravityFactor(settings.gravityFactor)
         .SetLayer(settings.layer);

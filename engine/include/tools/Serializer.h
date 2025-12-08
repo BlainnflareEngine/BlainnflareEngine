@@ -132,7 +132,7 @@ public:
 
         out << YAML::Key << "PhysicsComponent" << YAML::Value << YAML::BeginMap;
         out << YAML::Key << "ParentID" << YAML::Value << physics.parentId.str();
-        out << YAML::Key << "ShapeType" << YAML::Value << static_cast<int>(physics.shapeType);
+        out << YAML::Key << "ShapeType" << YAML::Value << static_cast<int>(physics.GetShapeType());
         out << YAML::Key << "ControlParentTransform" << YAML::Value << physics.controlParentTransform;
 
         BodyGetter body = PhysicsSubsystem::GetBodyGetter(entity);

@@ -7,9 +7,8 @@
 using namespace Blainn;
 
 ShapeHierarchy ShapeFactory::CreateSphereShape(float radius)
-
 {
-    return CreateShapeInternal<JPH::SphereShape>(radius);
+    return CreateShapeInternal<JPH::SphereShapeSettings>(radius);
 }
 
 eastl::optional<ShapeHierarchy> ShapeFactory::CreateShape(ShapeCreationSettings &settings)
@@ -26,21 +25,21 @@ eastl::optional<ShapeHierarchy> ShapeFactory::CreateShape(ShapeCreationSettings 
         return ShapeFactory::CreateCylinderShape(settings.halfCylinderHeight, settings.radius);
     default:
         BF_ERROR("Invalid physics shape type");
-        return eastl::optional<ShapeHierarchy>{};
+        return eastl::nullopt;
     }
 }
 
 ShapeHierarchy ShapeFactory::CreateBoxShape(Vec3 halfExtents)
 {
-    return CreateShapeInternal<JPH::BoxShape>(ToJoltVec3(halfExtents));
+    return CreateShapeInternal<JPH::BoxShapeSettings>(ToJoltVec3(halfExtents));
 }
 
 ShapeHierarchy ShapeFactory::CreateCapsuleShape(float halfHeight, float radius)
 {
-    return CreateShapeInternal<JPH::CapsuleShape>(halfHeight, radius);
+    return CreateShapeInternal<JPH::CapsuleShapeSettings>(halfHeight, radius);
 }
 
 ShapeHierarchy ShapeFactory::CreateCylinderShape(float halfHeight, float radius)
 {
-    return CreateShapeInternal<JPH::CylinderShape>(halfHeight, radius);
+    return CreateShapeInternal<JPH::CylinderShapeSettings>(halfHeight, radius);
 }

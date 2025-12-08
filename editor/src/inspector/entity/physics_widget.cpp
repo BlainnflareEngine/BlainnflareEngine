@@ -63,7 +63,7 @@ void physics_widget::OnShapeChanged(int)
 
     ComponentShapeType shape = m_shape->GetValue();
     auto &comp = m_entity.GetComponent<PhysicsComponent>();
-    if (comp.shapeType == shape) return;
+    if (comp.GetShapeType() == shape) return;
 
     ClearSettings();
     BodyUpdater bodyUpdater = PhysicsSubsystem::GetBodyUpdater(m_entity);
@@ -251,13 +251,24 @@ void physics_widget::LoadValues()
     }
 
     auto &component = m_entity.GetComponent<Blainn::PhysicsComponent>();
-    auto body = Blainn::PhysicsSubsystem::GetBodyGetter(m_entity);
+
+    bool isTrigger;
+    float gravityFactor;
+    Blainn::ObjectLayer objectLayer;
+    Blainn::ComponentShapeType shapeType;
+    {
+        auto body = Blainn::PhysicsSubsystem::GetBodyGetter(m_entity);
+        isTrigger = body.isTrigger();
+        gravityFactor = body.GetGravityFactor();
+        objectLayer = body.GetObjectLayer();
+        shapeType = component.GetShapeType();
+    }
 
     BlockSignals(true);
-    m_isTrigger->setChecked(body.isTrigger());
-    m_gravityFactor->SetValue(body.GetGravityFactor());
-    // m_objectLayer->SetValue(body.GetObjectLayer());
-    m_shape->SetValue(component.shapeType);
+    m_isTrigger->setChecked(isTrigger);
+    m_gravityFactor->SetValue(gravityFactor);
+    m_objectLayer->SetValue(objectLayer);
+    m_shape->SetValue(shapeType);
     OnShapeChanged(1);
     BlockSignals(false);
 }
@@ -267,9 +278,9 @@ void physics_widget::BlockSignals(bool value)
 {
     m_isTrigger->blockSignals(value);
     m_gravityFactor->blockSignals(value);
-    /*m_objectLayer->blockSignals(value);
+    m_objectLayer->blockSignals(value);
     m_shape->blockSignals(value);
-    m_objectType->blockSignals(value);*/
+    m_objectType->blockSignals(value);
 
     if (m_radius) m_radius->blockSignals(value);
     if (m_halfHeight) m_halfHeight->blockSignals(value);

@@ -8,8 +8,8 @@ namespace Blainn
 {
 struct ShapeHierarchy
 {
-    eastl::unique_ptr<JPH::Shape> shapePtr = nullptr;
-    eastl::unique_ptr<JPH::Shape> childPtr = nullptr; // one for now but in must be vector
+    JPH::Ref<JPH::Shape> childPtr = nullptr;
+    JPH::Ref<JPH::Shape> shapePtr = nullptr;
 };
 
 class ShapeFactory
@@ -26,13 +26,27 @@ private:
     static ShapeHierarchy CreateCylinderShape(float halfHeight, float radius);
 
     // all shapes are scaled shapes
-    template <typename ShapeType, typename... Args> static ShapeHierarchy CreateShapeInternal(Args... args)
+    template <typename ShapeSettingsType, typename... Args> static ShapeHierarchy CreateShapeInternal(Args... args)
     {
-        ShapeHierarchy hierarchy;
-        hierarchy.childPtr = eastl::make_unique<ShapeType>(args...);
-        hierarchy.shapePtr =
-            eastl::make_unique<JPH::ScaledShape>(hierarchy.childPtr.get(), JPH::Vec3::sReplicate(1.0f));
-        return hierarchy;
+        ShapeSettingsType childSettings(args...);
+        JPH::ShapeSettings::ShapeResult resChild = childSettings.Create();
+
+        if (!resChild.IsValid())
+        {
+            BF_ERROR("failed to create jolt shape");
+            return ShapeHierarchy{};
+        }
+
+        JPH::ScaledShapeSettings scaledShapeSettings(resChild.Get().GetPtr(), JPH::Vec3::sReplicate(1.0f));
+        JPH::ShapeSettings::ShapeResult resScaled = scaledShapeSettings.Create();
+
+        if (!resScaled.IsValid())
+        {
+            BF_ERROR("failed to create jolt shape");
+            return ShapeHierarchy{};
+        }
+
+        return ShapeHierarchy{.childPtr = resChild.Get(), .shapePtr = resScaled.Get()};
     };
 };
 } // namespace Blainn

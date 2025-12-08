@@ -24,8 +24,8 @@ public:
     NO_COPY_DEFAULT_MOVE(BodyUpdater);
     ~BodyUpdater() = default;
 
-    BodyUpdater &SetPosition(Vec3 position, EActivation activation = EActivation::Activate);
-    BodyUpdater &SetRotation(Quat rotation, EActivation activation = EActivation::Activate);
+    BodyUpdater &SetPosition(Vec3 position, EActivation activation = EActivation::DontActivate);
+    BodyUpdater &SetRotation(Quat rotation, EActivation activation = EActivation::DontActivate);
     BodyUpdater &SetScale(Vec3 scale, Vec3 prevScale);
 
     BodyUpdater &SetVelocity(Vec3 velocity);
@@ -40,8 +40,9 @@ public:
     BodyUpdater &AddAngularImpulse(Vec3 angularImpulse);
     BodyUpdater &AddForce(Vec3 force);
 
-    BodyUpdater &ReplaceBodyShape(ShapeCreationSettings &settings);
-    BodyUpdater &SetMotionType(PhysicsComponentMotionType motionType, EActivation activation = EActivation::Activate);
+    BodyUpdater &ReplaceBodyShape(ShapeCreationSettings &settings, EActivation activation = EActivation::DontActivate);
+    BodyUpdater &SetMotionType(PhysicsComponentMotionType motionType,
+                               EActivation activation = EActivation::DontActivate);
 
     /// @brief  will show error and do noting if body shape type is not sphere
     BodyUpdater &SetSphereShapeSettings(float radius);
