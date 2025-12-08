@@ -104,7 +104,7 @@ void Engine::Update(float deltaTime)
     }
 
     // TODO: remove physics test
-    static std::atomic<bool> one;
+    /*static std::atomic<bool> one;
     if (!one)
     {
         Entity e1 = s_activeScene->CreateEntity("PhysicsTestEntity1");
@@ -139,18 +139,59 @@ void Engine::Update(float deltaTime)
         PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings3);
 
         one = true;
+    }*/
+
+    if (s_isPlayMode)
+    {
+        float playModeDelta = s_playModeTimeline.Tick();
+        PhysicsSubsystem::Update();
+        ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
     }
 
-    PhysicsSubsystem::Update();
-
     Scene::ProcessEvents();
-
-    ScriptingSubsystem::Update(*s_activeScene, deltaTime);
 
     RenderSubsystem::GetInstance().Render(deltaTime);
 
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;
+}
+
+
+void Engine::StartPlayMode()
+{
+    if (s_isPlayMode) return;
+
+    if (s_activeScene) s_activeScene->SaveScene();
+    else return;
+
+    s_playModeTimeline.Reset();
+    s_playModeTimeline.Start();
+    s_isPlayMode = true;
+
+    // TODO: load scripts
+}
+
+
+void Engine::StopPlayMode()
+{
+    s_playModeTimeline.Pause();
+}
+
+
+void Engine::EscapePlayMode()
+{
+    if (!s_isPlayMode) return;
+    if (s_activeScene) AssetManager::GetInstance().OpenScene(s_activeScene->GetName().c_str());
+
+    s_isPlayMode = false;
+
+    // TODO: unload scripts
+}
+
+
+bool Engine::IsPlayMode()
+{
+    return s_isPlayMode;
 }
 
 

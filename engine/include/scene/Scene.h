@@ -56,6 +56,9 @@ public:
     }
 
     void SaveScene();
+    void RestoreScene();
+
+    eastl::string GetName() const;
 
     static void ProcessEvents();
     using EventHandle =

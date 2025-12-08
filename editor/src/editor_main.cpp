@@ -53,6 +53,9 @@ editor_main::editor_main(QWidget *parent)
     connect(ui->AddToScene, &QPushButton::clicked, this, &editor_main::OpenAddToScene);
 
 
+    connect(ui->m_playButton,  &QPushButton::clicked, this, &editor_main::OnStartPlayMode);
+    connect(ui->m_stopButton,  &QPushButton::clicked, this, &editor_main::OnEscapePlayMode);
+
     // Action bar
     ui->actionSave->setShortcut(Qt::CTRL + Qt::Key_S);
     ui->actionSave->setIcon(QIcon(":/icons/save.png"));
@@ -124,6 +127,18 @@ void editor_main::OnSaveScene()
 {
     Blainn::Engine::GetActiveScene()->SaveScene();
     ui->Entities->SaveCurrentMeta();
+}
+
+
+void editor_main::OnStartPlayMode()
+{
+    Blainn::Engine::StartPlayMode();
+}
+
+
+void editor_main::OnEscapePlayMode()
+{
+    Blainn::Engine::EscapePlayMode();
 }
 
 } // namespace editor
