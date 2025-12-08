@@ -78,6 +78,20 @@ bool vector3_input_widget::HasFocus() const
     return m_x->HasFocus() || m_y->HasFocus() || m_z->HasFocus();
 }
 
+
+int vector3_input_widget::GetDecimals() const
+{
+    return m_x->GetDecimals();
+}
+
+
+void vector3_input_widget::SetDecimals(int value)
+{
+    m_x->SetDecimals(value);
+    m_y->SetDecimals(value);
+    m_z->SetDecimals(value);
+}
+
 void vector3_input_widget::OnComponentEditingFinished()
 {
     Blainn::Vec3 value = GetValue();

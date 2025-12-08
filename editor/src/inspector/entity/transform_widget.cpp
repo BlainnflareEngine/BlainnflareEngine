@@ -71,9 +71,7 @@ void transform_widget::OnUpdate()
 
     if (!m_entity.IsValid()) return;
 
-    bool anyFieldFocused = m_position->HasFocus() || m_rotation->HasFocus() || m_scale->HasFocus();
-
-    if (!anyFieldFocused) LoadTransformValues();
+    LoadTransformValues();
 }
 
 
@@ -87,12 +85,15 @@ void transform_widget::DeleteComponent()
 void transform_widget::CreateTransformFields()
 {
     m_position = new vector3_input_widget("Position", Blainn::Vec3::Zero, this);
+    m_position->SetDecimals(3);
     layout()->addWidget(m_position);
 
     m_rotation = new vector3_input_widget("Rotation", Blainn::Vec3::Zero, this);
+    m_rotation->SetDecimals(3);
     layout()->addWidget(m_rotation);
 
     m_scale = new vector3_input_widget("Scale", Blainn::Vec3::One, this);
+    m_scale->SetDecimals(3);
     layout()->addWidget(m_scale);
 }
 
@@ -108,9 +109,11 @@ void transform_widget::LoadTransformValues()
     scene->ConvertToLocalSpace(m_entity);
 
     BlockSignals(true);
-    m_position->SetValue(transform.Translation);
-    m_rotation->SetValue(transform.GetRotationEuler());
-    m_scale->SetValue(transform.Scale);
+    if (!m_position->HasFocus()) m_position->SetValue(transform.Translation);
+
+    if (!m_rotation->HasFocus()) m_rotation->SetValue(transform.GetRotationEuler());
+
+    if (!m_scale->HasFocus()) m_scale->SetValue(transform.Scale);
     BlockSignals(false);
 
     scene->ConvertToWorldSpace(m_entity);

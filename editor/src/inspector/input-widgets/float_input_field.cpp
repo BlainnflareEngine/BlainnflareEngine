@@ -45,7 +45,7 @@ float_input_field::float_input_field(const QString &name, float value, QWidget *
     m_input->setDecimals(m_decimals);
     m_input->setSingleStep(0.01);
     m_input->setValue(value);
-
+    m_lastValue = value;
 
     connect(m_input, &NumericInputWidget::editingFinished, this, &float_input_field::OnEditingFinished);
     connect(m_input, &NumericInputWidget::FocusOut, this, &float_input_field::OnEditingFinished);
@@ -54,6 +54,9 @@ float_input_field::float_input_field(const QString &name, float value, QWidget *
 
 void float_input_field::SetValue(float value)
 {
+    if (value == m_lastValue) return;
+
+    m_lastValue = value;
     m_input->setValue(qBound(m_minValue, value, m_maxValue));
 }
 
@@ -70,9 +73,26 @@ bool float_input_field::HasFocus() const
 }
 
 
+int float_input_field::GetDecimals() const
+{
+    return m_decimals;
+}
+
+
+void float_input_field::SetDecimals(int value)
+{
+    m_input->setDecimals(value);
+    m_decimals = value;
+}
+
+
 void float_input_field::OnEditingFinished()
 {
-    emit EditingFinished();
+    if (m_lastValue != m_input->value())
+    {
+        m_lastValue = m_input->value();
+        emit EditingFinished();
+    }
 }
 
 } // namespace editor

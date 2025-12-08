@@ -28,6 +28,9 @@ public:
 
     bool HasFocus() const;
 
+    int GetDecimals() const;
+    void SetDecimals(int value);
+
 signals:
     void ValueChanged(const Blainn::Vec3 &value);
     void EditingFinished();

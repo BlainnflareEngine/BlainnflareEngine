@@ -7,9 +7,11 @@
 #include "../../include/inspector/entity/scripting/scripting_widget.h"
 #include "LabelsUtils.h"
 #include "components/MeshComponent.h"
+#include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
 #include "entity/add_component_button.h"
 #include "entity/mesh_widget.h"
+#include "entity/physics_widget.h"
 #include "entity/transform_widget.h"
 
 namespace editor
@@ -44,6 +46,12 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     {
         auto transform = new transform_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(transform);
+    }
+
+    if (entity.HasComponent<Blainn::PhysicsComponent>())
+    {
+        auto physics = new physics_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(physics);
     }
 
     if (entity.HasComponent<Blainn::ScriptingComponent>())

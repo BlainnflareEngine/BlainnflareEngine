@@ -15,12 +15,16 @@ class float_input_field : public QWidget
     Q_OBJECT
 
 public:
-    explicit float_input_field(const QString &name, float value = 0, QWidget *parent = nullptr, QColor nameColor = QColor());
+    explicit float_input_field(const QString &name, float value = 0, QWidget *parent = nullptr,
+                               QColor nameColor = QColor());
 
     void SetValue(float value);
     float GetValue() const;
 
     bool HasFocus() const;
+
+    int GetDecimals() const;
+    void SetDecimals(int value);
 
 public slots:
     void OnEditingFinished();
@@ -31,6 +35,8 @@ signals:
 private:
     NumericInputWidget *m_input = nullptr;
     QLabel *m_label = nullptr;
+
+    float m_lastValue;
 
     float m_minValue = -100000.0f;
     float m_maxValue = 100000.0f;

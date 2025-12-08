@@ -54,6 +54,9 @@ private:
     void ShowCylinderSettings();
     void ShowCapsuleSettings();
     void ClearSettings();
+
+    void LoadValues();
+    void BlockSignals(bool value);
 };
 
 } // namespace editor

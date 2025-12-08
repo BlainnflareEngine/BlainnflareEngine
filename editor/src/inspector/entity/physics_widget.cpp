@@ -37,7 +37,9 @@ physics_widget::physics_widget(const Blainn::Entity &entity, QWidget *parent)
     connect(m_isTrigger, &bool_input_field::toggled, this, &physics_widget::OnTriggerChanged);
     connect(m_gravityFactor, &float_input_field::EditingFinished, this, &physics_widget::OnGravityChanged);
 
-    OnShapeChanged(0);
+    ShowBoxSettings();
+
+    LoadValues();
 }
 
 
@@ -51,37 +53,44 @@ void physics_widget::DeleteComponent()
 
 void physics_widget::OnShapeChanged(int)
 {
+    using namespace Blainn;
+
     if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>())
     {
         deleteLater();
         return;
     }
 
-    Blainn::ComponentShapeType shape = m_shape->GetValue();
+    ComponentShapeType shape = m_shape->GetValue();
+    auto &comp = m_entity.GetComponent<PhysicsComponent>();
+    if (comp.shapeType == shape) return;
 
     ClearSettings();
+    BodyUpdater bodyUpdater = PhysicsSubsystem::GetBodyUpdater(m_entity);
+    ShapeCreationSettings settings(shape);
+    bodyUpdater.ReplaceBodyShape(settings);
 
     switch (shape)
     {
-    case Blainn::ComponentShapeType::Sphere:
+    case ComponentShapeType::Sphere:
         ShowSphereSettings();
+        bodyUpdater.SetSphereShapeSettings(m_radius->GetValue());
         break;
-    case Blainn::ComponentShapeType::Box:
+    case ComponentShapeType::Box:
         ShowBoxSettings();
+        bodyUpdater.SetBoxShapeSettings(m_extents->GetValue());
         break;
-    case Blainn::ComponentShapeType::Cylinder:
+    case ComponentShapeType::Cylinder:
         ShowCylinderSettings();
+        bodyUpdater.SetCylinderShapeSettings(m_halfHeight->GetValue(), m_radius->GetValue());
         break;
-    case Blainn::ComponentShapeType::Capsule:
+    case ComponentShapeType::Capsule:
         ShowCapsuleSettings();
+        bodyUpdater.SetCapsuleShapeSettings(m_halfHeight->GetValue(), m_radius->GetValue());
         break;
-    case Blainn::ComponentShapeType::Empty:
+    case ComponentShapeType::Empty:
         break;
     }
-
-    auto &comp = m_entity.GetComponent<Blainn::PhysicsComponent>();
-    comp.shapeType = shape;
-    // TODO: check later
 }
 
 
@@ -230,5 +239,40 @@ void physics_widget::ClearSettings()
         m_extents->deleteLater();
         m_extents = nullptr;
     }
+}
+
+
+void physics_widget::LoadValues()
+{
+    if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>())
+    {
+        deleteLater();
+        return;
+    }
+
+    auto &component = m_entity.GetComponent<Blainn::PhysicsComponent>();
+    auto body = Blainn::PhysicsSubsystem::GetBodyGetter(m_entity);
+
+    BlockSignals(true);
+    m_isTrigger->setChecked(body.isTrigger());
+    m_gravityFactor->SetValue(body.GetGravityFactor());
+    // m_objectLayer->SetValue(body.GetObjectLayer());
+    m_shape->SetValue(component.shapeType);
+    OnShapeChanged(1);
+    BlockSignals(false);
+}
+
+
+void physics_widget::BlockSignals(bool value)
+{
+    m_isTrigger->blockSignals(value);
+    m_gravityFactor->blockSignals(value);
+    /*m_objectLayer->blockSignals(value);
+    m_shape->blockSignals(value);
+    m_objectType->blockSignals(value);*/
+
+    if (m_radius) m_radius->blockSignals(value);
+    if (m_halfHeight) m_halfHeight->blockSignals(value);
+    if (m_extents) m_extents->blockSignals(value);
 }
 } // namespace editor
