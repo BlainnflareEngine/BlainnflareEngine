@@ -28,14 +28,17 @@ public:
     Vec3 GetScale(); // TODO:?
 
     JPH::RefConst<JPH::Shape> GetShape();
+    ComponentShapeType GetShapeType();
 
     Vec3 GetVelocity();
     float GetMaxLinearVelocity();
     Vec3 GetAngularVelocity();
     float GetMaxAngularVelocity();
     float GetGravityFactor();
-    ObjectLayer GetObjectLayer();
     bool isTrigger();
+
+    ObjectLayer GetObjectLayer();
+    PhysicsComponentMotionType GetMotionType();
 
 private:
     JPH::BodyLockRead m_bodyLock;

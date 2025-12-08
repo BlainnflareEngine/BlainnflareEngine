@@ -25,8 +25,8 @@ struct PhysicsComponent
     uuid parentId = {};
     JPH::BodyID bodyId = JPH::BodyID();
     ComponentShapeType shapeType = ComponentShapeType::Empty;
-    ShapeHierarchy shapeHierarchy = {};
-    Vec3 prevFrameScale = Vec3::One; // for rescale tracking
+    ShapeHierarchy shapeHierarchy = {}; // probably we may not store shapes here but i am not sure
+    Vec3 prevFrameScale = Vec3::One;    // for rescale tracking
     bool controlParentTransform = true;
 };
 } // namespace Blainn

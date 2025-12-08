@@ -2,6 +2,8 @@
 
 #include "aliases.h"
 
+#include "physics/PhysicsCreationSettings.h"
+
 namespace Blainn
 {
 struct ShapeHierarchy
@@ -13,16 +15,18 @@ struct ShapeHierarchy
 class ShapeFactory
 {
 public:
+    static eastl::optional<ShapeHierarchy> CreateShape(ShapeCreationSettings &settings);
+
+private:
+    ShapeFactory() = delete;
+
     static ShapeHierarchy CreateSphereShape(float radius);
     static ShapeHierarchy CreateBoxShape(Vec3 halfExtents);
     static ShapeHierarchy CreateCapsuleShape(float halfHeight, float radius);
     static ShapeHierarchy CreateCylinderShape(float halfHeight, float radius);
 
-private:
-    ShapeFactory() = delete;
-
     // all shapes are scaled shapes
-    template <typename ShapeType, typename... Args> static ShapeHierarchy CreateShape(Args... args)
+    template <typename ShapeType, typename... Args> static ShapeHierarchy CreateShapeInternal(Args... args)
     {
         ShapeHierarchy hierarchy;
         hierarchy.childPtr = eastl::make_unique<ShapeType>(args...);

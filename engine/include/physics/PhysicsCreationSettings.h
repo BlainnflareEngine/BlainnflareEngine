@@ -2,6 +2,7 @@
 
 #include "aliases.h"
 
+#include "physics/Layers.h"
 #include "physics/PhysicsTypes.h"
 #include "scene/Entity.h"
 
