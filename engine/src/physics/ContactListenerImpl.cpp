@@ -1,9 +1,8 @@
-#include "physics/ContactListenerImpl.h"
 #include "pch.h"
 
-#include <Jolt/Core/QuickSort.h>
-#include <Jolt/Physics/Body/Body.h>
-#include <Jolt/Physics/Collision/CollideShape.h>
+#include "physics/ContactListenerImpl.h"
+
+#include "subsystems/PhysicsSubsystem.h"
 
 using namespace Blainn;
 
@@ -11,6 +10,8 @@ JPH::ValidateResult ContactListenerImpl::OnContactValidate(const JPH::Body &inBo
                                                            JPH::RVec3Arg inBaseOffset,
                                                            const JPH::CollideShapeResult &inCollisionResult)
 {
+    // BF_INFO("PHYSICS ON CONTACT VALIDATE");
+
     // Check ordering contract between body 1 and body 2
     bool contract = inBody1.GetMotionType() >= inBody2.GetMotionType()
                     || (inBody1.GetMotionType() == inBody2.GetMotionType() && inBody1.GetID() < inBody2.GetID());
@@ -21,10 +22,6 @@ JPH::ValidateResult ContactListenerImpl::OnContactValidate(const JPH::Body &inBo
     else result = ContactListener::OnContactValidate(inBody1, inBody2, inBaseOffset, inCollisionResult);
 
     JPH::RVec3 contact_point = inBaseOffset + inCollisionResult.mContactPointOn1;
-    // DebugRenderer::sInstance->DrawArrow(contact_point, contact_point -
-    // inCollisionResult.mPenetrationAxis.NormalizedOr(Vec3::sZero()), Color::sBlue, 0.05f);
-
-    // Trace("Validate %u and %u result %d", inBody1.GetID().GetIndex(), inBody2.GetID().GetIndex(), (int)result);
 
     return result;
 }
@@ -32,26 +29,27 @@ JPH::ValidateResult ContactListenerImpl::OnContactValidate(const JPH::Body &inBo
 void ContactListenerImpl::OnContactAdded(const JPH::Body &inBody1, const JPH::Body &inBody2,
                                          const JPH::ContactManifold &inManifold, JPH::ContactSettings &ioSettings)
 {
+    BF_INFO("PHYSICS ON CONTACT ADDED");
+
+    JPH::BodyID bodyID1 = inBody1.GetID();
+    JPH::BodyID bodyID2 = inBody2.GetID();
+
     // Expect bodies to be sorted
-    if (!(inBody1.GetID() < inBody2.GetID())) JPH_BREAKPOINT;
-
-    // Trace("Contact added %u (%08x) and %u (%08x)", inBody1.GetID().GetIndex(), inManifold.mSubShapeID1.GetValue(),
-    // inBody2.GetID().GetIndex(), inManifold.mSubShapeID2.GetValue());
-
-    // DebugRenderer::sInstance->DrawWirePolygon(RMat44::sTranslation(inManifold.mBaseOffset),
-    // inManifold.mRelativeContactPointsOn1, Color::sGreen, 0.05f);
-    // DebugRenderer::sInstance->DrawWirePolygon(RMat44::sTranslation(inManifold.mBaseOffset),
-    // inManifold.mRelativeContactPointsOn2, Color::sGreen, 0.05f);
-    // DebugRenderer::sInstance->DrawArrow(inManifold.GetWorldSpaceContactPointOn1(0),
-    // inManifold.GetWorldSpaceContactPointOn1(0) + inManifold.mWorldSpaceNormal, Color::sGreen, 0.05f);
+    if (!(bodyID1 < bodyID2)) JPH_BREAKPOINT;
 
     // Insert new manifold into state map
     {
         std::lock_guard lock(mStateMutex);
-        JPH::SubShapeIDPair key(inBody1.GetID(), inManifold.mSubShapeID1, inBody2.GetID(), inManifold.mSubShapeID2);
+        JPH::SubShapeIDPair key(bodyID1, inManifold.mSubShapeID1, bodyID2, inManifold.mSubShapeID2);
         if (mState.find(key) != mState.end()) JPH_BREAKPOINT; // Added contact that already existed
         mState[key] = StatePair(inManifold.mBaseOffset, inManifold.mRelativeContactPointsOn1);
     }
+
+    PhysicsEvent event{.eventType = PhysicsEventType::CollisionEnded,
+                       .entity1 = PhysicsSubsystem::m_bodyEntityConnections[bodyID1],
+                       .entity2 = PhysicsSubsystem::m_bodyEntityConnections[bodyID2]};
+
+    PhysicsSubsystem::s_physicsEventQueue.enqueue(eastl::make_shared<PhysicsEvent>(eastl::move(event)));
 
     if (mNext != nullptr) mNext->OnContactAdded(inBody1, inBody2, inManifold, ioSettings);
 }
@@ -59,18 +57,10 @@ void ContactListenerImpl::OnContactAdded(const JPH::Body &inBody1, const JPH::Bo
 void ContactListenerImpl::OnContactPersisted(const JPH::Body &inBody1, const JPH::Body &inBody2,
                                              const JPH::ContactManifold &inManifold, JPH::ContactSettings &ioSettings)
 {
+    // BF_INFO("PHYSICS ON CONTACT PERSISTED");
+
     // Expect bodies to be sorted
     if (!(inBody1.GetID() < inBody2.GetID())) JPH_BREAKPOINT;
-
-    // Trace("Contact persisted %u (%08x) and %u (%08x)", inBody1.GetID().GetIndex(),
-    // inManifold.mSubShapeID1.GetValue(), inBody2.GetID().GetIndex(), inManifold.mSubShapeID2.GetValue());
-
-    // DebugRenderer::sInstance->DrawWirePolygon(RMat44::sTranslation(inManifold.mBaseOffset),
-    // inManifold.mRelativeContactPointsOn1, Color::sYellow, 0.05f);
-    // DebugRenderer::sInstance->DrawWirePolygon(RMat44::sTranslation(inManifold.mBaseOffset),
-    // inManifold.mRelativeContactPointsOn2, Color::sYellow, 0.05f);
-    // DebugRenderer::sInstance->DrawArrow(inManifold.GetWorldSpaceContactPointOn1(0),
-    // inManifold.GetWorldSpaceContactPointOn1(0) + inManifold.mWorldSpaceNormal, Color::sYellow, 0.05f);
 
     // Update existing manifold in state map
     {
@@ -86,12 +76,13 @@ void ContactListenerImpl::OnContactPersisted(const JPH::Body &inBody1, const JPH
 
 void ContactListenerImpl::OnContactRemoved(const JPH::SubShapeIDPair &inSubShapePair)
 {
-    // Expect bodies to be sorted
-    if (!(inSubShapePair.GetBody1ID() < inSubShapePair.GetBody2ID())) JPH_BREAKPOINT;
+    BF_INFO("PHYSICS ON CONTACT REMOVED");
 
-    // Trace("Contact removed %u (%08x) and %u (%08x)", inSubShapePair.GetBody1ID().GetIndex(),
-    // inSubShapePair.GetSubShapeID1().GetValue(), inSubShapePair.GetBody2ID().GetIndex(),
-    // inSubShapePair.GetSubShapeID2().GetValue());
+    JPH::BodyID bodyID1 = inSubShapePair.GetBody1ID();
+    JPH::BodyID bodyID2 = inSubShapePair.GetBody2ID();
+
+    // Expect bodies to be sorted
+    if (!(bodyID1 < bodyID2)) JPH_BREAKPOINT;
 
     // Update existing manifold in state map
     {
@@ -100,6 +91,12 @@ void ContactListenerImpl::OnContactRemoved(const JPH::SubShapeIDPair &inSubShape
         if (i != mState.end()) mState.erase(i);
         else JPH_BREAKPOINT; // Removed contact that didn't exist
     }
+
+    PhysicsEvent event{.eventType = PhysicsEventType::CollisionEnded,
+                       .entity1 = PhysicsSubsystem::m_bodyEntityConnections[bodyID1],
+                       .entity2 = PhysicsSubsystem::m_bodyEntityConnections[bodyID2]};
+
+    PhysicsSubsystem::s_physicsEventQueue.enqueue(eastl::make_shared<PhysicsEvent>(eastl::move(event)));
 
     if (mNext != nullptr) mNext->OnContactRemoved(inSubShapePair);
 }

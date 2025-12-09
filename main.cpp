@@ -37,7 +37,9 @@ int main(int argc, char **argv)
     WindowHeight = 720;
 #endif
 
-    Blainn::Engine::Init();
+    Blainn::Timeline<eastl::chrono::milliseconds> globalTimeline{nullptr};
+
+    Blainn::Engine::Init(globalTimeline);
     HWND hwnd = NULL;
 
 #if defined(BLAINN_INCLUDE_EDITOR)
@@ -57,8 +59,8 @@ int main(int argc, char **argv)
     bool isRunning = true;
 
     MSG msg = {0};
-    Blainn::Timeline<eastl::chrono::milliseconds> mainTimeline;
-    mainTimeline.Start();
+
+    globalTimeline.Start();
 
     while (isRunning)
     {
@@ -71,7 +73,7 @@ int main(int argc, char **argv)
         else
         {
             // fps stats could be added
-            float mainTimelineDeltaTime = mainTimeline.Tick();
+            float mainTimelineDeltaTime = globalTimeline.Tick();
 
             Blainn::Engine::Update(mainTimelineDeltaTime);
 #if defined(BLAINN_INCLUDE_EDITOR)

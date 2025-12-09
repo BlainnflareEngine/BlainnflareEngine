@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include "Render/Device.h"
 #include "Scene/Scene.h"
+#include "tools/Timeline.h"
 #include <functional>
 
 namespace vgjs
@@ -16,7 +17,7 @@ namespace Blainn
     {
     public:
         Engine() = delete;
-        static void Init();
+        static void Init(Timeline<eastl::chrono::milliseconds> &globalTimeline);
         static void InitRenderSubsystem(HWND windowHandle);
         static void Destroy();
         static void Update(float deltaTime);
