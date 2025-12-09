@@ -66,7 +66,7 @@ void PhysicsSubsystem::Update()
 {
     assert(m_isInitialized && "PhysicsSubsystem not initialized. Call PhysicsSubsystem::Init() before using it.");
 
-    float deltaTime = m_physicsUpdatePeriodMs; // m_physicsTimeline->Tick();
+    float deltaTime = m_physicsTimeline->Tick();
 
     // TODO: remove test
     static float testAccumulator;
@@ -88,7 +88,6 @@ void PhysicsSubsystem::Update()
 
         testAccumulator -= 1000.0f;
     }
-    // ---
 
     eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
     auto enities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
@@ -98,7 +97,6 @@ void PhysicsSubsystem::Update()
         if (!transformComp.IsDirty()) continue;
 
         BF_ERROR("body updated");
-        // if (transformComp.IsDirtyOnlyBy(TransformComponent::TransformDirtySource::PHYSICS)) continue;
 
         Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
 
@@ -116,8 +114,7 @@ void PhysicsSubsystem::Update()
         }
     }
 
-    m_joltPhysicsSystem->Update(m_physicsUpdatePeriodMs / 1000.0, physicsUpdateSubsteps, m_joltTempAllocator.get(),
-                                m_joltJobSystem.get());
+    m_joltPhysicsSystem->Update(deltaTime, physicsUpdateSubsteps, m_joltTempAllocator.get(), m_joltJobSystem.get());
 
     for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
     {

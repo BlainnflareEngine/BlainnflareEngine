@@ -10,22 +10,13 @@ namespace Blainn
 {
 struct TransformComponent
 {
-    enum class TransformDirtySource
-    {
-        PHYSICS,
-        NUM_SOURCES
-    };
-
 private:
     inline static const int kNumFramesMarkDirty = 3;
 
     // dirty flag available between frames
     int NumFramesDirty = kNumFramesMarkDirty; // NumFrameResources
-
-    // one frame dirty flags
+    // one frame dirty flag
     bool isScaleDirty = true;
-    eastl::array<bool, static_cast<size_t>(TransformDirtySource::NUM_SOURCES)> dirtySources{
-        false}; // must be set explicitly
 
     Vec3 Translation{0.f, 0.f, 0.f};
     Vec3 Scale{1.f, 1.f, 1.f};
@@ -69,35 +60,10 @@ public:
         return isScaleDirty;
     }
 
-    void setDirtyBy(TransformDirtySource source)
-    {
-        dirtySources[static_cast<size_t>(source)] = true;
-    }
-
-
-    bool IsDirtyBy(TransformDirtySource source) const
-    {
-        return dirtySources[static_cast<size_t>(source)];
-    }
-
-    bool IsDirtyOnlyBy(TransformDirtySource source) const
-    {
-        bool dirtyByOtherSource = false;
-        for (size_t i = 0; i < static_cast<size_t>(TransformDirtySource::NUM_SOURCES); ++i)
-        {
-            if (i != static_cast<size_t>(source) && dirtySources[i]) return false;
-        }
-        return dirtySources[static_cast<size_t>(source)];
-    }
-
     void FrameResetDirtyFlags()
     {
         NumFramesDirty > 0 ? --NumFramesDirty : NumFramesDirty;
         isScaleDirty = false;
-        for (size_t i = 0; i < static_cast<size_t>(TransformDirtySource::NUM_SOURCES); ++i)
-        {
-            dirtySources[i] = false;
-        }
     }
 
     Mat4 GetTransform() const
