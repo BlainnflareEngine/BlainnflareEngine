@@ -62,11 +62,29 @@ eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, cons
 
     ProcessNode(relativePath, *scene->mRootNode, *scene, Mat4::Identity, model);
 
-
+    // to merge together all meshes of the model
+    model.CreateBufferResources();
+    CreateModelGPUResources(model);
 
     return eastl::make_shared<Model>(model);
 }
 
+void AssetLoader::CreateModelGPUResources(Model& model)
+{
+    // Gpu stuff
+    auto cmdQueue = Device::GetInstance().GetCommandQueue();
+    auto cmdList = cmdQueue->GetDefaultCommandList();
+    auto cmdAlloc = cmdQueue->GetDefaultCommandAllocator();
+
+    cmdList->Reset(cmdAlloc.Get(), nullptr);
+
+    model.CreateGPUBuffers(cmdList.Get(), cmdQueue->Signal());
+
+    ThrowIfFailed(cmdList->Close());
+    ID3D12CommandList *const ppCommandLists[] = {cmdList.Get()};
+    cmdQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    cmdQueue->Flush();
+}
 
 void AssetLoader::ProcessNode(const Path &path, const aiNode &node, const aiScene &scene, const Mat4 &parentMatrix, Model &model)
 {
@@ -169,12 +187,12 @@ eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const Text
     BF_INFO("Loading texture completed!");
 
     Microsoft::WRL::ComPtr<ID3D12Resource> temp;
-    CreateTextureResources(path, temp);
+    CreateTextureGPUResources(path, temp);
 
     return eastl::make_shared<Texture>(path, temp, type);
 }
 
-void AssetLoader::CreateTextureResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource>& resource)
+void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource> &resource)
 {
     auto device = Device::GetInstance().GetDevice2().Get();
     auto commandQueue = Device::GetInstance().GetCommandQueue();

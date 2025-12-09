@@ -15,6 +15,15 @@ struct TextureHandle;
 struct MeshHandle;
 struct ImportMeshData;
 
+#ifndef MAX_TEXTURES
+#define MAX_TEXTURES 512
+#endif
+#ifndef MAX_MATERIALS
+#define MAX_MATERIALS 64
+#endif
+#ifndef MAX_MESHES
+#define MAX_MESHES 64
+#endif
 
 class AssetManager
 {

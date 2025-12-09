@@ -21,9 +21,8 @@ namespace Blainn
         virtual void Delete() override;
         virtual void Copy() override;
 
-        ID3D12Resource &GetResource() const;
+        ID3D12Resource* GetResource() const;
 
-        void CreateBufferResources();
         void DisposeUploaders();
 
     private:

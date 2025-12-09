@@ -9,7 +9,7 @@
 namespace Blainn
 {
 Blainn::Camera::Camera()
-    : m_nearZ(1.0f)
+    : m_nearZ(0.1f)
     , m_farZ(1000.0f)
     , m_fovYRad(0.0f)
     , m_aspectRatio(0.0f)
@@ -20,6 +20,7 @@ Blainn::Camera::Camera()
     m_persProj = XMMatrixIdentity();
     m_orthProj = XMMatrixIdentity();
 	// to update view matrix on the first update call
+    m_lastMousePos = {0.0f, 0.0f};
 	m_isDirty = true;
 }
 
@@ -74,11 +75,11 @@ void Blainn::Camera::Reset(float fovAngleYDegrees, float aspectRatio, float near
                             });
 
 	Input::AddEventListener(InputEventType::MouseDelta,
-		[this](const InputEventPointer& event)
-		{ 
-			const MouseMovedEvent *mouseEvent = static_cast<const MouseMovedEvent *>(event.get());
-			AdjustRotation(mouseEvent->GetX(), -mouseEvent->GetY());
-		});
+							[this](const InputEventPointer& event)
+							{ 
+								const MouseMovedEvent *mouseEvent = static_cast<const MouseMovedEvent *>(event.get());
+                                AdjustRotation(mouseEvent->GetX(), -mouseEvent->GetY());
+							});
 }
 
 void Camera::Move(const KeyCode key)
@@ -95,6 +96,10 @@ void Camera::Move(const KeyCode key)
     case Blainn::KeyCode::S: MoveForward(-currCamSpeed);
         break;
     case Blainn::KeyCode::W: MoveForward(currCamSpeed);
+        break;
+    case Blainn::KeyCode::Q: MoveUp(-currCamSpeed);
+        break;
+    case Blainn::KeyCode::E: MoveUp(currCamSpeed);
         break;
     }
 

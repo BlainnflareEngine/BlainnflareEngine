@@ -32,7 +32,13 @@ namespace Blainn
 
     public:
         void CreateBufferResources();
-        
+        size_t GetVerticesCount() const { return totalVertexCount; }
+        size_t GetIndicesCount() const { return totalIndexCount; }
+
+        void CreateGPUBuffers(ID3D12GraphicsCommandList2 *pCommandList, UINT64 frameValue);
+        void DisposeUploaders();
+
+    private:
         template <typename TVertex, typename TIndex = UINT>
         void CreateGPUBuffers(ID3D12GraphicsCommandList2* pCommandList, const eastl::vector<TVertex> &vertices, const eastl::vector<TIndex> &indices = eastl::vector<TIndex>(0))
         {
@@ -46,9 +52,7 @@ namespace Blainn
 
             if (vbByteSize)
             {
-                VertexBufferGPU = FreyaUtil::CreateDefaultBuffer(device.GetDevice2().Get(), pCommandList,
-                                                                 vertices.data(), vbByteSize,
-                                                   VertexBufferUploader); // Create GPU resource
+                VertexBufferGPU = FreyaUtil::CreateDefaultBuffer(device.GetDevice2().Get(), pCommandList, vertices.data(), vbByteSize, VertexBufferUploader); // Create GPU resource
                 // For vertex buffer view.
                 VertexBufferByteSize = (UINT)vbByteSize;
                 VertexByteStride = sizeof(TVertex);
@@ -63,16 +67,16 @@ namespace Blainn
             }
         }
 
-        void DisposeUploaders();
-
-        size_t GetVerticesCount() const { return totalVertexCount; }
-        size_t GetIndicesCount() const { return totalIndexCount; }
-
 #pragma region VertexIndexBuffersViewStuff
+    public:
+        UINT64 GetModelFrameValue() const { return m_frameValue; }
         D3D12_VERTEX_BUFFER_VIEW VertexBufferView() const;
         D3D12_INDEX_BUFFER_VIEW IndexBufferView() const;
 
     private:
+        eastl::vector<BlainnVertex> allVertices;
+        eastl::vector<UINT> allIndices;
+        
         // Data about the buffers.
         UINT VertexByteStride = 0u;
         UINT VertexBufferByteSize = 0u;
@@ -82,6 +86,8 @@ namespace Blainn
 
         size_t totalVertexCount = 0u;
         size_t totalIndexCount = 0u;
+
+        UINT64 m_frameValue = (UINT64)0u;
 
         // the actual default buffer resource
         Microsoft::WRL::ComPtr<ID3D12Resource> VertexBufferGPU = nullptr;
