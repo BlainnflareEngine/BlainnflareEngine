@@ -126,15 +126,7 @@ private:
     void CreateShaders();
     void CreatePipelineStateObjects();
 
-public:
-    // virtual void OnMouseDown(WPARAM btnState, int x, int y) override;
-    // virtual void OnMouseUp(WPARAM btnState, int x, int y) override;
-    // virtual void OnMouseMove(WPARAM btnState, int x, int y) override;
-    // virtual void OnKeyDown(UINT8 key) override;
-    // virtual void OnKeyUp(UINT8 key) override;
-
 private:
-    void OnKeyboardInput(float deltaTime);
     void UpdateObjectsCB(float deltaTime);
     void UpdateMaterialBuffer(float deltaTime);
     void UpdateLightsBuffer(float deltaTime);
