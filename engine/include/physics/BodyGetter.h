@@ -40,6 +40,11 @@ public:
     ObjectLayer GetObjectLayer();
     PhysicsComponentMotionType GetMotionType();
 
+    eastl::optional<float> GetSphereShapeRadius();
+    eastl::optional<Vec3> GetBoxShapeHalfExtents();
+    eastl::optional<eastl::pair<float, float>> GetCylinderShapeHalfHeightAndRadius();
+    eastl::optional<eastl::pair<float, float>> GetCapsuleShapeHalfHeightAndRadius();
+
 private:
     JPH::BodyLockRead m_bodyLock;
     JPH::BodyInterface &m_bodyInterface;

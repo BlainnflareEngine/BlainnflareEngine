@@ -65,3 +65,54 @@ bool BodyGetter::isTrigger()
 {
     return m_body.IsSensor();
 }
+
+eastl::optional<float> Blainn::BodyGetter::GetSphereShapeRadius()
+{
+    PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
+    if (component.GetShapeType() != ComponentShapeType::Sphere)
+    {
+        BF_ERROR("cannot get sphere radius - shape is not sphere");
+        return eastl::nullopt;
+    }
+
+    return static_cast<JPH::SphereShape *>(component.GetHierarchy().childPtr.GetPtr())->GetRadius();
+}
+
+eastl::optional<Vec3> Blainn::BodyGetter::GetBoxShapeHalfExtents()
+{
+    PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
+    if (component.GetShapeType() != ComponentShapeType::Box)
+    {
+        BF_ERROR("cannot get box extents - shape is not box");
+        return eastl::nullopt;
+    }
+
+    return ToBlainnVec3(static_cast<JPH::BoxShape *>(component.GetHierarchy().childPtr.GetPtr())->GetHalfExtent());
+}
+
+
+eastl::optional<eastl::pair<float, float>> Blainn::BodyGetter::GetCylinderShapeHalfHeightAndRadius()
+{
+    PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
+    if (component.GetShapeType() != ComponentShapeType::Cylinder)
+    {
+        BF_ERROR("cannot get cylinder height and radius - shape is not cylinder");
+        return eastl::nullopt;
+    }
+
+    JPH::CylinderShape *shapePtr = static_cast<JPH::CylinderShape *>(component.GetHierarchy().childPtr.GetPtr());
+    return eastl::optional<eastl::pair<float, float>>{{shapePtr->GetHalfHeight(), shapePtr->GetRadius()}};
+}
+
+eastl::optional<eastl::pair<float, float>> Blainn::BodyGetter::GetCapsuleShapeHalfHeightAndRadius()
+{
+    PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
+    if (component.GetShapeType() != ComponentShapeType::Capsule)
+    {
+        BF_ERROR("cannot get capsule height and radius - shape is not capsule");
+        return eastl::nullopt;
+    }
+
+    JPH::CapsuleShape *shapePtr = static_cast<JPH::CapsuleShape *>(component.GetHierarchy().childPtr.GetPtr());
+    return eastl::optional<eastl::pair<float, float>>{{shapePtr->GetHalfHeightOfCylinder(), shapePtr->GetRadius()}};
+}
