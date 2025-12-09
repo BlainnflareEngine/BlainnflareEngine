@@ -113,12 +113,6 @@ private:
     void LoadPipeline();
     void LoadGraphicsFeatures();
 
-#pragma region TempRender
-    void CreateRenderItems(ID3D12GraphicsCommandList2 *pCommandList);
-
-    eastl::vector<eastl::unique_ptr<Model>> m_meshItems;
-#pragma endregion TempRender
-
     void CreateFrameResources();
 
     void CreateDescriptorHeaps();
@@ -149,27 +143,7 @@ private:
     void DeferredSpotLightPass(ID3D12GraphicsCommandList2 *pCommandList);
 #pragma endregion DeferredShading
 
-    template <typename TVertex, typename TIndex>
-    void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<MeshData<TVertex, TIndex>> &meshesData)
-    {
-        for (auto &&meshData : meshesData)
-        {
-            const auto indexCount = meshData.indices.size();
-            const auto vertexCount = meshData.vertices.size();
-
-            if (indexCount > 0)
-            {
-                cmdList->IASetIndexBuffer(NULL);
-                cmdList->DrawIndexedInstanced(indexCount, 1u, 0u, 0u, 0u);
-            }
-            else if (vertexCount > 0)
-            {
-                cmdList->DrawInstanced(vertexCount, 1u, 0u, 0u);
-            }
-        }
-    }
-
-    void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<eastl::unique_ptr<Model>> &models);
+    void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList);
 
     void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *cmdList,
                              const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);

@@ -75,10 +75,10 @@ void AssetLoader::CreateModelGPUResources(Model& model)
     auto cmdQueue = Device::GetInstance().GetCommandQueue();
     auto cmdList = cmdQueue->GetDefaultCommandList();
     auto cmdAlloc = cmdQueue->GetDefaultCommandAllocator();
-
+    cmdAlloc->Reset();
     cmdList->Reset(cmdAlloc.Get(), nullptr);
 
-    model.CreateGPUBuffers(cmdList.Get(), cmdQueue->Signal());
+    model.CreateGPUBuffers(cmdList.Get());
 
     ThrowIfFailed(cmdList->Close());
     ID3D12CommandList *const ppCommandLists[] = {cmdList.Get()};

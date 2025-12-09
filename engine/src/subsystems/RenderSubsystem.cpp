@@ -306,16 +306,6 @@ void Blainn::RenderSubsystem::LoadGraphicsFeatures()
     m_areGraphicsFeaturesLoaded = true;
 }
 
-void Blainn::RenderSubsystem::CreateRenderItems(ID3D12GraphicsCommandList2 *pCommandList)
-{
-    /*eastl::unique_ptr<Model> cubeModel = eastl::make_unique<Model>();
-    auto cubeMesh = PrebuiltEngineMeshes::CreateBox(1.0f, 1.0f, 1.0f);
-    cubeModel->SetMeshes(eastl::vector<MeshData<>>{cubeMesh});
-    cubeModel->CreateBufferResources(pCommandList);
-    cubeModel->CreateGPUBuffers(pCommandList, cubeMesh.vertices, cubeMesh.indices);
-    m_meshItems.push_back(eastl::move(cubeModel));*/
-}
-
 void Blainn::RenderSubsystem::CreateFrameResources()
 {
     for (int i = 0; i < gNumFrameResources; i++)
@@ -864,7 +854,7 @@ void Blainn::RenderSubsystem::RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pC
                                         nullptr);
 
     pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::CascadedShadowsOpaque).Get());
-    DrawMeshes(pCommandList, m_meshItems);
+    DrawMeshes(pCommandList);
 
     transition = CD3DX12_RESOURCE_BARRIER::Transition(m_cascadeShadowMap->Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE,
                                                       D3D12_RESOURCE_STATE_GENERIC_READ);
@@ -896,11 +886,9 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
     pCommandList->SetGraphicsRootConstantBufferView(
         ERootParameter::PerPassDataCB, currFramePassCBAddress); // second element contains data for geometry pass
 
-    // Bind all the materials used in this scene. For structured buffers, we can bypass the heap and set as a root
-    // descriptor.
+    // Bind all the materials used in this scene. For structured buffers, we can bypass the heap and set as a root descriptor.
     // auto matBuffer = m_currFrameResource->MaterialSB->Get();
-    // pCommandList->SetGraphicsRootShaderResourceView(ERootParameter::MaterialDataSB,
-    // matBuffer->GetGPUVirtualAddress());
+    // pCommandList->SetGraphicsRootShaderResourceView(ERootParameter::MaterialDataSB, matBuffer->GetGPUVirtualAddress());
 
     // Bind all the textures used in this scene. Observe that we only have to specify the first descriptor in the table.
     // The root signature knows how many descriptors are expected in the table.
@@ -927,7 +915,7 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
 
     pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::DeferredGeometry).Get());
 
-    DrawMeshes(pCommandList, m_meshItems);
+    DrawMeshes(pCommandList);
 
     for (unsigned i = 0; i < GBuffer::EGBufferLayer::MAX - 1u; i++)
     {
@@ -1020,7 +1008,7 @@ void Blainn::RenderSubsystem::RenderTransparencyPass(ID3D12GraphicsCommandList2 
 {
 }
 
-void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<eastl::unique_ptr<Model>> &models)
+void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList)
 {
     auto commandQueue = m_device.GetCommandQueue();
 
@@ -1040,8 +1028,7 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
         pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
         pCommandList->IASetIndexBuffer(&currIBV);
 
-        D3D12_GPU_VIRTUAL_ADDRESS objCBAddress =
-            FreyaUtil::GetGPUVirtualAddress(currObjectCB->GetGPUVirtualAddress(), objCBByteSize, 0u);
+        D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currObjectCB->GetGPUVirtualAddress(), objCBByteSize, 0u);
         pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerObjectDataCB, objCBAddress);
 
         if (currIBV.SizeInBytes)
