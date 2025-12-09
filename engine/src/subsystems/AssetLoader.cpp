@@ -57,7 +57,7 @@ eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, cons
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
         BF_ERROR("AssetLoader ImportModel: error loading model " + std::string(importer.GetErrorString()));
-        return eastl::make_shared<Model>(model);
+        return eastl::make_shared<Model>(AssetManager::GetDefaultMesh()->GetMesh());
     }
 
     ProcessNode(relativePath, *scene->mRootNode, *scene, Mat4::Identity, model);
@@ -84,6 +84,8 @@ void AssetLoader::CreateModelGPUResources(Model& model)
     ID3D12CommandList *const ppCommandLists[] = {cmdList.Get()};
     cmdQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     cmdQueue->Flush();
+    
+    model.m_bisLoaded = true;
 }
 
 void AssetLoader::ProcessNode(const Path &path, const aiNode &node, const aiScene &scene, const Mat4 &parentMatrix, Model &model)

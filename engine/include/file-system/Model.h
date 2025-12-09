@@ -16,6 +16,7 @@ namespace Blainn
 
     class Model : public FileSystemObject
     {
+        friend class AssetLoader;
     public:
         Model();
         Model(const Path &absolutPath);
@@ -73,6 +74,8 @@ namespace Blainn
         D3D12_VERTEX_BUFFER_VIEW VertexBufferView() const;
         D3D12_INDEX_BUFFER_VIEW IndexBufferView() const;
 
+        bool IsLoaded() const { return m_bisLoaded; }        
+
     private:
         eastl::vector<BlainnVertex> allVertices;
         eastl::vector<UINT> allIndices;
@@ -88,6 +91,7 @@ namespace Blainn
         size_t totalIndexCount = 0u;
 
         UINT64 m_frameValue = (UINT64)0u;
+        bool m_bisLoaded = false;
 
         // the actual default buffer resource
         Microsoft::WRL::ComPtr<ID3D12Resource> VertexBufferGPU = nullptr;

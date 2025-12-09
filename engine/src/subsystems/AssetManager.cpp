@@ -100,7 +100,7 @@ eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &relativePath, c
             "i will place your model to your index later. Index - {0}",
             index);
 
-    //m_meshes.emplace(eastl::make_shared<Model>(GetDefaultModel(), relativePath));
+    m_meshes.emplace(eastl::make_shared<Model>(GetDefaultModel(), relativePath));
 
     vgjs::schedule([=]() { AddMeshWhenLoaded(relativePath, index, data); });
     return eastl::make_shared<MeshHandle>(index);
@@ -109,13 +109,16 @@ eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &relativePath, c
 
 Model &AssetManager::GetMeshByIndex(const unsigned int index)
 {
-    return (m_meshes[index]) ? *m_meshes[index] : GetDefaultMesh()->GetMesh();
+    if (m_meshes[index]->IsLoaded()) 
+        return *m_meshes[index];
+    else
+        return GetDefaultMesh()->GetMesh();
 }
 
 
 Model &AssetManager::GetMeshByHandle(const MeshHandle &handle)
 {
-    return *m_meshes[handle.GetIndex()];
+    return GetMeshByIndex(handle.GetIndex());
 }
 
 
@@ -300,7 +303,7 @@ void AssetManager::AddMaterialWhenLoaded(const Path &relativePath, const unsigne
 void AssetManager::AddMeshWhenLoaded(const Path &relativePath, const unsigned int index, const ImportMeshData data)
 {
     BF_INFO("Started loading model.");
-    m_meshes.emplace(m_loader->ImportModel(relativePath, data));
+    m_meshes[index] = m_loader->ImportModel(relativePath, data);
     auto str = "Placing model to index " + std::to_string(index);
     BF_INFO(str);
 }
