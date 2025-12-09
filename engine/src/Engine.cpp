@@ -109,7 +109,7 @@ void Engine::Update(float deltaTime)
     {
         Entity e1 = s_activeScene->CreateEntity("PhysicsTestEntity1");
         TransformComponent t;
-        t.Translation = Vec3(0.0f, 3.0f, 3.0f);
+        t.SetTranslation(Vec3(0.0f, 3.0f, 3.0f));
         e1.AddComponent<TransformComponent>(t);
         s_activeScene->CreateAttachMeshComponent(e1, "Models/Cube.fbx", ImportMeshData{});
         PhysicsComponentSettings physicsSettings1(e1, ComponentShapeType::Box);
@@ -117,8 +117,8 @@ void Engine::Update(float deltaTime)
         PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings1);
 
         Entity e2 = s_activeScene->CreateEntity("PhysicsTestEntity2");
-        t.Translation = Vec3(0.f, -2.f, 3.f);
-        t.Scale = Vec3(10.0f, 1.0f, 10.0f);
+        t.SetTranslation(Vec3(0.f, -2.f, 3.f));
+        t.SetScale(Vec3(10.0f, 1.0f, 10.0f));
         e2.AddComponent<TransformComponent>(t);
         s_activeScene->CreateAttachMeshComponent(e2, "Models/Cube.fbx", ImportMeshData{});
         PhysicsComponentSettings physicsSettings2(e2, ComponentShapeType::Box);
@@ -129,8 +129,8 @@ void Engine::Update(float deltaTime)
         PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings2);
 
         Entity e3 = s_activeScene->CreateEntity("PhysicsTestEntity1");
-        t.Translation = Vec3(0.2f, -1.f, 3.f);
-        t.Scale = Vec3(1.0f, 1.0f, 1.0f);
+        t.SetTranslation(Vec3(0.2f, -1.f, 3.f));
+        t.SetScale(Vec3(1.0f, 1.0f, 1.0f));
         e3.AddComponent<TransformComponent>(t);
         s_activeScene->CreateAttachMeshComponent(e3, "Models/Cube.fbx", ImportMeshData{});
         PhysicsComponentSettings physicsSettings3(e3, ComponentShapeType::Box);
@@ -143,7 +143,7 @@ void Engine::Update(float deltaTime)
 
     PhysicsSubsystem::Update();
 
-    Scene::ProcessEvents();
+    s_activeScene->Update();
 
     ScriptingSubsystem::Update(*s_activeScene, deltaTime);
 

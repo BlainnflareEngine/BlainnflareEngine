@@ -680,7 +680,7 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
         // Have tried. It does not affect anything.
         // Looks like it just forces the code to update the object's constant buffer regardless of whether it has been
         // modified or not.
-        if (entityTransform.IsDirty())
+        if (entityTransform.IsFramesDirty())
         {
             ObjectConstants objConstants;
 

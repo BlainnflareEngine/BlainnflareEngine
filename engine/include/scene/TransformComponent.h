@@ -8,108 +8,199 @@
 
 namespace Blainn
 {
-    struct TransformComponent
+struct TransformComponent
+{
+    enum class TransformDirtySource
     {
-        Vec3 Translation{0.f, 0.f, 0.f};
-        Vec3 Scale{1.f, 1.f, 1.f};
-
-    private:
-
-        // Euler is stored as Yaw Pitch Roll
-        Vec3 EulerRotation{0.f, 0.f, 0.f};
-        Quat Rotation{1.f, 0.f, 0.f, 0.f};
-
-        int NumFramesDirty = 3; // NumFrameResources
-
-    public:
-        TransformComponent() = default;
-        TransformComponent(const TransformComponent&) = default;
-
-        TransformComponent(const Vec3& translation)
-            : Translation(translation)
-        {}
-
-        Mat4 GetTransform() const
-        {
-            using namespace DirectX::SimpleMath;
-            return Matrix::CreateScale(Scale)
-                * Matrix::CreateFromQuaternion(Rotation)
-                * Matrix::CreateTranslation(Translation);
-        }
-
-        void SetTransform(Mat4& transform)
-        {
-            using namespace DirectX::SimpleMath;
-            transform.Decompose(Scale, Rotation, Translation);
-            EulerRotation = Rotation.ToEuler();
-
-            NumFramesDirty = 3; 
-        }
-
-        bool IsDirty() const { return NumFramesDirty > 0; }
-
-        Vec3 GetRotationEuler() const
-        {
-            return EulerRotation;
-        }
-
-        void SetRotationEuler(const Vec3& euler)
-        {
-            using namespace DirectX::SimpleMath;
-            EulerRotation = euler;
-            Rotation = Quaternion::CreateFromYawPitchRoll(euler.x, euler.y, euler.z);
-        }
-
-        Quat GetRotation() const
-        {
-            return Rotation;
-        }
-
-        void SetRotation(const Quat& rotation)
-        {
-            using namespace DirectX::SimpleMath;
-            auto warpToPi = [](const Vec3 v)
-            {
-                constexpr auto piVec = Vec3(DirectX::XM_PI);
-                const auto x = v + piVec;
-                const auto y = 2 * piVec;
-
-                const auto mod = x - y * Vec3(DirectX::XMVectorFloor(x / y));
-                return mod - piVec;
-            };
-
-            const auto originalEuler = EulerRotation;
-            Rotation = rotation;
-            EulerRotation = Rotation.ToEuler();
-
-            Vec3 alternatives[4] = {
-                {EulerRotation.x - DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
-                {EulerRotation.x + DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
-                {EulerRotation.x + DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI},
-                {EulerRotation.x - DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI}
-            };
-
-            float distances[5] = {
-                (warpToPi(EulerRotation - originalEuler)).LengthSquared(),
-                (warpToPi(alternatives[0] - originalEuler)).LengthSquared(),
-                (warpToPi(alternatives[1] - originalEuler)).LengthSquared(),
-                (warpToPi(alternatives[2] - originalEuler)).LengthSquared(),
-                (warpToPi(alternatives[3] - originalEuler)).LengthSquared()
-            };
-
-            float best = distances[0];
-            int bestIndex = 0;
-            for (const auto& distance : distances)
-            {
-                if (distance < best)
-                {
-                    best = distance;
-                    EulerRotation = alternatives[bestIndex];
-                }
-                bestIndex++;
-            }
-
-            EulerRotation = warpToPi(EulerRotation);
-        }
+        PHYSICS,
+        NUM_SOURCES
     };
-}
+
+private:
+    inline static const int kNumFramesMarkDirty = 3;
+
+    // dirty flag available between frames
+    int NumFramesDirty = kNumFramesMarkDirty; // NumFrameResources
+
+    // one frame dirty flags
+    bool isScaleDirty = true;
+    eastl::array<bool, static_cast<size_t>(TransformDirtySource::NUM_SOURCES)> dirtySources{
+        false}; // must be set explicitly
+
+    Vec3 Translation{0.f, 0.f, 0.f};
+    Vec3 Scale{1.f, 1.f, 1.f};
+
+    // Euler is stored as Yaw Pitch Roll
+    Vec3 EulerRotation{0.f, 0.f, 0.f};
+    Quat Rotation{1.f, 0.f, 0.f, 0.f};
+
+
+    void MarkFramesDirty()
+    {
+        NumFramesDirty = kNumFramesMarkDirty;
+    };
+    void MarkScaleDirty()
+    {
+        isScaleDirty = true;
+    };
+
+
+public:
+    TransformComponent() = default;
+    TransformComponent(const TransformComponent &) = default;
+
+    TransformComponent(const Vec3 &translation)
+        : Translation(translation)
+    {
+    }
+
+    bool IsDirty() const
+    {
+        return (NumFramesDirty - (kNumFramesMarkDirty - 1)) > 0;
+    }
+
+    bool IsFramesDirty() const
+    {
+        return NumFramesDirty > 0;
+    }
+
+    bool IsScaleDirty() const
+    {
+        return isScaleDirty;
+    }
+
+    void setDirtyBy(TransformDirtySource source)
+    {
+        dirtySources[static_cast<size_t>(source)] = true;
+    }
+
+
+    bool IsDirtyBy(TransformDirtySource source) const
+    {
+        return dirtySources[static_cast<size_t>(source)];
+    }
+
+    bool IsDirtyOnlyBy(TransformDirtySource source) const
+    {
+        bool dirtyByOtherSource = false;
+        for (size_t i = 0; i < static_cast<size_t>(TransformDirtySource::NUM_SOURCES); ++i)
+        {
+            if (i != static_cast<size_t>(source) && dirtySources[i]) return false;
+        }
+        return dirtySources[static_cast<size_t>(source)];
+    }
+
+    void FrameResetDirtyFlags()
+    {
+        NumFramesDirty > 0 ? --NumFramesDirty : NumFramesDirty;
+        isScaleDirty = false;
+        for (size_t i = 0; i < static_cast<size_t>(TransformDirtySource::NUM_SOURCES); ++i)
+        {
+            dirtySources[i] = false;
+        }
+    }
+
+    Mat4 GetTransform() const
+    {
+        using namespace DirectX::SimpleMath;
+        return Matrix::CreateScale(Scale) * Matrix::CreateFromQuaternion(Rotation)
+               * Matrix::CreateTranslation(Translation);
+    }
+
+    void SetTransform(Mat4 &transform)
+    {
+        using namespace DirectX::SimpleMath;
+        transform.Decompose(Scale, Rotation, Translation);
+        EulerRotation = Rotation.ToEuler();
+
+        MarkFramesDirty();
+        MarkScaleDirty();
+    }
+
+    Vec3 GetTranslation() const
+    {
+        return Translation;
+    }
+
+    void SetTranslation(const Vec3 &translation)
+    {
+        Translation = translation;
+        MarkFramesDirty();
+    }
+
+    Vec3 GetScale() const
+    {
+        return Scale;
+    }
+
+    void SetScale(const Vec3 &scale)
+    {
+        Scale = scale;
+        MarkFramesDirty();
+        MarkScaleDirty();
+    }
+
+    Vec3 GetRotationEuler() const
+    {
+        return EulerRotation;
+    }
+
+    void SetRotationEuler(const Vec3 &euler)
+    {
+        using namespace DirectX::SimpleMath;
+        EulerRotation = euler;
+        Rotation = Quaternion::CreateFromYawPitchRoll(euler.x, euler.y, euler.z);
+        MarkFramesDirty();
+    }
+
+    Quat GetRotation() const
+    {
+        return Rotation;
+    }
+
+    void SetRotation(const Quat &rotation)
+    {
+        using namespace DirectX::SimpleMath;
+        auto warpToPi = [](const Vec3 v)
+        {
+            constexpr auto piVec = Vec3(DirectX::XM_PI);
+            const auto x = v + piVec;
+            const auto y = 2 * piVec;
+
+            const auto mod = x - y * Vec3(DirectX::XMVectorFloor(x / y));
+            return mod - piVec;
+        };
+
+        const auto originalEuler = EulerRotation;
+        Rotation = rotation;
+        EulerRotation = Rotation.ToEuler();
+
+        Vec3 alternatives[4] = {
+            {EulerRotation.x - DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
+            {EulerRotation.x + DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
+            {EulerRotation.x + DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI},
+            {EulerRotation.x - DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI}};
+
+        float distances[5] = {(warpToPi(EulerRotation - originalEuler)).LengthSquared(),
+                              (warpToPi(alternatives[0] - originalEuler)).LengthSquared(),
+                              (warpToPi(alternatives[1] - originalEuler)).LengthSquared(),
+                              (warpToPi(alternatives[2] - originalEuler)).LengthSquared(),
+                              (warpToPi(alternatives[3] - originalEuler)).LengthSquared()};
+
+        float best = distances[0];
+        int bestIndex = 0;
+        for (const auto &distance : distances)
+        {
+            if (distance < best)
+            {
+                best = distance;
+                EulerRotation = alternatives[bestIndex];
+            }
+            bestIndex++;
+        }
+
+        EulerRotation = warpToPi(EulerRotation);
+        MarkFramesDirty();
+    }
+};
+} // namespace Blainn

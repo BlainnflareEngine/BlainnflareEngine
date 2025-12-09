@@ -66,7 +66,7 @@ void PhysicsSubsystem::Update()
 {
     assert(m_isInitialized && "PhysicsSubsystem not initialized. Call PhysicsSubsystem::Init() before using it.");
 
-    float deltaTime = m_physicsTimeline->Tick();
+    float deltaTime = m_physicsUpdatePeriodMs; // m_physicsTimeline->Tick();
 
     // TODO: remove test
     static float testAccumulator;
@@ -80,9 +80,10 @@ void PhysicsSubsystem::Update()
     static int fpsCounterPrevValue;
     static int fpsCounter;
     fpsCounter++;
+
     if (testAccumulator >= 1000.0f)
     {
-        // BF_WARN("Physics FPS: {} ; deltaTime {}", fpsCounter - fpsCounterPrevValue, deltaTime);
+        BF_WARN("Physics FPS: {} ; deltaTime {}", fpsCounter - fpsCounterPrevValue, deltaTime);
         fpsCounterPrevValue = fpsCounter;
 
         testAccumulator -= 1000.0f;
@@ -94,6 +95,11 @@ void PhysicsSubsystem::Update()
 
     for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
     {
+        if (!transformComp.IsDirty()) continue;
+
+        BF_ERROR("body updated");
+        // if (transformComp.IsDirtyOnlyBy(TransformComponent::TransformDirtySource::PHYSICS)) continue;
+
         Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
 
         Vec3 translation, scale;
@@ -103,14 +109,15 @@ void PhysicsSubsystem::Update()
         BodyUpdater bodyUpdater = GetBodyUpdater(entity);
         bodyUpdater.SetPosition(translation).SetRotation(rotation);
 
-        if (scale != physicsComp.prevFrameScale)
+        if (transformComp.IsScaleDirty())
         {
             bodyUpdater.SetScale(scale, physicsComp.prevFrameScale);
             physicsComp.prevFrameScale = scale;
         }
     }
 
-    m_joltPhysicsSystem->Update(deltaTime, physicsUpdateSubsteps, m_joltTempAllocator.get(), m_joltJobSystem.get());
+    m_joltPhysicsSystem->Update(m_physicsUpdatePeriodMs / 1000.0, physicsUpdateSubsteps, m_joltTempAllocator.get(),
+                                m_joltJobSystem.get());
 
     for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
     {
@@ -119,7 +126,7 @@ void PhysicsSubsystem::Update()
         BodyGetter bodyGetter = GetBodyGetter(entity);
         if (bodyGetter.isTrigger()) continue;
 
-        transformComp.Translation = bodyGetter.GetPosition();
+        transformComp.SetTranslation(bodyGetter.GetPosition());
         transformComp.SetRotation(bodyGetter.GetRotation());
         activeScene->SetFromWorldSpaceTransformMatrix(entity, transformComp.GetTransform());
     }
@@ -158,7 +165,7 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
 
     PhysicsComponent component;
     component.parentId = parentId;
-    component.prevFrameScale = transformComponentPtr->Scale;
+    component.prevFrameScale = transformComponentPtr->GetScale();
 
     eastl::optional<ShapeHierarchy> createdShapeHierarchy = ShapeFactory::CreateShape(settings.shapeSettings);
 
@@ -172,7 +179,7 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
 
     BodyBuilder builder;
     builder.SetMotionType(settings.motionType)
-        .SetPosition(transformComponentPtr->Translation)
+        .SetPosition(transformComponentPtr->GetTranslation())
         .SetRotation(transformComponentPtr->GetRotation())
         .SetShape(component.GetHierarchy().shapePtr.GetPtr())
         .SetIsTrigger(settings.isTrigger)
