@@ -42,7 +42,7 @@ void AssetManager::Init()
     m_materials.emplace(eastl::make_shared<Material>(material));
 
 
-    auto device = Device::GetInstance();
+    auto& device = Device::GetInstance();
     auto commandQueue = device.GetCommandQueue();
     auto cmdList = commandQueue->GetDefaultCommandList();
 
@@ -51,6 +51,9 @@ void AssetManager::Init()
     model->SetMeshes({defaultMeshData});
     model->CreateBufferResources();
     model->CreateGPUBuffers(cmdList.Get(), commandQueue->Signal());
+
+    //model.CreateBufferResources();
+    //CreateModelGPUResources(model);
 
     m_meshes.emplace(model);
 }
@@ -284,9 +287,6 @@ void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int ind
     m_textures[index] = m_loader->LoadTexture(path, type);
     auto str = "Placing texture to index " + std::to_string(index);
     BF_INFO(str);
-
-    //// create cpu, gpu d3d12 resources
-    //CreateTextureDataResource(m_textures[index]);
 }
 
 
@@ -372,16 +372,6 @@ void AssetManager::DecreaseMeshRefCount(const unsigned int index)
         if (value.index == index) --value.refCount;
 
     // TODO: remove asset if refCount == 0
-}
-
-void AssetManager::CreateTextureDataResource(const eastl::shared_ptr<Texture> &texture)
-{
-    //texture->CreateBufferResources();
-}
-
-void AssetManager::CreateMeshDataResource(const eastl::shared_ptr<Model> &model)
-{
-    //model->CreateBufferResources();
 }
 
 } // namespace Blainn

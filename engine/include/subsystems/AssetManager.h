@@ -92,11 +92,6 @@ private:
     void DecreaseMeshRefCount(const unsigned int index);
 
 private:
-    // Connect with render subsystem resource creating
-    void CreateTextureDataResource(const eastl::shared_ptr<Texture> &texture);
-    void CreateMeshDataResource(const eastl::shared_ptr<Model> &model);
-
-private:
     inline static eastl::unique_ptr<AssetLoader> m_loader;
 
     eastl::hash_map<eastl::string, AssetData> m_materialPaths;

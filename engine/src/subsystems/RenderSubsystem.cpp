@@ -1031,7 +1031,8 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
     {
         auto currObjectCB = entityMesh.ObjectCB->Get();
 
-        auto &model = entityMesh.m_meshHandle->GetMesh();
+        //auto &model = entityMesh.m_meshHandle->GetMesh();
+        auto &model = AssetManager::GetInstance().GetDefaultMesh()->GetMesh();
 
         if (!commandQueue->IsFenceComplete(model.GetModelFrameValue())) continue;
 
