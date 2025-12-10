@@ -3,6 +3,8 @@
 #include "aliases.h"
 #include "helpers.h"
 
+#include "physics/PhysicsCreationSettings.h"
+
 namespace Blainn
 {
 
@@ -22,8 +24,8 @@ public:
     NO_COPY_DEFAULT_MOVE(BodyUpdater);
     ~BodyUpdater() = default;
 
-    BodyUpdater &SetPosition(Vec3 position, JPH::EActivation activation = JPH::EActivation::Activate);
-    BodyUpdater &SetRotation(Quat rotation, JPH::EActivation activation = JPH::EActivation::Activate);
+    BodyUpdater &SetPosition(Vec3 position, EActivation activation = EActivation::DontActivate);
+    BodyUpdater &SetRotation(Quat rotation, EActivation activation = EActivation::DontActivate);
     BodyUpdater &SetScale(Vec3 scale, Vec3 prevScale);
 
     BodyUpdater &SetVelocity(Vec3 velocity);
@@ -37,6 +39,22 @@ public:
     BodyUpdater &AddImpulse(Vec3 impulse);
     BodyUpdater &AddAngularImpulse(Vec3 angularImpulse);
     BodyUpdater &AddForce(Vec3 force);
+
+    BodyUpdater &ReplaceBodyShape(ShapeCreationSettings &settings, EActivation activation = EActivation::DontActivate);
+    BodyUpdater &SetMotionType(PhysicsComponentMotionType motionType,
+                               EActivation activation = EActivation::DontActivate);
+
+    /// @brief  will show error and do noting if body shape type is not sphere
+    BodyUpdater &SetSphereShapeSettings(float radius);
+
+    /// @brief  will show error and do noting if body shape type is not box
+    BodyUpdater &SetBoxShapeSettings(Vec3 halfExtents);
+
+    /// @brief  will show error and do noting if body shape type is not capsule
+    BodyUpdater &SetCapsuleShapeSettings(float halfCylinderHeight, float radius);
+
+    /// @brief  will show error and do noting if body shape type is not cylinder
+    BodyUpdater &SetCylinderShapeSettings(float halfCylinderHeight, float radius);
 
 private:
     // JPH::BodyLockWrite m_bodyLock;

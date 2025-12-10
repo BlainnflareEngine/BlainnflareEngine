@@ -5,17 +5,17 @@
 #include "entity/transform_widget.h"
 #include "scene/EntityTemplates.h"
 
-#include "../../../include/inspector/input-widgets/float_input_field.h"
+#include "input-widgets/float_input_field.h"
 #include "LabelsUtils.h"
 
 #include <QKeyEvent>
 #include <QLabel>
 
-#include <QSpinBox>
 #include <QTimer>
 #include <QVBoxLayout>
 
 #include "Engine.h"
+#include "input-widgets/vector3_input_widget.h"
 
 namespace editor
 {
@@ -28,21 +28,20 @@ transform_widget::transform_widget(const Blainn::Entity &entity, QWidget *parent
 }
 
 
-void transform_widget::OnPositionChanged() {
+void transform_widget::OnPositionChanged()
+{
     if (!m_entity.HasComponent<Blainn::TransformComponent>()) return;
 
-    const auto& scene = Blainn::Engine::GetActiveScene();
+    const auto &scene = Blainn::Engine::GetActiveScene();
 
-    if (!scene) {
+    if (!scene)
+    {
         return;
     }
-    //scene->ConvertToLocalSpace(m_entity);
+    // scene->ConvertToLocalSpace(m_entity);
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
-    transform.Translation.x = m_positionX->GetValue();
-    transform.Translation.y = m_positionY->GetValue();
-    transform.Translation.z = m_positionZ->GetValue();
-
+    transform.Translation = m_position->GetValue();
     scene->ConvertToWorldSpace(m_entity);
 }
 
@@ -53,7 +52,7 @@ void transform_widget::OnRotationChanged()
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
 
-    transform.SetRotationEuler(Blainn::Vec3(m_rotationX->GetValue(), m_rotationY->GetValue(), m_rotationZ->GetValue()));
+    transform.SetRotationEuler(m_rotation->GetValue());
 }
 
 
@@ -62,9 +61,7 @@ void transform_widget::OnScaleChanged()
     if (!m_entity.HasComponent<Blainn::TransformComponent>()) return;
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
-    transform.Scale.x = m_scaleX->GetValue();
-    transform.Scale.y = m_scaleY->GetValue();
-    transform.Scale.z = m_scaleZ->GetValue();
+    transform.Scale = m_scale->GetValue();
 }
 
 
@@ -74,31 +71,30 @@ void transform_widget::OnUpdate()
 
     if (!m_entity.IsValid()) return;
 
-    bool anyFieldFocused = m_positionX->HasFocus() || m_positionY->HasFocus() || m_positionZ->HasFocus()
-                           || m_rotationX->HasFocus() || m_rotationY->HasFocus() || m_rotationZ->HasFocus()
-                           || m_scaleX->HasFocus() || m_scaleY->HasFocus() || m_scaleZ->HasFocus();
-
-    if (!anyFieldFocused) LoadTransformValues();
+    LoadTransformValues();
 }
 
 
 void transform_widget::DeleteComponent()
 {
-    m_entity.RemoveComponent<Blainn::TransformComponent>();
+    if (m_entity.IsValid()) m_entity.RemoveComponent<Blainn::TransformComponent>();
     deleteLater();
 }
 
 
 void transform_widget::CreateTransformFields()
 {
-    auto position = CreateVector3("Position", m_positionX, m_positionY, m_positionZ);
-    layout()->addWidget(position);
+    m_position = new vector3_input_widget("Position", Blainn::Vec3::Zero, this);
+    m_position->SetDecimals(3);
+    layout()->addWidget(m_position);
 
-    auto rotation = CreateVector3("Rotation", m_rotationX, m_rotationY, m_rotationZ);
-    layout()->addWidget(rotation);
+    m_rotation = new vector3_input_widget("Rotation", Blainn::Vec3::Zero, this);
+    m_rotation->SetDecimals(3);
+    layout()->addWidget(m_rotation);
 
-    auto scale = CreateVector3("Scale", m_scaleX, m_scaleY, m_scaleZ);
-    layout()->addWidget(scale);
+    m_scale = new vector3_input_widget("Scale", Blainn::Vec3::One, this);
+    m_scale->SetDecimals(3);
+    layout()->addWidget(m_scale);
 }
 
 
@@ -107,60 +103,36 @@ void transform_widget::LoadTransformValues()
     if (!m_entity.HasComponent<Blainn::TransformComponent>()) return;
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
-
-    BlockSignals(true);
-
-    const auto& scene = Blainn::Engine::GetActiveScene();
+    const auto &scene = Blainn::Engine::GetActiveScene();
     if (!scene) return;
 
     scene->ConvertToLocalSpace(m_entity);
 
-    m_positionX->SetValue(transform.Translation.x);
-    m_positionY->SetValue(transform.Translation.y);
-    m_positionZ->SetValue(transform.Translation.z);
+    BlockSignals(true);
+    if (!m_position->HasFocus()) m_position->SetValue(transform.Translation);
 
-    auto euler = transform.GetRotationEuler();
-    m_rotationX->SetValue(euler.x);
-    m_rotationY->SetValue(euler.y);
-    m_rotationZ->SetValue(euler.z);
+    if (!m_rotation->HasFocus()) m_rotation->SetValue(transform.GetRotationEuler());
 
-    m_scaleX->SetValue(transform.Scale.x);
-    m_scaleY->SetValue(transform.Scale.y);
-    m_scaleZ->SetValue(transform.Scale.z);
+    if (!m_scale->HasFocus()) m_scale->SetValue(transform.Scale);
+    BlockSignals(false);
 
     scene->ConvertToWorldSpace(m_entity);
-
-    BlockSignals(false);
 }
 
 
 void transform_widget::ConnectSignals()
 {
-    connect(m_positionX, &float_input_field::EditingFinished, this, &transform_widget::OnPositionChanged);
-    connect(m_positionY, &float_input_field::EditingFinished, this, &transform_widget::OnPositionChanged);
-    connect(m_positionZ, &float_input_field::EditingFinished, this, &transform_widget::OnPositionChanged);
-
-    connect(m_rotationX, &float_input_field::EditingFinished, this, &transform_widget::OnRotationChanged);
-    connect(m_rotationY, &float_input_field::EditingFinished, this, &transform_widget::OnRotationChanged);
-    connect(m_rotationZ, &float_input_field::EditingFinished, this, &transform_widget::OnRotationChanged);
-
-    connect(m_scaleX, &float_input_field::EditingFinished, this, &transform_widget::OnScaleChanged);
-    connect(m_scaleY, &float_input_field::EditingFinished, this, &transform_widget::OnScaleChanged);
-    connect(m_scaleZ, &float_input_field::EditingFinished, this, &transform_widget::OnScaleChanged);
+    connect(m_position, &vector3_input_widget::ValueChanged, this, &transform_widget::OnPositionChanged);
+    connect(m_rotation, &vector3_input_widget::ValueChanged, this, &transform_widget::OnRotationChanged);
+    connect(m_scale, &vector3_input_widget::ValueChanged, this, &transform_widget::OnScaleChanged);
 }
 
 
 void transform_widget::BlockSignals(bool block)
 {
-    m_positionX->blockSignals(block);
-    m_positionY->blockSignals(block);
-    m_positionZ->blockSignals(block);
-    m_rotationX->blockSignals(block);
-    m_rotationY->blockSignals(block);
-    m_rotationZ->blockSignals(block);
-    m_scaleX->blockSignals(block);
-    m_scaleY->blockSignals(block);
-    m_scaleZ->blockSignals(block);
+    m_position->blockSignals(block);
+    m_rotation->blockSignals(block);
+    m_scale->blockSignals(block);
 }
 
 

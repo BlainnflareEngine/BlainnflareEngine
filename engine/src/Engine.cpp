@@ -97,7 +97,7 @@ void Engine::Update(float deltaTime)
     if (testAccumulator >= 1000.0f)
     {
         // std::cout << "Engine second" << std::endl;
-        BF_WARN("FPS: {}", fpsCounter - fpsCounterPrevValue);
+        // BF_WARN("FPS: {}", fpsCounter - fpsCounterPrevValue);
         fpsCounterPrevValue = fpsCounter;
 
         testAccumulator -= 1000.0f;

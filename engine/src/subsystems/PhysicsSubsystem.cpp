@@ -14,6 +14,7 @@
 #include "scene/BasicComponents.h"
 #include "scene/Scene.h"
 #include "scene/TransformComponent.h"
+#include "PhysicsSubsystem.h"
 
 
 using namespace Blainn;
@@ -81,7 +82,7 @@ void PhysicsSubsystem::Update()
     fpsCounter++;
     if (testAccumulator >= 1000.0f)
     {
-        BF_WARN("Physics FPS: {} ; deltaTime {}", fpsCounter - fpsCounterPrevValue, deltaTime);
+        // BF_WARN("Physics FPS: {} ; deltaTime {}", fpsCounter - fpsCounterPrevValue, deltaTime);
         fpsCounterPrevValue = fpsCounter;
 
         testAccumulator -= 1000.0f;
@@ -157,34 +158,23 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
 
     PhysicsComponent component;
     component.parentId = parentId;
-    component.shapeType = settings.shapeSettings.shapeType;
     component.prevFrameScale = transformComponentPtr->Scale;
 
-    switch (settings.shapeSettings.shapeType)
+    eastl::optional<ShapeHierarchy> createdShapeHierarchy = ShapeFactory::CreateShape(settings.shapeSettings);
+
+    if (!createdShapeHierarchy.has_value())
     {
-    case ComponentShapeType::Sphere:
-        component.shapeHierarchy = ShapeFactory::CreateSphereShape(settings.shapeSettings.radius);
-        break;
-    case ComponentShapeType::Box:
-        component.shapeHierarchy = ShapeFactory::CreateBoxShape(settings.shapeSettings.halfExtents);
-        break;
-    case ComponentShapeType::Capsule:
-        component.shapeHierarchy =
-            ShapeFactory::CreateCapsuleShape(settings.shapeSettings.halfCylinderHeight, settings.shapeSettings.radius);
-        break;
-    case ComponentShapeType::Cylinder:
-        component.shapeHierarchy =
-            ShapeFactory::CreateCylinderShape(settings.shapeSettings.halfCylinderHeight, settings.shapeSettings.radius);
-    default:
-        BF_ERROR("Invalid physics shape type");
+        BF_ERROR("Error in creating shape for physics component");
         return;
     }
+    component.UpdateShape(settings.shapeSettings.shapeType, createdShapeHierarchy.value());
+
 
     BodyBuilder builder;
     builder.SetMotionType(settings.motionType)
         .SetPosition(transformComponentPtr->Translation)
         .SetRotation(transformComponentPtr->GetRotation())
-        .SetShape(component.shapeHierarchy.shapePtr.get())
+        .SetShape(component.GetHierarchy().shapePtr.GetPtr())
         .SetIsTrigger(settings.isTrigger)
         .SetGravityFactor(settings.gravityFactor)
         .SetLayer(settings.layer);
@@ -216,6 +206,17 @@ JPH::BodyID PhysicsSubsystem::GetBodyId(Entity entity)
     return component.bodyId;
 }
 
+
+eastl::optional<Entity> Blainn::PhysicsSubsystem::GetEntityByBodyId(JPH::BodyID bodyId)
+{
+    if (!m_bodyEntityConnections.contains(bodyId)) [[unlikely]]
+    {
+        BF_ERROR("can not get entity by body id {} - does not exist", bodyId.GetIndexAndSequenceNumber());
+        return eastl::optional<Entity>{};
+    }
+
+    return eastl::optional<Entity>(Engine::GetActiveScene()->GetEntityWithUUID(m_bodyEntityConnections[bodyId]));
+}
 
 PhysicsSubsystem::PhysicsEventHandle PhysicsSubsystem::AddEventListener(
     const PhysicsEventType eventType, eastl::function<void(const eastl::shared_ptr<PhysicsEvent> &)> listener)
@@ -251,6 +252,7 @@ eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 direc
     rayCastResult.distance = joltResult.mFraction * directionAndDistance.Length();
     rayCastResult.hitPoint = origin + directionAndDistance * joltResult.mFraction;
 
+    // TODO: get child shape or leave this?
     JPH::RefConst<JPH::Shape> bodyShape = bodyGetter.GetShape();
     rayCastResult.hitNormal = ToBlainnVec3(
         bodyShape->GetSurfaceNormal(joltResult.mSubShapeID2, ToJoltVec3(rayCastResult.hitPoint - bodyPosition)));
@@ -270,6 +272,14 @@ void Blainn::PhysicsSubsystem::ProcessEvents()
 
     s_physicsEventQueue.process();
 }
+PhysicsComponent &Blainn::PhysicsSubsystem::GetPhysicsComponentByBodyId(JPH::BodyID bodyId)
+{
+    assert(m_bodyEntityConnections.contains(bodyId));
+    return Engine::GetActiveScene()
+        ->GetEntityWithUUID(m_bodyEntityConnections.at(bodyId))
+        .GetComponent<PhysicsComponent>();
+}
+
 bool PhysicsSubsystem::IsBodyActive(Entity entity)
 {
     PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();

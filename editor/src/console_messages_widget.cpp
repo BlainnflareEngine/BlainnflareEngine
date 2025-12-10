@@ -29,7 +29,9 @@ console_messages_widget::~console_messages_widget()
 
 void console_messages_widget::AppendMessage(const LogMessage &message)
 {
-    QMutexLocker locker(&m_mutex);
+    BLAINN_PROFILE_FUNC();
+
+    //QMutexLocker locker(&m_mutex);
 
     QString qMessage = QString::fromStdString(message.message);
     QPalette palette = this->palette();

@@ -7,6 +7,7 @@
 #include "../include/dialog/import_asset_dialog.h"
 #include "../include/dialog/import_model_dialog.h"
 #include "ContentFilterProxyModel.h"
+#include "IconProvider.h"
 
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -349,6 +350,7 @@ void SelectFileAsync(QWidget *parent, const QString &title, const QString &initi
     dialog->setNameFilter(nameFilter);
     dialog->setDirectory(initialDir);
     dialog->setOption(QFileDialog::DontUseNativeDialog, true);
+    dialog->setIconProvider(new IconProvider());
 
     QObject::connect(dialog, &QFileDialog::finished, dialog,
                      [dialog, onAccepted](int result)

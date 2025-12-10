@@ -5,7 +5,10 @@
 #pragma once
 #include "AssetManager.h"
 #include "Log.h"
+#include "PhysicsSubsystem.h"
 #include "components/MeshComponent.h"
+#include "components/PhysicsComponent.h"
+#include "physics/BodyGetter.h"
 #include "scene/Entity.h"
 #include "yaml-cpp/emitter.h"
 
@@ -109,6 +112,33 @@ public:
         out << YAML::Key << "Material" << YAML::Value
             << AssetManager::GetInstance().GetMaterialPath(*mesh.m_materialHandle).string();
         out << YAML::EndMap;
+    }
+
+    static void Physics(Entity &entity, YAML::Emitter &out)
+    {
+        if (!entity.HasComponent<PhysicsComponent>()) return;
+
+        auto &physics = entity.GetComponent<PhysicsComponent>();
+
+        /*struct PhysicsComponent
+        {
+            uuid parentId = {};
+            JPH::BodyID bodyId = JPH::BodyID();
+            ComponentShapeType shapeType = ComponentShapeType::Empty;
+            ShapeHierarchy shapeHierarchy = {};
+            Vec3 prevFrameScale = Vec3::One; // for rescale tracking
+            bool controlParentTransform = true;
+        };*/
+
+        out << YAML::Key << "PhysicsComponent" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "ParentID" << YAML::Value << physics.parentId.str();
+        out << YAML::Key << "ShapeType" << YAML::Value << static_cast<int>(physics.GetShapeType());
+        out << YAML::Key << "ControlParentTransform" << YAML::Value << physics.controlParentTransform;
+
+        BodyGetter body = PhysicsSubsystem::GetBodyGetter(entity);
+        out << YAML::Key << "ObjectLayer" << YAML::Value << body.GetObjectLayer();
+
+        // TODO: serialize
     }
 };
 } // namespace Blainn

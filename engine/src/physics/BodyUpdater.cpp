@@ -2,24 +2,26 @@
 
 #include "physics/BodyUpdater.h"
 
+#include "subsystems/PhysicsSubsystem.h"
 #include "physics/Conversion.h"
+#include "physics/ShapeFactory.h"
 
 using namespace Blainn;
 
-BodyUpdater &Blainn::BodyUpdater::SetPosition(Vec3 position, JPH::EActivation activation)
+BodyUpdater &BodyUpdater::SetPosition(Vec3 position, JPH::EActivation activation)
 {
     m_bodyInterface.SetPosition(m_bodyId, ToJoltRVec3(position), activation);
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::SetRotation(Quat rotation, JPH::EActivation activation)
+BodyUpdater &BodyUpdater::SetRotation(Quat rotation, JPH::EActivation activation)
 {
     m_bodyInterface.SetRotation(m_bodyId, ToJoltQuat(rotation), activation);
     return *this;
 }
 
 // some cringe
-BodyUpdater &Blainn::BodyUpdater::SetScale(Vec3 scale, Vec3 prevScale)
+BodyUpdater &BodyUpdater::SetScale(Vec3 scale, Vec3 prevScale)
 {
     JPH::Vec3 newShapeScale(ToJoltVec3(scale / prevScale));
 
@@ -35,56 +37,177 @@ BodyUpdater &BodyUpdater::SetVelocity(Vec3 velocity)
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::SetMaxLinearVelocity(float maxVelocity)
+BodyUpdater &BodyUpdater::SetMaxLinearVelocity(float maxVelocity)
 {
     m_bodyInterface.SetMaxLinearVelocity(m_bodyId, maxVelocity);
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::SetAngularVelocity(Vec3 angularVelocity)
+BodyUpdater &BodyUpdater::SetAngularVelocity(Vec3 angularVelocity)
 {
     m_bodyInterface.SetAngularVelocity(m_bodyId, ToJoltVec3(angularVelocity));
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::SetMaxAngularVelocity(float maxAngularVelocity)
+BodyUpdater &BodyUpdater::SetMaxAngularVelocity(float maxAngularVelocity)
 {
     m_bodyInterface.SetMaxAngularVelocity(m_bodyId, maxAngularVelocity);
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::SetGravityFactor(float gravityFactor)
+BodyUpdater &BodyUpdater::SetGravityFactor(float gravityFactor)
 {
     m_bodyInterface.SetGravityFactor(m_bodyId, gravityFactor);
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::SetObjectLayer(JPH::ObjectLayer layer)
+BodyUpdater &BodyUpdater::SetObjectLayer(JPH::ObjectLayer layer)
 {
     m_bodyInterface.SetObjectLayer(m_bodyId, layer);
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::AddVelocity(Vec3 deltaVelocity)
+BodyUpdater &BodyUpdater::AddVelocity(Vec3 deltaVelocity)
 {
     m_bodyInterface.AddLinearVelocity(m_bodyId, ToJoltVec3(deltaVelocity));
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::AddImpulse(Vec3 impulse)
+BodyUpdater &BodyUpdater::AddImpulse(Vec3 impulse)
 {
     m_bodyInterface.AddImpulse(m_bodyId, ToJoltVec3(impulse));
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::AddAngularImpulse(Vec3 angularImpulse)
+BodyUpdater &BodyUpdater::AddAngularImpulse(Vec3 angularImpulse)
 {
     m_bodyInterface.AddAngularImpulse(m_bodyId, ToJoltVec3(angularImpulse));
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::AddForce(Vec3 force)
+BodyUpdater &BodyUpdater::AddForce(Vec3 force)
 {
     m_bodyInterface.AddForce(m_bodyId, ToJoltVec3(force));
+    return *this;
+}
+
+BodyUpdater &BodyUpdater::ReplaceBodyShape(ShapeCreationSettings &settings, EActivation activation)
+{
+    eastl::optional<Blainn::ShapeHierarchy> hierarchy = ShapeFactory::CreateShape(settings);
+    if (!hierarchy.has_value())
+    {
+        BF_ERROR("Error in replacing physics body shape - shape not created");
+        return *this;
+    }
+
+    m_bodyInterface.SetShape(m_bodyId, hierarchy.value().shapePtr.GetPtr(), true, activation);
+    PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
+    component.UpdateShape(settings.shapeType, hierarchy.value());
+
+    return *this;
+}
+
+BodyUpdater &BodyUpdater::SetMotionType(PhysicsComponentMotionType motionType,
+                                        EActivation activation /*= EActivation::Activate*/)
+{
+    m_bodyInterface.SetMotionType(m_bodyId, motionType, activation);
+    return *this;
+}
+
+BodyUpdater &BodyUpdater::SetSphereShapeSettings(float radius)
+{
+    const ComponentShapeType sphereShapeType = ComponentShapeType::Sphere;
+
+    PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
+    if (component.GetShapeType() != sphereShapeType)
+    {
+        BF_ERROR("shape is not sphere, cannot set sphere settings");
+        return *this;
+    }
+
+    EActivation isActive;
+    {
+        const JPH::Body &body = JPH::BodyLockRead(m_bodyLockInterface, m_bodyId).GetBody();
+        isActive = body.IsActive() ? EActivation::Activate : EActivation::DontActivate;
+    }
+
+    ShapeCreationSettings newShapeSettings(sphereShapeType);
+    newShapeSettings.radius = radius;
+    ReplaceBodyShape(newShapeSettings, isActive);
+
+    return *this;
+}
+
+BodyUpdater &Blainn::BodyUpdater::SetBoxShapeSettings(Vec3 halfExtents)
+{
+    const ComponentShapeType boxShapeType = ComponentShapeType::Box;
+
+    PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
+    if (component.GetShapeType() != boxShapeType)
+    {
+        BF_ERROR("shape is not box, cannot set box settings");
+        return *this;
+    }
+
+    EActivation isActive;
+    {
+        const JPH::Body &body = JPH::BodyLockRead(m_bodyLockInterface, m_bodyId).GetBody();
+        isActive = body.IsActive() ? EActivation::Activate : EActivation::DontActivate;
+    }
+
+    ShapeCreationSettings newShapeSettings(boxShapeType);
+    newShapeSettings.halfExtents = halfExtents;
+    ReplaceBodyShape(newShapeSettings, isActive);
+
+    return *this;
+}
+
+BodyUpdater &Blainn::BodyUpdater::SetCapsuleShapeSettings(float halfCylinderHeight, float radius)
+{
+    const ComponentShapeType capsuleShapeType = ComponentShapeType::Capsule;
+
+    PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
+    if (component.GetShapeType() != capsuleShapeType)
+    {
+        BF_ERROR("shape is not capsule, cannot set capsule settings");
+        return *this;
+    }
+
+    EActivation isActive;
+    {
+        const JPH::Body &body = JPH::BodyLockRead(m_bodyLockInterface, m_bodyId).GetBody();
+        isActive = body.IsActive() ? EActivation::Activate : EActivation::DontActivate;
+    }
+
+    ShapeCreationSettings newShapeSettings(capsuleShapeType);
+    newShapeSettings.halfCylinderHeight = halfCylinderHeight;
+    newShapeSettings.radius = radius;
+    ReplaceBodyShape(newShapeSettings, isActive);
+
+    return *this;
+}
+
+BodyUpdater &Blainn::BodyUpdater::SetCylinderShapeSettings(float halfCylinderHeight, float radius)
+{
+    const ComponentShapeType cylinderShapeType = ComponentShapeType::Cylinder;
+
+    PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
+    if (component.GetShapeType() != cylinderShapeType)
+    {
+        BF_ERROR("shape is not cylinder, cannot set cylinder settings");
+        return *this;
+    }
+
+    EActivation isActive;
+    {
+        const JPH::Body &body = JPH::BodyLockRead(m_bodyLockInterface, m_bodyId).GetBody();
+        isActive = body.IsActive() ? EActivation::Activate : EActivation::DontActivate;
+    }
+
+    ShapeCreationSettings newShapeSettings(cylinderShapeType);
+    newShapeSettings.halfCylinderHeight = halfCylinderHeight;
+    newShapeSettings.radius = radius;
+    ReplaceBodyShape(newShapeSettings, isActive);
+
     return *this;
 }

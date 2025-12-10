@@ -22,11 +22,29 @@ namespace Blainn
 {
 struct PhysicsComponent
 {
+    void UpdateShape(ComponentShapeType newType, ShapeHierarchy newHierarchy)
+    {
+        shapeType = newType;
+        shapeHierarchy = newHierarchy;
+    };
+
+    const ShapeHierarchy &GetHierarchy()
+    {
+        return shapeHierarchy;
+    };
+
+    ComponentShapeType GetShapeType()
+    {
+        return shapeType;
+    }
+
     uuid parentId = {};
     JPH::BodyID bodyId = JPH::BodyID();
-    ComponentShapeType shapeType = ComponentShapeType::Empty;
-    ShapeHierarchy shapeHierarchy = {};
     Vec3 prevFrameScale = Vec3::One; // for rescale tracking
     bool controlParentTransform = true;
+
+private:
+    ComponentShapeType shapeType = ComponentShapeType::Empty;
+    ShapeHierarchy shapeHierarchy = {}; // we may not store this
 };
 } // namespace Blainn

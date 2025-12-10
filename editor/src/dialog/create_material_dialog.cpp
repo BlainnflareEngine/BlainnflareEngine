@@ -6,156 +6,122 @@
 #include "dialog/create_material_dialog.h"
 
 #include "FileSystemUtils.h"
-#include "ui_create_material_dialog.h"
+#include "LabelsUtils.h"
+#include "input-widgets/path_input_field.h"
+#include "oclero/qlementine/widgets/Label.hpp"
+#include "oclero/qlementine/widgets/LineEdit.hpp"
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QPushButton>
+#include <QVBoxLayout>
 #include <qfileinfo.h>
 
 namespace editor
 {
 create_material_dialog::create_material_dialog(QWidget *parent)
     : QDialog(parent)
-    , ui(new Ui::create_material_dialog)
 {
-    ui->setupUi(this);
+    setWindowTitle("Create New Material");
+    setModal(true);
 
-    connect(ui->AlbedoBrowse, &QPushButton::clicked, this, &create_material_dialog::OnSelectAlbedo);
-    connect(ui->NormalBrowse, &QPushButton::clicked, this, &create_material_dialog::OnSelectNormal);
-    connect(ui->MetallicBrowse, &QPushButton::clicked, this, &create_material_dialog::OnSelectMetallic);
-    connect(ui->RoughnessBrowse, &QPushButton::clicked, this, &create_material_dialog::OnSelectRoughness);
-    connect(ui->AOBrowse, &QPushButton::clicked, this, &create_material_dialog::OnSelectAO);
-    connect(ui->ShaderBrowse, &QPushButton::clicked, this, &create_material_dialog::OnSelectShader);
+    auto *mainLayout = new QVBoxLayout(this);
+    mainLayout->setSpacing(15);
+    mainLayout->setContentsMargins(20, 20, 20, 20);
 
-    connect(ui->Accept, &QPushButton::clicked, this, &create_material_dialog::accept);
-    connect(ui->Cancel, &QPushButton::clicked, this, &create_material_dialog::reject);
-}
+    auto nameLabel = new QLabel(ToHeader3("Material Name:"), this);
+    nameLabel->setTextFormat(Qt::MarkdownText);
 
+    m_materialName = new QLineEdit(this);
+    m_materialName->setPlaceholderText("Enter material name...");
+    m_materialName->setFixedHeight(30);
+    m_materialName->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    mainLayout->addWidget(nameLabel);
+    mainLayout->addWidget(m_materialName);
 
-create_material_dialog::~create_material_dialog()
-{
-    delete ui;
+    m_shaderPath = new path_input_field("Shader", {formats::shaderFormat}, this);
+    m_albedoPath = new path_input_field("Albedo", formats::supportedTextureFormats, this);
+    m_normalPath = new path_input_field("Normal", formats::supportedTextureFormats, this);
+    m_metallicPath = new path_input_field("Metallic", formats::supportedTextureFormats, this);
+    m_roughnessPath = new path_input_field("Roughness", formats::supportedTextureFormats, this);
+    m_aoPath = new path_input_field("AO", formats::supportedTextureFormats, this);
+
+    mainLayout->addWidget(m_shaderPath);
+    mainLayout->addWidget(m_albedoPath);
+    mainLayout->addWidget(m_normalPath);
+    mainLayout->addWidget(m_metallicPath);
+    mainLayout->addWidget(m_roughnessPath);
+    mainLayout->addWidget(m_aoPath);
+
+    auto *buttonLayout = new QHBoxLayout();
+    m_acceptButton = new QPushButton("Create", this);
+    m_cancelButton = new QPushButton("Cancel", this);
+    buttonLayout->addStretch();
+    buttonLayout->addWidget(m_acceptButton);
+    buttonLayout->addWidget(m_cancelButton);
+    mainLayout->addLayout(buttonLayout);
+
+    connect(m_acceptButton, &QPushButton::clicked, this, &create_material_dialog::accept);
+    connect(m_cancelButton, &QPushButton::clicked, this, &create_material_dialog::reject);
 }
 
 
 QString create_material_dialog::GetMaterialName() const
 {
-    return ui->MaterialName->text();
+    return m_materialName->text().trimmed();
 }
 
 
 QString create_material_dialog::GetAlbedoPath() const
 {
-    if (QFileInfo(ui->AlbedoPath->text()).exists()) return ui->AlbedoPath->text();
-
+    QString path = m_albedoPath->GetAbsolutePath();
+    if (!path.isEmpty() && QFileInfo::exists(path)) return path;
     return QString();
 }
 
 
 QString create_material_dialog::GetNormalPath() const
 {
-    if (QFileInfo(ui->NormaPath->text()).exists()) return ui->NormaPath->text();
-
+    QString path = m_normalPath->GetAbsolutePath();
+    if (!path.isEmpty() && QFileInfo::exists(path)) return path;
     return QString();
 }
 
 
 QString create_material_dialog::GetMetallicPath() const
 {
-    if (QFileInfo(ui->MetallicPath->text()).exists()) return ui->MetallicPath->text();
-
+    QString path = m_metallicPath->GetAbsolutePath();
+    if (!path.isEmpty() && QFileInfo::exists(path)) return path;
     return QString();
 }
 
 
 QString create_material_dialog::GetRoughnessPath() const
 {
-    if (QFileInfo(ui->RoughnessPath->text()).exists()) return ui->RoughnessPath->text();
-
+    QString path = m_roughnessPath->GetAbsolutePath();
+    if (!path.isEmpty() && QFileInfo::exists(path)) return path;
     return QString();
 }
 
 
 QString create_material_dialog::GetAOPath() const
 {
-    if (QFileInfo(ui->AOPath->text()).exists()) return ui->AOPath->text();
-
+    QString path = m_aoPath->GetAbsolutePath();
+    if (!path.isEmpty() && QFileInfo::exists(path)) return path;
     return QString();
 }
 
 
 QString create_material_dialog::GetShaderPath() const
 {
-    if (QFileInfo(ui->ShaderPath->text()).exists()) return ui->ShaderPath->text();
-
-    // TODO: use default shader
+    QString path = m_shaderPath->GetAbsolutePath();
+    if (!path.isEmpty() && QFileInfo::exists(path)) return path;
     return QString();
 }
 
-
-void create_material_dialog::OnSelectAlbedo()
-{
-    QString initialDir =
-        ui->AlbedoPath->text().isEmpty() ? QDir::currentPath() : QFileInfo(ui->AlbedoPath->text()).absolutePath();
-
-    SelectFileAsync(this, "Select Albedo Texture", initialDir, filters::TextureFilter,
-                    [this](const QString &filePath) { ui->AlbedoPath->setText(filePath); });
-}
-
-
-void create_material_dialog::OnSelectNormal()
-{
-    QString initialDir =
-        ui->NormaPath->text().isEmpty() ? QDir::currentPath() : QFileInfo(ui->NormaPath->text()).absolutePath();
-
-    SelectFileAsync(this, "Select Normal Texture", initialDir, filters::TextureFilter,
-                    [this](const QString &filePath) { ui->NormaPath->setText(filePath); });
-}
-
-
-void create_material_dialog::OnSelectMetallic()
-{
-    QString initialDir =
-        ui->MetallicPath->text().isEmpty() ? QDir::currentPath() : QFileInfo(ui->MetallicPath->text()).absolutePath();
-
-    SelectFileAsync(this, "Select Metallic Texture", initialDir, filters::TextureFilter,
-                    [this](const QString &filePath) { ui->MetallicPath->setText(filePath); });
-}
-
-
-void create_material_dialog::OnSelectRoughness()
-{
-    QString initialDir =
-        ui->RoughnessPath->text().isEmpty() ? QDir::currentPath() : QFileInfo(ui->RoughnessPath->text()).absolutePath();
-
-    SelectFileAsync(this, "Select Roughness Texture", initialDir, filters::TextureFilter,
-                    [this](const QString &filePath) { ui->RoughnessPath->setText(filePath); });
-}
-
-
-void create_material_dialog::OnSelectAO()
-{
-    QString initialDir =
-        ui->AOPath->text().isEmpty() ? QDir::currentPath() : QFileInfo(ui->AOPath->text()).absolutePath();
-
-    SelectFileAsync(this, "Select AO Texture", initialDir, filters::TextureFilter,
-                    [this](const QString &filePath) { ui->AOPath->setText(filePath); });
-}
-
-
-void create_material_dialog::OnSelectShader()
-{
-    QString initialDir =
-        ui->ShaderPath->text().isEmpty() ? QDir::currentPath() : QFileInfo(ui->ShaderPath->text()).absolutePath();
-
-    SelectFileAsync(this, "Select AO Texture", initialDir, filters::ShaderFilter,
-                    [this](const QString &filePath) { ui->ShaderPath->setText(filePath); });
-}
-
-
 void create_material_dialog::accept()
 {
-    if (ui->MaterialName->text().isEmpty())
+    if (GetMaterialName().isEmpty())
     {
         QMessageBox messageBox;
         messageBox.warning(this, "Error", "Material name is empty!");

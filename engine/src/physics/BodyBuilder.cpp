@@ -7,7 +7,7 @@
 
 using namespace Blainn;
 
-BodyBuilder &BodyBuilder::SetMotionType(JPH::EMotionType motionType)
+BodyBuilder &BodyBuilder::SetMotionType(PhysicsComponentMotionType motionType)
 {
     m_settings.mMotionType = motionType;
     return *this;
@@ -67,8 +67,9 @@ BodyBuilder &Blainn::BodyBuilder::SetGravityFactor(float factor)
     return *this;
 }
 
-JPH::BodyID BodyBuilder::Build(JPH::EActivation activate /*= JPH::EActivation::Activate*/)
+JPH::BodyID BodyBuilder::Build(EActivation activate /*= JPH::EActivation::Activate*/)
 {
+    m_settings.mAllowDynamicOrKinematic = true;
     m_settings.mAllowSleeping = false;
     JPH::BodyInterface &interf = PhysicsSubsystem::GetPhysicsSystem().GetBodyInterface();
     return interf.CreateAndAddBody(m_settings, activate);

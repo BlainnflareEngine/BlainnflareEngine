@@ -1,7 +1,7 @@
 ﻿#include "input-widgets/float_input_field.h"
 
 #include "input-widgets/NumericInputWidget.h"
-#include "oclero/qlementine/style/QlementineStyle.hpp"
+#include <QStyle>
 
 #include <QLabel>
 #include <QMouseEvent>
@@ -30,11 +30,9 @@ float_input_field::float_input_field(const QString &name, float value, QWidget *
     {
         m_label->setStyleSheet(QString("QLabel {"
                                        "    color: %1;"
-                                       "    font-weight: bold;"
                                        "}")
                                    .arg(nameColor.name(QColor::HexRgb)));
     }
-
 
     layout()->addWidget(m_label);
 
@@ -47,14 +45,7 @@ float_input_field::float_input_field(const QString &name, float value, QWidget *
     m_input->setDecimals(m_decimals);
     m_input->setSingleStep(0.01);
     m_input->setValue(value);
-
-
-    m_input->setStyleSheet(R"(
-        QDoubleSpinBox {
-            border-radius: 5px;
-        }
-    )");
-
+    m_lastValue = value;
 
     connect(m_input, &NumericInputWidget::editingFinished, this, &float_input_field::OnEditingFinished);
     connect(m_input, &NumericInputWidget::FocusOut, this, &float_input_field::OnEditingFinished);
@@ -63,6 +54,9 @@ float_input_field::float_input_field(const QString &name, float value, QWidget *
 
 void float_input_field::SetValue(float value)
 {
+    if (value == m_lastValue) return;
+
+    m_lastValue = value;
     m_input->setValue(qBound(m_minValue, value, m_maxValue));
 }
 
@@ -79,9 +73,26 @@ bool float_input_field::HasFocus() const
 }
 
 
+int float_input_field::GetDecimals() const
+{
+    return m_decimals;
+}
+
+
+void float_input_field::SetDecimals(int value)
+{
+    m_input->setDecimals(value);
+    m_decimals = value;
+}
+
+
 void float_input_field::OnEditingFinished()
 {
-    emit EditingFinished();
+    if (m_lastValue != m_input->value())
+    {
+        m_lastValue = m_input->value();
+        emit EditingFinished();
+    }
 }
 
 } // namespace editor

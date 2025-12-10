@@ -50,8 +50,10 @@ bool Blainn::EntityEvent::IsSceneChanged() const
 }
 
 
-Blainn::EntityCreatedEvent::EntityCreatedEvent(const Entity &entity, const uuid &id, bool sceneChanged)
+Blainn::EntityCreatedEvent::EntityCreatedEvent(const Entity &entity, const uuid &id, bool sceneChanged,
+                                               bool createdByEditor)
     : EntityEvent(entity, id, sceneChanged)
+    , m_createdByEditor(createdByEditor)
 {
 }
 
@@ -65,6 +67,12 @@ Blainn::SceneEventType Blainn::EntityCreatedEvent::GetEventType()
 Blainn::Entity Blainn::EntityCreatedEvent::GetParent() const
 {
     return m_entity.GetParent();
+}
+
+
+bool Blainn::EntityCreatedEvent::CreatedByEditor() const
+{
+    return m_createdByEditor;
 }
 
 

@@ -28,14 +28,22 @@ public:
     Vec3 GetScale(); // TODO:?
 
     JPH::RefConst<JPH::Shape> GetShape();
+    ComponentShapeType GetShapeType();
 
     Vec3 GetVelocity();
     float GetMaxLinearVelocity();
     Vec3 GetAngularVelocity();
     float GetMaxAngularVelocity();
     float GetGravityFactor();
-    ObjectLayer GetObjectLayer();
     bool isTrigger();
+
+    ObjectLayer GetObjectLayer();
+    PhysicsComponentMotionType GetMotionType();
+
+    eastl::optional<float> GetSphereShapeRadius();
+    eastl::optional<Vec3> GetBoxShapeHalfExtents();
+    eastl::optional<eastl::pair<float, float>> GetCylinderShapeHalfHeightAndRadius();
+    eastl::optional<eastl::pair<float, float>> GetCapsuleShapeHalfHeightAndRadius();
 
 private:
     JPH::BodyLockRead m_bodyLock;

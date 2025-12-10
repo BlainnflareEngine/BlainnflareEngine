@@ -4,10 +4,13 @@
 
 #include "entity/add_component_button.h"
 
+#include "PhysicsSubsystem.h"
 #include "../../../include/inspector/entity/scripting/scripting_widget.h"
 #include "ScriptingSubsystem.h"
 #include "components/MeshComponent.h"
+#include "components/PhysicsComponent.h"
 #include "entity/mesh_widget.h"
+#include "entity/physics_widget.h"
 #include "entity/transform_widget.h"
 #include "scene/EntityTemplates.h"
 
@@ -25,6 +28,7 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
 
     m_transformAction = m_menu->addAction("Transform");
     m_meshAction = m_menu->addAction("Mesh");
+    m_physicsAction = m_menu->addAction("Physics");
     m_scriptingAction = m_menu->addAction("Scripting");
 
     setText("Add component");
@@ -33,6 +37,7 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
 
     connect(m_transformAction, &QAction::triggered, this, &add_component_button::OnTransformAction);
     connect(m_meshAction, &QAction::triggered, this, &add_component_button::OnMeshAction);
+    connect(m_physicsAction, &QAction::triggered, this, &add_component_button::OnPhysicsAction);
     connect(m_scriptingAction, &QAction::triggered, this, &add_component_button::OnScriptingAction);
 }
 
@@ -63,6 +68,18 @@ void add_component_button::OnMeshAction()
     m_entity.AddComponent<Blainn::MeshComponent>(eastl::move(Blainn::AssetManager::GetDefaultMesh()));
     auto mesh = new mesh_widget(m_entity, this);
     m_layout->insertWidget(m_layout->count() - 1, mesh);
+}
+
+
+void add_component_button::OnPhysicsAction()
+{
+    if (!m_entity.IsValid()) return;
+    if (m_entity.HasComponent<Blainn::PhysicsComponent>()) return;
+
+    Blainn::PhysicsComponentSettings settings(m_entity, Blainn::ComponentShapeType::Box);
+    Blainn::PhysicsSubsystem::CreateAttachPhysicsComponent(settings);
+    auto physics = new physics_widget(m_entity, this);
+    m_layout->insertWidget(m_layout->count() - 1, physics);
 }
 
 

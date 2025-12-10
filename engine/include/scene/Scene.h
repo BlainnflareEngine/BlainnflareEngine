@@ -67,13 +67,13 @@ public:
                                         eastl::function<void(const SceneEventPointer &)> listener);
     static void RemoveEventListener(const SceneEventType eventType, const EventHandle &handle);
 
-    Entity CreateEntity(const eastl::string &name = "", bool onSceneChanged = false);
-    Entity CreateChildEntity(Entity parent, const eastl::string &name = "", bool onSceneChanged = false);
+    Entity CreateEntity(const eastl::string &name = "", bool onSceneChanged = false, bool createdByEditor = false);
+    Entity CreateChildEntity(Entity parent, const eastl::string &name = "", bool onSceneChanged = false, bool createdByEditor = false);
     Entity CreateEntityWithID(const uuid &id, const eastl::string &name = "", bool shouldSort = true,
-                              bool onSceneChanged = false);
+                              bool onSceneChanged = false, bool createdByEditor = false);
     Entity CreateChildEntityWithID(Entity parent, const uuid &id, const eastl::string &name = "",
-                                   bool shouldSort = true, bool onSceneChanged = false);
-    void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false);
+                                   bool shouldSort = true, bool onSceneChanged = false, bool createdByEditor = false);
+    void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false, bool createdByEditor = false);
     void SubmitToDestroyEntity(Entity entity);
 
 

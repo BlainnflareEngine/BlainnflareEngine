@@ -159,13 +159,13 @@ void Scene::RemoveEventListener(const SceneEventType eventType, const EventHandl
 }
 
 
-Entity Scene::CreateEntity(const eastl::string &name, bool onSceneChanged)
+Entity Scene::CreateEntity(const eastl::string &name, bool onSceneChanged, bool createdByEditor)
 {
     BF_DEBUG("Created entity! {0}", name.c_str());
-    return CreateChildEntity({}, name, onSceneChanged);
+    return CreateChildEntity({}, name, onSceneChanged, createdByEditor);
 }
 
-Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name, bool onSceneChanged)
+Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name, bool onSceneChanged, bool createdByEditor)
 {
     BLAINN_PROFILE_FUNC();
 
@@ -185,12 +185,12 @@ Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name, bool o
 
     SortEntities();
 
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged));
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged, createdByEditor));
 
     return entity;
 }
 
-Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool shouldSort, bool onSceneChanged)
+Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool shouldSort, bool onSceneChanged, bool createdByEditor)
 {
     BLAINN_PROFILE_FUNC();
 
@@ -208,14 +208,14 @@ Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool
 
     if (shouldSort) SortEntities();
 
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged));
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged, createdByEditor));
 
     return entity;
 }
 
 
 Entity Scene::CreateChildEntityWithID(Entity parent, const uuid &id, const eastl::string &name, bool shouldSort,
-                                      bool onSceneChanged)
+                                      bool onSceneChanged, bool createdByEditor)
 {
     BLAINN_PROFILE_FUNC();
 
@@ -233,13 +233,13 @@ Entity Scene::CreateChildEntityWithID(Entity parent, const uuid &id, const eastl
 
     SortEntities();
 
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged));
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged, createdByEditor));
 
     return entity;
 }
 
 
-void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged)
+void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, bool createdByEditor)
 {
     if (!entitiesNode || !entitiesNode.IsSequence())
     {

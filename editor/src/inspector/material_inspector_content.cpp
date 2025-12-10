@@ -10,73 +10,80 @@
 #include "Engine.h"
 #include "FileSystemUtils.h"
 #include "LabelsUtils.h"
-#include "ui_material_inspector_content.h"
 
 #include "qfileinfo.h"
+#include "input-widgets/path_input_field.h"
+#include "oclero/qlementine/widgets/Label.hpp"
+
 #include <qdir.h>
 
 namespace editor
 {
 material_inspector_content::material_inspector_content(const QString &file, QWidget *parent)
     : browser_item_inspector_content(file, parent)
-    , ui(new Ui::material_inspector_content)
 {
-    ui->setupUi(this);
+    auto *mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(20, 20, 20, 20);
+    mainLayout->setSpacing(10);
 
     YAML::Node node = YAML::LoadFile(ToString(file));
-    ui->Name->setTextFormat(Qt::MarkdownText);
-    ui->Name->setText(ToHeader2(QFileInfo(file).completeBaseName()));
 
-    ui->Shader->setText(GetPathString(node["ShaderPath"].as<std::string>()));
-    ui->Albedo->setText(GetPathString(node["AlbedoPath"].as<std::string>()));
-    ui->Normal->setText(GetPathString(node["NormalPath"].as<std::string>()));
-    ui->Metallic->setText(GetPathString(node["MetallicPath"].as<std::string>()));
-    ui->Roughness->setText(GetPathString(node["RoughnessPath"].as<std::string>()));
-    ui->AO->setText(GetPathString(node["AOPath"].as<std::string>()));
+    m_nameLabel = new QLabel(ToHeader2(QFileInfo(file).completeBaseName()), this);
+    m_nameLabel->setTextFormat(Qt::MarkdownText);
+    mainLayout->addWidget(m_nameLabel);
 
-    setupFileBrowse(ui->BrowseShader, ui->Shader, "ShaderPath", "Select Shader", filters::ShaderFilter);
-    setupFileBrowse(ui->BrowseAlbedo, ui->Albedo, "AlbedoPath", "Select Albedo Texture", filters::TextureFilter);
-    setupFileBrowse(ui->BrowseNormal, ui->Normal, "NormalPath", "Select Normal Map", filters::TextureFilter);
-    setupFileBrowse(ui->BrowseMetallic, ui->Metallic, "MetallicPath", "Select Metallic Map", filters::TextureFilter);
-    setupFileBrowse(ui->BrowseRoughness, ui->Roughness, "RoughnessPath", "Select Roughness Map",
-                    filters::TextureFilter);
-    setupFileBrowse(ui->BrowseAO, ui->AO, "AOPath", "Select Ambient Occlusion Map", filters::TextureFilter);
+    auto separator = new QFrame();
+    separator->setFrameShape(QFrame::HLine);
+    mainLayout->addWidget(separator);
+
+    m_shaderField = new path_input_field("Shader", {formats::shaderFormat}, this);
+    m_albedoField = new path_input_field("Albedo", formats::supportedTextureFormats, this);
+    m_normalField = new path_input_field("Normal", formats::supportedTextureFormats, this);
+    m_metallicField = new path_input_field("Metallic", formats::supportedTextureFormats, this);
+    m_roughnessField = new path_input_field("Roughness", formats::supportedTextureFormats, this);
+    m_aoField = new path_input_field("AO", formats::supportedTextureFormats, this);
+
+    mainLayout->addWidget(m_shaderField);
+    mainLayout->addWidget(m_albedoField);
+    mainLayout->addWidget(m_normalField);
+    mainLayout->addWidget(m_metallicField);
+    mainLayout->addWidget(m_roughnessField);
+    mainLayout->addWidget(m_aoField);
+
+    auto setContentPath = [](path_input_field *field, const std::string &yamlPath)
+    {
+        if (yamlPath.empty())
+        {
+            field->SetPath("");
+        }
+        else
+        {
+            field->SetPath(QString::fromStdString(yamlPath));
+        }
+    };
+
+    setContentPath(m_shaderField, node["ShaderPath"].as<std::string>(""));
+    setContentPath(m_albedoField, node["AlbedoPath"].as<std::string>(""));
+    setContentPath(m_normalField, node["NormalPath"].as<std::string>(""));
+    setContentPath(m_metallicField, node["MetallicPath"].as<std::string>(""));
+    setContentPath(m_roughnessField, node["RoughnessPath"].as<std::string>(""));
+    setContentPath(m_aoField, node["AOPath"].as<std::string>(""));
+
+    connectPathField(m_shaderField, "ShaderPath");
+    connectPathField(m_albedoField, "AlbedoPath");
+    connectPathField(m_normalField, "NormalPath");
+    connectPathField(m_metallicField, "MetallicPath");
+    connectPathField(m_roughnessField, "RoughnessPath");
+    connectPathField(m_aoField, "AOPath");
+
+    mainLayout->addStretch();
 }
 
-material_inspector_content::~material_inspector_content()
+
+void material_inspector_content::connectPathField(path_input_field *field, const QString &yamlKey)
 {
-    delete ui;
+    connect(field, &path_input_field::PathChanged, this, [this, yamlKey](const QString &, const QString &newPath)
+            { SetValueYAML(ToString(m_file), yamlKey.toStdString(), ToString(newPath)); });
 }
 
-
-QString material_inspector_content::GetPathString(const std::string &path)
-{
-    if (path.empty()) return "No resource";
-
-    return QString::fromStdString(path);
-}
-
-
-void material_inspector_content::setupFileBrowse(QPushButton *button, QLabel *label, const QString &yamlKey,
-                                                 const QString &dialogTitle, const QString &filter)
-{
-    connect(button, &QPushButton::clicked, this,
-            [this, label, yamlKey, dialogTitle, filter]()
-            {
-                QString currentText = label->text();
-                QString initialDir = currentText == "No resource" || currentText.isEmpty()
-                                         ? QString::fromStdString(Blainn::Engine::GetContentDirectory().string())
-                                         : QFileInfo(currentText).absolutePath();
-
-                SelectFileAsync(this, dialogTitle, initialDir, filter,
-                                [this, label, yamlKey](const QString &selectedFile)
-                                {
-                                    QDir contentDir(Blainn::Engine::GetContentDirectory());
-                                    QString relPath = contentDir.relativeFilePath(selectedFile);
-
-                                    label->setText(relPath);
-                                    SetValueYAML(ToString(m_file), yamlKey.toStdString(), ToString(relPath));
-                                });
-            });
-}
 } // namespace editor
