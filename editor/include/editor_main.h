@@ -50,6 +50,9 @@ private:
 private slots:
     void OnOpenSettings();
     void OnSaveScene();
+
+    void OnStartPlayMode();
+    void OnStopPlayMode();
 };
 
 } // namespace editor

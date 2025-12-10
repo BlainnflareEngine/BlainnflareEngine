@@ -68,6 +68,8 @@ Scene::~Scene()
 
 void Scene::SaveScene()
 {
+    if (Engine::IsPlayMode()) return;
+
     BF_DEBUG("Saved scene {}", m_Name.c_str());
 
     YAML::Emitter out;
@@ -103,6 +105,29 @@ void Scene::SaveScene()
     std::string filepath = (Engine::GetContentDirectory() / std::string(m_Name.c_str())).string();
     std::ofstream fout(filepath);
     fout << out.c_str();
+}
+
+
+void Scene::RestoreScene()
+{
+    AssetManager::OpenScene(m_Name.c_str());
+
+    /*for (auto [id, entity] : m_EntityIdMap)
+        SubmitToDestroyEntity(entity);
+
+    ProcessEvents();
+
+    std::string filepath = (Engine::GetContentDirectory() / std::string(m_Name.c_str())).string();
+    YAML::Node config = YAML::LoadFile(filepath);
+
+    if (config["Entities"] && config["Entities"].IsSequence()) CreateEntities(config["Entities"], true);
+*/
+}
+
+
+eastl::string Scene::GetName() const
+{
+    return m_Name;
 }
 
 

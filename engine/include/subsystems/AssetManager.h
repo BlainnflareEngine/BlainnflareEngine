@@ -15,6 +15,15 @@ struct TextureHandle;
 struct MeshHandle;
 struct ImportMeshData;
 
+#ifndef MAX_TEXTURES
+#define MAX_TEXTURES 512
+#endif
+#ifndef MAX_MATERIALS
+#define MAX_MATERIALS 64
+#endif
+#ifndef MAX_MESHES
+#define MAX_MESHES 64
+#endif
 
 class AssetManager
 {
@@ -81,11 +90,6 @@ private:
     void DecreaseTextureRefCount(const unsigned int index);
     void DecreaseMaterialRefCount(const unsigned int index);
     void DecreaseMeshRefCount(const unsigned int index);
-
-private:
-    // Connect with render subsystem resource creating
-    void CreateTextureDataResource(const eastl::shared_ptr<Texture> &texture);
-    void CreateMeshDataResource(const eastl::shared_ptr<Model> &model);
 
 private:
     inline static eastl::unique_ptr<AssetLoader> m_loader;

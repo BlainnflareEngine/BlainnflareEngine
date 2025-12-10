@@ -28,7 +28,10 @@ mesh_widget::mesh_widget(const Blainn::Entity &entity, QWidget *parent)
 
     UpdatePath();
     UpdateMaterial();
+    UpdateMaterial();
 
+    connect(m_path_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewPath);
+    connect(m_material_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewMaterial);
     connect(m_path_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewPath);
     connect(m_material_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewMaterial);
 }

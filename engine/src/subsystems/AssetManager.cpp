@@ -10,17 +10,10 @@
 #include "File-System/Material.h"
 #include "File-System/Model.h"
 #include "File-System/Texture.h"
-#include "Render/PrebuiltEngineMeshes.h"
 
-#ifndef MAX_TEXTURES
-#define MAX_TEXTURES 512
-#endif
-#ifndef MAX_MATERIALS
-#define MAX_MATERIALS 64
-#endif
-#ifndef MAX_MESHES
-#define MAX_MESHES 64
-#endif
+#include "Render/PrebuiltEngineMeshes.h"
+#include "Render/Device.h"
+#include "Render/CommandQueue.h"
 
 namespace Blainn
 {
@@ -42,18 +35,24 @@ void AssetManager::Init()
     m_meshes.reserve(MAX_MESHES);
 
     // TODO: create default texture
-    m_textures.emplace(m_loader->LoadTexture(Engine::GetContentDirectory() / "Default.png", TextureType::ALBEDO));
+    m_textures.emplace(m_loader->LoadTexture(Engine::GetContentDirectory() / "Textures\\Default.dds", TextureType::ALBEDO));
 
     // TODO: create default material
-    Material material = Material(Engine::GetContentDirectory() / "Default.mat", "Default");
+    Material material = Material(Engine::GetContentDirectory() / "Materials\\Default.mat", "Default");
     m_materials.emplace(eastl::make_shared<Material>(material));
 
-    auto defaultMeshData = PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f);
-    auto model = eastl::make_shared<Model>();
-    model->SetMeshes({defaultMeshData});
-    model->CreateBufferResources();
 
-    m_meshes.emplace(model);
+    auto& device = Device::GetInstance();
+    auto commandQueue = device.GetCommandQueue();
+    auto cmdList = commandQueue->GetDefaultCommandList();
+
+    auto defaultMeshData = PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f);
+    Model model;
+    model.SetMeshes({defaultMeshData});
+    model.CreateBufferResources();
+    m_loader->CreateModelGPUResources(model);
+
+    m_meshes.emplace(eastl::make_shared<Model>(model));
 }
 
 
@@ -110,13 +109,16 @@ eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &relativePath, c
 
 Model &AssetManager::GetMeshByIndex(const unsigned int index)
 {
-    return *m_meshes[index];
+    if (m_meshes[index]->IsLoaded()) 
+        return *m_meshes[index];
+    else
+        return GetDefaultMesh()->GetMesh();
 }
 
 
 Model &AssetManager::GetMeshByHandle(const MeshHandle &handle)
 {
-    return *m_meshes[handle.GetIndex()];
+    return GetMeshByIndex(handle.GetIndex());
 }
 
 
@@ -285,9 +287,6 @@ void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int ind
     m_textures[index] = m_loader->LoadTexture(path, type);
     auto str = "Placing texture to index " + std::to_string(index);
     BF_INFO(str);
-
-    // create cpu, gpu d3d12 resources
-    CreateTextureDataResource(m_textures[index]);
 }
 
 
@@ -307,9 +306,6 @@ void AssetManager::AddMeshWhenLoaded(const Path &relativePath, const unsigned in
     m_meshes[index] = m_loader->ImportModel(relativePath, data);
     auto str = "Placing model to index " + std::to_string(index);
     BF_INFO(str);
-
-    // create cpu, gpu d3d12 resources
-    CreateMeshDataResource(m_meshes[index]);
 }
 
 
@@ -376,16 +372,6 @@ void AssetManager::DecreaseMeshRefCount(const unsigned int index)
         if (value.index == index) --value.refCount;
 
     // TODO: remove asset if refCount == 0
-}
-
-void AssetManager::CreateTextureDataResource(const eastl::shared_ptr<Texture> &texture)
-{
-    // auto gfxDevice = Engine::GetGraphicsDevice();
-}
-
-void AssetManager::CreateMeshDataResource(const eastl::shared_ptr<Model> &model)
-{
-    model->CreateBufferResources();
 }
 
 } // namespace Blainn
