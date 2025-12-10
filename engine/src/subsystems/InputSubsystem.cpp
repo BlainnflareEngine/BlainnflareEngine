@@ -83,12 +83,24 @@ void Blainn::Input::UpdateMousePosition(const MousePosition newPos)
                               eastl::make_shared<MouseMovedEvent>(s_mouseDelta.X, s_mouseDelta.Y));
 }
 
+
+void Blainn::Input::ResetMousePosition(float x, float y)
+{
+    ResetMousePosition({x, y});
+}
+
+
+void Blainn::Input::ResetMousePosition(const MousePosition newPos)
+{
+    s_mousePosition = newPos;
+    s_mouseDelta = {0, 0};
+}
+
 void Blainn::Input::TransitionPressedKeys()
 {
     for (const auto &[key, keyState] : s_keyStates)
     {
-        if (keyState == KeyState::Pressed || keyState == KeyState::Held)
-            UpdateKeyState(key, KeyState::Held);
+        if (keyState == KeyState::Pressed || keyState == KeyState::Held) UpdateKeyState(key, KeyState::Held);
     }
 }
 

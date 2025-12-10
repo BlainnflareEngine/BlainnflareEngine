@@ -24,12 +24,13 @@ public:
     }
 
 protected:
+
     void resizeEvent(QResizeEvent *event) override
     {
         QWidget::resizeEvent(event);
         BF_DEBUG("Resized!");
 
-        //Blainn::RenderSubsystem::GetInstance().OnResize(event->size().width(), event->size().height());
+        // Blainn::RenderSubsystem::GetInstance().OnResize(event->size().width(), event->size().height());
     }
 
     void keyPressEvent(QKeyEvent *event) override
@@ -46,6 +47,9 @@ protected:
 
     void mousePressEvent(QMouseEvent *event) override
     {
+        QPoint globalPos = QCursor::pos();
+        Blainn::Input::ResetMousePosition(globalPos.x(), globalPos.y());
+
         Blainn::Input::UpdateButtonState(static_cast<Blainn::MouseButton>(event->button()),
                                          Blainn::ButtonState::Pressed);
         QWidget::mousePressEvent(event);
@@ -61,6 +65,9 @@ protected:
 
     void mouseReleaseEvent(QMouseEvent *event) override
     {
+        QPoint globalPos = QCursor::pos();
+        Blainn::Input::ResetMousePosition(globalPos.x(), globalPos.y());
+
         Blainn::Input::UpdateButtonState(static_cast<Blainn::MouseButton>(event->button()),
                                          Blainn::ButtonState::Released);
         QWidget::mouseReleaseEvent(event);
