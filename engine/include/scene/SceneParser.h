@@ -6,6 +6,8 @@
 #include "aliases.h"
 #include "pch.h"
 
+#include "components/ScriptingComponent.h"
+
 namespace Blainn
 {
 inline uuid GetID(const YAML::Node &node)
@@ -46,9 +48,9 @@ inline TransformComponent GetTransform(const YAML::Node &node)
         auto translationNode = node["Translation"];
         if (translationNode["x"] && translationNode["y"] && translationNode["z"])
         {
-            transform.Translation.x = translationNode["x"].as<float>();
-            transform.Translation.y = translationNode["y"].as<float>();
-            transform.Translation.z = translationNode["z"].as<float>();
+            Vec3 translation(translationNode["x"].as<float>(), translationNode["y"].as<float>(),
+                             translationNode["z"].as<float>());
+            transform.SetTranslation(translation);
         }
     }
     if (node["Rotation"])
@@ -68,9 +70,8 @@ inline TransformComponent GetTransform(const YAML::Node &node)
         auto scaleNode = node["Scale"];
         if (scaleNode["x"] && scaleNode["y"] && scaleNode["z"])
         {
-            transform.Scale.x = scaleNode["x"].as<float>();
-            transform.Scale.y = scaleNode["y"].as<float>();
-            transform.Scale.z = scaleNode["z"].as<float>();
+            Vec3 scale(scaleNode["x"].as<float>(), scaleNode["y"].as<float>(), scaleNode["z"].as<float>());
+            transform.SetScale(scale);
         }
     }
 

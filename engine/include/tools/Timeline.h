@@ -1,10 +1,5 @@
 #pragma once
 
-#include <cstdint>
-
-#include <EASTL/chrono.h>
-#include <EASTL/vector.h>
-
 namespace Blainn
 {
 
@@ -40,9 +35,12 @@ public:
     void RemoveChildTimeline(Timeline *childTimeline);
 
 private:
+    float GetLastSavedTickDelta() const;
+
     bool m_isActive;
     int64_t m_startTime;
     int64_t m_lastSavedTime;
+    int64_t m_lastSavedTickDelta;
     int64_t GetTime() const;
 
     Timeline *m_parentTimeline = nullptr;
@@ -103,10 +101,12 @@ template <typename EastlDurationType> void Blainn::Timeline<EastlDurationType>::
 template <typename EastlDurationType> float Blainn::Timeline<EastlDurationType>::Tick()
 {
     if (!m_isActive) return 0.0f;
+    if (m_parentTimeline) return m_parentTimeline->GetLastSavedTickDelta();
 
     int64_t prevTime = m_lastSavedTime;
     m_lastSavedTime = GetTime();
-    return m_lastSavedTime - prevTime;
+    m_lastSavedTickDelta = m_lastSavedTime - prevTime;
+    return static_cast<float>(m_lastSavedTickDelta);
 }
 
 template <typename EastlDurationType> void Blainn::Timeline<EastlDurationType>::Reset()
@@ -134,6 +134,11 @@ inline void Timeline<EastlDurationType>::RemoveChildTimeline(Timeline *childTime
     {
         m_childTimelines.erase(it);
     }
+}
+
+template <typename EastlDurationType> inline float Timeline<EastlDurationType>::GetLastSavedTickDelta() const
+{
+    return m_lastSavedTickDelta;
 }
 
 template <typename EastlDurationType> int64_t Blainn::Timeline<EastlDurationType>::GetTime() const

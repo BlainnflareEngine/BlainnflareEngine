@@ -76,8 +76,8 @@ private:
                                       PhysicsEventPolicy>
         s_physicsEventQueue;
 
-    inline static const int physicsUpdateFrequency = 30;
-    inline static const int physicsUpdateSubsteps = 4;
+    inline static const int physicsUpdateFrequency = 60;
+    inline static const int physicsUpdateSubsteps = 1;
     inline static const float m_physicsUpdatePeriodMs = 1000.0 / static_cast<float>(physicsUpdateFrequency);
     inline static eastl::unique_ptr<Blainn::PeriodicTimeline<eastl::chrono::milliseconds>> m_physicsTimeline =
         nullptr; // initialized in Init()
