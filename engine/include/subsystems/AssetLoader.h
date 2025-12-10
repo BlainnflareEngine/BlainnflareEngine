@@ -37,8 +37,10 @@ namespace Blainn
         void Destroy();
 
         eastl::shared_ptr<Model> ImportModel(const Path &relativePath, const ImportMeshData &data);
+        void CreateModelGPUResources(Model& model);
 
         eastl::shared_ptr<Texture> LoadTexture(const Path &path, TextureType type);
+        void CreateTextureGPUResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource> &resource);
 
         eastl::shared_ptr<Material> LoadMaterial(const Path &path);
 

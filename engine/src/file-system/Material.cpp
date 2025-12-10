@@ -72,6 +72,10 @@ void Blainn::Material::SetTexture(const eastl::shared_ptr<TextureHandle> &textur
     case TextureType::OTHER:
         BF_INFO("Trying to set other texture in " + m_path.string())
         break;
+
+    default:
+        BF_ERROR("Fuck you!");
+        break;
     }
 }
 

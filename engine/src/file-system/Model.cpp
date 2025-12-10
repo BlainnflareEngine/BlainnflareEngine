@@ -75,9 +75,6 @@ Model::Model()
             totalIndexCount += mesh.indices.size();
         }
 
-        eastl::vector<BlainnVertex> allVertices;
-        eastl::vector<UINT> allIndices;
-
         allVertices.reserve(totalVertexCount);
         allIndices.reserve(totalIndexCount);
 
@@ -96,19 +93,12 @@ Model::Model()
 
             indexValueOffsetPerMesh += mesh.vertices.size();
         }
+    }
 
-        auto cmdQueue = Device::GetInstance().GetCommandQueue();
-        auto cmdList = cmdQueue->GetDefaultCommandList();
-        auto cmdAlloc = cmdQueue->GetDefaultCommandAllocator();
-
-        cmdList->Reset(cmdAlloc.Get(), nullptr);
-
-        CreateGPUBuffers(cmdList.Get(), allVertices, allIndices);
-
-        ThrowIfFailed(cmdList->Close());
-        ID3D12CommandList *const ppCommandLists[] = {cmdList.Get()};
-        cmdQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-        cmdQueue->Flush();
+    void Model::CreateGPUBuffers(ID3D12GraphicsCommandList2 *pCommandList, UINT64 frameValue)
+    {
+        m_frameValue = frameValue;
+        CreateGPUBuffers(pCommandList, allVertices, allIndices);
     }
 
     D3D12_VERTEX_BUFFER_VIEW Model::VertexBufferView() const

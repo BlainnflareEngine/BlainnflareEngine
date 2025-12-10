@@ -8,6 +8,62 @@
 
 #if BLAINN_ENABLE_PROFILING
 #include <tracy/Tracy.hpp>
+#include <cstdlib>
+#include <new>
+
+inline void* operator new(std::size_t size)
+{
+    if (size == 0)
+        size = 1;
+
+    void* p = std::malloc(size);
+    if (!p)
+        throw std::bad_alloc{};
+
+    TracyAlloc(p, size);
+    return p;
+}
+
+inline void* operator new[](std::size_t size)
+{
+    if (size == 0)
+        size = 1;
+
+    void* p = std::malloc(size);
+    if (!p)
+        throw std::bad_alloc{};
+
+    TracyAlloc(p, size);
+    return p;
+}
+
+inline void operator delete(void* ptr) noexcept
+{
+    if (!ptr) return;
+    TracyFree(ptr);
+    std::free(ptr);
+}
+
+inline void operator delete[](void* ptr) noexcept
+{
+    if (!ptr) return;
+    TracyFree(ptr);
+    std::free(ptr);
+}
+
+inline void operator delete(void* ptr, std::size_t) noexcept
+{
+    if (!ptr) return;
+    TracyFree(ptr);
+    std::free(ptr);
+}
+
+inline void operator delete[](void* ptr, std::size_t) noexcept
+{
+    if (!ptr) return;
+    TracyFree(ptr);
+    std::free(ptr);
+}
 
 /*
  * This is used to mark that a frame has been finished

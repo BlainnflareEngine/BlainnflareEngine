@@ -15,6 +15,15 @@ struct TextureHandle;
 struct MeshHandle;
 struct ImportMeshData;
 
+#ifndef MAX_TEXTURES
+#define MAX_TEXTURES 512
+#endif
+#ifndef MAX_MATERIALS
+#define MAX_MATERIALS 64
+#endif
+#ifndef MAX_MESHES
+#define MAX_MESHES 64
+#endif
 
 class AssetManager
 {
@@ -46,11 +55,13 @@ public:
     Texture &GetTextureByIndex(unsigned int index);
     Texture &GetTextureByHandle(const TextureHandle &handle);
 
-    bool HasMaterial(const Path &path);
+    bool HasMaterial(const Path &relativePath);
     eastl::shared_ptr<MaterialHandle> GetMaterial(const Path &path);
     eastl::shared_ptr<MaterialHandle> LoadMaterial(const Path &path);
     Material &GetMaterialByIndex(unsigned int index);
     Material &GetMaterialByHandle(const MaterialHandle &handle);
+    static eastl::shared_ptr<MaterialHandle> GetDefaultMaterialHandle();
+    Path GetMaterialPath(const MaterialHandle &handle);
 
     static bool SceneExists(const Path &relativePath);
     static void OpenScene(const Path &relativePath);
@@ -66,7 +77,7 @@ private:
 
 
     void AddTextureWhenLoaded(const Path &path, const unsigned int index, const TextureType type);
-    void AddMaterialWhenLoaded(const Path &path, const unsigned int index);
+    void AddMaterialWhenLoaded(const Path &relativePath, const unsigned int index);
     void AddMeshWhenLoaded(const Path &relativePath, const unsigned int index, const ImportMeshData data);
 
     Texture &GetDefaultTexture();
@@ -79,11 +90,6 @@ private:
     void DecreaseTextureRefCount(const unsigned int index);
     void DecreaseMaterialRefCount(const unsigned int index);
     void DecreaseMeshRefCount(const unsigned int index);
-
-private:
-    // Connect with render subsystem resource creating
-    void CreateTextureDataResource(const eastl::shared_ptr<Texture> &texture);
-    void CreateMeshDataResource(const eastl::shared_ptr<Model> &model);
 
 private:
     inline static eastl::unique_ptr<AssetLoader> m_loader;

@@ -253,7 +253,7 @@ VOID Blainn::RenderSubsystem::Reset()
 
 VOID Blainn::RenderSubsystem::ResetGraphicsFeatures()
 {
-    m_camera->Reset(75.0f, m_aspectRatio, 1.0f, 250.0f);
+    m_camera->Reset(75.0f, m_aspectRatio, 0.1f, 250.0f);
 }
 
 VOID Blainn::RenderSubsystem::Present()
@@ -327,32 +327,16 @@ void Blainn::RenderSubsystem::CreateFrameResources()
 
 void Blainn::RenderSubsystem::CreateDescriptorHeaps()
 {
-    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-                                                1u + 5u /*+ (UINT)m_textures.size()*/, m_srvHeap));
-    // csm + GBuffer
+    ThrowIfFailed(m_device.CreateDescriptorHeap(
+        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+        1u + GBuffer::EGBufferLayer::MAX + MAX_TEXTURES, m_srvHeap));
+    
     m_cbvSrvUavDescriptorSize = m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE handle =
-        CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvHeap->GetCPUDescriptorHandleForHeapStart());
+    CD3DX12_CPU_DESCRIPTOR_HANDLE handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvHeap->GetCPUDescriptorHandleForHeapStart());
 
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     ZeroMemory(&srvDesc, sizeof(srvDesc));
-
-    /*for (auto &e : m_textures)
-    {
-        auto &texD3DResource = e.second->Resource;
-        srvDesc.Format = texD3DResource->GetDesc().Format;
-        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-        srvDesc.Texture2D.MostDetailedMip = 0u;
-        srvDesc.Texture2D.MipLevels = texD3DResource->GetDesc().MipLevels;
-        srvDesc.Texture2D.PlaneSlice;
-        srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-
-        m_device->CreateShaderResourceView(texD3DResource.Get(), &srvDesc, handle);
-
-        handle.Offset(1, m_cbvSrvUavDescriptorSize);
-    }*/
 
     UINT m_cascadeShadowMapHeapIndex = 0u;
 
@@ -409,6 +393,19 @@ void Blainn::RenderSubsystem::CreateDescriptorHeaps()
     }
 
     m_GBuffer->CreateDescriptors();
+
+    auto texD3DResource = AssetManager::GetInstance().GetTextureByIndex(0).GetResource();
+    srvDesc.Format = texD3DResource->GetDesc().Format;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Texture2D.MostDetailedMip = 0u;
+    srvDesc.Texture2D.MipLevels = texD3DResource->GetDesc().MipLevels;
+    srvDesc.Texture2D.PlaneSlice;
+    srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+    
+    m_device.CreateShaderResourceView(texD3DResource, &srvDesc, handle);
+    
+    handle.Offset(1, m_cbvSrvUavDescriptorSize);
 }
 
 void Blainn::RenderSubsystem::CreateRootSignature()
@@ -666,10 +663,6 @@ void Blainn::RenderSubsystem::AddMeshToRenderComponent(Entity entity, eastl::sha
     }
 }
 
-void Blainn::RenderSubsystem::OnKeyboardInput(float deltaTime)
-{
-}
-
 void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 {
     const auto &renderEntitiesView =
@@ -678,8 +671,7 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
     {
         // Luna stuff. Try to remove 'if' statement.
         // Have tried. It does not affect anything.
-        // Looks like it just forces the code to update the object's constant buffer regardless of whether it has been
-        // modified or not.
+        // Looks like it just forces the code to update the object's constant buffer regardless of whether it has been modified or not.
         if (entityTransform.IsDirty())
         {
             ObjectConstants objConstants;
@@ -1028,19 +1020,18 @@ void Blainn::RenderSubsystem::RenderTransparencyPass(ID3D12GraphicsCommandList2 
 {
 }
 
-void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList,
-                                         const eastl::vector<eastl::unique_ptr<Model>> &models)
+void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<eastl::unique_ptr<Model>> &models)
 {
+    auto commandQueue = m_device.GetCommandQueue();
+
     UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-    const auto &renderEntitiesView =
-        Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
+    const auto &renderEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
     for (const auto &[entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
     {
-        // auto& model = entityMesh.m_meshHandle->GetMesh();
         auto currObjectCB = entityMesh.ObjectCB->Get();
 
-        auto &model = AssetManager::GetInstance().GetMeshByIndex(0);
+        auto &model = entityMesh.m_meshHandle->GetMesh();
 
         auto currVBV = model.VertexBufferView();
         auto currIBV = model.IndexBufferView();
@@ -1053,7 +1044,7 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
             FreyaUtil::GetGPUVirtualAddress(currObjectCB->GetGPUVirtualAddress(), objCBByteSize, 0u);
         pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerObjectDataCB, objCBAddress);
 
-        if (currVBV.SizeInBytes)
+        if (currIBV.SizeInBytes)
         {
             pCommandList->DrawIndexedInstanced(model.GetIndicesCount(), 1u, 0u, 0u, 0u);
         }
