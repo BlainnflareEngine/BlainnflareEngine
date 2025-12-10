@@ -58,7 +58,8 @@ void Editor::Init(int argc, char **argv)
     Log::AddSink(GetEditorSink());
 
     std::string defaultScene = config["DefaultScenePath"].as<std::string>();
-    if (!AssetManager::SceneExists(defaultScene)) AssetManager::CreateScene(defaultScene);
+    if (!AssetManager::SceneExists(defaultScene))
+        AssetManager::CreateScene(defaultScene);
 
     AssetManager::OpenScene(defaultScene);
 }

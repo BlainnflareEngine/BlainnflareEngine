@@ -40,7 +40,7 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     ScriptingSubsystem::Init();
 
     // TODO: -- remove --  test asset manager
-    auto a = AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), TextureType::ALBEDO);
+    //auto a = AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), TextureType::ALBEDO);
 
     // TODO: -- remove -- test input
     Input::AddEventListener(InputEventType::KeyPressed,
@@ -138,10 +138,15 @@ void Engine::Update(float deltaTime)
         physicsSettings3.gravityFactor = -1.0f;
         PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings3);
 
-        one = true;
-    }
+    //    one = true;
+    //}
 
-    PhysicsSubsystem::Update();
+    if (s_isPlayMode)
+    {
+        float playModeDelta = s_playModeTimeline.Tick();
+        PhysicsSubsystem::Update();
+        ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
+    }
 
     s_activeScene->Update();
 
@@ -151,6 +156,53 @@ void Engine::Update(float deltaTime)
 
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;
+}
+
+
+void Engine::StartPlayMode()
+{
+    if (s_isPlayMode) return;
+
+    if (s_activeScene) s_activeScene->SaveScene();
+    else return;
+
+    s_playModeTimeline.Reset();
+    s_playModeTimeline.Start();
+    s_isPlayMode = true;
+
+    for (auto [entity, id, scriptComp] : s_activeScene->GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
+    {
+        for (auto [path, info] : scriptComp.scriptPaths)
+            ScriptingSubsystem::LoadScript(s_activeScene->GetEntityWithUUID(id.ID), Path(path.c_str()),
+                                           info.shouldTriggerStart);
+    }
+}
+
+
+void Engine::StopPlayMode()
+{
+    s_playModeTimeline.Pause();
+}
+
+
+void Engine::EscapePlayMode()
+{
+    if (!s_isPlayMode) return;
+    if (s_activeScene) AssetManager::GetInstance().OpenScene(s_activeScene->GetName().c_str());
+
+    s_isPlayMode = false;
+
+    for (auto [entity, id, scriptComp] : s_activeScene->GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
+    {
+        for (auto [id, script] : scriptComp.scripts)
+            ScriptingSubsystem::UnloadScript(id);
+    }
+}
+
+
+bool Engine::IsPlayMode()
+{
+    return s_isPlayMode;
 }
 
 

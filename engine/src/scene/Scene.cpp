@@ -74,6 +74,8 @@ void Blainn::Scene::Update()
 
 void Scene::SaveScene()
 {
+    if (Engine::IsPlayMode()) return;
+
     BF_DEBUG("Saved scene {}", m_Name.c_str());
 
     YAML::Emitter out;
@@ -109,6 +111,18 @@ void Scene::SaveScene()
     std::string filepath = (Engine::GetContentDirectory() / std::string(m_Name.c_str())).string();
     std::ofstream fout(filepath);
     fout << out.c_str();
+}
+
+
+void Scene::RestoreScene()
+{
+    AssetManager::OpenScene(m_Name.c_str());
+}
+
+
+eastl::string Scene::GetName() const
+{
+    return m_Name;
 }
 
 

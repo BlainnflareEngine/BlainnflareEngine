@@ -45,6 +45,9 @@ public:
     }
 
     void SaveScene();
+    void RestoreScene();
+
+    eastl::string GetName() const;
 
     using EventHandle =
         eventpp::internal_::CallbackListBase<void(const eastl::shared_ptr<SceneEvent> &), SceneEventPolicy>::Handle;

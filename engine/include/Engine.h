@@ -13,34 +13,41 @@ class JobSystem;
 
 namespace Blainn
 {
-    class Engine
-    {
-    public:
-        Engine() = delete;
-        static void Init(Timeline<eastl::chrono::milliseconds> &globalTimeline);
-        static void InitRenderSubsystem(HWND windowHandle);
-        static void Destroy();
-        static void Update(float deltaTime);
+class Engine
+{
+public:
+    Engine() = delete;
+    static void Init(Timeline<eastl::chrono::milliseconds> &globalTimeline);
+    static void InitRenderSubsystem(HWND windowHandle);
+    static void Destroy();
+    static void Update(float deltaTime);
 
-    public:
-        static Path &GetContentDirectory();
-        static void SetContentDirectory(const Path &contentDirectory);
-        static void SetDefaultContentDirectory();
+    static void StartPlayMode();
+    static void StopPlayMode();
+    static void EscapePlayMode();
+    static bool IsPlayMode();
 
-    public:
-        static eastl::shared_ptr<Scene> GetActiveScene();
-        static void SetActiveScene(const eastl::shared_ptr<Scene> &scene);
-        static void ClearActiveScene();
+public:
+    static Path &GetContentDirectory();
+    static void SetContentDirectory(const Path &contentDirectory);
+    static void SetDefaultContentDirectory();
 
-    public:
-        static HWND CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle,
-                                       const std::string &winClassTitle, HINSTANCE hInst);
-        static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+public:
+    static eastl::shared_ptr<Scene> GetActiveScene();
+    static void SetActiveScene(const eastl::shared_ptr<Scene> &scene);
+    static void ClearActiveScene();
 
-    private:
-        static inline eastl::function<void(float)> m_renderFunc = nullptr;
-        static inline eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr = nullptr;
-        static inline eastl::shared_ptr<Scene> s_activeScene{};
-        static inline Path s_contentDirectory;
-    };
+public:
+    static HWND CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle,
+                                   const std::string &winClassTitle, HINSTANCE hInst);
+    static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+private:
+    static inline eastl::function<void(float)> m_renderFunc = nullptr;
+    static inline eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr = nullptr;
+    static inline eastl::shared_ptr<Scene> s_activeScene{};
+    static inline Path s_contentDirectory;
+    static inline Timeline<eastl::chrono::milliseconds> s_playModeTimeline{nullptr};
+    static inline bool s_isPlayMode = false;
+};
 } // namespace Blainn

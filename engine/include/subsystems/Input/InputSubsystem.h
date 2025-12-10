@@ -61,6 +61,8 @@ public:
     static MousePosition GetMousePosition();
     static void UpdateMousePosition(float x, float y);
     static void UpdateMousePosition(MousePosition newPos);
+    static void ResetMousePosition(float x, float y);
+    static void ResetMousePosition(const MousePosition newPos);
 
     static void TransitionPressedKeys();
     static void TransitionPressedButtons();

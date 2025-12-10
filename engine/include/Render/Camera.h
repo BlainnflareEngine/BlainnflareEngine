@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Render/DXHelpers.h"
+#include "Subsystems/Input/KeyCodes.h"
 
 namespace Blainn
 {
@@ -16,7 +17,7 @@ namespace Blainn
         XMMATRIX GetViewMatrix() const;
         XMMATRIX GetPerspectiveProjectionMatrix() const;
         XMMATRIX GetOrthoProjectionMatrix() const;
-        FORCEINLINE const BoundingFrustum& GetCameraFrustum() const { return m_frustum; }
+        //FORCEINLINE const BoundingFrustum& GetCameraFrustum() const { return m_frustum; }
         
         FORCEINLINE float GetNearZ() const { return m_nearZ; }
         FORCEINLINE float GetFarZ() const { return m_farZ; }
@@ -29,13 +30,17 @@ namespace Blainn
         FORCEINLINE float GetFarWindowHeight() const{ return m_farWindowHeight; }
         FORCEINLINE float GetFarWindowWidth() const { return m_farWindowHeight * m_aspectRatio; }
         
-        
         XMFLOAT3 GetPosition3f() const;
         XMVECTOR GetPosition() const;
         void SetPosition(float x, float y, float z);
         void SetPosition(const XMFLOAT3& v);
         
         // Translation
+        void Move(const KeyCode key);
+        void AdjustRotation(float x, float y);
+        void SetCameraProperties(const KeyCode key);
+    private:
+        void SetAcceleration(bool useAcceleration) { m_bUseAcceleration = useAcceleration; }
         void MoveRight(float d);
         void MoveForward(float d);
         void MoveUp(float d);
@@ -49,7 +54,7 @@ namespace Blainn
         XMFLOAT3 m_right	= { 1.0f, 0.0f, 0.0f };
         XMFLOAT3 m_up		= { 0.0f, 1.0f, 0.0f };
         XMFLOAT3 m_forward	= { 0.0f, 0.0f, 1.0f };
-        
+
         float m_nearZ;
         float m_farZ;
         float m_fovYRad;
@@ -57,9 +62,15 @@ namespace Blainn
         float m_nearWindowHeight;
         float m_farWindowHeight;
         
-        bool m_isDirty = false;
+        float m_cameraSpeed = 0.1f;
+        float m_cameraAcceleration = 10.0f;
         
-        BoundingFrustum m_frustum;
+        // TO DO: Should be tracked
+        XMFLOAT2 m_lastMousePos = {0.0f, 0.0f};
+        bool m_isDirty = false;
+        bool m_bUseAcceleration = false;
+
+        //BoundingFrustum m_frustum;
         
         XMMATRIX m_view = XMMatrixIdentity();
         XMMATRIX m_persProj = XMMatrixIdentity();
