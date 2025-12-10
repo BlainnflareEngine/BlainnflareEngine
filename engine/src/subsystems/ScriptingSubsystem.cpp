@@ -41,7 +41,7 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
 {
 #ifdef BLAINN_TEST_LUA_SCRIPTS
 
-    static bool create;
+    /*static bool create;
     if (!create)
     {
         m_scriptTestEntity = Engine::GetActiveScene()->CreateEntity("LuaScriptTestEntity");
@@ -52,7 +52,7 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
             ScriptingSubsystem::LoadScript(m_scriptTestEntity, "./scripts/test2.lua", true).value_or(uuid());
 
         create = true;
-    }
+    }*/
 #endif
 
     // TODO: can be replaced with profiler

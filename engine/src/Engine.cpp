@@ -168,7 +168,12 @@ void Engine::StartPlayMode()
     s_playModeTimeline.Start();
     s_isPlayMode = true;
 
-    // TODO: load scripts
+    for (auto [entity, id, scriptComp] : s_activeScene->GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
+    {
+        for (auto [path, info] : scriptComp.scriptPaths)
+            ScriptingSubsystem::LoadScript(s_activeScene->GetEntityWithUUID(id.ID), Path(path.c_str()),
+                                           info.shouldTriggerStart);
+    }
 }
 
 
@@ -185,7 +190,11 @@ void Engine::EscapePlayMode()
 
     s_isPlayMode = false;
 
-    // TODO: unload scripts
+    for (auto [entity, id, scriptComp] : s_activeScene->GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
+    {
+        for (auto [id, script] : scriptComp.scripts)
+            ScriptingSubsystem::UnloadScript(id);
+    }
 }
 
 
