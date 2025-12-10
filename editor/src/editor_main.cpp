@@ -53,8 +53,8 @@ editor_main::editor_main(QWidget *parent)
     connect(ui->AddToScene, &QPushButton::clicked, this, &editor_main::OpenAddToScene);
 
 
-    connect(ui->m_playButton,  &QPushButton::clicked, this, &editor_main::OnStartPlayMode);
-    connect(ui->m_stopButton,  &QPushButton::clicked, this, &editor_main::OnEscapePlayMode);
+    connect(ui->m_playButton, &QPushButton::clicked, this, &editor_main::OnStartPlayMode);
+    connect(ui->m_stopButton, &QPushButton::clicked, this, &editor_main::OnStopPlayMode);
 
     // Action bar
     ui->actionSave->setShortcut(Qt::CTRL + Qt::Key_S);
@@ -132,13 +132,25 @@ void editor_main::OnSaveScene()
 
 void editor_main::OnStartPlayMode()
 {
-    Blainn::Engine::StartPlayMode();
+    if (!Blainn::Engine::IsPlayMode())
+    {
+        Blainn::Engine::StartPlayMode();
+        ui->m_playButton->setIcon(QIcon(":/icons/stop.png"));
+    }
+    else
+    {
+        Blainn::Engine::EscapePlayMode();
+        ui->m_playButton->setIcon(QIcon(":/icons/play.png"));
+    }
 }
 
 
-void editor_main::OnEscapePlayMode()
+void editor_main::OnStopPlayMode()
 {
-    Blainn::Engine::EscapePlayMode();
+    if (Blainn::Engine::IsPlayMode())
+    {
+        Blainn::Engine::StopPlayMode();
+    }
 }
 
 } // namespace editor
