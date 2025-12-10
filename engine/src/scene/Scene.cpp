@@ -111,17 +111,6 @@ void Scene::SaveScene()
 void Scene::RestoreScene()
 {
     AssetManager::OpenScene(m_Name.c_str());
-
-    /*for (auto [id, entity] : m_EntityIdMap)
-        SubmitToDestroyEntity(entity);
-
-    ProcessEvents();
-
-    std::string filepath = (Engine::GetContentDirectory() / std::string(m_Name.c_str())).string();
-    YAML::Node config = YAML::LoadFile(filepath);
-
-    if (config["Entities"] && config["Entities"].IsSequence()) CreateEntities(config["Entities"], true);
-*/
 }
 
 
