@@ -134,7 +134,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset theme=":/icons/stop.png"/>
+          <iconset theme=":/icons/pause.png"/>
          </property>
          <property name="iconSize">
           <size>
