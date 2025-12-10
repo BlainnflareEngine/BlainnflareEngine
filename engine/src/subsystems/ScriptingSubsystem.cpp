@@ -51,8 +51,8 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
     //    m_scriptTestUuid2 =
     //        ScriptingSubsystem::LoadScript(m_scriptTestEntity, "./scripts/test2.lua", true).value_or(uuid());
 
-        create = true;
-    }
+    //    create = true;
+    //}
 #endif
 
     // TODO: can be replaced with profiler

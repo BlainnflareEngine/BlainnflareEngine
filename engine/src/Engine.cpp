@@ -138,8 +138,8 @@ void Engine::Update(float deltaTime)
     //    physicsSettings3.gravityFactor = -1.0f;
     //    PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings3);
 
-        one = true;
-    }*/
+    //    one = true;
+    //}
 
     if (s_isPlayMode)
     {
