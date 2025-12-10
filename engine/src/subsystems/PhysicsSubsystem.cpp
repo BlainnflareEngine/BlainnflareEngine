@@ -83,7 +83,7 @@ void PhysicsSubsystem::Update()
 
     if (testAccumulator >= 1000.0f)
     {
-        BF_WARN("Physics FPS: {} ; deltaTime {}", fpsCounter - fpsCounterPrevValue, deltaTime);
+        // BF_WARN("Physics FPS: {} ; deltaTime {}", fpsCounter - fpsCounterPrevValue, deltaTime);
         fpsCounterPrevValue = fpsCounter;
 
         testAccumulator -= 1000.0f;

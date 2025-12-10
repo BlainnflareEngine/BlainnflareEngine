@@ -33,6 +33,11 @@ Vec3 BodyGetter::GetVelocity()
 
 float BodyGetter::GetMaxLinearVelocity()
 {
+    if (m_body.IsStatic())
+    {
+        BF_ERROR("cannot get max linear velocity from static object");
+        return 0.0f;
+    }
     return m_body.GetMotionProperties()->GetMaxLinearVelocity();
 }
 
@@ -43,11 +48,21 @@ Vec3 BodyGetter::GetAngularVelocity()
 
 float BodyGetter::GetMaxAngularVelocity()
 {
+    if (m_body.IsStatic())
+    {
+        BF_ERROR("cannot get max angular velocity from static object");
+        return 0.0f;
+    }
     return m_body.GetMotionProperties()->GetMaxAngularVelocity();
 }
 
 float BodyGetter::GetGravityFactor()
 {
+    if (m_body.IsStatic())
+    {
+        BF_ERROR("cannot get gravity factor from static object");
+        return 0.0f;
+    }
     return m_body.GetMotionProperties()->GetGravityFactor();
 }
 
