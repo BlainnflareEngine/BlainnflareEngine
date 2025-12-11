@@ -78,7 +78,7 @@ void Blainn::Camera::Reset(float fovAngleYDegrees, float aspectRatio, float near
 							[this](const InputEventPointer& event)
 							{ 
 								const MouseMovedEvent *mouseEvent = static_cast<const MouseMovedEvent *>(event.get());
-                                AdjustRotation(mouseEvent->GetX(), -mouseEvent->GetY());
+                                AdjustRotation(mouseEvent->GetX(), mouseEvent->GetY());
 							});
 }
 
