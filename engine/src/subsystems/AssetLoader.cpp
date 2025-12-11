@@ -69,7 +69,7 @@ eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, cons
     return eastl::make_shared<Model>(model);
 }
 
-void AssetLoader::CreateModelGPUResources(Model& model)
+void AssetLoader::CreateModelGPUResources(Model &model)
 {
     // Gpu stuff
     auto cmdQueue = Device::GetInstance().GetCommandQueue();
@@ -84,11 +84,12 @@ void AssetLoader::CreateModelGPUResources(Model& model)
     ID3D12CommandList *const ppCommandLists[] = {cmdList.Get()};
     cmdQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     cmdQueue->Flush();
-    
+
     model.m_bisLoaded = true;
 }
 
-void AssetLoader::ProcessNode(const Path &path, const aiNode &node, const aiScene &scene, const Mat4 &parentMatrix, Model &model)
+void AssetLoader::ProcessNode(const Path &path, const aiNode &node, const aiScene &scene, const Mat4 &parentMatrix,
+                              Model &model)
 {
     Mat4 nodeTransform = Mat4(&node.mTransformation.a1).Transpose() * parentMatrix;
 
@@ -107,7 +108,7 @@ void AssetLoader::ProcessNode(const Path &path, const aiNode &node, const aiScen
 
 
 MeshData<> AssetLoader::ProcessMesh(const Path &path, const aiMesh &mesh, const aiScene &scene, const aiNode &node,
-                                  const Mat4 &parentMatrix, Model &model)
+                                    const Mat4 &parentMatrix, Model &model)
 {
     MeshData<> result_mesh = MeshData<>();
     result_mesh.parentMatrix = parentMatrix;
@@ -223,7 +224,7 @@ void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::Co
 
         upload.Transition(tex.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);*/
     }
-    
+
     // Upload the resources to the GPU.
     auto finish = upload.End(commandQueue->GetCommandQueue().Get());
 
@@ -243,6 +244,11 @@ eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &path)
     auto roughness = config["RoughnessPath"].as<std::string>();
     auto ambient = config["AOPath"].as<std::string>();
 
+    auto albedoColor = config["AlbedoColor"].as<std::string>();
+    auto normalScale = config["NormalScale"].as<float>();
+    auto metallicScale = config["MetallicScale"].as<float>();
+    auto roughnessScale = config["RoughnessScale"].as<float>();
+
     auto material = eastl::make_shared<Material>(path, ToEASTLString(shaderPath));
 
     if (!albedo.empty()) material->SetTexture(AssetManager::GetInstance().GetTexture(albedo), TextureType::ALBEDO);
@@ -252,6 +258,11 @@ eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &path)
     if (!roughness.empty())
         material->SetTexture(AssetManager::GetInstance().GetTexture(roughness), TextureType::ROUGHNESS);
     if (!ambient.empty()) material->SetTexture(AssetManager::GetInstance().GetTexture(ambient), TextureType::AO);
+
+    material->SetAlbedoColor(HexToColor(albedoColor));
+    material->SetNormalScale(normalScale);
+    material->SetMetallicScale(metallicScale);
+    material->SetRoughnessScale(roughnessScale);
 
     return material;
 }

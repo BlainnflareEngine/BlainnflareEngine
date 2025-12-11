@@ -92,6 +92,14 @@ void vector3_input_widget::SetDecimals(int value)
     m_z->SetDecimals(value);
 }
 
+
+void vector3_input_widget::SetSingleStep(float step) const
+{
+    m_x->SetSingleStep(step);
+    m_y->SetSingleStep(step);
+    m_z->SetSingleStep(step);
+}
+
 void vector3_input_widget::OnComponentEditingFinished()
 {
     Blainn::Vec3 value = GetValue();

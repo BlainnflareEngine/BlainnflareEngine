@@ -90,6 +90,7 @@ void transform_widget::CreateTransformFields()
 
     m_rotation = new vector3_input_widget("Rotation", Blainn::Vec3::Zero, this);
     m_rotation->SetDecimals(3);
+    m_rotation->SetSingleStep(5);
     layout()->addWidget(m_rotation);
 
     m_scale = new vector3_input_widget("Scale", Blainn::Vec3::One, this);

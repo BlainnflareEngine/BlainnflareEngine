@@ -114,6 +114,30 @@ Blainn::TextureHandle &Blainn::Material::GetTextureHandle(TextureType type)
 }
 
 
+void Blainn::Material::SetAlbedoColor(const Color &color)
+{
+    m_albedoColor = color;
+}
+
+
+void Blainn::Material::SetNormalScale(float scale)
+{
+    m_normalScale = scale;
+}
+
+
+void Blainn::Material::SetRoughnessScale(float roughness)
+{
+    m_roughnessScale = roughness;
+}
+
+
+void Blainn::Material::SetMetallicScale(float metallic)
+{
+    m_metallicScale = metallic;
+}
+
+
 void Blainn::Material::SetShader(const eastl::string &shader)
 {
     m_shader = shader;

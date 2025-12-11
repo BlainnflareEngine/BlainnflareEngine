@@ -4,12 +4,14 @@
 #include <dxgi.h>
 #include <dxgi1_4.h>
 #include <dxgi1_6.h>
+#include <DirectXColors.h>
 
 #include "DirectXTK12/Src/d3dx12.h"
 #include "d3dcompiler.h"
 #include "DirectXCollision.h"
 
 #include "FreyaCoreTypes.h"
+#include "aliases.h"
 
 #include <EASTL/shared_ptr.h>
 #include <EASTL/unique_ptr.h>
@@ -43,7 +45,8 @@ private:
     const HRESULT m_hr;
 };
 
-#define SAFE_RELEASE(p) if (p) (p)->Release()
+#define SAFE_RELEASE(p)                                                                                                \
+    if (p) (p)->Release()
 
 inline void ThrowIfFailed(HRESULT hr)
 {
@@ -51,5 +54,22 @@ inline void ThrowIfFailed(HRESULT hr)
     {
         throw HrException(hr);
     }
+}
 
+inline Blainn::Color HexToColor(const std::string &hex)
+{
+    std::string clean = hex;
+    if (clean[0] == '#') clean = clean.substr(1);
+
+    if (clean.length() != 8) return Blainn::Color(Colors::White);
+
+    unsigned int argb;
+    if (!(std::istringstream(clean) >> std::hex >> argb)) return Blainn::Color(Colors::White);
+
+    uint8_t r = argb >> 16 & 0xFF;
+    uint8_t g = argb >> 8 & 0xFF;
+    uint8_t b = argb >> 0 & 0xFF;
+    uint8_t a = argb >> 24 & 0xFF;
+
+    return Blainn::Color(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 }

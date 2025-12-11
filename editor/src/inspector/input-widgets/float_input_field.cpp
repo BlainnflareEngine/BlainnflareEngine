@@ -14,7 +14,7 @@ namespace editor
 float_input_field::float_input_field(const QString &name, float value, QWidget *parent, QColor nameColor)
     : QWidget(parent)
 {
-    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
     setLayout(new QHBoxLayout());
     layout()->setContentsMargins(0, 0, 0, 0);
@@ -43,12 +43,13 @@ float_input_field::float_input_field(const QString &name, float value, QWidget *
     m_input->setLocale(QLocale::c());
     m_input->setRange(m_minValue, m_maxValue);
     m_input->setDecimals(m_decimals);
-    m_input->setSingleStep(0.01);
+    m_input->setSingleStep(0.25);
     m_input->setValue(value);
+    m_input->setMinimumWidth(50);
     m_lastValue = value;
 
     connect(m_input, &NumericInputWidget::editingFinished, this, &float_input_field::OnEditingFinished);
-    connect(m_input, &NumericInputWidget::FocusOut, this, &float_input_field::OnEditingFinished);
+    connect(m_input, &NumericInputWidget::ValueChanged, this, &float_input_field::OnEditingFinished);
 }
 
 
@@ -64,6 +65,24 @@ void float_input_field::SetValue(float value)
 float float_input_field::GetValue() const
 {
     return static_cast<float>(m_input->value());
+}
+
+
+void float_input_field::SetMinValue(float min) const
+{
+    m_input->setMinimum(min);
+}
+
+
+void float_input_field::SetMaxValue(float max) const
+{
+    m_input->setMaximum(max);
+}
+
+
+void float_input_field::SetSingleStep(float step) const
+{
+    m_input->setSingleStep(step);
 }
 
 
