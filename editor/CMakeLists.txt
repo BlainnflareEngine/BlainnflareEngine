@@ -142,6 +142,8 @@ set(EDITOR_SOURCES
         include/inspector/input-widgets/EnumTemplates.h
         src/inspector/input-widgets/vector3_input_widget.cpp
         include/inspector/input-widgets/vector3_input_widget.h
+        src/inspector/input-widgets/color_input_field.cpp
+        include/inspector/input-widgets/color_input_field.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

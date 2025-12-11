@@ -57,7 +57,8 @@ public:
 
     bool HasMaterial(const Path &relativePath);
     eastl::shared_ptr<MaterialHandle> GetMaterial(const Path &path);
-    eastl::shared_ptr<MaterialHandle> LoadMaterial(const Path &path);
+    eastl::shared_ptr<MaterialHandle> LoadMaterial(const Path &path, int optionalIndex = -1);
+    void UpdateMaterial(const Path &relativePath);
     Material &GetMaterialByIndex(unsigned int index);
     Material &GetMaterialByHandle(const MaterialHandle &handle);
     static eastl::shared_ptr<MaterialHandle> GetDefaultMaterialHandle();

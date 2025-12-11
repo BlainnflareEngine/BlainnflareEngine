@@ -35,14 +35,15 @@ void AssetManager::Init()
     m_meshes.reserve(MAX_MESHES);
 
     // TODO: create default texture
-    m_textures.emplace(m_loader->LoadTexture(Engine::GetContentDirectory() / "Textures\\Default.dds", TextureType::ALBEDO));
+    m_textures.emplace(
+        m_loader->LoadTexture(Engine::GetContentDirectory() / "Textures\\Default.dds", TextureType::ALBEDO));
 
     // TODO: create default material
     Material material = Material(Engine::GetContentDirectory() / "Materials\\Default.mat", "Default");
     m_materials.emplace(eastl::make_shared<Material>(material));
 
 
-    auto& device = Device::GetInstance();
+    auto &device = Device::GetInstance();
     auto commandQueue = device.GetCommandQueue();
     auto cmdList = commandQueue->GetDefaultCommandList();
 
@@ -109,10 +110,8 @@ eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &relativePath, c
 
 Model &AssetManager::GetMeshByIndex(const unsigned int index)
 {
-    if (m_meshes[index]->IsLoaded()) 
-        return *m_meshes[index];
-    else
-        return GetDefaultMesh()->GetMesh();
+    if (m_meshes[index]->IsLoaded()) return *m_meshes[index];
+    else return GetDefaultMesh()->GetMesh();
 }
 
 
@@ -169,9 +168,9 @@ eastl::shared_ptr<MaterialHandle> AssetManager::GetMaterial(const Path &path)
 }
 
 
-eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path)
+eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path, int optionalIndex)
 {
-    unsigned int index = m_materials.size();
+    unsigned int index = optionalIndex == -1 ? m_materials.size() : optionalIndex;
     m_materialPaths[ToEASTLString(path.string())] = AssetData{index, 1};
 
     // TODO: push back default material
@@ -183,6 +182,14 @@ eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path)
     m_materials.emplace(eastl::make_shared<Material>(GetDefaultMaterial()));
     vgjs::schedule([=]() { AddMaterialWhenLoaded(path, index); });
     return eastl::make_shared<MaterialHandle>(index);
+}
+
+
+void AssetManager::UpdateMaterial(const Path &relativePath)
+{
+    if (!HasMaterial(relativePath)) return;
+
+    LoadMaterial(relativePath, m_materialPaths[ToEASTLString(relativePath.string())].index);
 }
 
 

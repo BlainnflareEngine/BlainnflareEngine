@@ -126,9 +126,13 @@ void ContentContextMenu::CreateMaterial(const QString &dirPath) const
 
                     config["ShaderPath"] = relPath(materialDialog->GetShaderPath());
                     config["AlbedoPath"] = relPath(materialDialog->GetAlbedoPath());
+                    config["AlbedoColor"] = ToString(materialDialog->GetAlbedoColor().name(QColor::HexArgb));
                     config["NormalPath"] = relPath(materialDialog->GetNormalPath());
+                    config["NormalScale"] = materialDialog->GetNormalScale();
                     config["MetallicPath"] = relPath(materialDialog->GetMetallicPath());
+                    config["MetallicScale"] = materialDialog->GetMetallicScale();
                     config["RoughnessPath"] = relPath(materialDialog->GetRoughnessPath());
+                    config["RoughnessScale"] = materialDialog->GetRoughnessScale();
                     config["AOPath"] = relPath(materialDialog->GetAOPath());
 
                     Blainn::Path configFilePath(ToString(filePath));

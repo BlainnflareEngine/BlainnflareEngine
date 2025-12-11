@@ -31,6 +31,8 @@ public:
     int GetDecimals() const;
     void SetDecimals(int value);
 
+    void SetSingleStep(float step) const;
+
 signals:
     void ValueChanged(const Blainn::Vec3 &value);
     void EditingFinished();

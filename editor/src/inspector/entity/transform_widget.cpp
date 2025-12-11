@@ -52,7 +52,7 @@ void transform_widget::OnRotationChanged()
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
 
-    transform.SetRotationEuler(m_rotation->GetValue());
+    transform.SetRotationEuler(m_rotation->GetValue() * XM_PI / 180.f);
 }
 
 
@@ -90,6 +90,7 @@ void transform_widget::CreateTransformFields()
 
     m_rotation = new vector3_input_widget("Rotation", Blainn::Vec3::Zero, this);
     m_rotation->SetDecimals(3);
+    m_rotation->SetSingleStep(5);
     layout()->addWidget(m_rotation);
 
     m_scale = new vector3_input_widget("Scale", Blainn::Vec3::One, this);
@@ -111,7 +112,7 @@ void transform_widget::LoadTransformValues()
     BlockSignals(true);
     if (!m_position->HasFocus()) m_position->SetValue(transform.Translation);
 
-    if (!m_rotation->HasFocus()) m_rotation->SetValue(transform.GetRotationEuler());
+    if (!m_rotation->HasFocus()) m_rotation->SetValue(transform.GetRotationEuler() / XM_PI * 180.0f);
 
     if (!m_scale->HasFocus()) m_scale->SetValue(transform.Scale);
     BlockSignals(false);

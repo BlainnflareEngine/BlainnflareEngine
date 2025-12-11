@@ -6,6 +6,7 @@
 
 #include "material_inspector_content.h"
 
+#include "AssetManager.h"
 #include "Editor.h"
 #include "Engine.h"
 #include "FileSystemUtils.h"
@@ -37,17 +38,35 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
     mainLayout->addWidget(separator);
 
     m_shaderField = new path_input_field("Shader", {formats::shaderFormat}, this);
+
     m_albedoField = new path_input_field("Albedo", formats::supportedTextureFormats, this);
+    m_albedoColor = new color_input_field("Albedo color", {QColor(Qt::black)}, this);
+
     m_normalField = new path_input_field("Normal", formats::supportedTextureFormats, this);
+    m_normalScale = new float_input_field("Normal scale", 0, this);
+
     m_metallicField = new path_input_field("Metallic", formats::supportedTextureFormats, this);
+    m_metallicScale = new float_input_field("Metallic scale", 0, this);
+
     m_roughnessField = new path_input_field("Roughness", formats::supportedTextureFormats, this);
+    m_roughnessScale = new float_input_field("Roughness scale", 0, this);
+
     m_aoField = new path_input_field("AO", formats::supportedTextureFormats, this);
 
     mainLayout->addWidget(m_shaderField);
+
     mainLayout->addWidget(m_albedoField);
+    mainLayout->addWidget(m_albedoColor);
+
     mainLayout->addWidget(m_normalField);
+    mainLayout->addWidget(m_normalScale);
+
     mainLayout->addWidget(m_metallicField);
+    mainLayout->addWidget(m_metallicScale);
+
     mainLayout->addWidget(m_roughnessField);
+    mainLayout->addWidget(m_roughnessScale);
+
     mainLayout->addWidget(m_aoField);
 
     auto setContentPath = [](path_input_field *field, const std::string &yamlPath)
@@ -69,6 +88,14 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
     setContentPath(m_roughnessField, node["RoughnessPath"].as<std::string>(""));
     setContentPath(m_aoField, node["AOPath"].as<std::string>(""));
 
+    if (node["AlbedoColor"]) m_albedoColor->SetValue(QColor::fromString(node["AlbedoColor"].as<std::string>("")));
+
+    if (node["NormalScale"]) m_normalScale->SetValue(node["NormalScale"].as<float>());
+
+    if (node["MetallicScale"]) m_metallicScale->SetValue(node["MetallicScale"].as<float>());
+
+    if (node["RoughnessScale"]) m_roughnessScale->SetValue(node["RoughnessScale"].as<float>());
+
     connectPathField(m_shaderField, "ShaderPath");
     connectPathField(m_albedoField, "AlbedoPath");
     connectPathField(m_normalField, "NormalPath");
@@ -76,14 +103,44 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
     connectPathField(m_roughnessField, "RoughnessPath");
     connectPathField(m_aoField, "AOPath");
 
+    connectFloatField(m_normalScale, "NormalScale");
+    connectFloatField(m_metallicScale, "MetallicScale");
+    connectFloatField(m_roughnessScale, "RoughnessScale");
+
+    connect(m_albedoColor, &color_input_field::EditingFinished, this,
+            [this]()
+            {
+                QDir content(QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
+                SetValueYAML(ToString(m_file), "AlbedoColor",
+                             ToString(m_albedoColor->GetValue().name(QColor::HexArgb)));
+                Blainn::AssetManager::GetInstance().UpdateMaterial(ToString(content.relativeFilePath(m_file)));
+            });
+
     mainLayout->addStretch();
 }
 
 
 void material_inspector_content::connectPathField(path_input_field *field, const QString &yamlKey)
 {
-    connect(field, &path_input_field::PathChanged, this, [this, yamlKey](const QString &, const QString &newPath)
-            { SetValueYAML(ToString(m_file), yamlKey.toStdString(), ToString(newPath)); });
+    connect(field, &path_input_field::PathChanged, this,
+            [this, yamlKey](const QString &, const QString &newPath)
+            {
+                QDir content(QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
+                auto relPath = content.relativeFilePath(newPath);
+                SetValueYAML(ToString(m_file), yamlKey.toStdString(), ToString(newPath));
+                Blainn::AssetManager::GetInstance().UpdateMaterial(ToString(content.relativeFilePath(m_file)));
+            });
+}
+
+void material_inspector_content::connectFloatField(float_input_field *field, const QString &yamlKey)
+{
+    connect(field, &float_input_field::EditingFinished, this,
+            [this, yamlKey, field]()
+            {
+                QDir content(QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
+                SetValueYAML(ToString(m_file), yamlKey.toStdString(), std::to_string(field->GetValue()));
+                Blainn::AssetManager::GetInstance().UpdateMaterial(ToString(content.relativeFilePath(m_file)));
+            });
 }
 
 } // namespace editor

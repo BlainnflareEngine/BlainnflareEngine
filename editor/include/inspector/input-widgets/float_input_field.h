@@ -21,6 +21,11 @@ public:
     void SetValue(float value);
     float GetValue() const;
 
+    void SetMinValue(float min) const;
+    void SetMaxValue(float max) const;
+
+    void SetSingleStep(float step) const;
+
     bool HasFocus() const;
 
     int GetDecimals() const;
