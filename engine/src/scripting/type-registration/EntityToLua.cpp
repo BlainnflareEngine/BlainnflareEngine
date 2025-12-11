@@ -6,7 +6,6 @@
 
 #include "components/MeshComponent.h"
 #include "components/PhysicsComponent.h"
-#include "components/RenderComponent.h"
 #include "components/ScriptingComponent.h"
 #include "handles/Handle.h"
 #include "scene/BasicComponents.h"
@@ -64,13 +63,6 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
     EntityType.set_function("HasMeshComponent", [](Entity &e) { return e.HasComponent<MeshComponent>(); });
     EntityType.set_function("RemoveMeshComponent",
                             [](Entity &e) { return e.RemoveComponentIfExists<MeshComponent>(); });
-
-    EntityType.set_function("AddRenderComponent", [](Entity &e) { return e.AddComponent<RenderComponent>(); });
-    EntityType.set_function("GetRenderComponent",
-                            [](Entity &e) -> RenderComponent * { return e.TryGetComponent<RenderComponent>(); });
-    EntityType.set_function("HasRenderComponent", [](Entity &e) { return e.HasComponent<RenderComponent>(); });
-    EntityType.set_function("RemoveRenderComponent",
-                            [](Entity &e) { return e.RemoveComponentIfExists<RenderComponent>(); });
 
     EntityType.set_function("AddScriptingComponent", [](Entity &e) { return e.AddComponent<ScriptingComponent>(); });
     EntityType.set_function("GetScriptingComponent",

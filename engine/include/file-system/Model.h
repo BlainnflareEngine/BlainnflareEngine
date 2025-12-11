@@ -36,9 +36,10 @@ namespace Blainn
         size_t GetVerticesCount() const { return totalVertexCount; }
         size_t GetIndicesCount() const { return totalIndexCount; }
 
-        void CreateGPUBuffers(ID3D12GraphicsCommandList2 *pCommandList, UINT64 frameValue);
+        void CreateGPUBuffers(ID3D12GraphicsCommandList2 *pCommandList/*, UINT64 frameValue*/);
         void DisposeUploaders();
 
+        bool IsLoaded() const { return m_bisLoaded; }
     private:
         template <typename TVertex, typename TIndex = UINT>
         void CreateGPUBuffers(ID3D12GraphicsCommandList2* pCommandList, const eastl::vector<TVertex> &vertices, const eastl::vector<TIndex> &indices = eastl::vector<TIndex>(0))
@@ -70,27 +71,24 @@ namespace Blainn
 
 #pragma region VertexIndexBuffersViewStuff
     public:
-        UINT64 GetModelFrameValue() const { return m_frameValue; }
+        //UINT64 GetModelFrameValue() const { return m_frameValue; }
         D3D12_VERTEX_BUFFER_VIEW VertexBufferView() const;
         D3D12_INDEX_BUFFER_VIEW IndexBufferView() const;
 
-        bool IsLoaded() const { return m_bisLoaded; }        
-
     private:
-        eastl::vector<BlainnVertex> allVertices;
-        eastl::vector<UINT> allIndices;
-        
         // Data about the buffers.
         UINT VertexByteStride = 0u;
         UINT VertexBufferByteSize = 0u;
         DXGI_FORMAT IndexFormat = DXGI_FORMAT_R16_UINT;
         UINT IndexBufferByteSize = 0u;
-#pragma endregion VertexIndexBuffersViewStuff
 
+#pragma endregion VertexIndexBuffersViewStuff
+        eastl::vector<BlainnVertex> allVertices;
+        eastl::vector<UINT> allIndices;
         size_t totalVertexCount = 0u;
         size_t totalIndexCount = 0u;
 
-        UINT64 m_frameValue = (UINT64)0u;
+        //UINT64 m_frameValue = (UINT64)0u;
         bool m_bisLoaded = false;
 
         // the actual default buffer resource

@@ -34,6 +34,7 @@ void AssetManager::Init()
     m_materials.reserve(MAX_MATERIALS);
     m_meshes.reserve(MAX_MESHES);
 
+#pragma region LoadDefaultResource
     // TODO: create default texture
     m_textures.emplace(
         m_loader->LoadTexture(Engine::GetContentDirectory() / "Textures\\Default.dds", TextureType::ALBEDO));
@@ -41,7 +42,6 @@ void AssetManager::Init()
     // TODO: create default material
     Material material = Material(Engine::GetContentDirectory() / "Materials\\Default.mat", "Default");
     m_materials.emplace(eastl::make_shared<Material>(material));
-
 
     auto &device = Device::GetInstance();
     auto commandQueue = device.GetCommandQueue();
@@ -54,6 +54,7 @@ void AssetManager::Init()
     m_loader->CreateModelGPUResources(model);
 
     m_meshes.emplace(eastl::make_shared<Model>(model));
+#pragma endregion LoadDefaultResource
 }
 
 

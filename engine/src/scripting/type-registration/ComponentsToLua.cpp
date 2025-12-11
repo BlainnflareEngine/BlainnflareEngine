@@ -6,7 +6,6 @@
 #include "subsystems/ScriptingSubsystem.h"
 
 #include "components/MeshComponent.h"
-#include "components/RenderComponent.h"
 #include "components/ScriptingComponent.h"
 #include "handles/Handle.h"
 #include "scene/BasicComponents.h"
@@ -60,12 +59,6 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
                                            MeshComponent(eastl::shared_ptr<MeshHandle> &&)>());
     MeshComponentType.set_function("GetHandleIndex",
                                    [](MeshComponent &m) { return m.m_meshHandle ? m.m_meshHandle->GetIndex() : 0u; });
-
-    // RenderComponent
-    sol::usertype<RenderComponent> RenderComponentType =
-        luaState.new_usertype<RenderComponent>("RenderComponent", sol::constructors<RenderComponent()>());
-    RenderComponentType.set_function("IsVisible", [](RenderComponent &r) { return r.m_visible; });
-    RenderComponentType.set_function("SetVisible", [](RenderComponent &r, bool v) { r.m_visible = v; });
 
     // ScriptingComponent (expose a method to list attached scripts by UUID)
     sol::usertype<ScriptingComponent> ScriptingComponentType =
