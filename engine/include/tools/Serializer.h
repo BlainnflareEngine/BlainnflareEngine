@@ -48,9 +48,9 @@ public:
         out << YAML::EndMap;
 
         out << YAML::Key << "Rotation" << YAML::Value << YAML::BeginMap;
-        out << YAML::Key << "x" << YAML::Value << transform.GetRotation().x;
-        out << YAML::Key << "y" << YAML::Value << transform.GetRotation().y;
-        out << YAML::Key << "z" << YAML::Value << transform.GetRotation().z;
+        out << YAML::Key << "x" << YAML::Value << transform.GetRotationEuler().x;
+        out << YAML::Key << "y" << YAML::Value << transform.GetRotationEuler().y;
+        out << YAML::Key << "z" << YAML::Value << transform.GetRotationEuler().z;
         out << YAML::EndMap;
 
         out << YAML::Key << "Scale" << YAML::Value << YAML::BeginMap;
