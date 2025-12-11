@@ -1,12 +1,12 @@
 #include "pch.h"
 
 #include "Subsystems/RenderSubsystem.h"
+#include "Subsystems/AssetManager.h"
 #include "Engine.h"
 
 #include "VertexTypes.h"
 
 #include "Components/MeshComponent.h"
-#include "Components/RenderComponent.h" //????
 #include "File-System/Model.h"
 #include "Handles/Handle.h"
 #include "Scene/Scene.h"
@@ -17,9 +17,7 @@
 #include "Render/Renderer.h"
 #include "Render/RootSignature.h"
 #include "Render/FrameResource.h"
-
 #include "Render/PrebuiltEngineMeshes.h"
-#include "Subsystems/AssetManager.h"
 
 #include <cassert>
 
@@ -187,6 +185,7 @@ VOID Blainn::RenderSubsystem::Reset()
 
     // Before making any changes
     commandQueue->Flush();
+    ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
 
     // temp
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
@@ -214,19 +213,14 @@ VOID Blainn::RenderSubsystem::Reset()
     optClear.DepthStencil.Depth = 1.0f;
     optClear.DepthStencil.Stencil = 0u;
 
-    ThrowIfFailed(m_device.CreateCommittedResource(D3D12_HEAP_TYPE_DEFAULT, D3D12_HEAP_FLAG_NONE, depthStencilDesc,
-                                                   D3D12_RESOURCE_STATE_COMMON, optClear, m_depthStencilBuffer));
+    ThrowIfFailed(m_device.CreateCommittedResource(D3D12_HEAP_TYPE_DEFAULT, D3D12_HEAP_FLAG_NONE, depthStencilDesc, D3D12_RESOURCE_STATE_COMMON, optClear, m_depthStencilBuffer));
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
     m_device.CreateDepthStencilView(m_depthStencilBuffer.Get(), DepthStencilFormat, dsvHandle);
     m_depthStencilBuffer->SetName(L"DepthStencilBuffer");
 
     // Transition the resource from its initial state to be used as a depth buffer.
-    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_COMMON,
-                                                           D3D12_RESOURCE_STATE_DEPTH_WRITE);
-    ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
-
-    commandList->ResourceBarrier(1, &transition);
+    ResourceBarrier(commandList.Get(), m_depthStencilBuffer.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
     // Execute the resize commands.
     ThrowIfFailed(commandList->Close());
@@ -618,51 +612,6 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
 #pragma endregion DeferredShading
 }
 
-/*
- * Relation with Render component
- */
-
-void Blainn::RenderSubsystem::CreateAttachRenderComponent(Entity entity)
-{
-    RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
-    if (renderComponentPtr)
-    {
-        BF_ERROR("entity alrady has render component");
-        return;
-    }
-
-    entity.AddComponent<RenderComponent>(RenderComponent());
-
-    MeshComponent *meshComponentPtr = entity.TryGetComponent<MeshComponent>();
-    if (meshComponentPtr)
-    {
-        AddMeshToRenderComponent(entity, meshComponentPtr->m_meshHandle);
-    }
-}
-
-// TODO: make MeshHandle shared_ptr
-void Blainn::RenderSubsystem::AddMeshToRenderComponent(Entity entity, eastl::shared_ptr<Blainn::MeshHandle> meshHandle)
-{
-    RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
-
-    if (!renderComponentPtr)
-    {
-        BF_ERROR("Render Subsystem :: entity does not have render component");
-        return;
-    }
-
-    renderComponentPtr->m_meshCanBeRendered = true;
-    renderComponentPtr->m_meshHandle = meshHandle;
-
-    eastl::vector<MeshData<>> meshDataVec = meshHandle->GetMesh().GetMeshes();
-    for (const auto &meshData : meshDataVec)
-    {
-        // TODO: create index and vertex buffer for gpu: create upload buffers and set commands in command list
-        // meshData.indices;
-        // meshData.vertices;
-    }
-}
-
 void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 {
     const auto &renderEntitiesView =
@@ -836,6 +785,12 @@ void Blainn::RenderSubsystem::UpdateMainPassCB(float deltaTime)
     currPassCB->CopyData(static_cast<int>(EPassType::DeferredLighting), m_mainPassCBData);
 }
 
+void Blainn::RenderSubsystem::ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource *pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter)
+{
+    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(pResource, stateBefore, stateAfter);
+    pCommandList->ResourceBarrier(1u, &transition);
+}
+
 void Blainn::RenderSubsystem::RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
     UINT passCBByteSize = FreyaUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
@@ -847,9 +802,7 @@ void Blainn::RenderSubsystem::RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pC
     pCommandList->RSSetScissorRects(1u, &csmScissor);
 
     // change to depth write state
-    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_cascadeShadowMap->Get(), D3D12_RESOURCE_STATE_GENERIC_READ,
-                                                           D3D12_RESOURCE_STATE_DEPTH_WRITE);
-    pCommandList->ResourceBarrier(1u, &transition);
+    ResourceBarrier(pCommandList, m_cascadeShadowMap->Get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 #pragma region BypassResources
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
@@ -866,9 +819,7 @@ void Blainn::RenderSubsystem::RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pC
     pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::CascadedShadowsOpaque).Get());
     DrawMeshes(pCommandList, m_meshItems);
 
-    transition = CD3DX12_RESOURCE_BARRIER::Transition(m_cascadeShadowMap->Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE,
-                                                      D3D12_RESOURCE_STATE_GENERIC_READ);
-    pCommandList->ResourceBarrier(1u, &transition);
+    ResourceBarrier(pCommandList, m_cascadeShadowMap->Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 
 void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCommandList)
@@ -880,14 +831,9 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
 
     for (unsigned i = 0; i < GBuffer::EGBufferLayer::MAX - 1u; i++)
     {
-        auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_GBuffer->Get(i), D3D12_RESOURCE_STATE_GENERIC_READ,
-                                                               D3D12_RESOURCE_STATE_RENDER_TARGET);
-        pCommandList->ResourceBarrier(1u, &transition);
+        ResourceBarrier(pCommandList, m_GBuffer->Get(i), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_RENDER_TARGET);
     }
-    auto transition =
-        CD3DX12_RESOURCE_BARRIER::Transition(m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH),
-                                             D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-    pCommandList->ResourceBarrier(1u, &transition);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 #pragma region BypassResources
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
@@ -899,31 +845,24 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
     // Bind all the materials used in this scene. For structured buffers, we can bypass the heap and set as a root
     // descriptor.
     // auto matBuffer = m_currFrameResource->MaterialSB->Get();
-    // pCommandList->SetGraphicsRootShaderResourceView(ERootParameter::MaterialDataSB,
-    // matBuffer->GetGPUVirtualAddress());
+    // pCommandList->SetGraphicsRootShaderResourceView(ERootParameter::MaterialDataSB, matBuffer->GetGPUVirtualAddress());
 
     // Bind all the textures used in this scene. Observe that we only have to specify the first descriptor in the table.
     // The root signature knows how many descriptors are expected in the table.
-    // pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::Textures,
-    // m_srvHeap->GetGPUDescriptorHandleForHeapStart());
+    // pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::Textures, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
 #pragma endregion BypassResources
 
     // start of the GBuffer rtvs in rtvHeap
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), SwapChainFrameCount,
-                                            m_rtvDescriptorSize);
-
+    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), SwapChainFrameCount, m_rtvDescriptorSize);
     CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_GBuffer->GetDsv(GBuffer::EGBufferLayer::DEPTH));
     pCommandList->OMSetRenderTargets(GBuffer::EGBufferLayer::DEPTH, &rtvHandle, TRUE, &dsvHandle);
 
     const float clearColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    pCommandList->ClearRenderTargetView(m_GBuffer->GetRtv(GBuffer::EGBufferLayer::DIFFUSE_ALBEDO),
-                                        Colors::LightSteelBlue, 0u, nullptr);
-    pCommandList->ClearRenderTargetView(m_GBuffer->GetRtv(GBuffer::EGBufferLayer::AMBIENT_OCCLUSION), clearColor, 0u,
-                                        nullptr);
+    pCommandList->ClearRenderTargetView(m_GBuffer->GetRtv(GBuffer::EGBufferLayer::DIFFUSE_ALBEDO), Colors::LightSteelBlue, 0u, nullptr);
+    pCommandList->ClearRenderTargetView(m_GBuffer->GetRtv(GBuffer::EGBufferLayer::AMBIENT_OCCLUSION), clearColor, 0u, nullptr);
     pCommandList->ClearRenderTargetView(m_GBuffer->GetRtv(GBuffer::EGBufferLayer::NORMAL), clearColor, 0u, nullptr);
     pCommandList->ClearRenderTargetView(m_GBuffer->GetRtv(GBuffer::EGBufferLayer::SPECULAR), clearColor, 0u, nullptr);
-    pCommandList->ClearDepthStencilView(m_GBuffer->GetDsv(GBuffer::EGBufferLayer::DEPTH),
-                                        D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u, nullptr);
+    pCommandList->ClearDepthStencilView(m_GBuffer->GetDsv(GBuffer::EGBufferLayer::DEPTH), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u, nullptr);
 
     pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::DeferredGeometry).Get());
 
@@ -931,15 +870,9 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
 
     for (unsigned i = 0; i < GBuffer::EGBufferLayer::MAX - 1u; i++)
     {
-        auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_GBuffer->Get(i), D3D12_RESOURCE_STATE_RENDER_TARGET,
-                                                               D3D12_RESOURCE_STATE_GENERIC_READ);
-        pCommandList->ResourceBarrier(1u, &transition);
+        ResourceBarrier(pCommandList, m_GBuffer->Get(i), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ);
     }
-
-    transition =
-        CD3DX12_RESOURCE_BARRIER::Transition(m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH),
-                                             D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_GENERIC_READ);
-    pCommandList->ResourceBarrier(1u, &transition);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 
 void Blainn::RenderSubsystem::RenderLightingPass(ID3D12GraphicsCommandList2 *pCommandList)
@@ -953,10 +886,8 @@ void Blainn::RenderSubsystem::DeferredDirectionalLightPass(ID3D12GraphicsCommand
 {
     UINT passCBByteSize = FreyaUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
 
-    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT,
-                                                           D3D12_RESOURCE_STATE_RENDER_TARGET);
     // Indicate that the back buffer will be used as a render target.
-    pCommandList->ResourceBarrier(1u, &transition);
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
     // The viewport needs to be reset whenever the command list is reset.
     pCommandList->RSSetViewports(1u, &m_viewport);
@@ -968,13 +899,11 @@ void Blainn::RenderSubsystem::DeferredDirectionalLightPass(ID3D12GraphicsCommand
     const float *clearColor = &m_mainPassCBData.FogColor.x;
     pCommandList->OMSetRenderTargets(1u, &rtvHandle, TRUE, &dsvHandle);
     pCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0u, nullptr);
-    pCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u,
-                                        nullptr);
+    pCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u, nullptr);
 
 #pragma region BypassResources
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
-    auto currFramePassCBAddress = FreyaUtil::GetGPUVirtualAddress(
-        currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DeferredLighting));
+    auto currFramePassCBAddress = FreyaUtil::GetGPUVirtualAddress(currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DeferredLighting));
 
     pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerPassDataCB, currFramePassCBAddress);
     // Set shaadow map texture for main pass
@@ -1006,10 +935,8 @@ void Blainn::RenderSubsystem::DeferredPointLightPass(ID3D12GraphicsCommandList2 
     // DrawInstancedMeshes(m_commandList, m_pointLights);
     // DrawInstancedRenderItems(pCommandList, m_pointLights);
 
-    auto transition = CD3DX12_RESOURCE_BARRIER::Transition(
-        m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
     // Indicate that the back buffer will now be used to present.
-    pCommandList->ResourceBarrier(1u, &transition);
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 }
 
 void Blainn::RenderSubsystem::DeferredSpotLightPass(ID3D12GraphicsCommandList2 *pCommandList)

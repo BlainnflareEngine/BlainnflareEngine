@@ -88,8 +88,6 @@ public:
     void OnResize(UINT newWidth, UINT newHeight);
     void Destroy();
 
-    void CreateAttachRenderComponent(Entity entity);
-    void AddMeshToRenderComponent(Entity entity, eastl::shared_ptr<MeshHandle> meshHandle);
     // Record all the commands we need to render the scene into the command list.
     void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
 
@@ -136,6 +134,8 @@ private:
     void UpdateMainPassCB(float deltaTime);
 
 private:
+    void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
+
 #pragma region Shadows
     void RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pCommandList);
 #pragma endregion Shadows
