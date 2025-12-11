@@ -52,7 +52,7 @@ void transform_widget::OnRotationChanged()
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
 
-    transform.SetRotationEuler(m_rotation->GetValue());
+    transform.SetRotationEuler(m_rotation->GetValue() * XM_PI / 180.f);
 }
 
 
@@ -111,7 +111,7 @@ void transform_widget::LoadTransformValues()
     BlockSignals(true);
     if (!m_position->HasFocus()) m_position->SetValue(transform.Translation);
 
-    if (!m_rotation->HasFocus()) m_rotation->SetValue(transform.GetRotationEuler());
+    if (!m_rotation->HasFocus()) m_rotation->SetValue(transform.GetRotationEuler() / XM_PI * 180.0f);
 
     if (!m_scale->HasFocus()) m_scale->SetValue(transform.Scale);
     BlockSignals(false);
