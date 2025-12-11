@@ -1,23 +1,20 @@
-//
-//
-//
-#include <fstream>
+#include "pch.h"
 
 #include "scene/EntityTemplates.h"
 #include "scene/Scene.h"
 
-#include "EASTL/unordered_set.h"
+#include <fstream>
+
 #include "Engine.h"
-#include "ScriptingSubsystem.h"
 #include "Serializer.h"
-#include "ozz/base/containers/string.h"
 #include "scene/SceneParser.h"
 
-#include "sol/types.hpp"
 #include "tools/Profiler.h"
 #include "tools/random.h"
 
 #include "components/MeshComponent.h"
+#include "components/RenderComponent.h"
+#include "subsystems/ScriptingSubsystem.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/RenderSubsystem.h"
 
@@ -65,6 +62,16 @@ Scene::~Scene()
 }
 
 
+void Blainn::Scene::Update()
+{
+    auto view = GetAllEntitiesWith<TransformComponent>();
+    for (const auto &[entity, transformComponent] : view.each())
+    {
+        transformComponent.FrameResetDirtyFlags();
+    }
+    ProcessEvents();
+}
+
 void Scene::SaveScene()
 {
     if (Engine::IsPlayMode()) return;
@@ -110,17 +117,6 @@ void Scene::SaveScene()
 void Scene::RestoreScene()
 {
     AssetManager::OpenScene(m_Name.c_str());
-
-    /*for (auto [id, entity] : m_EntityIdMap)
-        SubmitToDestroyEntity(entity);
-
-    ProcessEvents();
-
-    std::string filepath = (Engine::GetContentDirectory() / std::string(m_Name.c_str())).string();
-    YAML::Node config = YAML::LoadFile(filepath);
-
-    if (config["Entities"] && config["Entities"].IsSequence()) CreateEntities(config["Entities"], true);
-*/
 }
 
 
@@ -184,12 +180,14 @@ Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name, bool o
 
     SortEntities();
 
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged, createdByEditor));
+    s_sceneEventQueue.enqueue(
+        eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged, createdByEditor));
 
     return entity;
 }
 
-Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool shouldSort, bool onSceneChanged, bool createdByEditor)
+Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool shouldSort, bool onSceneChanged,
+                                 bool createdByEditor)
 {
     BLAINN_PROFILE_FUNC();
 
@@ -207,7 +205,8 @@ Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool
 
     if (shouldSort) SortEntities();
 
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged, createdByEditor));
+    s_sceneEventQueue.enqueue(
+        eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged, createdByEditor));
 
     return entity;
 }
@@ -232,7 +231,8 @@ Entity Scene::CreateChildEntityWithID(Entity parent, const uuid &id, const eastl
 
     SortEntities();
 
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged, createdByEditor));
+    s_sceneEventQueue.enqueue(
+        eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged, createdByEditor));
 
     return entity;
 }

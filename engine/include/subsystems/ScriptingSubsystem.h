@@ -6,7 +6,7 @@
 #include "scene/Entity.h"
 
 // disable if you dont want to register lua types
-#define BLAINN_REGISTER_LUA_TYPES
+// #define BLAINN_REGISTER_LUA_TYPES
 
 #ifdef BLAINN_REGISTER_LUA_TYPES
 // enable to test lua scripts functionality.
@@ -33,9 +33,6 @@ public:
     static void DestroyScriptingComponent(Entity entity);
 
     static sol::state &GetLuaState();
-
-    /// @param path - ralative to cwd or absolute path
-    static void SetLuaScriptsFolder(const eastl::string &path);
 
     /// @param path - script path in scripts content folder
     /// @param callOnStart - call OnStart() script function. true by default
@@ -70,7 +67,8 @@ public:
         return component->scripts.at(scriptUuid).CustomCall(functionName, std::forward<Args>(args)...);
     }
 
-    static uuid GetEntityUUIDByScriptUUID(const uuid &scriptUuid) {
+    static uuid GetEntityUUIDByScriptUUID(const uuid &scriptUuid)
+    {
         return m_scriptEntityConnections[scriptUuid].GetUUID();
     }
 

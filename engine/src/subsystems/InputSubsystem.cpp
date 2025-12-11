@@ -74,7 +74,7 @@ void Blainn::Input::UpdateMousePosition(const float x, const float y)
 
 void Blainn::Input::UpdateMousePosition(const MousePosition newPos)
 {
-    s_mouseDelta = s_mousePosition - newPos;
+    s_mouseDelta = newPos - s_mousePosition;
     BF_DEBUG("MousePosition updated {} {}", s_mouseDelta.X, s_mouseDelta.Y);
 
     s_mousePosition = newPos;

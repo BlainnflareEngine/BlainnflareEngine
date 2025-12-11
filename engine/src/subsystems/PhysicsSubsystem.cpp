@@ -80,6 +80,7 @@ void PhysicsSubsystem::Update()
     static int fpsCounterPrevValue;
     static int fpsCounter;
     fpsCounter++;
+
     if (testAccumulator >= 1000.0f)
     {
         // BF_WARN("Physics FPS: {} ; deltaTime {}", fpsCounter - fpsCounterPrevValue, deltaTime);
@@ -87,13 +88,16 @@ void PhysicsSubsystem::Update()
 
         testAccumulator -= 1000.0f;
     }
-    // ---
 
     eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
     auto enities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
 
     for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
     {
+        if (!transformComp.IsDirty()) continue;
+
+        BF_ERROR("body updated");
+
         Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
 
         Vec3 translation, scale;
@@ -103,7 +107,7 @@ void PhysicsSubsystem::Update()
         BodyUpdater bodyUpdater = GetBodyUpdater(entity);
         bodyUpdater.SetPosition(translation).SetRotation(rotation);
 
-        if (scale != physicsComp.prevFrameScale)
+        if (transformComp.IsScaleDirty())
         {
             bodyUpdater.SetScale(scale, physicsComp.prevFrameScale);
             physicsComp.prevFrameScale = scale;
@@ -119,7 +123,7 @@ void PhysicsSubsystem::Update()
         BodyGetter bodyGetter = GetBodyGetter(entity);
         if (bodyGetter.isTrigger()) continue;
 
-        transformComp.Translation = bodyGetter.GetPosition();
+        transformComp.SetTranslation(bodyGetter.GetPosition());
         transformComp.SetRotation(bodyGetter.GetRotation());
         activeScene->SetFromWorldSpaceTransformMatrix(entity, transformComp.GetTransform());
     }
@@ -158,7 +162,7 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
 
     PhysicsComponent component;
     component.parentId = parentId;
-    component.prevFrameScale = transformComponentPtr->Scale;
+    component.prevFrameScale = transformComponentPtr->GetScale();
 
     eastl::optional<ShapeHierarchy> createdShapeHierarchy = ShapeFactory::CreateShape(settings.shapeSettings);
 
@@ -172,7 +176,7 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
 
     BodyBuilder builder;
     builder.SetMotionType(settings.motionType)
-        .SetPosition(transformComponentPtr->Translation)
+        .SetPosition(transformComponentPtr->GetTranslation())
         .SetRotation(transformComponentPtr->GetRotation())
         .SetShape(component.GetHierarchy().shapePtr.GetPtr())
         .SetIsTrigger(settings.isTrigger)
