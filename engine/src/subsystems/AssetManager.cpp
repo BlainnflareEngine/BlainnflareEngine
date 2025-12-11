@@ -94,7 +94,7 @@ eastl::shared_ptr<MeshHandle> AssetManager::GetDefaultMesh()
 
 eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &relativePath, const ImportMeshData &data)
 {
-    unsigned int index = m_meshes.size();
+    int index = m_meshes.size();
     m_meshPaths[ToEASTLString(relativePath.string())] = AssetData{index, 1};
 
 
@@ -146,7 +146,7 @@ eastl::shared_ptr<TextureHandle> AssetManager::GetTexture(const Path &path)
 
 eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &path, const TextureType type)
 {
-    unsigned int index = m_textures.size();
+    int index = m_textures.size();
     m_texturePaths[ToEASTLString(path.string())] = AssetData{index, 1};
 
     BF_INFO("Shiiiii... I don't have such texture, here is default one, "
@@ -169,10 +169,11 @@ eastl::shared_ptr<MaterialHandle> AssetManager::GetMaterial(const Path &path)
 }
 
 
-eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path, int optionalIndex)
+eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path, AssetData data)
 {
-    unsigned int index = optionalIndex == -1 ? m_materials.size() : optionalIndex;
-    m_materialPaths[ToEASTLString(path.string())] = AssetData{index, 1};
+    int index = data.index == -1 ? m_materials.size() : data.index;
+    int count = data.refCount == 0 ? 1 : data.refCount;
+    m_materialPaths[ToEASTLString(path.string())] = AssetData{index, count};
 
     // TODO: push back default material
     auto str = "I don't have that material, here is default one, "
@@ -190,7 +191,7 @@ void AssetManager::UpdateMaterial(const Path &relativePath)
 {
     if (!HasMaterial(relativePath)) return;
 
-    LoadMaterial(relativePath, m_materialPaths[ToEASTLString(relativePath.string())].index);
+    LoadMaterial(relativePath, m_materialPaths[ToEASTLString(relativePath.string())]);
 }
 
 

@@ -29,8 +29,8 @@ class AssetManager
 {
     struct AssetData
     {
-        unsigned int index;
-        unsigned int refCount;
+        int index;
+        int refCount;
     };
 
 public:
@@ -57,7 +57,7 @@ public:
 
     bool HasMaterial(const Path &relativePath);
     eastl::shared_ptr<MaterialHandle> GetMaterial(const Path &path);
-    eastl::shared_ptr<MaterialHandle> LoadMaterial(const Path &path, int optionalIndex = -1);
+    eastl::shared_ptr<MaterialHandle> LoadMaterial(const Path &path, AssetData data = {-1, 0});
     void UpdateMaterial(const Path &relativePath);
     Material &GetMaterialByIndex(unsigned int index);
     Material &GetMaterialByHandle(const MaterialHandle &handle);
