@@ -31,10 +31,11 @@ public:
         PointLightsDataSB,
         SpotLightsDataSB,
         CascadedShadowMaps,
-        Textures,
         GBufferTextures,
+        SkyCube,
+        Textures,
 
-        NumRootParameters = 8u
+        NumRootParameters = 9u
     };
 
     enum EPsoType : UINT
@@ -95,8 +96,7 @@ private:
     void InitializeD3D();
 
 #pragma region BoilerplateD3D12
-    VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter,
-                            bool requestHighPerformanceAdapter = false);
+    VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter = false);
     VOID SetCustomWindowText(LPCWSTR text) const;
 
     VOID CreateSwapChain();
@@ -110,9 +110,7 @@ private:
 
     void LoadPipeline();
     void LoadGraphicsFeatures();
-
     void CreateFrameResources();
-
     void CreateDescriptorHeaps();
     void CreateRootSignature();
     void CreateShaders();
@@ -128,11 +126,10 @@ private:
     void UpdateMainPassCB(float deltaTime);
 
 private:
-    void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
-
 #pragma region Shadows
     void RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pCommandList);
 #pragma endregion Shadows
+
 #pragma region DeferredShading
     void RenderGeometryPass(ID3D12GraphicsCommandList2 *pCommandList);
     void RenderLightingPass(ID3D12GraphicsCommandList2 *pCommandList);
@@ -143,17 +140,9 @@ private:
     void DeferredSpotLightPass(ID3D12GraphicsCommandList2 *pCommandList);
 #pragma endregion DeferredShading
 
+    void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
     void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList);
-
-    void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *cmdList,
-                             const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
-
-#pragma region CommandListIntrinsic
-    void Draw(UINT vertexCount, UINT instanceCount = 1u, UINT startVertex = 0u, UINT startInstance = 0u);
-    void DrawIndexed(UINT indexCount, UINT instanceCount = 1u, UINT startIndex = 0u, UINT baseVertex = 0u,
-                     UINT startInstance = 0u);
-
-#pragma region CommandListIntrinsic
+    void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
 
     void DrawQuad(ID3D12GraphicsCommandList2 *pCommandList);
 

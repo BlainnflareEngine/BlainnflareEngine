@@ -9,6 +9,22 @@ namespace Blainn
     class RootSignature
     {
     public:
+        enum class ERootParameter : UINT
+        {
+            PerObjectDataCB = 0,
+            PerPassDataCB,
+            MaterialDataSB,
+            PointLightsDataSB,
+            SpotLightsDataSB,
+            CascadedShadowMaps,
+            GBufferTextures,
+            SkyCube,
+            Textures,
+
+            NumRootParameters = 9u
+        };
+
+    public:
         RootSignature(D3D_ROOT_SIGNATURE_VERSION rootSignatureVersion = D3D_ROOT_SIGNATURE_VERSION_1);
 
         /*RootSignature(const RootSignature& lhs) = delete;

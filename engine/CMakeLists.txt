@@ -17,36 +17,38 @@ set(ENGINE_SOURCES
         src/subsystems/Log.cpp
         include/components/MeshComponent.h
         src/components/MeshComponent.cpp
-        include/Render/Renderer.h
+        include/Render/Camera.h
+        include/Render/CascadeShadowMap.h
         include/Render/CommandQueue.h
         include/Render/Device.h
         include/Render/DXHelpers.h
+        include/Render/FrameResource.h
         include/Render/FreyaCoreTypes.h
-        include/Render/FreyaUtil.h
         include/Render/FreyaMath.h
-        include/Render/PSO.h
+        include/Render/FreyaUtil.h
+        include/Render/GBuffer.h
+        include/Render/PipelineStateObject.h
+        include/Render/PrebuiltEngineMeshes.h
+        include/Render/Renderer.h
         include/Render/RootSignature.h
         include/Render/Shader.h
-        include/Render/FrameResource.h
-        include/Render/UploadBuffer.h
-        include/Render/Camera.h
-        include/Render/GBuffer.h
-        include/Render/PrebuiltEngineMeshes.h
         include/Render/ShadowMap.h
         include/Render/SwapChain.h 
-        include/Render/CascadeShadowMap.h
-        src/Render/Renderer.cpp
+        include/Render/UploadBuffer.h
+        src/Render/Camera.cpp
+        src/Render/CascadeShadowMap.cpp
         src/Render/CommandQueue.cpp
         src/Render/Device.cpp
-        src/Render/FreyaUtil.cpp
-        src/Render/RootSignature.cpp
         src/Render/FrameResource.cpp
-        src/Render/Camera.cpp
+        src/Render/FreyaUtil.cpp
         src/Render/GBuffer.cpp
+        src/Render/PipelineStateObject.cpp
         src/Render/PrebuiltEngineMeshes.cpp
+        src/Render/Renderer.cpp
+        src/Render/RootSignature.cpp
+        src/Render/Shader.cpp
         src/Render/ShadowMap.cpp
         src/Render/SwapChain.cpp
-        src/Render/CascadeShadowMap.cpp
         include/scene/Scene.h
         src/scene/Scene.cpp
         include/scene/Entity.h
