@@ -18,7 +18,6 @@
 #include "tools/random.h"
 
 #include "components/MeshComponent.h"
-#include "components/RenderComponent.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/RenderSubsystem.h"
 
@@ -306,6 +305,8 @@ void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool firs
 
     if (!entity) return;
 
+    Device::GetInstance().Flush();
+
     if (!excludeChildren)
     {
         // destroy each child, can't really iterate through them, so should think about it a bit
@@ -440,12 +441,6 @@ void Blainn::Scene::CreateAttachMeshComponent(Entity entity, const Path &path, c
         handlePtr = assetManagerInstance.LoadMesh(path, data);
     }
     entity.AddComponent<MeshComponent>(eastl::move(handlePtr));
-
-    RenderComponent *renderComponentPtr = entity.TryGetComponent<RenderComponent>();
-    if (renderComponentPtr)
-    {
-        RenderSubsystem::GetInstance().AddMeshToRenderComponent(entity, handlePtr);
-    }
 }
 
 
