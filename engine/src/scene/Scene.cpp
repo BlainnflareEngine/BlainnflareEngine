@@ -13,7 +13,6 @@
 #include "tools/random.h"
 
 #include "components/MeshComponent.h"
-#include "components/RenderComponent.h"
 #include "subsystems/ScriptingSubsystem.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/RenderSubsystem.h"
