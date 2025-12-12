@@ -26,9 +26,10 @@ mesh_widget::mesh_widget(const Blainn::Entity &entity, QWidget *parent)
     layout()->addWidget(m_path_input);
     layout()->addWidget(m_material_input);
 
+    BlockSignals(true);
     UpdatePath();
     UpdateMaterial();
-    UpdateMaterial();
+    BlockSignals(false);
 
     connect(m_path_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewPath);
     connect(m_material_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewMaterial);
@@ -57,6 +58,7 @@ void mesh_widget::UpdateMaterial()
         QString::fromStdString(Blainn::AssetManager::GetInstance()
                                    .GetMaterialPath(*m_entity.GetComponent<Blainn::MeshComponent>().m_materialHandle)
                                    .string());
+
     m_material_input->SetPath(path);
 }
 
@@ -98,5 +100,12 @@ void mesh_widget::DeleteComponent()
     if (m_entity.IsValid()) m_entity.RemoveComponent<Blainn::MeshComponent>();
 
     deleteLater();
+}
+
+
+void mesh_widget::BlockSignals(bool block)
+{
+    m_path_input->blockSignals(block);
+    m_material_input->blockSignals(block);
 }
 } // namespace editor
