@@ -273,7 +273,7 @@ void Blainn::RenderSubsystem::LoadPipeline()
 
     // CreateRenderItems(commandList.Get());
     CreateFrameResources();
-    CreateDescriptorHeaps();
+    CreateSrvAndSamplerDescriptorHeaps();
     CreateRootSignature();
 
     CreateShaders();
@@ -309,76 +309,20 @@ void Blainn::RenderSubsystem::CreateFrameResources()
     }
 }
 
-void Blainn::RenderSubsystem::CreateDescriptorHeaps()
+void Blainn::RenderSubsystem::CreateTextureDescriptor(Texture& texture, TextureType textureType)
 {
-    ThrowIfFailed(m_device.CreateDescriptorHeap(
-        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-        1u + GBuffer::EGBufferLayer::MAX + MAX_TEXTURES, m_srvHeap));
+    UINT freeTextureOffsetOfType = m_texturesOffsetsTable.at(textureType);
+    UINT texturePlacementOffset = m_texturesSrvHeapStartIndex + (static_cast<UINT>(textureType) - 1u) * MAX_TEXTURES + freeTextureOffsetOfType;
+    texture.SetTextureDescriptorOffset(texturePlacementOffset);
     
-    m_cbvSrvUavDescriptorSize = m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-    CD3DX12_CPU_DESCRIPTOR_HANDLE handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(m_srvHeap->GetCPUDescriptorHandleForHeapStart());
+    auto srvCpuStart = m_srvHeap->GetCPUDescriptorHandleForHeapStart();
 
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     ZeroMemory(&srvDesc, sizeof(srvDesc));
 
-    UINT m_cascadeShadowMapHeapIndex = 0u;
-
-    // configuring srv for shadow maps texture2Darray in the srv heap
-    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-    srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Texture2DArray.MostDetailedMip = 0u;
-    srvDesc.Texture2DArray.MipLevels = -1;
-    srvDesc.Texture2DArray.FirstArraySlice = 0u;
-    srvDesc.Texture2DArray.ArraySize = m_cascadeShadowMap->Get()->GetDesc().DepthOrArraySize;
-    srvDesc.Texture2DArray.PlaneSlice = 0u;
-    srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
-    m_device.CreateShaderResourceView(nullptr, &srvDesc, handle);
-
-    handle.Offset(1, m_cbvSrvUavDescriptorSize);
-
-    auto srvGpuStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
-    auto srvCpuStart = m_srvHeap->GetCPUDescriptorHandleForHeapStart();
-    auto dsvCpuStart = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
-    auto rtvCpuStart = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
-
-    m_cascadeShadowSrv =
-        CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, m_cascadeShadowMapHeapIndex, m_cbvSrvUavDescriptorSize);
-    m_cascadeShadowMap->CreateDescriptors(
-        CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, m_cascadeShadowMapHeapIndex, m_cbvSrvUavDescriptorSize),
-        m_cascadeShadowSrv,
-        CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvCpuStart, 1 /*offset from main DSV*/, m_dsvDescriptorSize));
-
-    // to offset from csm handle to next free handle
-    UINT GBufferHeapIndex = ++m_cascadeShadowMapHeapIndex;
-    m_GBufferTexturesSrv = CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, GBufferHeapIndex, m_cbvSrvUavDescriptorSize);
-
-    for (auto i = 0u; i < GBuffer::EGBufferLayer::MAX; ++i)
-    {
-        srvDesc.Format = (i == GBuffer::EGBufferLayer::DEPTH) ? DXGI_FORMAT_R24_UNORM_X8_TYPELESS
-                                                              : m_GBuffer->GetBufferTextureFormat(i);
-        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-        m_device.CreateShaderResourceView(nullptr, &srvDesc, handle);
-
-        auto cpuDsvRtvHandle =
-            (i == GBuffer::EGBufferLayer::DEPTH)
-                ? CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvCpuStart, 2 /* offset from main DSV and CSM */, m_dsvDescriptorSize)
-                : CD3DX12_CPU_DESCRIPTOR_HANDLE(rtvCpuStart, SwapChainFrameCount + i, m_rtvDescriptorSize);
-
-        m_GBuffer->SetDescriptors(
-            CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, GBufferHeapIndex, m_cbvSrvUavDescriptorSize),
-            CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, GBufferHeapIndex, m_cbvSrvUavDescriptorSize), cpuDsvRtvHandle,
-            i);
-
-        handle.Offset(1, m_cbvSrvUavDescriptorSize);
-        ++GBufferHeapIndex;
-    }
-
-    m_GBuffer->CreateDescriptors();
-
-    auto texD3DResource = AssetManager::GetInstance().GetTextureByIndex(0).GetResource();
+    CD3DX12_CPU_DESCRIPTOR_HANDLE localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, texturePlacementOffset, m_cbvSrvUavDescriptorSize);
+    
+    auto texD3DResource = texture.GetResource();
     srvDesc.Format = texD3DResource->GetDesc().Format;
     srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -386,10 +330,90 @@ void Blainn::RenderSubsystem::CreateDescriptorHeaps()
     srvDesc.Texture2D.MipLevels = texD3DResource->GetDesc().MipLevels;
     srvDesc.Texture2D.PlaneSlice;
     srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+    m_device.CreateShaderResourceView(texD3DResource, &srvDesc, localHandle);
+}
+
+void Blainn::RenderSubsystem::InitTextureOffsetsTable()
+{
+    for (auto&& textureOffset : m_texturesOffsetsTable)
+    {
+        textureOffset.second = 0u;
+    }
+}
+
+void Blainn::RenderSubsystem::CreateSrvAndSamplerDescriptorHeaps()
+{
+    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2048u, m_srvHeap, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE));
+    m_cbvSrvUavDescriptorSize = m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     
-    m_device.CreateShaderResourceView(texD3DResource, &srvDesc, handle);
-    
-    handle.Offset(1, m_cbvSrvUavDescriptorSize);
+    auto srvGpuStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
+    auto srvCpuStart = m_srvHeap->GetCPUDescriptorHandleForHeapStart();
+    auto dsvCpuStart = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
+    auto rtvCpuStart = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
+
+    //!!!!!! Set imgui Gizmos stuff at zero index in srvHeap
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    ZeroMemory(&srvDesc, sizeof(srvDesc));
+
+    m_cascadesShadowSrvHeapStartIndex = 0u;
+    CD3DX12_CPU_DESCRIPTOR_HANDLE localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, m_cascadesShadowSrvHeapStartIndex, m_cbvSrvUavDescriptorSize);
+    {
+        // configuring srv for shadow maps texture2Darray in the srv heap
+        srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srvDesc.Texture2DArray.MostDetailedMip = 0u;
+        srvDesc.Texture2DArray.MipLevels = -1;
+        srvDesc.Texture2DArray.FirstArraySlice = 0u;
+        srvDesc.Texture2DArray.ArraySize = m_cascadeShadowMap->Get()->GetDesc().DepthOrArraySize;
+        srvDesc.Texture2DArray.PlaneSlice = 0u;
+        srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
+        m_device.CreateShaderResourceView(nullptr, &srvDesc, localHandle); // set shadow srv to first element of srvHeap
+
+        m_cascadeShadowMap->CreateDescriptors(
+            CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, m_cascadesShadowSrvHeapStartIndex, m_cbvSrvUavDescriptorSize),
+            CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, m_cascadesShadowSrvHeapStartIndex, m_cbvSrvUavDescriptorSize),
+            CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvCpuStart, 1, m_dsvDescriptorSize));
+    }
+
+    m_GBufferTexturesSrvHeapStartIndex = m_cascadesShadowSrvHeapStartIndex + 1u;
+    localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, m_GBufferTexturesSrvHeapStartIndex, m_cbvSrvUavDescriptorSize);
+    for (auto i = 0u; i < GBuffer::EGBufferLayer::MAX; ++i)
+    {
+        srvDesc.Format = (i == GBuffer::EGBufferLayer::DEPTH) ? DXGI_FORMAT_R24_UNORM_X8_TYPELESS
+                                                              : m_GBuffer->GetBufferTextureFormat(i);
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        m_device.CreateShaderResourceView(nullptr, &srvDesc, localHandle);
+
+        auto cpuDsvRtvHandle =
+            (i == GBuffer::EGBufferLayer::DEPTH)
+                ? CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvCpuStart, 2, m_dsvDescriptorSize)
+                : CD3DX12_CPU_DESCRIPTOR_HANDLE(rtvCpuStart, SwapChainFrameCount + i, m_rtvDescriptorSize);
+
+        m_GBuffer->SetDescriptors(CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, m_GBufferTexturesSrvHeapStartIndex + i, m_cbvSrvUavDescriptorSize),
+                                  CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, m_GBufferTexturesSrvHeapStartIndex + i, m_cbvSrvUavDescriptorSize),
+                                  cpuDsvRtvHandle, i);
+        localHandle.Offset(1, m_cbvSrvUavDescriptorSize);
+    }
+    m_GBuffer->CreateDescriptors();
+
+    /*m_skyCubeSrvHeapStartIndex = m_GBufferTexturesSrvHeapStartIndex + GBuffer::EGBufferLayer::MAX;
+    localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize);
+    for (auto &e : m_skyTextures)
+    {
+        auto &texD3DResource = e.second->Resource;
+        srvDesc.Format = texD3DResource->GetDesc().Format;
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srvDesc.TextureCube.MostDetailedMip = 0u;
+        srvDesc.TextureCube.MipLevels = texD3DResource->GetDesc().MipLevels;
+        srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
+        m_device.CreateShaderResourceView(texD3DResource.Get(), &srvDesc, localHandle);
+
+        localHandle.Offset(1, m_cbvSrvUavDescriptorSize);
+    }*/
 }
 
 void Blainn::RenderSubsystem::CreateRootSignature()
@@ -397,47 +421,39 @@ void Blainn::RenderSubsystem::CreateRootSignature()
     m_rootSignature = eastl::make_shared<RootSignature>();
 
     CD3DX12_DESCRIPTOR_RANGE cascadeShadowSrv;
-    cascadeShadowSrv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1u, 0u);
+    cascadeShadowSrv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1u, SHADER_REGISTER(0u), REGISTER_SPACE_1);
 
-    CD3DX12_DESCRIPTOR_RANGE texTable;
-    texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, /*number of materials / textures*/ 6u, 2u, 0u);
+    CD3DX12_DESCRIPTOR_RANGE GBufferTable;
+    GBufferTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, (UINT)GBuffer::EGBufferLayer::MAX, SHADER_REGISTER(1u), REGISTER_SPACE_1);
+    
+    CD3DX12_DESCRIPTOR_RANGE skyBoxTable;
+     skyBoxTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1u/*(UINT)m_skyTextures.size()*/, SHADER_REGISTER(6u), REGISTER_SPACE_1);
 
-    CD3DX12_DESCRIPTOR_RANGE gBufferTable;
-    gBufferTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, (UINT)GBuffer::EGBufferLayer::MAX, 2u, 1u);
+    // Bindless unbound textures
+     CD3DX12_DESCRIPTOR_RANGE textureTable;
+     textureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, (UINT)-1, SHADER_REGISTER(7u), REGISTER_SPACE_1);
 
     // Root parameter can be a table, root descriptor or root constants.
-    CD3DX12_ROOT_PARAMETER slotRootParameter[ERootParameter::NumRootParameters];
+    CD3DX12_ROOT_PARAMETER slotRootParameter[RootSignature::ERootParam::NumRootParameters];
 
     // Perfomance TIP: Order from most frequent to least frequent.
-    slotRootParameter[ERootParameter::PerObjectDataCB].InitAsConstantBufferView(
-        0u, 0u, D3D12_SHADER_VISIBILITY_ALL); // a root descriptor for objects' CBVs.
-    slotRootParameter[ERootParameter::PerPassDataCB].InitAsConstantBufferView(
-        1u, 0u, D3D12_SHADER_VISIBILITY_ALL); // a root descriptor for Pass CBV.
+    slotRootParameter[RootSignature::ERootParam::PerObjectDataCB   ].InitAsConstantBufferView(SHADER_REGISTER(0u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[RootSignature::ERootParam::PerPassDataCB     ].InitAsConstantBufferView(SHADER_REGISTER(1u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
 
-    slotRootParameter[ERootParameter::MaterialDataSB].InitAsShaderResourceView(
-        1u, 0u, D3D12_SHADER_VISIBILITY_ALL); // a srv for structured buffer with materials' data
-    slotRootParameter[ERootParameter::PointLightsDataSB].InitAsShaderResourceView(
-        0u, 1u, D3D12_SHADER_VISIBILITY_ALL); // a srv for structured buffer
-    slotRootParameter[ERootParameter::SpotLightsDataSB].InitAsShaderResourceView(
-        1u, 1u, D3D12_SHADER_VISIBILITY_ALL); // a srv for structured buffer
+    slotRootParameter[RootSignature::ERootParam::MaterialsDataSB   ].InitAsShaderResourceView(SHADER_REGISTER(0u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[RootSignature::ERootParam::PointLightsDataSB ].InitAsShaderResourceView(SHADER_REGISTER(1u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[RootSignature::ERootParam::SpotLightsDataSB  ].InitAsShaderResourceView(SHADER_REGISTER(2u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
 
-    slotRootParameter[ERootParameter::CascadedShadowMaps].InitAsDescriptorTable(
-        1u, &cascadeShadowSrv, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for shadow maps array.
+    slotRootParameter[RootSignature::ERootParam::CascadedShadowMaps].InitAsDescriptorTable(1u, &cascadeShadowSrv, D3D12_SHADER_VISIBILITY_PIXEL);
+    slotRootParameter[RootSignature::ERootParam::GBufferTextures   ].InitAsDescriptorTable(1u, &GBufferTable, D3D12_SHADER_VISIBILITY_PIXEL);
+    slotRootParameter[RootSignature::ERootParam::SkyCube           ].InitAsDescriptorTable(1u, &skyBoxTable, D3D12_SHADER_VISIBILITY_PIXEL);
+    slotRootParameter[RootSignature::ERootParam::Textures          ].InitAsDescriptorTable(1u, &textureTable, D3D12_SHADER_VISIBILITY_PIXEL);
 
-    slotRootParameter[ERootParameter::Textures].InitAsDescriptorTable(
-        1u, &texTable, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for textures
-
-    slotRootParameter[ERootParameter::GBufferTextures].InitAsDescriptorTable(
-        1u, &gBufferTable, D3D12_SHADER_VISIBILITY_PIXEL); // a descriptor table for GBuffer
-
-    m_rootSignature->Create(m_device, ARRAYSIZE(slotRootParameter), slotRootParameter,
-                            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    m_rootSignature->Create(m_device, ARRAYSIZE(slotRootParameter), slotRootParameter, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 }
 
 void Blainn::RenderSubsystem::CreateShaders()
 {
-    // auto pixelShaderPath = GetAssetFullPath(L"./PixelShader.hlsl").c_str();
-
     const D3D_SHADER_MACRO fogDefines[] = {"FOG", "1", NULL, NULL};
 
     const D3D_SHADER_MACRO alphaTestDefines[] = {"ALPHA_TEST", "1", "FOG", "1", NULL, NULL};
@@ -467,6 +483,13 @@ void Blainn::RenderSubsystem::CreateShaders()
     m_shaders[EShaderType::DeferredSpotPS] =
         FreyaUtil::CompileShader(L"./Content/Shaders/DeferredSpotLightPS.hlsl", nullptr, "main", "ps_5_1");
 #pragma endregion DeferredShading
+
+#pragma region ForwardShading
+    #pragma region SkyBox
+        m_shaders[EShaderType::SkyBoxVS] = FreyaUtil::CompileShader(L"./Content/Shaders/SkyBox.hlsl", nullptr, "VSMain", "vs_5_1");
+        m_shaders[EShaderType::SkyBoxPS] = FreyaUtil::CompileShader(L"./Content/Shaders/SkyBox.hlsl", nullptr, "PSMain", "ps_5_1");
+    #pragma endregion SkyBox
+#pragma endregion ForwardShading
 }
 
 void Blainn::RenderSubsystem::CreatePipelineStateObjects()
@@ -798,7 +821,7 @@ void Blainn::RenderSubsystem::RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pC
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
     auto currFrameGPUVirtualAddress = FreyaUtil::GetGPUVirtualAddress(
         currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DepthShadow));
-    pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerPassDataCB, currFrameGPUVirtualAddress);
+    pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerPassDataCB, currFrameGPUVirtualAddress);
 #pragma endregion BypassResources
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_cascadeShadowMap->GetDsv());
@@ -827,18 +850,16 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
 
 #pragma region BypassResources
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
-    auto currFramePassCBAddress = FreyaUtil::GetGPUVirtualAddress(
-        currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DeferredGeometry));
-    pCommandList->SetGraphicsRootConstantBufferView(
-        ERootParameter::PerPassDataCB, currFramePassCBAddress); // second element contains data for geometry pass
+    auto currFramePassCBAddress = FreyaUtil::GetGPUVirtualAddress(currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DeferredGeometry));
+    pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerPassDataCB, currFramePassCBAddress);
 
     // Bind all the materials used in this scene. For structured buffers, we can bypass the heap and set as a root descriptor.
     // auto matBuffer = m_currFrameResource->MaterialSB->Get();
-    // pCommandList->SetGraphicsRootShaderResourceView(ERootParameter::MaterialDataSB, matBuffer->GetGPUVirtualAddress());
+    // pCommandList->SetGraphicsRootShaderResourceView(ERootParam::MaterialsDataSB, matBuffer->GetGPUVirtualAddress());
 
     // Bind all the textures used in this scene. Observe that we only have to specify the first descriptor in the table.
     // The root signature knows how many descriptors are expected in the table.
-    // pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::Textures, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
+    // pCommandList->SetGraphicsRootDescriptorTable(ERootParam::Textures, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
 #pragma endregion BypassResources
 
     // start of the GBuffer rtvs in rtvHeap
@@ -893,13 +914,15 @@ void Blainn::RenderSubsystem::DeferredDirectionalLightPass(ID3D12GraphicsCommand
 #pragma region BypassResources
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
     auto currFramePassCBAddress = FreyaUtil::GetGPUVirtualAddress(currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DeferredLighting));
-
-    pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerPassDataCB, currFramePassCBAddress);
+    pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerPassDataCB, currFramePassCBAddress);
+    
+    auto srvGpuStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
     // Set shaadow map texture for main pass
-    pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::CascadedShadowMaps, m_cascadeShadowSrv);
-
+    pCommandList->SetGraphicsRootDescriptorTable(RootSignature::ERootParam::CascadedShadowMaps, CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, m_cascadesShadowSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
     // Bind GBuffer textures
-    pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::GBufferTextures, m_GBufferTexturesSrv);
+    pCommandList->SetGraphicsRootDescriptorTable(RootSignature::ERootParam::GBufferTextures, CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, m_GBufferTexturesSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
+    // Bind SkyBox for sky reflections
+    //pCommandList->SetGraphicsRootDescriptorTable(ERootParam::SkyBox, CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
 #pragma endregion BypassResources
 
     pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::DeferredDirectional).Get());
@@ -913,10 +936,10 @@ void Blainn::RenderSubsystem::DeferredPointLightPass(ID3D12GraphicsCommandList2 
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
     auto currFramePassCBAddress = FreyaUtil::GetGPUVirtualAddress(
         currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DeferredLighting));
-    // pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerPassDataCB, currFramePassCBAddress);
+    // pCommandList->SetGraphicsRootConstantBufferView(ERootParam::PerPassDataCB, currFramePassCBAddress);
 
     // Bind GBuffer textures
-    // pCommandList->SetGraphicsRootDescriptorTable(ERootParameter::GBufferTextures, m_GBufferTexturesSrv);
+    // pCommandList->SetGraphicsRootDescriptorTable(ERootParam::GBufferTextures, m_GBufferTexturesSrv);
 
     // !!! HACK (TO DRAW EVEN IF FRUSTUM INTERSECTS LIGHT VOLUME)
     // pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::DeferredPointWithinFrustum).Get());
@@ -957,7 +980,7 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
         pCommandList->IASetIndexBuffer(&currIBV);
 
         D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currObjectCB->GetGPUVirtualAddress(), objCBByteSize, 0u);
-        pCommandList->SetGraphicsRootConstantBufferView(ERootParameter::PerObjectDataCB, objCBAddress);
+        pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerObjectDataCB, objCBAddress);
 
         if (currIBV.SizeInBytes)
         {

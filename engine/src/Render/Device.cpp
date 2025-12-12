@@ -173,7 +173,7 @@ HRESULT Blainn::Device::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UI
     heapDesc.Type = type;
     heapDesc.NumDescriptors = numDescriptors;
     heapDesc.Flags = (type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : flags;
-    heapDesc.NodeMask = nodeMask;
+    heapDesc.NodeMask = nodeMask; // multi adapter stuff
     return m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(descriptorHeap.GetAddressOf()));
 }
 

@@ -23,6 +23,7 @@ set(ENGINE_SOURCES
         include/Render/Device.h
         include/Render/DXHelpers.h
         include/Render/FrameResource.h
+        include/Render/FreyaCoreDefines.h
         include/Render/FreyaCoreTypes.h
         include/Render/FreyaMath.h
         include/Render/FreyaUtil.h

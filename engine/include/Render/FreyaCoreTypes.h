@@ -3,10 +3,6 @@
 #include <DirectXMath.h>
 #include <DirectXColors.h>
 
-#ifndef FORCEINLINE
-	#define FORCEINLINE __forceinline
-#endif
-
 using namespace DirectX;
 
 namespace Blainn
@@ -104,9 +100,6 @@ namespace Blainn
 		float FogStart = 8.0f;
 		float FogRange = 18.0f;
 
-		uint32_t NumDirLights = 0u;
-		uint32_t NumPointLights = 0u;
-
 		LightData DirLight;
 	};
 
@@ -120,8 +113,8 @@ namespace Blainn
 		float Roughness = 0.25f;
 		XMFLOAT4X4 MatTransform;
 		uint32_t DiffusseMapIndex = 0u;
-		uint32_t matPad0 = 0u;
-		uint32_t matPad1 = 0u;
-		uint32_t matPad2 = 0u;
+        uint32_t NormalMapIndex = 0u;
+        uint32_t RoughnessMapIndex = 0u;
+        uint32_t MetallicMapIndex = 0u;
 	};
 }

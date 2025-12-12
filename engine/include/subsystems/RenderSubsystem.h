@@ -23,21 +23,6 @@ struct FrameResource;
 class RenderSubsystem
 {
 public:
-    enum ERootParameter : UINT
-    {
-        PerObjectDataCB = 0,
-        PerPassDataCB,
-        MaterialDataSB,
-        PointLightsDataSB,
-        SpotLightsDataSB,
-        CascadedShadowMaps,
-        GBufferTextures,
-        SkyCube,
-        Textures,
-
-        NumRootParameters = 9u
-    };
-
     enum EPsoType : UINT
     {
         CascadedShadowsOpaque = 0,
@@ -70,7 +55,10 @@ public:
         DeferredPointPS,
         DeferredSpotPS,
 
-        NumShaders = 9U
+        SkyBoxVS,
+        SkyBoxPS,
+
+        NumShaders = 11U
     };
 
 private:
@@ -92,6 +80,8 @@ public:
     // Record all the commands we need to render the scene into the command list.
     void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
 
+    void CreateTextureDescriptor(Texture &texture, TextureType textureType);
+    void InitTextureOffsetsTable();
 private:
     void InitializeD3D();
 
@@ -111,7 +101,7 @@ private:
     void LoadPipeline();
     void LoadGraphicsFeatures();
     void CreateFrameResources();
-    void CreateDescriptorHeaps();
+    void CreateSrvAndSamplerDescriptorHeaps();
     void CreateRootSignature();
     void CreateShaders();
     void CreatePipelineStateObjects();
@@ -192,6 +182,7 @@ private:
     eastl::shared_ptr<RootSignature> m_rootSignature;
     eastl::unordered_map<EShaderType, ComPtr<ID3DBlob>> m_shaders;
     eastl::unordered_map<EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
+    eastl::unordered_map<TextureType, UINT> m_texturesOffsetsTable;
 
     // ObjectConstants m_perObjectCBData;
 
@@ -224,19 +215,23 @@ private:
 
 #pragma region DeferredShading
     eastl::unique_ptr<GBuffer> m_GBuffer;
-    CD3DX12_GPU_DESCRIPTOR_HANDLE m_GBufferTexturesSrv;
+    UINT m_GBufferTexturesSrvHeapStartIndex = 0u;
 #pragma endregion DeferredShading
 
 #pragma region CascadedShadows
     eastl::unique_ptr<ShadowMap> m_cascadeShadowMap;
-    CD3DX12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowSrv;
+    UINT m_cascadesShadowSrvHeapStartIndex = 0u;
 #pragma endregion CascadedShadows
+
+#pragma region Textures
+    UINT m_skyCubeSrvHeapStartIndex = 0u;
+    UINT m_texturesSrvHeapStartIndex = 0u;
+#pragma endregion Textures
 
 private:
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTV()
     {
-        return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
-                                             m_swapChain->GetBackBufferIndex(), m_rtvDescriptorSize);
+        return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_swapChain->GetBackBufferIndex(), m_rtvDescriptorSize);
     }
 
     D3D12_CPU_DESCRIPTOR_HANDLE GetDSV()

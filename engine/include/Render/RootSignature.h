@@ -9,11 +9,11 @@ namespace Blainn
     class RootSignature
     {
     public:
-        enum class ERootParameter : UINT
+        enum ERootParam : UINT
         {
             PerObjectDataCB = 0,
             PerPassDataCB,
-            MaterialDataSB,
+            MaterialsDataSB,
             PointLightsDataSB,
             SpotLightsDataSB,
             CascadedShadowMaps,

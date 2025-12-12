@@ -10,6 +10,7 @@
 #include "d3dcompiler.h"
 #include "DirectXCollision.h"
 
+#include "FreyaCoreDefines.h"
 #include "FreyaCoreTypes.h"
 #include "aliases.h"
 
