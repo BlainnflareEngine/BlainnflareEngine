@@ -33,7 +33,7 @@ cbuffer cbPerObject : register(b0)
     float4x4 gInvTransposeWorld;
     float4x4 gTexTransform;
     uint gMaterialIndex;
-    uint gNormalMapIndex; // todo
+    uint gObjPad0;
     uint gObjPad1;
     uint gObjPad2;
 };
@@ -66,19 +66,17 @@ cbuffer cbPerPass : register(b1)
     float gFogStart;
     float gFogRange;
     
-    uint NumDirLights = 0u;
-    uint NumPointLights = 0u;
-    
     Light gDirLight;
 };
 
-StructuredBuffer<InstanceData /*Light*/> gPointLights : register(t0, space1);
-StructuredBuffer<InstanceData /*Light*/> gSpotLights : register(t1, space1);
-Texture2D gGBuffer[GBufferSize] : register(t2, space1); // t2, t3, t4, t5, t6 in space1
+StructuredBuffer<MaterialData> gMaterialData : register(t0);
+StructuredBuffer<InstanceData /*Light*/> gPointLights : register(t1);
+StructuredBuffer<InstanceData /*Light*/> gSpotLights : register(t2);
 
-Texture2DArray gShadowMaps : register(t0);
-StructuredBuffer<MaterialData> gMaterialData : register(t1);
-Texture2D gDiffuseMap[6 /*magic hardcode*/] : register(t2); // t2, t3, t4, t5, t6, t7 in space0
+Texture2DArray gShadowMaps : register(t0, space1);
+Texture2D gGBuffer[GBufferSize] : register(t1, space1); // t1, t2, t3, t4, t5 in space1
+TextureCube gCubeMap : register(t6, space1);
+Texture2D gDiffuseMap[]: register(t7, space1);
 
 SamplerState gSamplerPointWrap : register(s0);
 SamplerState gSamplerLinearWrap : register(s1);
@@ -86,6 +84,14 @@ SamplerState gSamplerAnisotropicWrap : register(s2);
 SamplerState gShadowSamplerLinearBorder : register(s3);
 SamplerComparisonState gShadowSamplerComparisonLinearBorder : register(s4);
 
+// Add in specular reflections (very approximated model)
+float3 ComputeSpecularReflections(float3 toEyeW, float3 normalW, Material mat)
+{
+    float3 r = reflect(-toEyeW, normalW);
+    float4 reflectionColor = gCubeMap.Sample(gSamplerAnisotropicWrap, r);
+    float3 fresnelFactor = SchlickApproximation(mat.FresnelR0, normalW, r);
+    return (mat.Shininess * fresnelFactor * reflectionColor.rgb);
+}
 
 float3 ComputeWorldPos(float3 texcoord)
 {
@@ -96,4 +102,22 @@ float3 ComputeWorldPos(float3 texcoord)
     float4 worldPos = mul(ndc, gInvViewProj);
     worldPos.xyz /= worldPos.w;
     return worldPos.xyz;
+}
+
+float3 NormalSampleToWorldSpace(float3 normalMapSample, float3 unitNormalW, float3 tangentW)
+{
+	// Uncompress each component from [0,1] to [-1,1].
+    float3 normalT = 2.0f * normalMapSample - 1.0f;
+
+	// Build orthonormal basis.
+    float3 N = unitNormalW;
+    float3 T = normalize(tangentW - dot(tangentW, N) * N);
+    float3 B = cross(N, T);
+
+    float3x3 TBN = float3x3(T, B, N);
+
+	// Transform from tangent space to world space.
+    float3 bumpedNormalW = mul(normalT, TBN);
+
+    return bumpedNormalW;
 }
