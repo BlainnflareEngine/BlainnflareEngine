@@ -12,12 +12,14 @@
 #include "Scene/Scene.h"
 
 #include "Render/CommandQueue.h"
+#include "Render/FrameResource.h"
 #include "Render/FreyaMath.h"
 #include "Render/FreyaUtil.h"
 #include "Render/Renderer.h"
-#include "Render/RootSignature.h"
-#include "Render/FrameResource.h"
+#include "Render/PipelineStateObject.h"
 #include "Render/PrebuiltEngineMeshes.h"
+#include "Render/RootSignature.h"
+#include "Render/Shader.h"
 
 #include <cassert>
 
@@ -127,7 +129,7 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
     pCommandList->SetGraphicsRootSignature(m_rootSignature->Get());
 
     // Access for setting and using root descriptor table
-    ID3D12DescriptorHeap *descriptorHeaps[] = {m_srvHeap.Get()};
+    ID3D12DescriptorHeap *descriptorHeaps[] = { m_device.GetDescriptorHeap().Get() };
     pCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
     RenderDepthOnlyPass(pCommandList);
@@ -162,12 +164,14 @@ VOID Blainn::RenderSubsystem::CreateSwapChain()
 VOID Blainn::RenderSubsystem::CreateRtvAndDsvDescriptorHeaps()
 {
     // Describe and create a render target view (RTV) descriptor heap.
-    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-                                                SwapChainFrameCount + (GBuffer::EGBufferLayer::MAX - 1u), m_rtvHeap));
-    m_rtvDescriptorSize = m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, SwapChainFrameCount + (GBuffer::EGBufferLayer::MAX - 1u)));
+    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 3u));
+    
+    // Cache descriptor heaps
+    m_rtvHeap = m_device.GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    m_dsvHeap = m_device.GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
-    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
-                                                3u /*main DSV + csm + DSV from GBuffer*/, m_dsvHeap));
+    m_rtvDescriptorSize = m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     m_dsvDescriptorSize = m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 }
 
@@ -187,9 +191,7 @@ VOID Blainn::RenderSubsystem::Reset()
     commandQueue->Flush();
     ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
 
-    // temp
-    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
-    m_swapChain->Reset(m_width, m_height, rtvHeapHandle, m_rtvDescriptorSize);
+    m_swapChain->Reset(m_width, m_height);
     m_depthStencilBuffer.Reset();
 
     // Create the depth/stencil view.
@@ -200,10 +202,8 @@ VOID Blainn::RenderSubsystem::Reset()
     depthStencilDesc.Height = m_height;
     depthStencilDesc.DepthOrArraySize = (UINT16)1;
     depthStencilDesc.MipLevels = (UINT16)1;
-    depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS; //
-    // MSAA, same settings as back buffer
-    depthStencilDesc.SampleDesc =
-        m_is4xMsaaState ? DXGI_SAMPLE_DESC{4u, m_4xMsaaQuality - 1u} : DXGI_SAMPLE_DESC{1u, 0u};
+    depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS; // MSAA, same settings as back buffer
+    depthStencilDesc.SampleDesc = m_is4xMsaaState ? DXGI_SAMPLE_DESC{4u, m_4xMsaaQuality - 1u} : DXGI_SAMPLE_DESC{1u, 0u};
 
     depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
     depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
@@ -258,9 +258,14 @@ VOID Blainn::RenderSubsystem::Present()
 
 void Blainn::RenderSubsystem::OnResize(UINT newWidth, UINT newHeight)
 {
-    // To recreate resources which depend on width and height (shadow maps, G buffer etc.)
+    if (!m_isInitialized) return;
+    
+    m_width = newWidth;
+    m_height = newHeight;
+    m_aspectRatio = static_cast<float>(m_width) / m_height;
+
+    // To recreate resources which depend on width and height (shadow maps, GBuffer etc.)
     Reset();
-    // m_renderer->OnResize(newWidth, newHeight);
 }
 
 void Blainn::RenderSubsystem::LoadPipeline()
@@ -271,7 +276,6 @@ void Blainn::RenderSubsystem::LoadPipeline()
 
     ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
 
-    // CreateRenderItems(commandList.Get());
     CreateFrameResources();
     CreateSrvAndSamplerDescriptorHeaps();
     CreateRootSignature();
@@ -305,47 +309,50 @@ void Blainn::RenderSubsystem::CreateFrameResources()
     for (int i = 0; i < gNumFrameResources; i++)
     {
         m_frameResources.push_back(eastl::make_unique<FrameResource>(
-            m_device, static_cast<UINT>(EPassType::NumPasses), 0u /*(UINT)m_materials.size()*/, 0u /*MaxPointLights*/));
+            m_device, static_cast<UINT>(EPassType::NumPasses), MAX_MATERIALS, 0u /*MaxPointLights*/));
     }
 }
 
-void Blainn::RenderSubsystem::CreateTextureDescriptor(Texture& texture, TextureType textureType)
-{
-    UINT freeTextureOffsetOfType = m_texturesOffsetsTable.at(textureType);
-    UINT texturePlacementOffset = m_texturesSrvHeapStartIndex + (static_cast<UINT>(textureType) - 1u) * MAX_TEXTURES + freeTextureOffsetOfType;
-    texture.SetTextureDescriptorOffset(texturePlacementOffset);
-    
-    auto srvCpuStart = m_srvHeap->GetCPUDescriptorHandleForHeapStart();
-
-    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    ZeroMemory(&srvDesc, sizeof(srvDesc));
-
-    CD3DX12_CPU_DESCRIPTOR_HANDLE localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, texturePlacementOffset, m_cbvSrvUavDescriptorSize);
-    
-    auto texD3DResource = texture.GetResource();
-    srvDesc.Format = texD3DResource->GetDesc().Format;
-    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Texture2D.MostDetailedMip = 0u;
-    srvDesc.Texture2D.MipLevels = texD3DResource->GetDesc().MipLevels;
-    srvDesc.Texture2D.PlaneSlice;
-    srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-    m_device.CreateShaderResourceView(texD3DResource, &srvDesc, localHandle);
-}
-
-void Blainn::RenderSubsystem::InitTextureOffsetsTable()
-{
-    for (auto&& textureOffset : m_texturesOffsetsTable)
-    {
-        textureOffset.second = 0u;
-    }
-}
+//void Blainn::RenderSubsystem::CreateTextureDescriptor(Texture& texture, TextureType textureType)
+//{
+//    UINT freeTextureOffsetOfType = m_texturesOffsetsTable.at(textureType);
+//    UINT texturePlacementOffset = m_texturesSrvHeapStartIndex + (static_cast<UINT>(textureType) - 1u) * MAX_TEXTURES + freeTextureOffsetOfType;
+//    texture.SetTextureDescriptorOffset(texturePlacementOffset);
+//    
+//    auto srvCpuStart = m_srvHeap->GetCPUDescriptorHandleForHeapStart();
+//
+//    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+//    ZeroMemory(&srvDesc, sizeof(srvDesc));
+//
+//    CD3DX12_CPU_DESCRIPTOR_HANDLE localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, texturePlacementOffset, m_cbvSrvUavDescriptorSize);
+//    
+//    auto texD3DResource = texture.GetResource();
+//    srvDesc.Format = texD3DResource->GetDesc().Format;
+//    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+//    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+//    srvDesc.Texture2D.MostDetailedMip = 0u;
+//    srvDesc.Texture2D.MipLevels = texD3DResource->GetDesc().MipLevels;
+//    srvDesc.Texture2D.PlaneSlice;
+//    srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+//    m_device.CreateShaderResourceView(texD3DResource, &srvDesc, localHandle);
+//
+//    m_texturesOffsetsTable.at(textureType)++;
+//}
+//
+//void Blainn::RenderSubsystem::InitTextureOffsetsTable()
+//{
+//    for (auto&& textureOffset : m_texturesOffsetsTable)
+//    {
+//        textureOffset.second = 0u;
+//    }
+//}
 
 void Blainn::RenderSubsystem::CreateSrvAndSamplerDescriptorHeaps()
 {
-    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2048u, m_srvHeap, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE));
-    m_cbvSrvUavDescriptorSize = m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    
+    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2048u, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE));
+    m_srvHeap = m_device.GetDescriptorHeap();
+    m_cbvSrvUavDescriptorSize = m_device.GetDescriptorHandleIncrementSize();
+
     auto srvGpuStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
     auto srvCpuStart = m_srvHeap->GetCPUDescriptorHandleForHeapStart();
     auto dsvCpuStart = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
@@ -374,7 +381,7 @@ void Blainn::RenderSubsystem::CreateSrvAndSamplerDescriptorHeaps()
         m_cascadeShadowMap->CreateDescriptors(
             CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, m_cascadesShadowSrvHeapStartIndex, m_cbvSrvUavDescriptorSize),
             CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, m_cascadesShadowSrvHeapStartIndex, m_cbvSrvUavDescriptorSize),
-            CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvCpuStart, 1, m_dsvDescriptorSize));
+            CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvCpuStart, 1, m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV)));
     }
 
     m_GBufferTexturesSrvHeapStartIndex = m_cascadesShadowSrvHeapStartIndex + 1u;

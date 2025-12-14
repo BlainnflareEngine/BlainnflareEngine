@@ -24,6 +24,7 @@ namespace Blainn
         ID3D12Resource* GetResource() const;
         void SetTextureDescriptorOffset(UINT newOffset);
         UINT GetTextureDescOffset() const { return m_textureDescriptorOffset; }
+        TextureType GetTextureType() const { return m_type; }
 
         void DisposeUploaders();
 

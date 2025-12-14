@@ -12,8 +12,6 @@
 #include "File-System/Texture.h"
 
 #include "Render/PrebuiltEngineMeshes.h"
-#include "Render/Device.h"
-#include "Render/CommandQueue.h"
 
 namespace Blainn
 {
@@ -36,16 +34,15 @@ void AssetManager::Init()
 
 #pragma region LoadDefaultResource
     // TODO: create default texture
-    m_textures.emplace(
-        m_loader->LoadTexture(Engine::GetContentDirectory() / "Textures\\Default.dds", TextureType::ALBEDO));
+    m_textures.emplace(m_loader->LoadTexture(Engine::GetContentDirectory() / "Textures\\Default.dds", TextureType::ALBEDO));
 
     // TODO: create default material
     Material material = Material(Engine::GetContentDirectory() / "Materials\\Default.mat", "Default");
     m_materials.emplace(eastl::make_shared<Material>(material));
 
-    auto &device = Device::GetInstance();
+   /* auto &device = Device::GetInstance();
     auto commandQueue = device.GetCommandQueue();
-    auto cmdList = commandQueue->GetDefaultCommandList();
+    auto cmdList = commandQueue->GetDefaultCommandList();*/
 
     auto defaultMeshData = PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f);
     Model model;

@@ -80,10 +80,9 @@ public:
     // Record all the commands we need to render the scene into the command list.
     void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
 
-    void CreateTextureDescriptor(Texture &texture, TextureType textureType);
-    void InitTextureOffsetsTable();
 private:
     void InitializeD3D();
+    void ResetViewportAndScissorRect();
 
 #pragma region BoilerplateD3D12
     VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter = false);
@@ -182,7 +181,6 @@ private:
     eastl::shared_ptr<RootSignature> m_rootSignature;
     eastl::unordered_map<EShaderType, ComPtr<ID3DBlob>> m_shaders;
     eastl::unordered_map<EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
-    eastl::unordered_map<TextureType, UINT> m_texturesOffsetsTable;
 
     // ObjectConstants m_perObjectCBData;
 

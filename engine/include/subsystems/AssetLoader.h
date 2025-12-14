@@ -40,7 +40,7 @@ namespace Blainn
         void CreateModelGPUResources(Model& model);
 
         eastl::shared_ptr<Texture> LoadTexture(const Path &path, TextureType type);
-        void CreateTextureGPUResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource> &resource);
+        void CreateTextureGPUResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource> &resource, TextureType type);
 
         eastl::shared_ptr<Material> LoadMaterial(const Path &path);
 
@@ -55,10 +55,15 @@ namespace Blainn
         MeshData<BlainnVertex, uint32_t> ProcessMesh(const Path &path, const aiMesh &mesh, const aiScene &scene, const aiNode &node,
                             const Mat4 &parentMatrix, Model &model);
 
+        void CreateTextureDescriptor(ID3D12Resource* textureRes, TextureType type);
+        void InitTextureOffsetsTable();
+
         static Vec3 GetPosition(const aiMesh &mesh, const unsigned int meshIndex);
         static Vec3 GetNormal(const aiMesh &mesh, const unsigned int meshIndex);
         static Vec3 GetTangent(const aiMesh &mesh, const unsigned int meshIndex);
         static Vec3 GetBitangent(const aiMesh &mesh, const unsigned int meshIndex);
         static Vec2 GetTextCoords(const aiMesh &mesh, const unsigned int meshIndex);
+
+        eastl::unordered_map<TextureType, UINT> m_texturesOffsetsTable;
     };
 } // namespace Blainn
