@@ -116,6 +116,15 @@ set(ENGINE_SOURCES
         include/physics/ContactListenerImpl.h
         src/physics/ContactListenerImpl.cpp
 
+        include/subsystems/AISubsystem.h
+        src/subsystems/AISubsystem.cpp
+        # include/components/AIControllerComponent.h
+        include/ai/Blackboard.h
+        include/ai/BT.h
+        src/ai/BT.cpp
+        include/ai/BTBuilder.h
+        src/ai/BTBuilder.cpp
+        src/ai/FromLuaToBTBuilder.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
