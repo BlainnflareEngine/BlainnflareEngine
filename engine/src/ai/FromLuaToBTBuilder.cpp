@@ -1,6 +1,8 @@
 #include "pch.h"
 
 #include "ai/BTBuilder.h"
+#include "ai/UtilitySelector.h"
+#include "subsystems/AISubsystem.h"
 
 using namespace Blainn;
 
@@ -105,32 +107,32 @@ static bool ParseDecorators(sol::table node, BTBuilder& b)
     return true;
 }
 
-static void BuildBTFromLua(sol::table node, BTBuilder& b)
+static bool CalculateBT(sol::table node, BTBuilder& b)
 {
     if (b.HasError())
     {
-        BF_ERROR("BuildBTFromLua(): BTBuilder has errors")
-        return;
+        BF_ERROR("CalculateBT(): BTBuilder has errors")
+        return false;
     }
 
     if (!node.valid())
     {
-        BF_ERROR("BuildBTFromLua(): invalid node table");
-        return;
+        BF_ERROR("CalculateBT(): invalid node table");
+        return false;
     }
 
     if (!ParseDecorators(node, b))
     {
-        BF_ERROR("BuildBTFromLua(): ParseDecorators has errors");
-        return;
+        BF_ERROR("CalculateBT(): ParseDecorators has errors");
+        return false;
     }
 
     BTType type;
     if (!ReadLuaBTType(node, type))
     {
-        BF_ERROR("BuildBTFromLua(): ReadLuaBTType didn't return type")
+        BF_ERROR("CalculateBT(): ReadLuaBTType didn't return type")
         b.Reset();
-        return;
+        return false;
     }
 
     switch (type) {
@@ -145,9 +147,9 @@ static void BuildBTFromLua(sol::table node, BTBuilder& b)
             sol::table children;
             if (!ReadLuaChildrenTable(node, children))
             {
-                BF_ERROR("BuildBTFromLua(): ReadLuaChildrenTable didn't return children")
+                BF_ERROR("CalculateBT(): ReadLuaChildrenTable didn't return children")
                 b.Reset();
-                return;
+                return false;
             }
 
             if (children.valid())
@@ -162,32 +164,32 @@ static void BuildBTFromLua(sol::table node, BTBuilder& b)
                     {
                         BF_ERROR("BT parse: child must be a table");
                         b.Reset();
-                        return;
+                        return false;
                     }
 
-                    BuildBTFromLua(childObj.as<sol::table>(), b);
+                    CalculateBT(childObj.as<sol::table>(), b);
                     if (b.HasError())
                     {
-                        BF_ERROR("BuildBTFromLua(): BuildBTFromLua has errors");
-                        return;
+                        BF_ERROR("CalculateBT(): CalculateBT has errors");
+                        return false;
                     }
                 }
             }
 
             b.End();
-            return;
+            return false;
         }
         case BTType::Action:
         {
             sol::function fn;
             if (!ReadLuaActionFn(node, fn))
             {
-                BF_ERROR("BuildBTFromLua(): ReadLuaActionFn didn't return function");
+                BF_ERROR("CalculateBT(): ReadLuaActionFn didn't return function");
                 b.Reset();
-                return;
+                return false;
             }
             b.AddAction(fn);
-            return;
+            return false;
         }
         case BTType::Negate:
         {
@@ -196,30 +198,81 @@ static void BuildBTFromLua(sol::table node, BTBuilder& b)
             sol::table children;
             if (!ReadLuaChildrenTable(node, children))
             {
-                BF_ERROR("BuildBTFromLua(): ReadLuaChildrenTable didn't return table")
+                BF_ERROR("CalculateBT(): ReadLuaChildrenTable didn't return table")
                 b.Reset();
-                return;
+                return false;
             }
             if (!children.valid() || children[1] == sol::nil)
             {
-                BF_ERROR("BuildBTFromLua(): Negate must have exactly one child")
+                BF_ERROR("CalculateBT(): Negate must have exactly one child")
                 b.Reset();
-                return;
+                return false;
             }
             if (children[2] != sol::nil)
             {
-                BF_ERROR("BuildBTFromLua(): Negate must have only one child")
+                BF_ERROR("CalculateBT(): Negate must have only one child")
                 b.Reset();
-                return;               
+                return false;               
             }
 
             sol::object c = children[1];
-            BuildBTFromLua(c.as<sol::table>(), b);
-            return;
+            CalculateBT(c.as<sol::table>(), b);
+            return false;
         }
         default:
-            BF_ERROR("BuildBTFromLua(): unknown node type enum while parsing");
+            BF_ERROR("CalculateBT(): unknown node type enum while parsing");
             b.Reset();
-            return;
+            return false;
     }
+}
+
+static BTNodePtr BuildBTFromLua(sol::table rootTable, BTBuilder& builder)
+{
+    BTNodePtr tree;
+    sol::object btName = rootTable["name"];
+    
+    if (!btName.valid())
+    {
+        BF_ERROR("BuildBTFromLua(): didn't find name for Behaviour Tree");
+        return tree;
+    }
+    if (!btName.is<std::string>())
+    {
+        BF_ERROR("BuildBTFromLua(): name for BT is not string");
+        return tree;
+    }
+    builder.SetBTName(btName.as<std::string>());
+
+    if (!CalculateBT(rootTable, builder))
+    {
+        BF_ERROR("BuildBTFromLua(): Failed to build BT");
+        return tree;
+    }
+
+    tree = builder.Build();
+
+    return tree;
+}
+
+BTMap LoadBTs(sol::state& lua) // как примерно я предполагаю заргрузку из Lua
+{
+    BTMap trees;
+
+    sol::table btTable = lua["BehaviourTrees"];
+    if (!btTable.valid())
+        return trees;
+    
+    for (auto& kv : btTable)
+    {
+        std::string name = kv.first.as<std::string>();
+        sol::table bt = kv.second.as<sol::table>();
+
+        BTNodePtr tree; // = BuildBTFromLua(bt, controller.m_builder); // Не уверен, билдер должен быть у кажого контроллера свой или один на всех?
+        if (!tree)
+            continue;
+        
+        trees.emplace(name, std::move(tree));
+    }
+
+    return trees;
 }
