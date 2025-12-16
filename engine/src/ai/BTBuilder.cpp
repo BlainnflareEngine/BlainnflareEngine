@@ -1,6 +1,5 @@
 #include <pch.h>
 #include "ai/BTBuilder.h"
-#include "BTBuilder.h"
 
 using namespace Blainn;
 
@@ -82,6 +81,7 @@ void BTBuilder::Reset()
     m_root->Reset();
     m_stack.clear();
     m_pendingDecorators.clear();
+    m_btName = "None";
     m_hasError = false;
 }
 
@@ -146,5 +146,16 @@ bool Blainn::BTBuilder::WrapDecorators(BTNodePtr &node)
     }
 
     m_pendingDecorators.clear();
+    return true;
+}
+
+bool Blainn::BTBuilder::SetBTName(const std::string& newName)
+{
+    if(newName.empty())
+    {
+        BF_ERROR("BT name is empty");
+        return false;
+    }
+    m_btName = newName;
     return true;
 }

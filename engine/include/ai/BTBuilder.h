@@ -29,10 +29,12 @@ public:
     BTBuilder& AddAction(sol::function fn);
     BTBuilder& AddNegate();
     BTBuilder& AddCondition(sol::function cond);
-    BTBuilder& End(); // Ends the most recently opened composite (Sequence/Selector).
-    BTNodePtr Build(); // Builds the final tree. Requires exactly one root and no unclosed composites.
-    void Reset(); // Optional utility: Reset builder for reuse.
+    BTBuilder& End();
+    BTNodePtr Build();
+    void Reset();
     bool HasError() const { return m_hasError; }
+    bool SetBTName(const std::string& newName);
+    const std::string& GetBTName() const { return m_btName; }
 
 private:
     void AttachNode(BTNodePtr node);
@@ -53,7 +55,8 @@ private:
     bool m_hasError = false;
 
     BTNodePtr m_root{};
-    std::vector<CompositeNode*> m_stack{}; // non-owning pointers into nodes we own via unique_ptr
+    std::string m_btName = "None";
+    std::vector<CompositeNode*> m_stack{}; // non owning pointers into nodes we own via unique_ptr
     std::vector<PendingDecorator> m_pendingDecorators;
 };
 } // namespace Blainn
