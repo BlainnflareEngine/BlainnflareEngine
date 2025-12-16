@@ -21,11 +21,12 @@ enum class BTStatus : uint8_t
 struct BTNode
 {
     virtual ~BTNode() = default;
-    virtual BTStatus Tick(Blackboard &bb) = 0;
+    virtual BTStatus Update(Blackboard &bb) = 0;
     virtual void Reset() = 0; // TODO: Make reset implementation in BTNode children
 };
 
 using BTNodePtr = std::unique_ptr<BTNode>;
+using BTMap = std::unordered_map<std::string, BTNodePtr>;
 
 struct CompositeNode : BTNode
 {
@@ -36,12 +37,12 @@ struct CompositeNode : BTNode
 
 struct SequenceNode final : CompositeNode 
 {
-    BTStatus Tick(Blackboard& bb) override;
+    BTStatus Update(Blackboard& bb) override;
 };
 
 struct SelectorNode final : CompositeNode
 {
-    BTStatus Tick(Blackboard& bb) override;
+    BTStatus Update(Blackboard& bb) override;
 };
 
 struct ActionNode final : BTNode
@@ -51,7 +52,7 @@ struct ActionNode final : BTNode
 
     explicit ActionNode(sol::function f);
 
-    BTStatus Tick(Blackboard& bb) override;
+    BTStatus Update(Blackboard& bb) override;
 };
 
 struct DecoratorNode : BTNode
@@ -69,12 +70,12 @@ protected:
 struct NegateNode final : DecoratorNode
 {
     using DecoratorNode::DecoratorNode;
-    BTStatus Tick(Blackboard& bb) override;
+    BTStatus Update(Blackboard& bb) override;
 };
 
 struct ConditionNode final : DecoratorNode
 {
     using DecoratorNode::DecoratorNode;
-    BTStatus Tick(Blackboard &bb) override;
+    BTStatus Update(Blackboard &bb) override;
 };
 } // namespace Blainn

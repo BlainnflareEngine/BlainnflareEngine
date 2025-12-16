@@ -15,22 +15,22 @@ void CompositeNode::AddChild(BTNodePtr n)
     children.emplace_back(std::move(n));
 }
 
-BTStatus SequenceNode::Tick(Blackboard &bb)
+BTStatus SequenceNode::Update(Blackboard &bb)
 {
     for (auto& c : children)
     {
-        BTStatus s = c->Tick(bb);
+        BTStatus s = c->Update(bb);
         if (s != BTStatus::Success) return s;
     }
 
     return BTStatus::Success;
 }
 
-BTStatus SelectorNode::Tick(Blackboard &bb)
+BTStatus SelectorNode::Update(Blackboard &bb)
 {
     for (auto& c : children)
     {
-        BTStatus s = c->Tick(bb);
+        BTStatus s = c->Update(bb);
         if (s == BTStatus::Success) return BTStatus::Success;
         if (s == BTStatus::Running) return BTStatus::Running;
     }
@@ -47,7 +47,7 @@ ActionNode::ActionNode(sol::function f) : fn(std::move(f))
     }
 }
 
-BTStatus ActionNode::Tick(Blackboard &bb)
+BTStatus ActionNode::Update(Blackboard &bb)
 {
     // Convention: Lua action returns:
     //  - integer: 0=Failure, 1=Success, 2=Running, 3=Aborted OR
@@ -154,7 +154,7 @@ bool Blainn::DecoratorNode::CheckCondition(Blackboard &bb, bool& outResult)
     return true;
 }
 
-BTStatus Blainn::NegateNode::Tick(Blackboard &bb)
+BTStatus Blainn::NegateNode::Update(Blackboard &bb)
 {
     bool condResult = false;
     if (!CheckCondition(bb, condResult))
@@ -163,7 +163,7 @@ BTStatus Blainn::NegateNode::Tick(Blackboard &bb)
     if (!condResult)
         return BTStatus::Failure;
 
-    BTStatus s = child->Tick(bb);
+    BTStatus s = child->Update(bb);
 
     switch (s) {
         case BTStatus::Success: return BTStatus::Failure;
@@ -175,7 +175,7 @@ BTStatus Blainn::NegateNode::Tick(Blackboard &bb)
     return BTStatus::Error;
 }
 
-BTStatus Blainn::ConditionNode::Tick(Blackboard &bb)
+BTStatus Blainn::ConditionNode::Update(Blackboard &bb)
 {
     bool condResult = false;
     if (!CheckCondition(bb, condResult))
@@ -184,5 +184,5 @@ BTStatus Blainn::ConditionNode::Tick(Blackboard &bb)
     if (!condResult)
         return BTStatus::Failure;
 
-    return child->Tick(bb);
+    return child->Update(bb);
 }
