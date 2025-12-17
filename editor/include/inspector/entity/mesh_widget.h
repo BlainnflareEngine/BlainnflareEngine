@@ -21,6 +21,7 @@ protected:
     void SetNewPath(const QString &oldPath, const QString &newPath);
     void SetNewMaterial(const QString &oldPath, const QString &newPath);
     virtual void DeleteComponent() override;
+    void BlockSignals(bool block);
 
     path_input_field *m_path_input;
     path_input_field *m_material_input;

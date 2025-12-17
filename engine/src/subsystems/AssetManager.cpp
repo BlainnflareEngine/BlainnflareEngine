@@ -34,10 +34,11 @@ void AssetManager::Init()
 
 #pragma region LoadDefaultResource
     // TODO: create default texture
-    m_textures.emplace(m_loader->LoadTexture(Engine::GetContentDirectory() / "Textures\\Default.dds", TextureType::ALBEDO));
+    m_textures.emplace(
+        m_loader->LoadTexture("Textures\\Default.dds", TextureType::ALBEDO));
 
     // TODO: create default material
-    Material material = Material(Engine::GetContentDirectory() / "Materials\\Default.mat", "Default");
+    Material material = Material("Materials\\Default.mat", "Default");
     m_materials.emplace(eastl::make_shared<Material>(material));
 
    /* auto &device = Device::GetInstance();
@@ -91,7 +92,7 @@ eastl::shared_ptr<MeshHandle> AssetManager::GetDefaultMesh()
 
 eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &relativePath, const ImportMeshData &data)
 {
-    int index = m_meshes.size();
+    int index = m_meshes.emplace(eastl::make_shared<Model>(GetDefaultModel(), relativePath));
     m_meshPaths[ToEASTLString(relativePath.string())] = AssetData{index, 1};
 
 
@@ -99,7 +100,6 @@ eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &relativePath, c
             "i will place your model to your index later. Index - {0}",
             index);
 
-    m_meshes.emplace(eastl::make_shared<Model>(GetDefaultModel(), relativePath));
 
     vgjs::schedule([=]() { AddMeshWhenLoaded(relativePath, index, data); });
     return eastl::make_shared<MeshHandle>(index);
@@ -108,8 +108,11 @@ eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &relativePath, c
 
 Model &AssetManager::GetMeshByIndex(const unsigned int index)
 {
+    if (index >= m_meshes.size()) return GetDefaultMesh()->GetMesh();
+
     if (m_meshes[index]->IsLoaded()) return *m_meshes[index];
-    else return GetDefaultMesh()->GetMesh();
+
+    return GetDefaultMesh()->GetMesh();
 }
 
 
@@ -127,6 +130,7 @@ Path AssetManager::GetMeshPath(const MeshHandle &handle)
 
 bool AssetManager::HasTexture(const Path &path)
 {
+    assert(path.is_relative());
     return m_texturePaths.find(ToEASTLString(path.string())) != m_texturePaths.end();
 }
 
@@ -141,17 +145,18 @@ eastl::shared_ptr<TextureHandle> AssetManager::GetTexture(const Path &path)
 }
 
 
-eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &path, const TextureType type)
+eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &relativePath, const TextureType type)
 {
-    int index = m_textures.size();
-    m_texturePaths[ToEASTLString(path.string())] = AssetData{index, 1};
+    assert(relativePath.is_relative());
+
+    int index = m_textures.emplace(eastl::make_shared<Texture>(GetDefaultTexture()));
+    m_texturePaths[ToEASTLString(relativePath.string())] = AssetData{index, 1};
 
     BF_INFO("Shiiiii... I don't have such texture, here is default one, "
             "i will place some new texture to your index later. Index ={0}.",
             index);
 
-    m_textures.emplace(eastl::make_shared<Texture>(GetDefaultTexture()));
-    vgjs::schedule([=]() { AddTextureWhenLoaded(path, index, type); });
+    vgjs::schedule([=]() { AddTextureWhenLoaded(relativePath, index, type); });
     return eastl::make_shared<TextureHandle>(index);
 }
 
@@ -168,9 +173,13 @@ eastl::shared_ptr<MaterialHandle> AssetManager::GetMaterial(const Path &path)
 
 eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path, AssetData data)
 {
-    int index = data.index == -1 ? m_materials.size() : data.index;
+    assert(path.is_relative());
+
+    int index = data.index == -1 ? m_materials.emplace(eastl::make_shared<Material>(GetDefaultMaterial())) : data.index;
     int count = data.refCount == 0 ? 1 : data.refCount;
+
     m_materialPaths[ToEASTLString(path.string())] = AssetData{index, count};
+
 
     // TODO: push back default material
     auto str = "I don't have that material, here is default one, "
@@ -178,7 +187,6 @@ eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path, A
                + std::to_string(index);
     BF_INFO(str)
 
-    m_materials.emplace(eastl::make_shared<Material>(GetDefaultMaterial()));
     vgjs::schedule([=]() { AddMaterialWhenLoaded(path, index); });
     return eastl::make_shared<MaterialHandle>(index);
 }
@@ -194,6 +202,8 @@ void AssetManager::UpdateMaterial(const Path &relativePath)
 
 Material &AssetManager::GetMaterialByIndex(unsigned int index)
 {
+    if (index >= m_materials.size()) return GetDefaultMaterial();
+
     return *m_materials[index];
 }
 
@@ -264,6 +274,7 @@ void AssetManager::CreateScene(const Path &relativePath)
 
 Texture &AssetManager::GetTextureByIndex(unsigned int index)
 {
+    if (index >= m_materials.size()) return GetDefaultTexture();
     return *m_textures[index];
 }
 
@@ -289,6 +300,8 @@ bool AssetManager::HasMaterial(const Path &relativePath)
 
 void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int index, const TextureType type)
 {
+    assert(path.is_relative());
+
     BF_INFO("Started loading texture.");
     m_textures[index] = m_loader->LoadTexture(path, type);
     auto str = "Placing texture to index " + std::to_string(index);
@@ -298,9 +311,9 @@ void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int ind
 
 void AssetManager::AddMaterialWhenLoaded(const Path &relativePath, const unsigned int index)
 {
+    assert(relativePath.is_relative());
     BF_INFO("Started loading material.");
-    Path absolutPat = Engine::GetContentDirectory() / relativePath;
-    m_materials[index] = m_loader->LoadMaterial(absolutPat);
+    m_materials[index] = m_loader->LoadMaterial(relativePath);
     auto str = "Placing material to index " + std::to_string(index);
     BF_INFO(str);
 }
@@ -308,6 +321,7 @@ void AssetManager::AddMaterialWhenLoaded(const Path &relativePath, const unsigne
 
 void AssetManager::AddMeshWhenLoaded(const Path &relativePath, const unsigned int index, const ImportMeshData data)
 {
+    assert(relativePath.is_relative());
     BF_INFO("Started loading model.");
     m_meshes[index] = m_loader->ImportModel(relativePath, data);
     auto str = "Placing model to index " + std::to_string(index);
@@ -357,27 +371,57 @@ void AssetManager::IncreaseMeshRefCount(const unsigned int index)
 void AssetManager::DecreaseTextureRefCount(const unsigned int index)
 {
     for (auto &[key, value] : m_texturePaths)
-        if (value.index == index) --value.refCount;
+    {
+        if (value.index == index)
+        {
+            --value.refCount;
 
-    // TODO: remove asset if refCount == 0
+            if (value.refCount == 1) // 1 because we have shared ptr in free list vector
+            {
+                m_textures.erase(index);
+                m_texturePaths.erase(key);
+                return;
+            }
+        }
+    }
 }
 
 
 void AssetManager::DecreaseMaterialRefCount(const unsigned int index)
 {
     for (auto &[key, value] : m_materialPaths)
-        if (value.index == index) --value.refCount;
+    {
+        if (value.index == index)
+        {
+            --value.refCount;
 
-    // TODO: remove asset if refCount == 0
+            if (value.refCount == 1) // 1 because we have shared ptr in free list vector
+            {
+                m_materials.erase(index);
+                m_materialPaths.erase(key);
+                return;
+            }
+        }
+    }
 }
 
 
 void AssetManager::DecreaseMeshRefCount(const unsigned int index)
 {
     for (auto &[key, value] : m_meshPaths)
-        if (value.index == index) --value.refCount;
+    {
+        if (value.index == index)
+        {
+            --value.refCount;
 
-    // TODO: remove asset if refCount == 0
+            if (value.refCount == 1) // 1 because we have shared ptr in free list vector
+            {
+                m_meshes.erase(index);
+                m_meshPaths.erase(key);
+                return;
+            }
+        }
+    }
 }
 
 } // namespace Blainn
