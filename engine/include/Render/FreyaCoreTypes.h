@@ -112,7 +112,7 @@ namespace Blainn
 		XMFLOAT3 FresnelR0 = { 0.01f, 0.01f, 0.01f };
 		float Roughness = 0.25f;
 		XMFLOAT4X4 MatTransform;
-		uint32_t DiffusseMapIndex = 0u;
+		uint32_t DiffuseMapIndex = 0u;
         uint32_t NormalMapIndex = 0u;
         uint32_t RoughnessMapIndex = 0u;
         uint32_t MetallicMapIndex = 0u;

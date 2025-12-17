@@ -18,7 +18,7 @@ namespace Blainn
             SpotLightsDataSB,
             CascadedShadowMaps,
             GBufferTextures,
-            SkyCube,
+            SkyBox,
             Textures,
 
             NumRootParameters = 9u
