@@ -313,6 +313,7 @@ void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int ind
 
 void AssetManager::AddMaterialWhenLoaded(const Path &relativePath, const unsigned int index)
 {
+    assert(relativePath.is_relative());
     BF_INFO("Started loading material.");
     m_materials[index] = m_loader->LoadMaterial(relativePath);
     auto str = "Placing material to index " + std::to_string(index);
@@ -322,6 +323,7 @@ void AssetManager::AddMaterialWhenLoaded(const Path &relativePath, const unsigne
 
 void AssetManager::AddMeshWhenLoaded(const Path &relativePath, const unsigned int index, const ImportMeshData data)
 {
+    assert(relativePath.is_relative());
     BF_INFO("Started loading model.");
     m_meshes[index] = m_loader->ImportModel(relativePath, data);
     auto str = "Placing model to index " + std::to_string(index);

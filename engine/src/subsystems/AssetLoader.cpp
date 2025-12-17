@@ -42,6 +42,8 @@ void AssetLoader::Destroy()
 
 eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, const ImportMeshData &data)
 {
+    assert(relativePath.is_relative());
+
     Path absolutePath = Engine::GetContentDirectory() / relativePath;
     if (absolutePath.empty())
     {
@@ -236,6 +238,7 @@ void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::Co
 eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &relativePath)
 {
     assert(relativePath.is_relative());
+
     auto absolutePath = Engine::GetContentDirectory() / relativePath;
     YAML::Node config = YAML::LoadFile(absolutePath.string());
 
