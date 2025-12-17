@@ -250,14 +250,26 @@ eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &path)
     auto roughnessScale = config["RoughnessScale"].as<float>();
 
     auto material = eastl::make_shared<Material>(path, ToEASTLString(shaderPath));
+    auto &manager = AssetManager::GetInstance();
+    if (!albedo.empty())
+        if (manager.HasTexture(albedo)) material->SetTexture(manager.GetTexture(albedo), TextureType::ALBEDO);
+        else material->SetTexture(manager.LoadTexture(albedo, TextureType::ALBEDO), TextureType::ALBEDO);
 
-    if (!albedo.empty()) material->SetTexture(AssetManager::GetInstance().GetTexture(albedo), TextureType::ALBEDO);
-    if (!normal.empty()) material->SetTexture(AssetManager::GetInstance().GetTexture(normal), TextureType::NORMAL);
+    if (!normal.empty())
+        if (manager.HasTexture(normal)) material->SetTexture(manager.GetTexture(normal), TextureType::NORMAL);
+        else material->SetTexture(manager.LoadTexture(normal, TextureType::NORMAL), TextureType::NORMAL);
+
     if (!metallic.empty())
-        material->SetTexture(AssetManager::GetInstance().GetTexture(metallic), TextureType::METALLIC);
+        if (manager.HasTexture(metallic)) material->SetTexture(manager.GetTexture(metallic), TextureType::METALLIC);
+        else material->SetTexture(manager.LoadTexture(metallic, TextureType::METALLIC), TextureType::METALLIC);
+
     if (!roughness.empty())
-        material->SetTexture(AssetManager::GetInstance().GetTexture(roughness), TextureType::ROUGHNESS);
-    if (!ambient.empty()) material->SetTexture(AssetManager::GetInstance().GetTexture(ambient), TextureType::AO);
+        if (manager.HasTexture(roughness)) material->SetTexture(manager.GetTexture(roughness), TextureType::ROUGHNESS);
+        else material->SetTexture(manager.LoadTexture(roughness, TextureType::ROUGHNESS), TextureType::ROUGHNESS);
+
+    if (!ambient.empty())
+        if (manager.HasTexture(ambient)) material->SetTexture(manager.GetTexture(ambient), TextureType::AO);
+        else material->SetTexture(manager.LoadTexture(ambient, TextureType::AO), TextureType::AO);
 
     material->SetAlbedoColor(HexToColor(albedoColor));
     material->SetNormalScale(normalScale);
