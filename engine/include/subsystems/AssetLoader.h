@@ -42,7 +42,7 @@ namespace Blainn
         eastl::shared_ptr<Texture> LoadTexture(const Path &path, TextureType type);
         void CreateTextureGPUResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource> &resource);
 
-        eastl::shared_ptr<Material> LoadMaterial(const Path &path);
+        eastl::shared_ptr<Material> LoadMaterial(const Path &relativePath);
 
     private:
         AssetLoader(const AssetLoader &) = delete;

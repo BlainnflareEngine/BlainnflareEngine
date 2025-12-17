@@ -186,9 +186,7 @@ Vec2 AssetLoader::GetTextCoords(const aiMesh &mesh, const unsigned int meshIndex
 
 eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const TextureType type)
 {
-    BF_INFO("I am loading a very big texture...");
-    BF_INFO("Loading texture completed!");
-
+    assert(path.is_relative());
     Microsoft::WRL::ComPtr<ID3D12Resource> temp;
     CreateTextureGPUResources(path, temp);
 
@@ -197,6 +195,8 @@ eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const Text
 
 void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource> &resource)
 {
+    assert(path.is_relative());
+
     auto device = Device::GetInstance().GetDevice2().Get();
     auto commandQueue = Device::GetInstance().GetCommandQueue();
 
@@ -204,7 +204,7 @@ void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::Co
     upload.Begin();
 
     // Only for DDS
-    ThrowIfFailed(CreateDDSTextureFromFile(device, upload, path.wstring().c_str(), resource.ReleaseAndGetAddressOf()));
+    ThrowIfFailed(CreateDDSTextureFromFile(device, upload, (Engine::GetContentDirectory() / path).wstring().c_str(), resource.ReleaseAndGetAddressOf()));
 
     // Create default upload heap manually
     {
@@ -233,9 +233,11 @@ void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::Co
 }
 
 
-eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &path)
+eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &relativePath)
 {
-    YAML::Node config = YAML::LoadFile(path.string());
+    assert(relativePath.is_relative());
+    auto absolutePath = Engine::GetContentDirectory() / relativePath;
+    YAML::Node config = YAML::LoadFile(absolutePath.string());
 
     auto shaderPath = config["ShaderPath"].as<std::string>();
     auto albedo = config["AlbedoPath"].as<std::string>();
@@ -249,8 +251,9 @@ eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &path)
     auto metallicScale = config["MetallicScale"].as<float>();
     auto roughnessScale = config["RoughnessScale"].as<float>();
 
-    auto material = eastl::make_shared<Material>(path, ToEASTLString(shaderPath));
+    auto material = eastl::make_shared<Material>(relativePath, ToEASTLString(shaderPath));
     auto &manager = AssetManager::GetInstance();
+
     if (!albedo.empty())
         if (manager.HasTexture(albedo)) material->SetTexture(manager.GetTexture(albedo), TextureType::ALBEDO);
         else material->SetTexture(manager.LoadTexture(albedo, TextureType::ALBEDO), TextureType::ALBEDO);

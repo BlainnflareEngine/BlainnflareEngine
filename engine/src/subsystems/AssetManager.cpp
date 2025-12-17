@@ -37,10 +37,10 @@ void AssetManager::Init()
 #pragma region LoadDefaultResource
     // TODO: create default texture
     m_textures.emplace(
-        m_loader->LoadTexture(Engine::GetContentDirectory() / "Textures\\Default.dds", TextureType::ALBEDO));
+        m_loader->LoadTexture("Textures\\Default.dds", TextureType::ALBEDO));
 
     // TODO: create default material
-    Material material = Material(Engine::GetContentDirectory() / "Materials\\Default.mat", "Default");
+    Material material = Material("Materials\\Default.mat", "Default");
     m_materials.emplace(eastl::make_shared<Material>(material));
 
     auto &device = Device::GetInstance();
@@ -132,6 +132,7 @@ Path AssetManager::GetMeshPath(const MeshHandle &handle)
 
 bool AssetManager::HasTexture(const Path &path)
 {
+    assert(path.is_relative());
     return m_texturePaths.find(ToEASTLString(path.string())) != m_texturePaths.end();
 }
 
@@ -146,16 +147,18 @@ eastl::shared_ptr<TextureHandle> AssetManager::GetTexture(const Path &path)
 }
 
 
-eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &path, const TextureType type)
+eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &relativePath, const TextureType type)
 {
+    assert(relativePath.is_relative());
+
     int index = m_textures.emplace(eastl::make_shared<Texture>(GetDefaultTexture()));
-    m_texturePaths[ToEASTLString(path.string())] = AssetData{index, 1};
+    m_texturePaths[ToEASTLString(relativePath.string())] = AssetData{index, 1};
 
     BF_INFO("Shiiiii... I don't have such texture, here is default one, "
             "i will place some new texture to your index later. Index ={0}.",
             index);
 
-    vgjs::schedule([=]() { AddTextureWhenLoaded(path, index, type); });
+    vgjs::schedule([=]() { AddTextureWhenLoaded(relativePath, index, type); });
     return eastl::make_shared<TextureHandle>(index);
 }
 
@@ -172,6 +175,8 @@ eastl::shared_ptr<MaterialHandle> AssetManager::GetMaterial(const Path &path)
 
 eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path, AssetData data)
 {
+    assert(path.is_relative());
+
     int index = data.index == -1 ? m_materials.emplace(eastl::make_shared<Material>(GetDefaultMaterial())) : data.index;
     int count = data.refCount == 0 ? 1 : data.refCount;
 
@@ -297,6 +302,8 @@ bool AssetManager::HasMaterial(const Path &relativePath)
 
 void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int index, const TextureType type)
 {
+    assert(path.is_relative());
+
     BF_INFO("Started loading texture.");
     m_textures[index] = m_loader->LoadTexture(path, type);
     auto str = "Placing texture to index " + std::to_string(index);
@@ -307,8 +314,7 @@ void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int ind
 void AssetManager::AddMaterialWhenLoaded(const Path &relativePath, const unsigned int index)
 {
     BF_INFO("Started loading material.");
-    Path absolutPat = Engine::GetContentDirectory() / relativePath;
-    m_materials[index] = m_loader->LoadMaterial(absolutPat);
+    m_materials[index] = m_loader->LoadMaterial(relativePath);
     auto str = "Placing material to index " + std::to_string(index);
     BF_INFO(str);
 }
