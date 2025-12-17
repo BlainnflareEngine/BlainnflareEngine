@@ -19,6 +19,7 @@
 
 #include <DirectXTK12/Inc/DDSTextureLoader.h>
 #include <DirectXTK12/Inc/ResourceUploadBatch.h>
+#include <DirectXTK12/Inc/WICTextureLoader.h>
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -207,9 +208,15 @@ void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::Co
     ResourceUploadBatch upload(device);
     upload.Begin();
 
-    // Only for DDS
-    ThrowIfFailed(CreateDDSTextureFromFile(device, upload, path.wstring().c_str(), resource.ReleaseAndGetAddressOf()));
-    // ThrowIfFailed(WICTextureLoader)
+    if (path.extension() == L".dds")
+    {
+        ThrowIfFailed(CreateDDSTextureFromFile(device, upload, path.wstring().c_str(), resource.ReleaseAndGetAddressOf()));
+
+    }
+    else if (path.extension() == L".png" || path.extension() == L".jpg")
+    {
+        ThrowIfFailed(CreateWICTextureFromFile(device, upload, path.wstring().c_str(), resource.ReleaseAndGetAddressOf()));
+    }
 
 
     // Create default upload heap manually
