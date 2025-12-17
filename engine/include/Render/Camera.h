@@ -62,11 +62,10 @@ namespace Blainn
         float m_nearWindowHeight;
         float m_farWindowHeight;
         
-        float m_cameraSpeed = 0.1f;
+        float m_cameraSpeed = 0.01f;
         float m_cameraAcceleration = 10.0f;
         
-        // TO DO: Should be tracked
-        XMFLOAT2 m_lastMousePos = {0.0f, 0.0f};
+        float m_deltaTime = 0.0f;
         bool m_isDirty = false;
         bool m_bUseAcceleration = false;
 

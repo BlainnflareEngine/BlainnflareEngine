@@ -19,13 +19,14 @@ Blainn::Camera::Camera()
 	m_view = XMMatrixIdentity();
     m_persProj = XMMatrixIdentity();
     m_orthProj = XMMatrixIdentity();
-	// to update view matrix on the first update call
-    m_lastMousePos = {0.0f, 0.0f};
 	m_isDirty = true;
 }
 
 void Blainn::Camera::Update(float deltaTime)
 {
+	//Tempopary, there will be function Engine::GetDeltaTime()
+	m_deltaTime = deltaTime;
+
 	if (!m_isDirty) return;
 
 	// View matrix
@@ -84,7 +85,7 @@ void Blainn::Camera::Reset(float fovAngleYDegrees, float aspectRatio, float near
 
 void Camera::Move(const KeyCode key)
 {
-	float currCamSpeed = m_cameraSpeed;
+    float currCamSpeed = 0.1f * m_deltaTime * m_cameraSpeed;
     if (m_bUseAcceleration) currCamSpeed *= m_cameraAcceleration;
 
 	switch (key)
@@ -108,8 +109,8 @@ void Camera::Move(const KeyCode key)
 
 void Camera::AdjustRotation(float x, float y)
 {
-    AdjustYaw(0.01f * x);
-    AdjustPitch(0.01f * y);
+    AdjustYaw(0.001f * x * m_deltaTime);
+    AdjustPitch(0.001f * y * m_deltaTime);
 }
 
 void Camera::SetCameraProperties(const KeyCode key)
