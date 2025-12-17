@@ -34,8 +34,7 @@ void AssetManager::Init()
 
 #pragma region LoadDefaultResource
     // TODO: create default texture
-    m_textures.emplace(
-        m_loader->LoadTexture("Textures\\Default.dds", TextureType::ALBEDO));
+    m_textures.emplace(m_loader->LoadTexture("Textures\\Default.dds", TextureType::ALBEDO));
 
     // TODO: create default material
     Material material = Material("Materials\\Default.mat", "Default");

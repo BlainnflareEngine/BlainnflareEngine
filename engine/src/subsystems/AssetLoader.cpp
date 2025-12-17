@@ -213,13 +213,11 @@ void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::Co
     if (path.extension() == L".dds")
     {
         ThrowIfFailed(CreateDDSTextureFromFile(device, upload, path.wstring().c_str(), resource.ReleaseAndGetAddressOf()));
-
     }
     else if (path.extension() == L".png" || path.extension() == L".jpg")
     {
         ThrowIfFailed(CreateWICTextureFromFile(device, upload, path.wstring().c_str(), resource.ReleaseAndGetAddressOf()));
     }
-
 
     // Create default upload heap manually
     {
