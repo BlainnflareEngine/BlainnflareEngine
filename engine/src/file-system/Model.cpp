@@ -13,8 +13,8 @@ Model::Model()
         m_meshes.reserve(4);
     }
     
-    Model::Model(const Path &absolutPath)
-        : FileSystemObject(absolutPath)
+    Model::Model(const Path &relativePath)
+        : FileSystemObject(relativePath)
     {
         m_meshes.reserve(4);
     }

@@ -19,7 +19,7 @@ namespace Blainn
         friend class AssetLoader;
     public:
         Model();
-        Model(const Path &absolutPath);
+        Model(const Path &relativePath);
         Model(const Model &other, const Path &absolutPath);
         Model(Model &&other, const Path &absolutPath) noexcept;
         ~Model() override;

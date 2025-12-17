@@ -55,7 +55,7 @@ eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, cons
         BF_ERROR("AssetLoader ImportModel: path is empty");
     }
 
-    Model model = Model(absolutePath);
+    Model model = Model(relativePath);
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(absolutePath.string(),
                                              aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace

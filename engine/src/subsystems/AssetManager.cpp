@@ -228,6 +228,7 @@ eastl::shared_ptr<MaterialHandle> AssetManager::GetDefaultMaterialHandle()
 
 Path AssetManager::GetMaterialPath(const MaterialHandle &handle)
 {
+    auto a = m_materials[handle.GetIndex()]->GetPath();
     return m_materials[handle.GetIndex()]->GetPath();
 }
 

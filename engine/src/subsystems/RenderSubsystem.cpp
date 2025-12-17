@@ -648,7 +648,7 @@ void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
 
     for (int matIndex = 0; matIndex < materials.size(); ++matIndex)
     {
-        if (materials[matIndex]->IsFramesDirty())
+        if (materials[matIndex] && materials[matIndex]->IsFramesDirty())
         {
             XMStoreFloat4x4(&m_perMaterialSBData.MatTransform, XMMatrixTranspose(materials[matIndex]->GetMaterialTransform()));
 
