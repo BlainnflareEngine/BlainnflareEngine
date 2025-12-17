@@ -8,6 +8,7 @@
 #include "PhysicsSubsystem.h"
 #include "components/MeshComponent.h"
 #include "components/PhysicsComponent.h"
+#include "components/ScriptingComponent.h"
 #include "physics/BodyGetter.h"
 #include "scene/Entity.h"
 #include "yaml-cpp/emitter.h"
@@ -41,10 +42,11 @@ public:
 
         out << YAML::Key << "TransformComponent" << YAML::Value << YAML::BeginMap;
 
+        Vec3 translation = transform.GetTranslation();
         out << YAML::Key << "Translation" << YAML::Value << YAML::BeginMap;
-        out << YAML::Key << "x" << YAML::Value << transform.Translation.x;
-        out << YAML::Key << "y" << YAML::Value << transform.Translation.y;
-        out << YAML::Key << "z" << YAML::Value << transform.Translation.z;
+        out << YAML::Key << "x" << YAML::Value << translation.x;
+        out << YAML::Key << "y" << YAML::Value << translation.y;
+        out << YAML::Key << "z" << YAML::Value << translation.z;
         out << YAML::EndMap;
 
         out << YAML::Key << "Rotation" << YAML::Value << YAML::BeginMap;
@@ -53,10 +55,11 @@ public:
         out << YAML::Key << "z" << YAML::Value << transform.GetRotationEuler().z;
         out << YAML::EndMap;
 
+        Vec3 scale = transform.GetScale();
         out << YAML::Key << "Scale" << YAML::Value << YAML::BeginMap;
-        out << YAML::Key << "x" << YAML::Value << transform.Scale.x;
-        out << YAML::Key << "y" << YAML::Value << transform.Scale.y;
-        out << YAML::Key << "z" << YAML::Value << transform.Scale.z;
+        out << YAML::Key << "x" << YAML::Value << scale.x;
+        out << YAML::Key << "y" << YAML::Value << scale.y;
+        out << YAML::Key << "z" << YAML::Value << scale.z;
         out << YAML::EndMap;
 
         out << YAML::EndMap;

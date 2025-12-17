@@ -41,7 +41,7 @@ void transform_widget::OnPositionChanged()
     // scene->ConvertToLocalSpace(m_entity);
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
-    transform.Translation = m_position->GetValue();
+    transform.SetTranslation(m_position->GetValue());
     scene->ConvertToWorldSpace(m_entity);
 }
 
@@ -61,7 +61,7 @@ void transform_widget::OnScaleChanged()
     if (!m_entity.HasComponent<Blainn::TransformComponent>()) return;
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
-    transform.Scale = m_scale->GetValue();
+    transform.SetScale(m_scale->GetValue());
 }
 
 
@@ -110,11 +110,11 @@ void transform_widget::LoadTransformValues()
     scene->ConvertToLocalSpace(m_entity);
 
     BlockSignals(true);
-    if (!m_position->HasFocus()) m_position->SetValue(transform.Translation);
+    if (!m_position->HasFocus()) m_position->SetValue(transform.GetTranslation());
 
     if (!m_rotation->HasFocus()) m_rotation->SetValue(transform.GetRotationEuler() / XM_PI * 180.0f);
 
-    if (!m_scale->HasFocus()) m_scale->SetValue(transform.Scale);
+    if (!m_scale->HasFocus()) m_scale->SetValue(transform.GetScale());
     BlockSignals(false);
 
     scene->ConvertToWorldSpace(m_entity);

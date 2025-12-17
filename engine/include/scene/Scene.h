@@ -1,19 +1,17 @@
-//
-//
-//
-
 #pragma once
-#include "EASTL/string.h"
-#include "EASTL/string_view.h"
-#include "EASTL/unordered_map.h"
+
+// TODO: to pch
+#include <concurrentqueue.h>
+#include <entt/entt.hpp>
+#include <eventpp/eventqueue.h>
+
+#include "aliases.h"
+
 #include "Entity.h"
 #include "ImportAssetData.h"
 #include "SceneEvent.h"
 #include "TransformComponent.h"
-#include "aliases.h"
-#include "concurrentqueue.h"
-#include "entt/entt.hpp"
-#include "eventpp/eventqueue.h"
+
 #include "random.h"
 
 namespace Blainn
@@ -35,17 +33,8 @@ public:
     Scene(Scene &&other) = delete;
     Scene &operator=(Scene &&other) = delete;
 
-    // TODO: some deltatime should be passed to it, I'm confused about our times
-    void UpdateRuntime(/*todo float deltatime*/);
-    void UpdateEditor(/*todo float deltatime*/);
+    void Update();
 
-    void OnRenderRuntime(/*todo Renderer& renderer, float deltatime*/);
-    void OnRenderEditor(/*todo Renderer& renderer, float deltatime, EditorCamera& editorCamera*/);
-
-    void OnRuntimeStart();
-    void OnRuntimeStop();
-
-    void SetViewportSize(uint32_t width, uint32_t height);
     uint32_t GetViewportWidth() const
     {
         return m_ViewportWidth;
@@ -60,7 +49,6 @@ public:
 
     eastl::string GetName() const;
 
-    static void ProcessEvents();
     using EventHandle =
         eventpp::internal_::CallbackListBase<void(const eastl::shared_ptr<SceneEvent> &), SceneEventPolicy>::Handle;
     static EventHandle AddEventListener(const SceneEventType eventType,
@@ -68,7 +56,8 @@ public:
     static void RemoveEventListener(const SceneEventType eventType, const EventHandle &handle);
 
     Entity CreateEntity(const eastl::string &name = "", bool onSceneChanged = false, bool createdByEditor = false);
-    Entity CreateChildEntity(Entity parent, const eastl::string &name = "", bool onSceneChanged = false, bool createdByEditor = false);
+    Entity CreateChildEntity(Entity parent, const eastl::string &name = "", bool onSceneChanged = false,
+                             bool createdByEditor = false);
     Entity CreateEntityWithID(const uuid &id, const eastl::string &name = "", bool shouldSort = true,
                               bool onSceneChanged = false, bool createdByEditor = false);
     Entity CreateChildEntityWithID(Entity parent, const uuid &id, const eastl::string &name = "",
@@ -117,6 +106,8 @@ private:
     }
 
     void ReportEntityReparent(Entity entity);
+
+    void ProcessEvents();
 
 private:
     uuid m_SceneID;

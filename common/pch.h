@@ -11,6 +11,7 @@
 #include <EASTL/algorithm.h>
 #include <EASTL/allocator.h>
 #include <EASTL/array.h>
+#include <EASTL/vector.h>
 #include <EASTL/deque.h>
 #include <EASTL/functional.h>
 #include <EASTL/hash_map.h>
@@ -27,6 +28,7 @@
 #include <EASTL/unordered_map.h>
 #include <EASTL/unordered_set.h>
 #include <EASTL/weak_ptr.h>
+#include <EASTL/chrono.h>
 
 #pragma endregion
 

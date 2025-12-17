@@ -44,12 +44,18 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
 
     m_normalField = new path_input_field("Normal", formats::supportedTextureFormats, this);
     m_normalScale = new float_input_field("Normal scale", 0, this);
+    m_normalScale->SetMaxValue(1);
+    m_normalScale->SetMinValue(0);
 
     m_metallicField = new path_input_field("Metallic", formats::supportedTextureFormats, this);
     m_metallicScale = new float_input_field("Metallic scale", 0, this);
+    m_metallicScale->SetMaxValue(1);
+    m_metallicScale->SetMinValue(0);
 
     m_roughnessField = new path_input_field("Roughness", formats::supportedTextureFormats, this);
     m_roughnessScale = new float_input_field("Roughness scale", 0, this);
+    m_roughnessScale->SetMaxValue(1);
+    m_roughnessScale->SetMinValue(0);
 
     m_aoField = new path_input_field("AO", formats::supportedTextureFormats, this);
 
