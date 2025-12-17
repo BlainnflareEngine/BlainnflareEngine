@@ -16,7 +16,6 @@ namespace Blainn
 const int gNumFrameResources = 3;
 
 class Device;
-class Renderer;
 class RootSignature;
 struct FrameResource;
 
@@ -173,8 +172,6 @@ private:
     // Pipeline objects.
     eastl::shared_ptr<SwapChain> m_swapChain;
     Device &m_device = Device::GetInstance();
-
-    eastl::unique_ptr<Renderer> m_renderer = nullptr;
 
     ComPtr<ID3D12Resource> m_depthStencilBuffer;
 

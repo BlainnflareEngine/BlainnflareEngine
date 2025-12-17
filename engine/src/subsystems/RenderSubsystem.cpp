@@ -16,7 +16,6 @@
 #include "Render/FrameResource.h"
 #include "Render/FreyaMath.h"
 #include "Render/FreyaUtil.h"
-#include "Render/Renderer.h"
 #include "Render/PipelineStateObject.h"
 #include "Render/PrebuiltEngineMeshes.h"
 #include "Render/RootSignature.h"

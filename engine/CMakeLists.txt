@@ -30,7 +30,6 @@ set(ENGINE_SOURCES
         include/Render/GBuffer.h
         include/Render/PipelineStateObject.h
         include/Render/PrebuiltEngineMeshes.h
-        include/Render/Renderer.h
         include/Render/RootSignature.h
         include/Render/Shader.h
         include/Render/ShadowMap.h
@@ -45,7 +44,6 @@ set(ENGINE_SOURCES
         src/Render/GBuffer.cpp
         src/Render/PipelineStateObject.cpp
         src/Render/PrebuiltEngineMeshes.cpp
-        src/Render/Renderer.cpp
         src/Render/RootSignature.cpp
         src/Render/Shader.cpp
         src/Render/ShadowMap.cpp
