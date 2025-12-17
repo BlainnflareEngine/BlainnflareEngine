@@ -58,7 +58,7 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
         "MeshComponent", sol::constructors<MeshComponent(const eastl::shared_ptr<MeshHandle> &),
                                            MeshComponent(eastl::shared_ptr<MeshHandle> &&)>());
     MeshComponentType.set_function("GetHandleIndex",
-                                   [](MeshComponent &m) { return m.m_meshHandle ? m.m_meshHandle->GetIndex() : 0u; });
+                                   [](MeshComponent &m) { return m.MeshHandle ? m.MeshHandle->GetIndex() : 0u; });
 
     // ScriptingComponent (expose a method to list attached scripts by UUID)
     sol::usertype<ScriptingComponent> ScriptingComponentType =
