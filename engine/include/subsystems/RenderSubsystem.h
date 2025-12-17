@@ -37,8 +37,9 @@ public:
         DeferredSpot,
 
         Transparency,
+        Sky,
 
-        NumPipelineStates = 9u
+        NumPipelineStates = 10u
     };
 
     enum EShaderType : UINT
@@ -71,6 +72,7 @@ private:
 public:
     static RenderSubsystem &GetInstance();
 
+    void PreInit();
     void Init(HWND window);
     void SetWindowParams(HWND window);
     void Render(float deltaTime);
@@ -81,15 +83,14 @@ public:
     void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
 
 private:
-    void InitializeD3D();
-    void ResetViewportAndScissorRect();
+    void InitializeWindow();
 
 #pragma region BoilerplateD3D12
     VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter = false);
     VOID SetCustomWindowText(LPCWSTR text) const;
 
     VOID CreateSwapChain();
-    VOID CreateRtvAndDsvDescriptorHeaps();
+    VOID CreateDescriptorHeaps();
 
     VOID Reset();
     VOID ResetGraphicsFeatures();
@@ -100,7 +101,7 @@ private:
     void LoadPipeline();
     void LoadGraphicsFeatures();
     void CreateFrameResources();
-    void CreateSrvAndSamplerDescriptorHeaps();
+    void LoadSrvAndSamplerDescriptorHeaps();
     void CreateRootSignature();
     void CreateShaders();
     void CreatePipelineStateObjects();
@@ -108,7 +109,6 @@ private:
 private:
     void UpdateObjectsCB(float deltaTime);
     void UpdateMaterialBuffer(float deltaTime);
-    void UpdateLightsBuffer(float deltaTime);
     void UpdateShadowTransform(float deltaTime);
     void UpdateShadowPassCB(float deltaTime);
     void UpdateGeometryPassCB(float deltaTime);
@@ -181,8 +181,6 @@ private:
     eastl::shared_ptr<RootSignature> m_rootSignature;
     eastl::unordered_map<EShaderType, ComPtr<ID3DBlob>> m_shaders;
     eastl::unordered_map<EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
-
-    // ObjectConstants m_perObjectCBData;
 
     float m_sunPhi = XM_PIDIV4;
     float m_sunTheta = 1.25f * XM_PI;

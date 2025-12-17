@@ -35,6 +35,7 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     SetDefaultContentDirectory();
 
     Log::Init();
+    RenderSubsystem::GetInstance().PreInit();
     PhysicsSubsystem::Init(globalTimeline);
     AssetManager::GetInstance().Init();
     ScriptingSubsystem::Init();

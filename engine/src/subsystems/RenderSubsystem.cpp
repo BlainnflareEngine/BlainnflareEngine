@@ -8,6 +8,7 @@
 
 #include "Components/MeshComponent.h"
 #include "File-System/Model.h"
+#include "File-System/Material.h"
 #include "Handles/Handle.h"
 #include "Scene/Scene.h"
 
@@ -25,13 +26,18 @@
 
 using namespace Blainn;
 
+void Blainn::RenderSubsystem::PreInit()
+{
+    CreateDescriptorHeaps();
+}
+
 void Blainn::RenderSubsystem::Init(HWND window)
 {
     if (m_isInitialized) return;
 
     SetWindowParams(window);
 
-    InitializeD3D();
+    InitializeWindow();
     LoadGraphicsFeatures();
     LoadPipeline();
 
@@ -91,11 +97,10 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     }
 
     UpdateObjectsCB(deltaTime);
-    // UpdateMaterialBuffer(deltaTime);
-    // UpdateLightsBuffer(deltaTime);
+    UpdateMaterialBuffer(deltaTime);
 
     UpdateShadowTransform(deltaTime);
-    UpdateShadowPassCB(deltaTime); // pass
+    UpdateShadowPassCB(deltaTime);   // pass
 
     UpdateGeometryPassCB(deltaTime); // pass
     UpdateMainPassCB(deltaTime);     // pass
@@ -119,8 +124,7 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     commandQueue->ExecuteCommandList(commandList);
     Present();
 
-    m_currFrameResource->Fence =
-        commandQueue->Signal(); // Advance the fence value to mark commands up to this fence point.
+    m_currFrameResource->Fence = commandQueue->Signal(); // Advance the fence value to mark commands up to this fence point.
 #pragma endregion RenderStage
 }
 
@@ -138,13 +142,10 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
     // RenderTransparencyPass(pCommandList);
 }
 
-VOID Blainn::RenderSubsystem::InitializeD3D()
+VOID Blainn::RenderSubsystem::InitializeWindow()
 {
     CreateSwapChain();
-    CreateRtvAndDsvDescriptorHeaps();
-
     Reset();
-
     BF_INFO("D3D12 initialized!");
 }
 
@@ -161,18 +162,22 @@ VOID Blainn::RenderSubsystem::CreateSwapChain()
 }
 
 // Create descriptor heaps. Descriptor heap has to be created for every GPU resource
-VOID Blainn::RenderSubsystem::CreateRtvAndDsvDescriptorHeaps()
+VOID Blainn::RenderSubsystem::CreateDescriptorHeaps()
 {
     // Describe and create a render target view (RTV) descriptor heap.
     ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, SwapChainFrameCount + (GBuffer::EGBufferLayer::MAX - 1u)));
     ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 3u));
-    
+    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2048u, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE));
+
     // Cache descriptor heaps
     m_rtvHeap = m_device.GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     m_dsvHeap = m_device.GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+    m_srvHeap = m_device.GetDescriptorHeap();
 
+    // Cache descriptor heap increment sizes
     m_rtvDescriptorSize = m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     m_dsvDescriptorSize = m_device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+    m_cbvSrvUavDescriptorSize = m_device.GetDescriptorHandleIncrementSize();
 }
 
 VOID Blainn::RenderSubsystem::Reset()
@@ -277,7 +282,7 @@ void Blainn::RenderSubsystem::LoadPipeline()
     ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
 
     CreateFrameResources();
-    CreateSrvAndSamplerDescriptorHeaps();
+    LoadSrvAndSamplerDescriptorHeaps();
     CreateRootSignature();
 
     CreateShaders();
@@ -313,46 +318,8 @@ void Blainn::RenderSubsystem::CreateFrameResources()
     }
 }
 
-//void Blainn::RenderSubsystem::CreateTextureDescriptor(Texture& texture, TextureType textureType)
-//{
-//    UINT freeTextureOffsetOfType = m_texturesOffsetsTable.at(textureType);
-//    UINT texturePlacementOffset = m_texturesSrvHeapStartIndex + (static_cast<UINT>(textureType) - 1u) * MAX_TEXTURES + freeTextureOffsetOfType;
-//    texture.SetTextureDescriptorOffset(texturePlacementOffset);
-//    
-//    auto srvCpuStart = m_srvHeap->GetCPUDescriptorHandleForHeapStart();
-//
-//    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-//    ZeroMemory(&srvDesc, sizeof(srvDesc));
-//
-//    CD3DX12_CPU_DESCRIPTOR_HANDLE localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, texturePlacementOffset, m_cbvSrvUavDescriptorSize);
-//    
-//    auto texD3DResource = texture.GetResource();
-//    srvDesc.Format = texD3DResource->GetDesc().Format;
-//    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-//    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-//    srvDesc.Texture2D.MostDetailedMip = 0u;
-//    srvDesc.Texture2D.MipLevels = texD3DResource->GetDesc().MipLevels;
-//    srvDesc.Texture2D.PlaneSlice;
-//    srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-//    m_device.CreateShaderResourceView(texD3DResource, &srvDesc, localHandle);
-//
-//    m_texturesOffsetsTable.at(textureType)++;
-//}
-//
-//void Blainn::RenderSubsystem::InitTextureOffsetsTable()
-//{
-//    for (auto&& textureOffset : m_texturesOffsetsTable)
-//    {
-//        textureOffset.second = 0u;
-//    }
-//}
-
-void Blainn::RenderSubsystem::CreateSrvAndSamplerDescriptorHeaps()
+void Blainn::RenderSubsystem::LoadSrvAndSamplerDescriptorHeaps()
 {
-    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2048u, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE));
-    m_srvHeap = m_device.GetDescriptorHeap();
-    m_cbvSrvUavDescriptorSize = m_device.GetDescriptorHandleIncrementSize();
-
     auto srvGpuStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
     auto srvCpuStart = m_srvHeap->GetCPUDescriptorHandleForHeapStart();
     auto dsvCpuStart = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
@@ -406,8 +373,8 @@ void Blainn::RenderSubsystem::CreateSrvAndSamplerDescriptorHeaps()
     }
     m_GBuffer->CreateDescriptors();
 
-    /*m_skyCubeSrvHeapStartIndex = m_GBufferTexturesSrvHeapStartIndex + GBuffer::EGBufferLayer::MAX;
-    localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize);
+    m_skyCubeSrvHeapStartIndex = m_GBufferTexturesSrvHeapStartIndex + GBuffer::EGBufferLayer::MAX;
+    /*localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize);
     for (auto &e : m_skyTextures)
     {
         auto &texD3DResource = e.second->Resource;
@@ -421,6 +388,7 @@ void Blainn::RenderSubsystem::CreateSrvAndSamplerDescriptorHeaps()
 
         localHandle.Offset(1, m_cbvSrvUavDescriptorSize);
     }*/
+    m_texturesSrvHeapStartIndex = m_skyCubeSrvHeapStartIndex + 1;
 }
 
 void Blainn::RenderSubsystem::CreateRootSignature()
@@ -434,11 +402,11 @@ void Blainn::RenderSubsystem::CreateRootSignature()
     GBufferTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, (UINT)GBuffer::EGBufferLayer::MAX, SHADER_REGISTER(1u), REGISTER_SPACE_1);
     
     CD3DX12_DESCRIPTOR_RANGE skyBoxTable;
-     skyBoxTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1u/*(UINT)m_skyTextures.size()*/, SHADER_REGISTER(6u), REGISTER_SPACE_1);
+    skyBoxTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1u/*(UINT)m_skyTextures.size()*/, SHADER_REGISTER(6u), REGISTER_SPACE_1);
 
     // Bindless unbound textures
-     CD3DX12_DESCRIPTOR_RANGE textureTable;
-     textureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, (UINT)-1, SHADER_REGISTER(7u), REGISTER_SPACE_1);
+    CD3DX12_DESCRIPTOR_RANGE textureTable;
+    textureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, (UINT)-1, SHADER_REGISTER(7u), REGISTER_SPACE_1);
 
     // Root parameter can be a table, root descriptor or root constants.
     CD3DX12_ROOT_PARAMETER slotRootParameter[RootSignature::ERootParam::NumRootParameters];
@@ -453,7 +421,7 @@ void Blainn::RenderSubsystem::CreateRootSignature()
 
     slotRootParameter[RootSignature::ERootParam::CascadedShadowMaps].InitAsDescriptorTable(1u, &cascadeShadowSrv, D3D12_SHADER_VISIBILITY_PIXEL);
     slotRootParameter[RootSignature::ERootParam::GBufferTextures   ].InitAsDescriptorTable(1u, &GBufferTable, D3D12_SHADER_VISIBILITY_PIXEL);
-    slotRootParameter[RootSignature::ERootParam::SkyCube           ].InitAsDescriptorTable(1u, &skyBoxTable, D3D12_SHADER_VISIBILITY_PIXEL);
+    slotRootParameter[RootSignature::ERootParam::SkyBox            ].InitAsDescriptorTable(1u, &skyBoxTable, D3D12_SHADER_VISIBILITY_PIXEL);
     slotRootParameter[RootSignature::ERootParam::Textures          ].InitAsDescriptorTable(1u, &textureTable, D3D12_SHADER_VISIBILITY_PIXEL);
 
     m_rootSignature->Create(m_device, ARRAYSIZE(slotRootParameter), slotRootParameter, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
@@ -613,7 +581,6 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     ThrowIfFailed(m_device.CreateGraphicsPipelineState(pointLightIntersectsFarPlanePsoDesc,
                                                        m_pipelineStates[EPsoType::DeferredPointIntersectsFarPlane]));
 
-
     D3D12_GRAPHICS_PIPELINE_STATE_DESC pointLightWithinFrustumPsoDesc = pointLightIntersectsFarPlanePsoDesc;
     pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; // ???
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
@@ -630,17 +597,32 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     ThrowIfFailed(m_device.CreateGraphicsPipelineState(spotLightPsoDesc, m_pipelineStates[EPsoType::DeferredSpot]));
 #pragma endregion DeferredSpotLight
 #pragma endregion DeferredShading
+
+#pragma region Sky
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC skyPsoDesc = dirLightPsoDesc;
+
+    // The camera is inside the sky sphere, so just turn off culling.
+    skyPsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+
+    // Make sure the depth function is LESS_EQUAL and not just LESS.
+    // Otherwise, the normalized depth values at z = 1 (NDC) will
+    // fail the depth test if the depth buffer was cleared to 1.
+    skyPsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    skyPsoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO; // Disable writing explicitly (Depth still enable)
+    skyPsoDesc.InputLayout = VertexPosition::InputLayout;
+    skyPsoDesc.VS = {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::SkyBoxVS)->GetBufferPointer()),
+                     m_shaders.at(EShaderType::SkyBoxVS)->GetBufferSize()};
+    skyPsoDesc.PS = {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::SkyBoxPS)->GetBufferPointer()),
+                     m_shaders.at(EShaderType::SkyBoxPS)->GetBufferSize()};
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(skyPsoDesc, m_pipelineStates[EPsoType::Sky]));
+#pragma endregion Sky
 }
 
 void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 {
-    const auto &renderEntitiesView =
-        Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
+    const auto &renderEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
     for (const auto &[entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
     {
-        // Luna stuff. Try to remove 'if' statement.
-        // Have tried. It does not affect anything.
-        // Looks like it just forces the code to update the object's constant buffer regardless of whether it has been modified or not.
         if (entityTransform.IsFramesDirty())
         {
             ObjectConstants objConstants;
@@ -651,66 +633,49 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 
             XMStoreFloat4x4(&objConstants.World, transposeWorld);
             XMStoreFloat4x4(&objConstants.InvTransposeWorld, XMMatrixTranspose(invTransposeWorld));
-            // XMStoreFloat4x4(&objConstants.TexTransform, XMMatrixTranspose(ri->TexTransform));
-            // objConstants.MaterialIndex = ri->Mat->MatBufferIndex;
-
+            XMStoreFloat4x4(&objConstants.TexTransform, XMMatrixTranspose(entityMesh.MeshHandle->GetMesh().GetTextureTransform()));
+            
             entityMesh.UpdateMeshCB(objConstants);
-            // ri->NumFramesDirty--;
+            entityTransform.FrameResetDirtyFlags();
         }
     }
 }
 
 void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
 {
-    /*auto currMaterialDataSB = m_currFrameResource->MaterialSB.get();
+    auto currMaterialDataSB = m_currFrameResource->MaterialSB.get();
 
-    for (auto &e : m_materials)
+    auto &materials = AssetManager::GetInstance().m_materials;
+
+    for (int matIndex = 0; matIndex < materials.size(); ++matIndex)
     {
-        Material *mat = e.second.get();
-        if (mat->NumFramesDirty > 0)
+        if (materials[matIndex]->IsFramesDirty())
         {
-            m_perMaterialSBData.DiffuseAlbedo = mat->DiffuseAlbedo;
-            m_perMaterialSBData.FresnelR0 = mat->FresnelR0;
-            m_perMaterialSBData.Roughness = mat->Roughness;
-            XMStoreFloat4x4(&m_perMaterialSBData.MatTransform, XMMatrixTranspose(mat->MatTransform));
-            m_perMaterialSBData.DiffusseMapIndex = mat->DiffuseSrvHeapIndex;
+            XMStoreFloat4x4(&m_perMaterialSBData.MatTransform, XMMatrixTranspose(materials[matIndex]->GetMaterialTransform()));
 
-            currMaterialDataSB->CopyData(mat->MatBufferIndex, m_perMaterialSBData);
+            m_perMaterialSBData.DiffuseAlbedo = materials[matIndex]->GetDefaultAldedo();
+            //m_perMaterialSBData.FresnelR0 = mat->FresnelR0;
+            m_perMaterialSBData.Roughness = materials[matIndex]->GetDefaultRougnessScale();
+            //XMStoreFloat4x4(&m_perMaterialSBData.MatTransform, XMMatrixTranspose(materials[matIndex]->MatTransform));
+            m_perMaterialSBData.DiffuseMapIndex = materials[matIndex]->HasTexture(TextureType::ALBEDO)
+                    ? materials[matIndex]->GetTextureHandle(TextureType::ALBEDO).GetIndex()
+                    : (uint32_t) - 1;
+            m_perMaterialSBData.NormalMapIndex = materials[matIndex]->HasTexture(TextureType::NORMAL)
+                    ? materials[matIndex]->GetTextureHandle(TextureType::NORMAL).GetIndex()
+                    : (uint32_t)-1;
+            m_perMaterialSBData.RoughnessMapIndex = materials[matIndex]->HasTexture(TextureType::ROUGHNESS)
+                    ? materials[matIndex]->GetTextureHandle(TextureType::ROUGHNESS).GetIndex()
+                    : (uint32_t)-1;
+            m_perMaterialSBData.MetallicMapIndex = materials[matIndex]->HasTexture(TextureType::METALLIC)
+                    ? materials[matIndex]->GetTextureHandle(TextureType::METALLIC).GetIndex()
+                    : (uint32_t)-1;
+            //m_perMaterialSBData.AOMapIndex = materials[matIndex]->GetTextureHandle(TextureType::AO).GetIndex();
 
-            mat->NumFramesDirty--;
+            currMaterialDataSB->CopyData(matIndex, m_perMaterialSBData);
+
+            materials[matIndex]->FrameResetDirtyFlags();
         }
-    }*/
-}
-
-void Blainn::RenderSubsystem::UpdateLightsBuffer(float deltaTime)
-{
-    // auto currPointLightSB = m_currFrameResource->PointLightSB.get();
-
-    // for (auto &e : m_pointLights)
-    //{
-    //     // we have many instances, not the one objects, so think about it (we can't update all instances, if only one
-    //     // point light gets dirty)
-    //     // if (e->NumFramesDirty > 0)
-    //     //{
-
-    //    int pointLightIndex = 0;
-    //    const auto &instances = e->Instances;
-
-    //    for (UINT i = 0; i < (UINT)instances.size(); ++i)
-    //    {
-    //        XMStoreFloat4x4(&m_perInstanceSBData.World, XMMatrixTranspose(XMLoadFloat4x4(&instances[i].World)));
-    //        m_perInstanceSBData.Light.Strength = instances[i].Light.Strength;
-    //        m_perInstanceSBData.Light.FallOfStart = instances[i].Light.FallOfStart;
-    //        m_perInstanceSBData.Light.FallOfEnd = instances[i].Light.FallOfEnd;
-    //        m_perInstanceSBData.Light.Position = instances[i].Light.Position;
-    //        // copy all instances to structured buffer
-    //        currPointLightSB->CopyData(pointLightIndex++, m_perInstanceSBData);
-    //    }
-    //    e->InstanceCount = pointLightIndex;
-
-    //    // e->NumFramesDirty--;
-    //    // }
-    //}
+    }
 }
 
 void Blainn::RenderSubsystem::UpdateShadowTransform(float deltaTime)
@@ -861,12 +826,12 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
     pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerPassDataCB, currFramePassCBAddress);
 
     // Bind all the materials used in this scene. For structured buffers, we can bypass the heap and set as a root descriptor.
-    // auto matBuffer = m_currFrameResource->MaterialSB->Get();
-    // pCommandList->SetGraphicsRootShaderResourceView(ERootParam::MaterialsDataSB, matBuffer->GetGPUVirtualAddress());
+    auto matBuffer = m_currFrameResource->MaterialSB->Get();
+    pCommandList->SetGraphicsRootShaderResourceView(RootSignature::ERootParam::MaterialsDataSB, matBuffer->GetGPUVirtualAddress());
 
     // Bind all the textures used in this scene. Observe that we only have to specify the first descriptor in the table.
     // The root signature knows how many descriptors are expected in the table.
-    // pCommandList->SetGraphicsRootDescriptorTable(ERootParam::Textures, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
+    pCommandList->SetGraphicsRootDescriptorTable(RootSignature::ERootParam::Textures, CD3DX12_GPU_DESCRIPTOR_HANDLE(m_srvHeap->GetGPUDescriptorHandleForHeapStart(), m_texturesSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
 #pragma endregion BypassResources
 
     // start of the GBuffer rtvs in rtvHeap
@@ -929,7 +894,7 @@ void Blainn::RenderSubsystem::DeferredDirectionalLightPass(ID3D12GraphicsCommand
     // Bind GBuffer textures
     pCommandList->SetGraphicsRootDescriptorTable(RootSignature::ERootParam::GBufferTextures, CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, m_GBufferTexturesSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
     // Bind SkyBox for sky reflections
-    //pCommandList->SetGraphicsRootDescriptorTable(ERootParam::SkyBox, CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
+    pCommandList->SetGraphicsRootDescriptorTable(RootSignature::ERootParam::SkyBox, CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
 #pragma endregion BypassResources
 
     pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::DeferredDirectional).Get());
@@ -977,7 +942,7 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
     {
         auto currObjectCB = entityMesh.ObjectCB->Get();
 
-        auto &model = entityMesh.m_meshHandle->GetMesh();
+        auto &model = entityMesh.MeshHandle->GetMesh();
 
         auto currVBV = model.VertexBufferView();
         auto currIBV = model.IndexBufferView();
@@ -988,7 +953,8 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
 
         D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currObjectCB->GetGPUVirtualAddress(), objCBByteSize, 0u);
         pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerObjectDataCB, objCBAddress);
-
+        
+        [[likely]]
         if (currIBV.SizeInBytes)
         {
             pCommandList->DrawIndexedInstanced(model.GetIndicesCount(), 1u, 0u, 0u, 0u);
