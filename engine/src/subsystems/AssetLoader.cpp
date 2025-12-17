@@ -240,9 +240,9 @@ void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::Co
     finish.wait();
 }
 
-void Blainn::AssetLoader::CreateTextureDescriptor(ID3D12Resource *textureRes, TextureType type)
+void Blainn::AssetLoader::CreateTextureDescriptor(ID3D12Resource* textureRes, TextureType type)
 {
-    auto device = Device::GetInstance();
+    auto& device = Device::GetInstance();
 
     UINT freeTextureOffsetOfType = m_texturesOffsetsTable[type];
     UINT texturePlacementOffset = /*m_texturesSrvHeapStartIndex*/ 7u + (static_cast<UINT>(type) - 1u) * MAX_TEXTURES + freeTextureOffsetOfType;

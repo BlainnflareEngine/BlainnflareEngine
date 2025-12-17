@@ -394,17 +394,17 @@ void Blainn::RenderSubsystem::CreateRootSignature()
 {
     m_rootSignature = eastl::make_shared<RootSignature>();
 
-    CD3DX12_DESCRIPTOR_RANGE cascadeShadowSrv;
+    CD3DX12_DESCRIPTOR_RANGE cascadeShadowSrv = {};
     cascadeShadowSrv.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1u, SHADER_REGISTER(0u), REGISTER_SPACE_1);
 
-    CD3DX12_DESCRIPTOR_RANGE GBufferTable;
+    CD3DX12_DESCRIPTOR_RANGE GBufferTable = {};
     GBufferTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, (UINT)GBuffer::EGBufferLayer::MAX, SHADER_REGISTER(1u), REGISTER_SPACE_1);
     
-    CD3DX12_DESCRIPTOR_RANGE skyBoxTable;
+    CD3DX12_DESCRIPTOR_RANGE skyBoxTable = {};
     skyBoxTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1u/*(UINT)m_skyTextures.size()*/, SHADER_REGISTER(6u), REGISTER_SPACE_1);
 
     // Bindless unbound textures
-    CD3DX12_DESCRIPTOR_RANGE textureTable;
+    CD3DX12_DESCRIPTOR_RANGE textureTable = {};
     textureTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, (UINT)-1, SHADER_REGISTER(7u), REGISTER_SPACE_1);
 
     // Root parameter can be a table, root descriptor or root constants.
