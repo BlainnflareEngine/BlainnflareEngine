@@ -27,6 +27,8 @@ struct ImportMeshData;
 
 class AssetManager
 {
+    friend class RenderSubsystem;
+
     struct AssetData
     {
         int index;
