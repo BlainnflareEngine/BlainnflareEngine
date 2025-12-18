@@ -21,6 +21,8 @@ INT WindowHeight;
 CHAR WindowTitle[MAX_NAME_STRING];
 CHAR WindowClass[MAX_NAME_STRING];
 
+bool g_IsRunning = true;
+
 int main(int argc, char **argv)
 {
     BF_DEBUG("This is debug!");
@@ -56,13 +58,11 @@ int main(int argc, char **argv)
 
     Blainn::Engine::InitRenderSubsystem(hwnd);
 
-    bool isRunning = true;
-
     MSG msg = {0};
 
     globalTimeline.Start();
 
-    while (isRunning)
+    while (g_IsRunning)
     {
         // Process any messages in the queue.
         if (PeekMessage(&msg, NULL, 0u, 0u, PM_REMOVE))
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 
             if (msg.message == WM_QUIT)
             {
-                isRunning = false;
+                g_IsRunning = false;
             }
         }
     }
