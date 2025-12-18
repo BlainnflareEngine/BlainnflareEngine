@@ -68,6 +68,8 @@ void Engine::InitRenderSubsystem(HWND windowHandle)
 
 void Engine::Destroy()
 {
+     GetActiveScene().reset();
+
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
 

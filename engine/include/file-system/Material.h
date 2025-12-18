@@ -59,7 +59,8 @@ public:
 
     bool IsFramesDirty() const
     {
-        return NumFramesDirty > 0;
+        // TODO : replace with actual logic
+        return true; //NumFramesDirty > 0;
     }
 private:
 
