@@ -72,7 +72,9 @@ public:
 
     // I recommend getting the type by using auto since the type is quite deep in the hierarchy
     // also it sucks ass, might need to make it a template function to get the type...
-    static void AddEventListener(InputEventType eventType, eastl::function<void(const InputEventPointer &)> listener);
+    using EventHandle = eventpp::internal_::CallbackListBase<void(const eastl::shared_ptr<InputEvent>&), InputEventPolicy>::Handle;
+    static EventHandle AddEventListener(InputEventType eventType, eastl::function<void(const InputEventPointer &)> listener);
+    static bool RemoveEventListener(InputEventType eventType, EventHandle handle);
     static void ProcessEvents();
 
 private:
