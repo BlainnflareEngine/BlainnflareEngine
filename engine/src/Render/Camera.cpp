@@ -57,30 +57,35 @@ void Blainn::Camera::Reset(float fovAngleYDegrees, float aspectRatio, float near
 
 	// For frustum culling
 	//BoundingFrustum::CreateFromMatrix(m_frustum, m_persProj);
-
-	Input::AddEventListener(InputEventType::KeyHeld, 
-                            [this](const InputEventPointer &event)
-                            {
-                                const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent*>(event.get());
-								auto key = keyEvent->GetKey();
+	if (!m_bIsCameraActionsBinded)
+	{
+		Input::AddEventListener(InputEventType::KeyHeld, 
+								[this](const InputEventPointer &event)
+								{
+									const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent*>(event.get());
+									auto key = keyEvent->GetKey();
                                 
-								Move(key);
-                                SetCameraProperties(key);
-                            });
+									Move(key);
+									SetCameraProperties(key);
+								});
 
-	Input::AddEventListener(InputEventType::KeyReleased,
-                            [this](const InputEventPointer &event)
-                            {
-                                const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent*>(event.get());
-                                auto key = keyEvent->GetKey();
-                            });
+		Input::AddEventListener(InputEventType::KeyReleased,
+								[this](const InputEventPointer &event)
+								{
+									const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent*>(event.get());
+									auto key = keyEvent->GetKey();
+								});
 
-	Input::AddEventListener(InputEventType::MouseDelta,
-							[this](const InputEventPointer& event)
-							{ 
-								const MouseMovedEvent *mouseEvent = static_cast<const MouseMovedEvent *>(event.get());
-                                AdjustRotation(mouseEvent->GetX(), mouseEvent->GetY());
-							});
+		Input::AddEventListener(InputEventType::MouseDelta,
+								[this](const InputEventPointer& event)
+								{ 
+									const MouseMovedEvent *mouseEvent = static_cast<const MouseMovedEvent *>(event.get());
+                                    BF_INFO("Mouse Delta: {0} {1}", mouseEvent->GetX(), mouseEvent->GetY());
+									AdjustRotation(mouseEvent->GetX(), mouseEvent->GetY());
+								});
+
+		m_bIsCameraActionsBinded = true;
+	}
 }
 
 void Camera::Move(const KeyCode key)

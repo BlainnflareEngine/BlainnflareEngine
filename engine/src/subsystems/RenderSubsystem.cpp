@@ -302,9 +302,9 @@ void Blainn::RenderSubsystem::LoadGraphicsFeatures()
     m_cascadeShadowMap->CreateShadowCascadeSplits(m_camera->GetNearZ(), m_camera->GetFarZ());
 
     m_GBuffer = eastl::make_unique<GBuffer>(m_device.GetDevice2().Get(), m_width, m_height);
+    
     // Explicitly reset all window params dependent features
-
-    ResetGraphicsFeatures();
+    //ResetGraphicsFeatures();
     m_areGraphicsFeaturesLoaded = true;
 }
 

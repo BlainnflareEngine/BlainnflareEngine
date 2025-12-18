@@ -66,6 +66,7 @@ namespace Blainn
         float m_cameraAcceleration = 10.0f;
         
         float m_deltaTime = 0.0f;
+        bool m_bIsCameraActionsBinded = false;
         bool m_isDirty = false;
         bool m_bUseAcceleration = false;
 
