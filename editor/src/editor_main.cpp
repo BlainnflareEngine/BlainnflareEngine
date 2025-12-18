@@ -2,7 +2,6 @@
 // Created by gorev on 21.09.2025.
 //
 
-
 #include "editor_main.h"
 
 #include "Editor.h"
@@ -14,6 +13,8 @@
 #include "ui_editor_main.h"
 
 #include <QListView>
+
+extern bool g_IsRunning;
 
 namespace editor
 {
@@ -93,6 +94,7 @@ void editor_main::closeEvent(QCloseEvent *event)
     // TODO: serialize something before exit
     QMainWindow::closeEvent(event);
     QCoreApplication::quit();
+    g_IsRunning = false;
 }
 
 

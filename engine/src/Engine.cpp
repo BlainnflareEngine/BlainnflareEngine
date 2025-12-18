@@ -67,8 +67,6 @@ void Engine::InitRenderSubsystem(HWND windowHandle)
 
 void Engine::Destroy()
 {
-    vgjs::wait_for_termination();
-
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
 
