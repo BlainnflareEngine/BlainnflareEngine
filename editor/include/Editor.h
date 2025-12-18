@@ -31,12 +31,14 @@ public:
 
     void SetContentDirectory(const Path &path);
 
-    std::shared_ptr<editor::EditorSink<std::mutex>> GetEditorSink() const;
+    std::shared_ptr<editor::EditorSink<std::mutex>> GetEditorSink();
 
 private:
     QApplication *m_app = nullptr;
     editor::editor_main *m_editorMain = nullptr;
     Path m_editorConfigFolder;
+
+    std::shared_ptr<editor::EditorSink<std::mutex>> m_editorSink;
 
     Editor() = default;
     Editor(const Editor &) = delete;
