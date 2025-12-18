@@ -252,6 +252,9 @@ VOID Blainn::RenderSubsystem::Reset()
 VOID Blainn::RenderSubsystem::ResetGraphicsFeatures()
 {
     m_camera->Reset(75.0f, m_aspectRatio, 0.1f, 250.0f);
+
+    m_GBuffer->OnResize(m_width, m_height);
+    m_cascadeShadowMap->OnResize(m_width, m_height);
 }
 
 VOID Blainn::RenderSubsystem::Present()
