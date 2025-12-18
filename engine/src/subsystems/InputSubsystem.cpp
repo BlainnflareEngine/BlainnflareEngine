@@ -160,10 +160,15 @@ void Blainn::Input::UpdateButtonState(MouseButton button, ButtonState state)
     }
 }
 
-void Blainn::Input::AddEventListener(InputEventType eventType,
-                                     eastl::function<void(const InputEventPointer &)> listener)
+auto Blainn::Input::AddEventListener(InputEventType eventType,
+                                     eastl::function<void(const InputEventPointer &)> listener) -> EventHandle
 {
-    s_inputEventQueue.appendListener(eventType, listener);
+    return s_inputEventQueue.appendListener(eventType, listener);
+}
+
+bool Blainn::Input::RemoveEventListener(InputEventType eventType, EventHandle handle)
+{
+    return s_inputEventQueue.removeListener(eventType, handle);
 }
 
 void Blainn::Input::ProcessEvents()
