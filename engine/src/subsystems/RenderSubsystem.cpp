@@ -625,7 +625,8 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
     const auto &renderEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
     for (const auto &[entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
     {
-        if (entityTransform.IsFramesDirty())
+        if (entityTransform.IsFramesDirty()
+            || entityMesh.MaterialHandle->GetMaterial().IsFramesDirty())
         {
             ObjectConstants objConstants;
 
@@ -809,8 +810,7 @@ void Blainn::RenderSubsystem::RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pC
     ResourceBarrier(pCommandList, m_cascadeShadowMap->Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 
-void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCommandList)
-{
+void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCommandList) {
     UINT passCBByteSize = FreyaUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
     // The viewport needs to be reset whenever the command list is reset.
     pCommandList->RSSetViewports(1u, &m_viewport);
@@ -833,7 +833,14 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
 
     // Bind all the textures used in this scene. Observe that we only have to specify the first descriptor in the table.
     // The root signature knows how many descriptors are expected in the table.
-    pCommandList->SetGraphicsRootDescriptorTable(RootSignature::ERootParam::Textures, CD3DX12_GPU_DESCRIPTOR_HANDLE(m_srvHeap->GetGPUDescriptorHandleForHeapStart(), m_texturesSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
+    pCommandList->SetGraphicsRootDescriptorTable(
+        RootSignature::ERootParam::Textures,
+        CD3DX12_GPU_DESCRIPTOR_HANDLE(
+            m_srvHeap->GetGPUDescriptorHandleForHeapStart(),
+            m_texturesSrvHeapStartIndex,
+            m_cbvSrvUavDescriptorSize
+            )
+        );
 #pragma endregion BypassResources
 
     // start of the GBuffer rtvs in rtvHeap
