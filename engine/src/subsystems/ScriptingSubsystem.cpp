@@ -41,15 +41,15 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
 {
 #ifdef BLAINN_TEST_LUA_SCRIPTS
 
-    //static bool create;
-    //if (!create)
+    // static bool create;
+    // if (!create)
     //{
-    //    m_scriptTestEntity = Engine::GetActiveScene()->CreateEntity("LuaScriptTestEntity");
-    //    CreateAttachScriptingComponent(m_scriptTestEntity);
-    //    //m_scriptTestUuid1 =
-    //    //    ScriptingSubsystem::LoadScript(m_scriptTestEntity, "scripts/test1.lua", true).value_or(uuid());
-    //    m_scriptTestUuid2 =
-    //        ScriptingSubsystem::LoadScript(m_scriptTestEntity, "./scripts/test2.lua", true).value_or(uuid());
+    //     m_scriptTestEntity = Engine::GetActiveScene()->CreateEntity("LuaScriptTestEntity");
+    //     CreateAttachScriptingComponent(m_scriptTestEntity);
+    //     //m_scriptTestUuid1 =
+    //     //    ScriptingSubsystem::LoadScript(m_scriptTestEntity, "scripts/test1.lua", true).value_or(uuid());
+    //     m_scriptTestUuid2 =
+    //         ScriptingSubsystem::LoadScript(m_scriptTestEntity, "./scripts/test2.lua", true).value_or(uuid());
 
     //    create = true;
     //}
@@ -103,8 +103,10 @@ void Blainn::ScriptingSubsystem::DestroyScriptingComponent(Entity entity)
 
     eastl::vector<uuid> scriptUuids;
     scriptUuids.reserve(component->scripts.size());
-    eastl::transform(component->scripts.begin(), component->scripts.end(), eastl::back_inserter(scriptUuids),
-                     [](const eastl::pair<uuid, LuaScript> &pair) { return pair.first; });
+    for (const auto &[scriptUuid, _] : component->scripts)
+    {
+        scriptUuids.push_back(scriptUuid);
+    }
 
     for (const auto &scriptUuid : scriptUuids)
     {
@@ -125,25 +127,39 @@ eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const Path &
     if (!component)
     {
         BF_ERROR("Script load error: entity " + entity.GetUUID().str() + "does not have scripting component");
-        return eastl::optional<uuid>();
+        return eastl::nullopt;
     }
 
     Path scriptLoadPath = Engine::GetContentDirectory() / path;
     if (!std::filesystem::exists(scriptLoadPath.c_str()))
     {
         BF_ERROR("Script load error: script" + scriptLoadPath.string() + "does not exist");
-        return eastl::optional<uuid>();
+        return eastl::nullopt;
     }
 
     eastl::unordered_map<uuid, LuaScript> &scripts = component->scripts;
     LuaScript luaScript;
-    if (!luaScript.Load(scriptLoadPath, entity)) return eastl::optional<uuid>();
+    if (!luaScript.Load(scriptLoadPath, entity)) return eastl::nullopt;
     if (callOnStart) luaScript.OnStartCall();
 
     uuid scriptUuid = luaScript.GetId();
     scripts[scriptUuid] = eastl::move(luaScript);
     m_scriptEntityConnections[scriptUuid] = entity;
     return eastl::optional(eastl::move(scriptUuid));
+}
+
+eastl::optional<LuaScript> Blainn::ScriptingSubsystem::LoadAiScript(Entity entity, const Path &path)
+{
+    Path scriptLoadPath = Engine::GetContentDirectory() / path;
+    if (!std::filesystem::exists(scriptLoadPath.c_str()))
+    {
+        BF_ERROR("Script load error: script" + scriptLoadPath.string() + "does not exist");
+        return eastl::nullopt;
+    }
+
+    LuaScript luaScript;
+    if (!luaScript.Load(scriptLoadPath, entity)) return eastl::nullopt;
+    return eastl::optional<LuaScript>(eastl::move(luaScript));
 }
 
 void ScriptingSubsystem::UnloadScript(const uuid &scriptUuid)
