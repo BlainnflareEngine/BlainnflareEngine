@@ -123,9 +123,6 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
                            [](Scene &scene, Entity entity) { return scene.GetWorldSpaceTransformMatrix(entity); });
     SceneType.set_function("GetWorldSpaceTransform",
                            [](Scene &scene, Entity entity) { return scene.GetWorldSpaceTransform(entity); });
-
-    // Expose utility to process events
-    SceneType.set_function("ProcessEvents", [](Scene &scene) { Scene::ProcessEvents(); });
 }
 
 #endif

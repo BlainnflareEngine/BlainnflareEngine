@@ -1,7 +1,10 @@
 #pragma once
 
+#include "helpers.h"
 #include "aliases.h"
 #include "scene/Entity.h"
+
+#include "subsystems/PhysicsSubsystem.h"
 
 namespace Blainn
 {
@@ -9,17 +12,21 @@ class LuaScript
 {
 public:
     LuaScript();
+    ~LuaScript();
 
     bool Load(const Path &path, const Entity &owningEntity);
     bool IsLoaded() const;
 
     const Path &GetScriptPath() const;
     const uuid &GetId() const;
+    const sol::table &GetEnvironment() const;
 
     bool HasFunction(const eastl::string &functionName) const;
     bool OnStartCall();
     bool OnUpdateCall(float deltaTimeMs);
     bool OnDestroyCall();
+    bool OnCollisionStartedCall(const eastl::shared_ptr<PhysicsEvent> &physicsEvent);
+    bool OnCollisionEndedCall(const eastl::shared_ptr<PhysicsEvent> &physicsEvent);
 
     template <typename... Args> bool CustomCall(eastl::string_view functionName = "", Args &&...args)
     {
@@ -57,10 +64,17 @@ private:
 
     struct PredefinedFunctions
     {
-        inline const static eastl::string OnStart = "OnStart";
-        inline const static eastl::string OnUpdate = "OnUpdate";
-        inline const static eastl::string OnDestroy = "OnDestroy";
+        inline const static eastl::string kOnStart = "OnStart";
+        inline const static eastl::string kOnUpdate = "OnUpdate";
+        inline const static eastl::string kOnDestroy = "OnDestroy";
+        inline const static eastl::string kOnCollisionStarted = "OnCollisionStarted";
+        inline const static eastl::string kOnCollisionEnded = "OnCollisionEnded";
     };
     eastl::unordered_set<eastl::string> m_predefinedFunctions;
+
+    PhysicsSubsystem::PhysicsEventHandle m_onCollisionStartedHandle;
+    PhysicsSubsystem::PhysicsEventHandle m_onCollisionEndedHandle;
+
+    void RemovePhysicsEventListeners();
 };
 } // namespace Blainn
