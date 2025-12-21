@@ -22,6 +22,10 @@ bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
     m_scriptPath = scriptPath;
 
     sol::state &lua = ScriptingSubsystem::GetLuaState();
+
+    m_environment = sol::environment(lua, sol::create, lua.globals());
+    m_environment["OwningEntity"] = owningEntity.GetUUID().str();
+
     sol::load_result script = lua.load_file(scriptPath.string());
     if (!script.valid())
     {
@@ -31,8 +35,7 @@ bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
     }
 
     sol::protected_function scriptAsFunc = script.get<sol::protected_function>();
-    m_environment = sol::environment(lua, sol::create, lua.globals());
-    m_environment["OwningEntity"] = owningEntity.GetUUID().str();
+
     sol::set_environment(m_environment, scriptAsFunc);
     // load lua functions to environment
     sol::protected_function_result result = script();

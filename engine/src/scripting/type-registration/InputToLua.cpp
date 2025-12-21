@@ -10,17 +10,25 @@
 #include "Input/KeyboardEvents.h"
 #include "Input/MouseEvents.h"
 #include "subsystems/ScriptingSubsystem.h"
+#include <atomic>
+#include <functional>
+#include <unordered_map>
 
 using namespace Blainn;
 
 #ifdef BLAINN_REGISTER_LUA_TYPES
 
+// Listener handle storage for Lua -> Input event listeners
+static inline std::unordered_map<uint64_t, std::function<void()>> s_inputListenerRemovers;
+static inline std::atomic<uint64_t> s_inputNextListenerId{1};
+
 void Blainn::RegisterInputTypes(sol::state &luaState)
 {
     luaState.new_enum<true>("InputEventType", "MouseMoved", InputEventType::MouseMoved, "MouseButtonPressed",
-                            InputEventType::MouseButtonPressed, "MouseButtonReleased",InputEventType::MouseButtonHeld, "MouseButtonHeld",
-                            InputEventType::MouseButtonReleased, "MouseScrolled", InputEventType::MouseScrolled,
-                            "KeyPressed", InputEventType::KeyPressed, "KeyReleased", InputEventType::KeyReleased, "KeyHeld", InputEventType::KeyHeld);
+                            InputEventType::MouseButtonPressed, "MouseButtonReleased", InputEventType::MouseButtonHeld,
+                            "MouseButtonHeld", InputEventType::MouseButtonReleased, "MouseScrolled",
+                            InputEventType::MouseScrolled, "KeyPressed", InputEventType::KeyPressed, "KeyReleased",
+                            InputEventType::KeyReleased, "KeyHeld", InputEventType::KeyHeld);
 
     luaState.new_enum<true>("MouseButton", "Left", MouseButton::Left, "Right", MouseButton::Right, "Middle",
                             MouseButton::Middle, "X1", MouseButton::X1, "X2", MouseButton::X2);
@@ -83,28 +91,43 @@ void Blainn::RegisterInputTypes(sol::state &luaState)
         return tbl;
     };
 
-    auto add_listener_func = [&luaState, make_event_table](int eventTypeInt, sol::function listener)
+    auto add_listener_func = [&luaState, make_event_table](int eventTypeInt, sol::function listener) -> uint64_t
     {
         InputEventType eventType = static_cast<InputEventType>(eventTypeInt);
         sol::function luaListener = listener;
+        uint64_t id = s_inputNextListenerId.fetch_add(1);
 
-        Blainn::Input::AddEventListener(eventType,
-                                        [&luaState, luaListener, make_event_table](const InputEventPointer &ev)
-                                        {
-                                            sol::state_view lua(luaState);
-                                            sol::table tbl = make_event_table(ev, lua);
-
-                                            sol::protected_function pfunc = luaListener;
-                                            sol::protected_function_result result = pfunc(tbl);
-                                            if (!result.valid())
+        auto handle =
+            Blainn::Input::AddEventListener(eventType,
+                                            [&luaState, luaListener, make_event_table](const InputEventPointer &ev)
                                             {
-                                                sol::error err = result;
-                                                BF_ERROR("Lua input listener error: " + eastl::string(err.what()));
-                                            }
-                                        });
+                                                sol::state_view lua(luaState);
+                                                sol::table tbl = make_event_table(ev, lua);
+
+                                                sol::protected_function pfunc = luaListener;
+                                                sol::protected_function_result result = pfunc(tbl);
+                                                if (!result.valid())
+                                                {
+                                                    sol::error err = result;
+                                                    BF_ERROR("Lua input listener error: " + eastl::string(err.what()));
+                                                }
+                                            });
+        // store remover lambda capturing handle
+        s_inputListenerRemovers[id] = [eventType, handle]() { Blainn::Input::RemoveEventListener(eventType, handle); };
+        return id;
     };
 
     inputTable.set_function("AddEventListener", add_listener_func);
+
+    inputTable.set_function("RemoveEventListener",
+                            [](int eventTypeInt, uint64_t id)
+                            {
+                                auto it = s_inputListenerRemovers.find(id);
+                                if (it == s_inputListenerRemovers.end()) return;
+                                // call stored remover
+                                it->second();
+                                s_inputListenerRemovers.erase(it);
+                            });
     luaState["Input"] = inputTable;
 }
 

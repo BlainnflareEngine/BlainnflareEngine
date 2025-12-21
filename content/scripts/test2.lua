@@ -1,27 +1,20 @@
 
-local testsPassed = 0
-local testsFailed = 0
-
-local function ok(name, cond)
-    if cond then
-        Log.Info("PASS: " .. name)
-        testsPassed = testsPassed + 1
-    else
-        Log.Info("FAIL: " .. name)
-        testsFailed = testsFailed + 1
-    end
-end
+local listener1Handle = nil
+local listener2Handle = nil
 
 function OnStart()
+     Log.Info("script start OwningEntity: " .. OwningEntity)
+
     Log.Info("Test2 onStart called")
-    Input.AddEventListener(InputEventType.KeyHeld,
+    listener1Handle = Input.AddEventListener(InputEventType.KeyHeld,
         function(ev)
         Log.Info("key pressed listener from script: " .. tostring(ev.key))
         end
     )
 
-    Input.AddEventListener(InputEventType.KeyHeld,
+    listener2Handle = Input.AddEventListener(InputEventType.KeyHeld,
         function(ev)
+            Log.Info("script listener lambda OwningEntity: " .. OwningEntity)
             local scene = Engine.GetActiveScene()
             local e = scene:GetEntityWithUUID(OwningEntity)
             if not e:HasTransformComponent() then
@@ -42,6 +35,12 @@ function OnUpdate(deltaTime)
     for i = 1, 100 do
         value = value + i
     end
+end
+
+function OnDestroy()
+    Log.Info("Test2 onDestroy called")
+    Input.RemoveEventListener(InputEventType.KeyHeld, listener1Handle)
+    Input.RemoveEventListener(InputEventType.KeyHeld, listener2Handle)
 end
 
 function OnCustomCall(b)
