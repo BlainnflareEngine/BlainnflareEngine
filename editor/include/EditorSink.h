@@ -35,7 +35,6 @@ protected:
         spdlog::memory_buf_t formatted;
         this->formatter_->format(msg, formatted);
         LogMessage log_msg{msg.level, fmt::to_string(formatted)};
-
         QMetaObject::invokeMethod(m_console, "AppendMessage", Qt::QueuedConnection, Q_ARG(LogMessage, log_msg));
     }
 
