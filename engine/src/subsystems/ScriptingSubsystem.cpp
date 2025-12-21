@@ -41,18 +41,18 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
 {
 #ifdef BLAINN_TEST_LUA_SCRIPTS
 
-    // static bool create;
-    // if (!create)
-    //{
-    //     m_scriptTestEntity = Engine::GetActiveScene()->CreateEntity("LuaScriptTestEntity");
-    //     CreateAttachScriptingComponent(m_scriptTestEntity);
-    //     //m_scriptTestUuid1 =
-    //     //    ScriptingSubsystem::LoadScript(m_scriptTestEntity, "scripts/test1.lua", true).value_or(uuid());
-    //     m_scriptTestUuid2 =
-    //         ScriptingSubsystem::LoadScript(m_scriptTestEntity, "./scripts/test2.lua", true).value_or(uuid());
+    static bool create;
+    if (!create)
+    {
+        m_scriptTestEntity = Engine::GetActiveScene()->CreateEntity("LuaScriptTestEntity");
+        CreateAttachScriptingComponent(m_scriptTestEntity);
+        m_scriptTestUuid1 =
+            ScriptingSubsystem::LoadScript(m_scriptTestEntity, "scripts/test1.lua", true).value_or(uuid());
+        // m_scriptTestUuid2 =
+        //     ScriptingSubsystem::LoadScript(m_scriptTestEntity, "./scripts/test2.lua", true).value_or(uuid());
 
-    //    create = true;
-    //}
+        create = true;
+    }
 #endif
 
     // TODO: can be replaced with profiler
@@ -142,6 +142,8 @@ eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const Path &
     if (!luaScript.Load(scriptLoadPath, entity)) return eastl::nullopt;
     if (callOnStart) luaScript.OnStartCall();
 
+    // BF_WARN("Loaded script " + scriptLoadPath.string() + " for entity " + entity.GetUUID().str());
+
     uuid scriptUuid = luaScript.GetId();
     scripts[scriptUuid] = eastl::move(luaScript);
     m_scriptEntityConnections[scriptUuid] = entity;
@@ -173,6 +175,9 @@ void ScriptingSubsystem::UnloadScript(const uuid &scriptUuid)
         return;
     }
 
+    // BF_WARN("Unloaded script " + scriptUuid.str() + " for entity "
+    //         + m_scriptEntityConnections.at(scriptUuid).GetUUID().str());
+
     m_scriptEntityConnections.erase(scriptUuid);
     eastl::unordered_map<uuid, LuaScript> &scripts = component->scripts;
     if (scripts.contains(scriptUuid))
@@ -198,6 +203,7 @@ void Blainn::ScriptingSubsystem::RegisterBlainnTypes()
     RegisterSceneTypes(m_lua);
     RegisterAssetManagerTypes(m_lua);
     RegisterEngineTypes(m_lua);
+    RegisterPhysicsTypes(m_lua);
     RegisterScriptingTypes(m_lua);
 #endif
 }
