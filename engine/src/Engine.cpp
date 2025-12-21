@@ -150,8 +150,6 @@ void Engine::Update(float deltaTime)
 
     s_activeScene->Update();
 
-    ScriptingSubsystem::Update(*s_activeScene, deltaTime);
-
     RenderSubsystem::GetInstance().Render(deltaTime);
 
     // Marks end of frame for tracy profiler
