@@ -56,9 +56,6 @@ public:
     static BodyUpdater GetBodyUpdater(Entity entity);
     static BodyGetter GetBodyGetter(Entity entity);
 
-    static eastl::shared_ptr<BodyUpdater> GetBodyUpdaterPtr(Entity entity);
-    static eastl::shared_ptr<BodyGetter> GetBodyGetterPtr(Entity entity);
-
     static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance);
 
     using PhysicsEventHandle =

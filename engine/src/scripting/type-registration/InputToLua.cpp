@@ -96,28 +96,24 @@ void Blainn::RegisterInputTypes(sol::state &luaState)
         InputEventType eventType = static_cast<InputEventType>(eventTypeInt);
         sol::function luaListener = listener;
         uint64_t id = s_inputNextListenerId.fetch_add(1);
-        // TODO:
-        // auto handle =
-        Blainn::Input::AddEventListener(eventType,
-                                        [&luaState, luaListener, make_event_table](const InputEventPointer &ev)
-                                        {
-                                            sol::state_view lua(luaState);
-                                            sol::table tbl = make_event_table(ev, lua);
 
-                                            sol::protected_function pfunc = luaListener;
-                                            sol::protected_function_result result = pfunc(tbl);
-                                            if (!result.valid())
+        auto handle =
+            Blainn::Input::AddEventListener(eventType,
+                                            [&luaState, luaListener, make_event_table](const InputEventPointer &ev)
                                             {
-                                                sol::error err = result;
-                                                BF_ERROR("Lua input listener error: " + eastl::string(err.what()));
-                                            }
-                                        });
-        // TODO:
+                                                sol::state_view lua(luaState);
+                                                sol::table tbl = make_event_table(ev, lua);
+
+                                                sol::protected_function pfunc = luaListener;
+                                                sol::protected_function_result result = pfunc(tbl);
+                                                if (!result.valid())
+                                                {
+                                                    sol::error err = result;
+                                                    BF_ERROR("Lua input listener error: " + eastl::string(err.what()));
+                                                }
+                                            });
         // store remover lambda capturing handle
-        // s_inputListenerRemovers[id] = [eventType, handle]()
-        {
-            // Blainn::Input::RemoveEventListener(eventType, handle);
-        }
+        s_inputListenerRemovers[id] = [eventType, handle]() { Blainn::Input::RemoveEventListener(eventType, handle); };
         return id;
     };
 

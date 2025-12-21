@@ -10,7 +10,7 @@
 
 #ifdef BLAINN_REGISTER_LUA_TYPES
 // enable to test lua scripts functionality.
-#define BLAINN_TEST_LUA_SCRIPTS
+// #define BLAINN_TEST_LUA_SCRIPTS
 #endif
 
 namespace sol

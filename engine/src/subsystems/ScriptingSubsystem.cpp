@@ -142,6 +142,8 @@ eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const Path &
     if (!luaScript.Load(scriptLoadPath, entity)) return eastl::nullopt;
     if (callOnStart) luaScript.OnStartCall();
 
+    // BF_WARN("Loaded script " + scriptLoadPath.string() + " for entity " + entity.GetUUID().str());
+
     uuid scriptUuid = luaScript.GetId();
     scripts[scriptUuid] = eastl::move(luaScript);
     m_scriptEntityConnections[scriptUuid] = entity;
@@ -172,6 +174,9 @@ void ScriptingSubsystem::UnloadScript(const uuid &scriptUuid)
         BF_ERROR("Script" + scriptUuid.str() + " unload error - component not exist");
         return;
     }
+
+    // BF_WARN("Unloaded script " + scriptUuid.str() + " for entity "
+    //         + m_scriptEntityConnections.at(scriptUuid).GetUUID().str());
 
     m_scriptEntityConnections.erase(scriptUuid);
     eastl::unordered_map<uuid, LuaScript> &scripts = component->scripts;

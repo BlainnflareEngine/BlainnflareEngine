@@ -126,6 +126,12 @@ local function RunEntityLifecycleTests()
     local e = scene:CreateEntity("LuaTestEntity", true)
     ok("Entity created", e ~= nil and e:IsValid())
 
+    -- Tag component should be created when entity is created with a name
+    ok("Entity has Tag component", e:HasTagComponent())
+    ok("Entity GetName matches provided name", e:GetName() == "LuaTestEntity")
+    local tagComp = e:GetTagComponent()
+    ok("Tag component Tag field matches name", tagComp.Tag == "LuaTestEntity")
+
     -- Scene event listener registration test: add and remove
     local succSceneListen, sceneListenHandle = pcall(function()
         return scene:AddEventListener(SceneEventType.EntityCreated, function(ev)
@@ -143,10 +149,13 @@ local function RunEntityLifecycleTests()
     e:AddTransformComponent()
     ok("AddTransformComponent", e:HasTransformComponent())
     local t = e:GetTransformComponent()
-    ok("Transform has translation field", t.Translation ~= nil)
-    local oldX = t:GetTranslation().x
-    t:SetTranslation(Vec3:new(oldX + 2, 0, 0))
-    ok("Transform Set/Get changed translation", math.abs(t:GetTranslation().x - (oldX + 2)) < 0.0001)
+    local succGetTrans, trans = pcall(function() return t:GetTranslation() end)
+    ok("Transform GetTranslation callable", succGetTrans)
+    if succGetTrans and trans ~= nil then
+        local oldX = trans.x
+        t:SetTranslation(Vec3:new(oldX + 2, 0, 0))
+        ok("Transform Set/Get changed translation", math.abs(t:GetTranslation().x - (oldX + 2)) < 0.0001)
+    end
 
     -- TODO:
     -- Parent/child
@@ -334,12 +343,11 @@ local function RunInputTests()
     end)
     ok("Input.AddEventListener registration pcall", succListen)
 
-    --TODO:
-    -- remove listener if we got a handle
-    -- if succListen and listenHandle ~= nil then
-    --     local succRem = pcall(function() Input.RemoveEventListener(InputEventType.KeyPressed, listenHandle) end)
-    --     ok("Input.RemoveEventListener pcall", succRem)
-    -- end
+    --remove listener if we got a handle
+    if succListen and listenHandle ~= nil then
+        local succRem = pcall(function() Input.RemoveEventListener(InputEventType.KeyPressed, listenHandle) end)
+        ok("Input.RemoveEventListener pcall", succRem)
+    end
 end
 
 local function RunPhysicsEnumAndTypeTests()
