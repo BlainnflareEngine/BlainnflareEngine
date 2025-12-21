@@ -315,3 +315,17 @@ BodyGetter PhysicsSubsystem::GetBodyGetter(Entity entity)
     return BodyGetter(m_joltPhysicsSystem->GetBodyLockInterface(), m_joltPhysicsSystem->GetBodyInterface(),
                       component.bodyId);
 }
+
+eastl::shared_ptr<BodyUpdater> Blainn::PhysicsSubsystem::GetBodyUpdaterPtr(Entity entity)
+{
+    PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
+    return eastl::make_shared<BodyUpdater>(m_joltPhysicsSystem->GetBodyLockInterface(),
+                                           m_joltPhysicsSystem->GetBodyInterface(), component.bodyId);
+}
+
+eastl::shared_ptr<BodyGetter> Blainn::PhysicsSubsystem::GetBodyGetterPtr(Entity entity)
+{
+    PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
+    return eastl::make_shared<BodyGetter>(m_joltPhysicsSystem->GetBodyLockInterface(),
+                                          m_joltPhysicsSystem->GetBodyInterface(), component.bodyId);
+}

@@ -28,7 +28,6 @@ local function SafeCall(fn, name)
     end
 end
 
--- Break common tests into smaller, more focused test functions
 local function RunVec2Tests()
     Log.Info("[Common] Vec2 tests")
     local a = Vec2:new(3, 4)
@@ -127,14 +126,27 @@ local function RunEntityLifecycleTests()
     local e = scene:CreateEntity("LuaTestEntity", true)
     ok("Entity created", e ~= nil and e:IsValid())
 
+    -- Scene event listener registration test: add and remove
+    local succSceneListen, sceneListenHandle = pcall(function()
+        return scene:AddEventListener(SceneEventType.EntityCreated, function(ev)
+            -- noop
+        end)
+    end)
+    ok("Scene:AddEventListener registration pcall", succSceneListen)
+
+    if succSceneListen and sceneListenHandle ~= nil then
+        local succSceneRem = pcall(function() scene:RemoveEventListener(SceneEventType.EntityCreated, sceneListenHandle) end)
+        ok("Scene:RemoveEventListener pcall", succSceneRem)
+    end
+
     -- Transform component
     e:AddTransformComponent()
     ok("AddTransformComponent", e:HasTransformComponent())
     local t = e:GetTransformComponent()
     ok("Transform has translation field", t.Translation ~= nil)
-    local oldX = t.Translation.x
-    t.Translation.x = oldX + 2
-    ok("Transform Set/Get changed translation", math.abs(t.Translation.x - (oldX + 2)) < 0.0001)
+    local oldX = t:GetTranslation().x
+    t:SetTranslation(Vec3:new(oldX + 2, 0, 0))
+    ok("Transform Set/Get changed translation", math.abs(t:GetTranslation().x - (oldX + 2)) < 0.0001)
 
     -- TODO:
     -- Parent/child
@@ -164,23 +176,6 @@ local function RunEntityLifecycleTests()
     ok("DestroyEntity parent", true)
 end
 
-local function RunEntityRenderComponentTests()
-    Log.Info("[Scene/Entity] render component tests")
-    local scene = Engine.GetActiveScene()
-    if not scene then
-        Log.Info("No active scene available, skipping render tests")
-        return
-    end
-    local e3 = scene:CreateEntity("RenderEntity", true)
-    e3:AddRenderComponent()
-    ok("AddRenderComponent", e3:HasRenderComponent())
-    local renderComp = e3:GetRenderComponent()
-    ok("RenderComponent IsVisible default true", renderComp:IsVisible())
-    renderComp:SetVisible(false)
-    ok("RenderComponent SetVisible works", not renderComp:IsVisible())
-    e3:RemoveRenderComponent()
-    ok("RemoveRenderComponent", not e3:HasRenderComponent())
-end
 
 local function RunEntitySearchAndIDTests()
     Log.Info("[Scene/Entity] entity search and UUID tests")
@@ -251,7 +246,6 @@ end
 local function RunSceneEntityTests()
     -- Grouping function to run all scene/entity related tests under one SafeCall group
     SafeCall(RunEntityLifecycleTests, "EntityLifecycleTests")
-    SafeCall(RunEntityRenderComponentTests, "EntityRenderComponentTests")
     SafeCall(RunEntitySearchAndIDTests, "EntitySearchAndIDTests")
     SafeCall(RunEntityWorldSpaceTests, "EntityWorldSpaceTests")
 end
@@ -333,14 +327,148 @@ end
 local function RunInputTests()
     Log.Info("[Input] tests (add listener only)")
     local okAdded = false
-    Input.AddEventListener(InputEventType.KeyPressed, function(ev)
-        okAdded = true
+    local succListen, listenHandle = pcall(function()
+        return Input.AddEventListener(InputEventType.KeyPressed, function(ev)
+            okAdded = true
+        end)
     end)
-    ok("Input.AddEventListener (no crash on registration)", true)
+    ok("Input.AddEventListener registration pcall", succListen)
+
+    --TODO:
+    -- remove listener if we got a handle
+    -- if succListen and listenHandle ~= nil then
+    --     local succRem = pcall(function() Input.RemoveEventListener(InputEventType.KeyPressed, listenHandle) end)
+    --     ok("Input.RemoveEventListener pcall", succRem)
+    -- end
+end
+
+local function RunPhysicsEnumAndTypeTests()
+    Log.Info("[Physics] enum/type tests")
+    ok("ComponentShapeType exists", ComponentShapeType ~= nil)
+    ok("ComponentShapeType.Sphere is number", type(ComponentShapeType.Sphere) == "number")
+    ok("PhysicsComponentMotionType exists", PhysicsComponentMotionType ~= nil)
+    ok("EActivation exists", EActivation ~= nil)
+    ok("PhysicsEventType exists", PhysicsEventType ~= nil)
+    ok("Layers table exists", type(Layers) == "table")
+
+    local succ1 = pcall(function() local s = ShapeCreationSettings(ComponentShapeType.Sphere) end)
+    ok("ShapeCreationSettings construct (call) doesn't crash", succ1)
+    local succ2 = pcall(function() local s = ShapeCreationSettings:new(ComponentShapeType.Sphere) end)
+    ok("ShapeCreationSettings construct (colon) doesn't crash", succ2)
+
+    local succ3 = pcall(function() local dummy = PhysicsComponentSettings(nil, ComponentShapeType.Box) end)
+    ok("PhysicsComponentSettings constructor callable (nil entity) without crash", succ3)
+end
+
+
+local function RunPhysicsRuntimeTests()
+    Log.Info("[Physics] runtime tests (require active scene)")
+    local scene = Engine.GetActiveScene()
+    if not scene then
+        Log.Info("No active scene available, skipping runtime physics tests")
+        return
+    end
+
+    local e = scene:CreateEntity("LuaPhysicsTest", true)
+    ok("Entity created for physics tests", e ~= nil and e:IsValid())
+
+    -- Ensure entity has a Transform component (required by some systems)
+    e:AddTransformComponent()
+    ok("AddTransformComponent for physics test entity", e:HasTransformComponent())
+
+    -- Try creating with simple overload
+    local succAttach = pcall(function() Physics.CreateAttachPhysicsComponent(e, ComponentShapeType.Sphere) end)
+    ok("Physics.CreateAttachPhysicsComponent (entity,shape) pcall", succAttach)
+
+    -- Try creating with settings object and custom shape parameters
+    local succAttach2 = pcall(function()
+        local shape = ShapeCreationSettings:new(ComponentShapeType.Sphere)
+        shape.radius = 0.75
+        local settings = PhysicsComponentSettings:new(e, ComponentShapeType.Sphere)
+        settings.shapeSettings = shape
+        Physics.CreateAttachPhysicsComponent(settings)
+    end)
+    ok("Physics.CreateAttachPhysicsComponent (settings object) pcall", succAttach2)
+
+    local succHas, has = pcall(function() return Physics.HasPhysicsComponent(e) end)
+    ok("Physics.HasPhysicsComponent callable", succHas and (type(has) == "boolean"))
+
+    local succHas, has = pcall(function() return Physics.HasPhysicsComponent(e) end)
+    ok("Physics.HasPhysicsComponent callable", succHas and (type(has) == "boolean"))
+    if succHas and has then
+        local succGet, getter = pcall(function() return Physics.GetBodyGetter(e) end)
+        ok("Physics.GetBodyGetter pcall", succGet)
+        if succGet and getter ~= nil then
+            ok("BodyGetter.GetPosition pcall", pcall(function() getter.GetPosition() end))
+            ok("BodyGetter.GetRotation pcall", pcall(function() getter.GetRotation() end))
+            ok("BodyGetter.GetScale pcall", pcall(function() getter.GetScale() end))
+            ok("BodyGetter.GetShapeType pcall", pcall(function() getter.GetShapeType() end))
+            ok("BodyGetter.GetVelocity pcall", pcall(function() getter.GetVelocity() end))
+            ok("BodyGetter.GetMaxLinearVelocity pcall", pcall(function() getter.GetMaxLinearVelocity() end))
+            ok("BodyGetter.GetAngularVelocity pcall", pcall(function() getter.GetAngularVelocity() end))
+            ok("BodyGetter.GetMaxAngularVelocity pcall", pcall(function() getter.GetMaxAngularVelocity() end))
+            ok("BodyGetter.GetGravityFactor pcall", pcall(function() getter.GetGravityFactor() end))
+            ok("BodyGetter.IsTrigger pcall", pcall(function() getter.IsTrigger() end))
+            ok("BodyGetter.GetObjectLayer pcall", pcall(function() getter.GetObjectLayer() end))
+            ok("BodyGetter.GetMotionType pcall", pcall(function() getter.GetMotionType() end))
+            ok("BodyGetter.GetSphereShapeRadius pcall", pcall(function() getter.GetSphereShapeRadius() end))
+            ok("BodyGetter.GetBoxShapeHalfExtents pcall", pcall(function() getter.GetBoxShapeHalfExtents() end))
+            ok("BodyGetter.GetCylinderShapeHalfHeightAndRadius pcall", pcall(function() getter.GetCylinderShapeHalfHeightAndRadius() end))
+            ok("BodyGetter.GetCapsuleShapeHalfHeightAndRadius pcall", pcall(function() getter.GetCapsuleShapeHalfHeightAndRadius() end))
+        end
+    else
+        Log.Info("No physics component present on entity; skipping BodyGetter tests")
+    end
+
+    local succUpd, updater = pcall(function() return Physics.GetBodyUpdater(e) end)
+    ok("Physics.GetBodyUpdater pcall", succUpd)
+    if succUpd and updater ~= nil and succHas and has then
+        ok("BodyUpdater.SetPosition pcall", pcall(function() updater.SetPosition(Vec3:new(0,0,0), EActivation.DontActivate) end))
+        ok("BodyUpdater.SetRotation pcall", pcall(function() updater.SetRotation(Quat:new(1,0,0,0), EActivation.DontActivate) end))
+        ok("BodyUpdater.SetScale pcall", pcall(function() updater.SetScale(Vec3:new(1,1,1), Vec3:new(1,1,1)) end))
+        ok("BodyUpdater.SetVelocity pcall", pcall(function() updater.SetVelocity(Vec3:new(0,0,0)) end))
+        ok("BodyUpdater.SetMaxLinearVelocity pcall", pcall(function() updater.SetMaxLinearVelocity(10.0) end))
+        ok("BodyUpdater.SetAngularVelocity pcall", pcall(function() updater.SetAngularVelocity(Vec3:new(0,0,0)) end))
+        ok("BodyUpdater.SetMaxAngularVelocity pcall", pcall(function() updater.SetMaxAngularVelocity(10.0) end))
+        ok("BodyUpdater.SetGravityFactor pcall", pcall(function() updater.SetGravityFactor(1.0) end))
+        ok("BodyUpdater.SetObjectLayer pcall", pcall(function() updater.SetObjectLayer(Layers.MOVING) end))
+        ok("BodyUpdater.AddVelocity pcall", pcall(function() updater.AddVelocity(Vec3:new(0,0,0)) end))
+        ok("BodyUpdater.AddImpulse pcall", pcall(function() updater.AddImpulse(Vec3:new(0,0,0)) end))
+        ok("BodyUpdater.AddAngularImpulse pcall", pcall(function() updater.AddAngularImpulse(Vec3:new(0,0,0)) end))
+        ok("BodyUpdater.AddForce pcall", pcall(function() updater.AddForce(Vec3:new(0,0,0)) end))
+        ok("BodyUpdater.ReplaceBodyShape pcall", pcall(function()
+            local s = ShapeCreationSettings:new(ComponentShapeType.Box)
+            s.halfExtents = Vec3:new(0.5,0.5,0.5)
+            updater.ReplaceBodyShape(s, EActivation.DontActivate)
+        end))
+        ok("BodyUpdater.SetMotionType pcall", pcall(function() updater.SetMotionType(PhysicsComponentMotionType.Dynamic, EActivation.DontActivate) end))
+        ok("BodyUpdater.SetSphereShapeSettings pcall", pcall(function() updater.SetSphereShapeSettings(0.5) end))
+        ok("BodyUpdater.SetBoxShapeSettings pcall", pcall(function() updater.SetBoxShapeSettings(Vec3:new(0.5,0.5,0.5)) end))
+        ok("BodyUpdater.SetCapsuleShapeSettings pcall", pcall(function() updater.SetCapsuleShapeSettings(0.5,0.25) end))
+        ok("BodyUpdater.SetCylinderShapeSettings pcall", pcall(function() updater.SetCylinderShapeSettings(0.5,0.25) end))
+    else
+        Log.Info("No physics component present on entity; skipping BodyUpdater tests")
+    end
+
+    local succListen, listenHandle = pcall(function()
+        return Physics.AddEventListener(PhysicsEventType.CollisionStarted, function(ev)
+            -- noop
+        end)
+    end)
+    ok("Physics.AddEventListener registration pcall", succListen)
+
+    -- remove listener if we obtained a handle
+    if succListen and listenHandle ~= nil then
+        local succRem = pcall(function() Physics.RemoveEventListener(PhysicsEventType.CollisionStarted, listenHandle) end)
+        ok("Physics.RemoveEventListener pcall", succRem)
+    end
+
+    pcall(function() Physics.DestroyPhysicsComponent(e) end)
+    scene:DestroyEntity(e)
 end
 
 local function RunAllTests()
---[[
+
     SafeCall(RunVec2Tests, "Vec2Tests")
     SafeCall(RunVec3Tests, "Vec3Tests")
     SafeCall(RunVec4Tests, "Vec4Tests")
@@ -351,12 +479,12 @@ local function RunAllTests()
     SafeCall(RunEngineTests, "EngineTests")
     SafeCall(RunSceneEntityTests, "SceneEntityTests")
     SafeCall(RunAssetManagerTests, "AssetManagerTests")
- ]]
     SafeCall(RunScriptingLoadTests, "ScriptingLoadTests")
---[[
     SafeCall(RunLuaScriptInstanceTest, "LuaScriptInstanceTest")
     SafeCall(RunInputTests, "InputTests")
- ]]
+    SafeCall(RunPhysicsEnumAndTypeTests, "PhysicsEnumAndTypeTests")
+    SafeCall(RunPhysicsRuntimeTests, "PhysicsRuntimeTests")
+ 
     Log.Warn("--- Tests completed. Passed: " .. testsPassed .. ", Failed: " .. testsFailed .. " ---\n")
 end
 

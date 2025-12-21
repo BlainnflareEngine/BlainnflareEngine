@@ -41,18 +41,18 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
 {
 #ifdef BLAINN_TEST_LUA_SCRIPTS
 
-    // static bool create;
-    // if (!create)
-    //{
-    //     m_scriptTestEntity = Engine::GetActiveScene()->CreateEntity("LuaScriptTestEntity");
-    //     CreateAttachScriptingComponent(m_scriptTestEntity);
-    //     //m_scriptTestUuid1 =
-    //     //    ScriptingSubsystem::LoadScript(m_scriptTestEntity, "scripts/test1.lua", true).value_or(uuid());
-    //     m_scriptTestUuid2 =
-    //         ScriptingSubsystem::LoadScript(m_scriptTestEntity, "./scripts/test2.lua", true).value_or(uuid());
+    static bool create;
+    if (!create)
+    {
+        m_scriptTestEntity = Engine::GetActiveScene()->CreateEntity("LuaScriptTestEntity");
+        CreateAttachScriptingComponent(m_scriptTestEntity);
+        m_scriptTestUuid1 =
+            ScriptingSubsystem::LoadScript(m_scriptTestEntity, "scripts/test1.lua", true).value_or(uuid());
+        // m_scriptTestUuid2 =
+        //     ScriptingSubsystem::LoadScript(m_scriptTestEntity, "./scripts/test2.lua", true).value_or(uuid());
 
-    //    create = true;
-    //}
+        create = true;
+    }
 #endif
 
     // TODO: can be replaced with profiler
@@ -198,6 +198,7 @@ void Blainn::ScriptingSubsystem::RegisterBlainnTypes()
     RegisterSceneTypes(m_lua);
     RegisterAssetManagerTypes(m_lua);
     RegisterEngineTypes(m_lua);
+    RegisterPhysicsTypes(m_lua);
     RegisterScriptingTypes(m_lua);
 #endif
 }
