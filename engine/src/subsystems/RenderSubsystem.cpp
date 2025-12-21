@@ -659,7 +659,6 @@ void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
             m_perMaterialSBData.DiffuseAlbedo = materials[matIndex]->GetDefaultAldedo();
             //m_perMaterialSBData.FresnelR0 = mat->FresnelR0;
             m_perMaterialSBData.Roughness = materials[matIndex]->GetDefaultRougnessScale();
-            //XMStoreFloat4x4(&m_perMaterialSBData.MatTransform, XMMatrixTranspose(materials[matIndex]->MatTransform));
             m_perMaterialSBData.DiffuseMapIndex = materials[matIndex]->HasTexture(TextureType::ALBEDO)
                     ? materials[matIndex]->GetTextureHandle(TextureType::ALBEDO).GetIndex()
                     : (uint32_t) - 1;

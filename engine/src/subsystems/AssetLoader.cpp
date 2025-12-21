@@ -35,7 +35,7 @@ void AssetLoader::Init()
 {
     BF_INFO("AssetLoader Init");
 
-    InitTextureOffsetsTable();
+    ResetTextureOffsetsTable();
 }
 
 
@@ -247,7 +247,7 @@ void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::Co
     finish.wait();
 }
 
-void Blainn::AssetLoader::CreateTextureDescriptor(ID3D12Resource* textureRes, TextureType type)
+void Blainn::AssetLoader::CreateTextureDescriptor(ID3D12Resource *texD3DResource, TextureType type)
 {
     auto& device = Device::GetInstance();
 
@@ -258,12 +258,10 @@ void Blainn::AssetLoader::CreateTextureDescriptor(ID3D12Resource* textureRes, Te
     auto srvCpuStart = device.GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
     auto cbvSrvUavDescriptorSize = device.GetDescriptorHandleIncrementSize();
 
-    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    ZeroMemory(&srvDesc, sizeof(srvDesc));
-
     CD3DX12_CPU_DESCRIPTOR_HANDLE localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, texturePlacementOffset, cbvSrvUavDescriptorSize);
 
-    auto texD3DResource = textureRes;
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    ZeroMemory(&srvDesc, sizeof(srvDesc));
     srvDesc.Format = texD3DResource->GetDesc().Format;
     srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -276,7 +274,7 @@ void Blainn::AssetLoader::CreateTextureDescriptor(ID3D12Resource* textureRes, Te
     m_texturesOffsetsTable.at(type)++;
 }
 
-void Blainn::AssetLoader::InitTextureOffsetsTable()
+void Blainn::AssetLoader::ResetTextureOffsetsTable()
 {
     for (auto &textureOffset : m_texturesOffsetsTable)
     {

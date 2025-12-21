@@ -66,6 +66,7 @@ public:
     static eastl::shared_ptr<MaterialHandle> GetDefaultMaterialHandle();
     Path GetMaterialPath(const MaterialHandle &handle);
 
+    void ResetTextures();
     static bool SceneExists(const Path &relativePath);
     static void OpenScene(const Path &relativePath);
     static void CreateScene(const Path &relativePath);
@@ -77,7 +78,6 @@ private:
     friend struct MaterialHandle;
     friend struct TextureHandle;
     friend struct Handle;
-
 
     void AddTextureWhenLoaded(const Path &path, const unsigned int index, const TextureType type);
     void AddMaterialWhenLoaded(const Path &relativePath, const unsigned int index);

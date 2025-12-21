@@ -32,7 +32,10 @@ GBuffer main(PSInput input)
     uint metallicTexIndex = matData.MetallicMapIndex;
     uint roughnessTexIndex = matData.RoughnessMapIndex;
     
-    diffuseAlbedo *= gDiffuseMap[diffuseTexIndex].Sample(gSamplerAnisotropicWrap, input.iTexC);
+    if (diffuseTexIndex != INVALID_INDEX)
+    {   
+        diffuseAlbedo *= gDiffuseMap[diffuseTexIndex].Sample(gSamplerAnisotropicWrap, input.iTexC);
+    }
     
     output.DiffuseAlbedo = diffuseAlbedo;
     output.AmbientOcclusion = float4(input.iPosW, 0.0f); // temporary

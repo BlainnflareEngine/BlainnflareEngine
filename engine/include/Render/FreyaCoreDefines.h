@@ -44,7 +44,7 @@
  * Textures
  */
 
-#define TextureMapsMaxCount 512
+//#define TextureMapsMaxCount 512
 
 /*
  * Shader resource binding

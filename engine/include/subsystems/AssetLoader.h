@@ -56,7 +56,7 @@ namespace Blainn
                             const Mat4 &parentMatrix, Model &model);
 
         void CreateTextureDescriptor(ID3D12Resource* textureRes, TextureType type);
-        void InitTextureOffsetsTable();
+        void ResetTextureOffsetsTable();
 
         static Vec3 GetPosition(const aiMesh &mesh, const unsigned int meshIndex);
         static Vec3 GetNormal(const aiMesh &mesh, const unsigned int meshIndex);

@@ -11,6 +11,7 @@ namespace Blainn
 
     void MeshComponent::UpdateMeshCB(ObjectConstants& objectCBData)
     {
+        // Here we should iterate over all model meshes updating corresponding data
         PerObjectCBData = objectCBData;
         PerObjectCBData.MaterialIndex = MaterialHandle->GetIndex();
         ObjectCB->CopyData(0, PerObjectCBData);

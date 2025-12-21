@@ -19,6 +19,10 @@
 #define G_DEPTH 4
 #endif
 
+#ifndef INVALID_INDEX 
+    #define INVALID_INDEX 4294967295
+#endif
+
 #include "LightUtil.hlsl"
 
 struct CascadesShadows

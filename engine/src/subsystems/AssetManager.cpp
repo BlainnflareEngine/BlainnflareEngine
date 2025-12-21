@@ -37,8 +37,9 @@ void AssetManager::Init()
     m_textures.emplace(m_loader->LoadTexture("Textures\\Default.dds", TextureType::ALBEDO));
 
     // TODO: create default material
-    Material material = Material("Materials\\Default.mat", "Default");
-    m_materials.emplace(eastl::make_shared<Material>(material));
+    //Material material = Material("Materials\\Default.mat", "Default");
+    //m_materials.emplace(eastl::make_shared<Material>(material));
+    m_materials.emplace(m_loader->LoadMaterial("Materials\\Default.mat"));
 
    /* auto &device = Device::GetInstance();
     auto commandQueue = device.GetCommandQueue();
@@ -297,6 +298,11 @@ bool AssetManager::HasMaterial(const Path &relativePath)
     return m_materialPaths.contains(ToEASTLString(relativePath.string()));
 }
 
+
+void AssetManager::ResetTextures()
+{
+    m_loader->ResetTextureOffsetsTable();
+}
 
 void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int index, const TextureType type)
 {

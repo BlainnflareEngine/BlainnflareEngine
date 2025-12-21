@@ -68,7 +68,7 @@ void Engine::InitRenderSubsystem(HWND windowHandle)
 
 void Engine::Destroy()
 {
-     GetActiveScene().reset();
+    //ClearActiveScene();
 
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
@@ -198,6 +198,8 @@ void Engine::EscapePlayMode()
         for (auto [id, script] : scriptComp.scripts)
             ScriptingSubsystem::UnloadScript(id);
     }
+
+    AssetManager::GetInstance().ResetTextures();
 }
 
 
