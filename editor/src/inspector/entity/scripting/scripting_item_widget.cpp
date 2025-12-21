@@ -59,13 +59,13 @@ QString scripting_item_widget::GetScriptPath() const
 
 void scripting_item_widget::OnTriggerStartChanged(bool value)
 {
-    emit ShouldTriggerStartChanged(value);
+    emit ShouldTriggerStartChanged(m_scriptPath->GetPath(), value);
 }
 
 
-void scripting_item_widget::OnScriptPathChanged(const QString &path)
+void scripting_item_widget::OnScriptPathChanged(const QString &oldPath, const QString &newPath)
 {
-    emit ScriptPathChanged(path);
+    emit ScriptPathChanged(oldPath, newPath);
 }
 
 

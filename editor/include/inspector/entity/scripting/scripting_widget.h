@@ -29,7 +29,8 @@ public:
 
 protected slots:
     void OnAddScript();
-    void OnScriptItemChanged();
+    void OnScriptItemPathChanged(const QString& oldPath, const QString &newPath);
+    void OnScriptItemShouldTriggerStartChanged(const QString &path, const bool value);
     void OnScriptItemRemoved(scripting_item_widget *widget);
 
 private:

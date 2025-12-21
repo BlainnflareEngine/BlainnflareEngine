@@ -101,18 +101,6 @@ void path_input_field::SetPath(const QString &relativePath)
     if (m_input->text() == relativePath) return;
     QString oldPath = m_input->text();
 
-    if (relativePath.isEmpty())
-    {
-        if (m_input->text() != relativePath)
-        {
-            m_input->setText(relativePath);
-            emit PathChanged(oldPath, relativePath);
-        }
-
-        return;
-    }
-
-
     if (m_input->text() != relativePath)
     {
         m_input->setText(relativePath);
@@ -120,8 +108,8 @@ void path_input_field::SetPath(const QString &relativePath)
         return;
     }
 
-    m_input->setText("");
-    emit PathChanged(oldPath, "");
+    /*m_input->setText("");
+    emit PathChanged(oldPath, "");*/
 }
 
 
