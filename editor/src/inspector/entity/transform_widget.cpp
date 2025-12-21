@@ -42,7 +42,7 @@ void transform_widget::OnPositionChanged()
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
     transform.SetTranslation(m_position->GetValue());
-    scene->ConvertToWorldSpace(m_entity);
+    //scene->ConvertToWorldSpace(m_entity);
 }
 
 
@@ -107,7 +107,7 @@ void transform_widget::LoadTransformValues()
     const auto &scene = Blainn::Engine::GetActiveScene();
     if (!scene) return;
 
-    scene->ConvertToLocalSpace(m_entity);
+    //scene->ConvertToLocalSpace(m_entity);
 
     BlockSignals(true);
     if (!m_position->HasFocus()) m_position->SetValue(transform.GetTranslation());
@@ -117,7 +117,7 @@ void transform_widget::LoadTransformValues()
     if (!m_scale->HasFocus()) m_scale->SetValue(transform.GetScale());
     BlockSignals(false);
 
-    scene->ConvertToWorldSpace(m_entity);
+    //scene->ConvertToWorldSpace(m_entity);
 }
 
 

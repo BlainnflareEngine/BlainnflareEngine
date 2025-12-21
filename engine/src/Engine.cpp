@@ -67,6 +67,8 @@ void Engine::InitRenderSubsystem(HWND windowHandle)
 
 void Engine::Destroy()
 {
+    s_activeScene = nullptr;
+
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
 

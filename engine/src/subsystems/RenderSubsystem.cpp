@@ -615,7 +615,8 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
         {
             ObjectConstants objConstants;
 
-            auto world = entityTransform.GetTransform();
+            const auto& _entity = Engine::GetActiveScene()->GetEntityWithUUID(entityID.ID);
+            auto world = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(_entity);//entityTransform.GetTransform();
             auto transposeWorld = world.Transpose();
             auto invTransposeWorld = transposeWorld.Invert();
 
