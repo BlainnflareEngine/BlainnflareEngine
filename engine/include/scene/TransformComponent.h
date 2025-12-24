@@ -23,7 +23,7 @@ private:
 
     // Euler is stored as Yaw Pitch Roll
     Vec3 EulerRotation{0.f, 0.f, 0.f};
-    Quat Rotation{1.f, 0.f, 0.f, 0.f};
+    Quat Rotation{0.f, 0.f, 0.f, 1.f};
 
 
     void MarkFramesDirty()

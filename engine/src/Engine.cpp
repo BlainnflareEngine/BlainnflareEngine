@@ -68,7 +68,7 @@ void Engine::InitRenderSubsystem(HWND windowHandle)
 
 void Engine::Destroy()
 {
-    //ClearActiveScene();
+    s_activeScene = nullptr;
 
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
@@ -151,8 +151,6 @@ void Engine::Update(float deltaTime)
 
     s_activeScene->Update();
 
-    ScriptingSubsystem::Update(*s_activeScene, deltaTime);
-
     RenderSubsystem::GetInstance().Render(deltaTime);
 
     // Marks end of frame for tracy profiler
@@ -195,7 +193,7 @@ void Engine::EscapePlayMode()
 
     for (auto [entity, id, scriptComp] : s_activeScene->GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
     {
-        for (auto [id, script] : scriptComp.scripts)
+        for (auto &[id, _] : scriptComp.scripts)
             ScriptingSubsystem::UnloadScript(id);
     }
 

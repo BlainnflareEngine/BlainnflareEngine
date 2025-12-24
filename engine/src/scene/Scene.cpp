@@ -515,13 +515,12 @@ void Scene::ConvertToWorldSpace(Entity entity)
 
 Mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
 {
-    Mat4 transform = Mat4::Identity;
-
     Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
 
-    if (parent) return GetWorldSpaceTransformMatrix(parent);
+    if (parent)
+        return  entity.Transform().GetTransform() * GetWorldSpaceTransformMatrix(parent);
 
-    return entity.Transform().GetTransform() * transform;
+    return entity.Transform().GetTransform();
 }
 
 void Blainn::Scene::SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTransform)

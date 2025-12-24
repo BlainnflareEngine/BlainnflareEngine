@@ -46,8 +46,10 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
     // TransformComponent
     sol::usertype<TransformComponent> TransformComponentType =
         luaState.new_usertype<TransformComponent>("TransformComponent", sol::constructors<TransformComponent()>());
-    TransformComponentType["Translation"] = &TransformComponent::Translation;
-    TransformComponentType["Scale"] = &TransformComponent::Scale;
+    TransformComponentType.set_function("GetTranslation", &TransformComponent::GetTranslation);
+    TransformComponentType.set_function("SetTranslation", &TransformComponent::SetTranslation);
+    TransformComponentType.set_function("GetScale", &TransformComponent::GetScale);
+    TransformComponentType.set_function("SetScale", &TransformComponent::SetScale);
     TransformComponentType.set_function("GetTransform", &TransformComponent::GetTransform);
     TransformComponentType.set_function("SetTransform", &TransformComponent::SetTransform);
     TransformComponentType.set_function("GetRotationEuler", &TransformComponent::GetRotationEuler);
