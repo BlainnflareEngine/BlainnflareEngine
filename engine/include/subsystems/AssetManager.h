@@ -16,7 +16,7 @@ struct MeshHandle;
 struct ImportMeshData;
 
 #ifndef MAX_TEXTURES
-    #define MAX_TEXTURES 128
+    #define MAX_TEXTURES 512 // 128 for diff, normal, metallic and roughness (skip AO for now)
 #endif
 #ifndef MAX_MATERIALS
     #define MAX_MATERIALS 64

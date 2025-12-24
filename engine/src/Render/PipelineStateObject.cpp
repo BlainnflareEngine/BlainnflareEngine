@@ -1,6 +1,6 @@
 #include "Render/PipelineStateObject.h"
 
-namespace Blainnflare
+namespace Blainn
 {
 
 

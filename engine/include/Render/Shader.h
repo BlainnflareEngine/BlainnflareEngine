@@ -2,7 +2,7 @@
 
 #include "Render/DXHelpers.h"
 
-namespace Blainnflare
+namespace Blainn
 {
     struct BlainnShaderDesc
     {
@@ -12,7 +12,7 @@ namespace Blainnflare
     class Shader
     {
     public:
-        enum class EShaderType : UINT
+        enum EShaderType : UINT
         {
             CascadedShadowsVS = 0u,
             CascadedShadowsGS,
@@ -26,7 +26,10 @@ namespace Blainnflare
             DeferredPointPS,
             DeferredSpotPS,
 
-            NumShaders = 9U
+            SkyBoxVS,
+            SkyBoxPS,
+
+            NumShaders = 11U
         };
 
     public:
