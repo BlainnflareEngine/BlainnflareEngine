@@ -652,7 +652,8 @@ void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
 
     for (int matIndex = 0; matIndex < materials.size(); ++matIndex)
     {
-        if (materials[matIndex] && materials[matIndex]->IsFramesDirty())
+        m_perMaterialSBData = MaterialData();
+        if (materials[matIndex]/* && materials[matIndex]->IsFramesDirty()*/)
         {
             XMStoreFloat4x4(&m_perMaterialSBData.MatTransform, XMMatrixTranspose(materials[matIndex]->GetMaterialTransform()));
 
@@ -661,22 +662,23 @@ void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
             m_perMaterialSBData.Roughness = materials[matIndex]->GetDefaultRougnessScale();
             m_perMaterialSBData.DiffuseMapIndex = materials[matIndex]->HasTexture(TextureType::ALBEDO)
                     ? materials[matIndex]->GetTextureHandle(TextureType::ALBEDO).GetIndex()
-                    : (uint32_t) - 1;
+                    : static_cast<uint32_t>(-1);
             m_perMaterialSBData.NormalMapIndex = materials[matIndex]->HasTexture(TextureType::NORMAL)
                     ? materials[matIndex]->GetTextureHandle(TextureType::NORMAL).GetIndex()
-                    : (uint32_t)-1;
+                    : static_cast<uint32_t>(-1);
             m_perMaterialSBData.RoughnessMapIndex = materials[matIndex]->HasTexture(TextureType::ROUGHNESS)
                     ? materials[matIndex]->GetTextureHandle(TextureType::ROUGHNESS).GetIndex()
-                    : (uint32_t)-1;
+                    : static_cast<uint32_t>(-1);
             m_perMaterialSBData.MetallicMapIndex = materials[matIndex]->HasTexture(TextureType::METALLIC)
                     ? materials[matIndex]->GetTextureHandle(TextureType::METALLIC).GetIndex()
-                    : (uint32_t)-1;
+                    : static_cast<uint32_t>(-1);
             //m_perMaterialSBData.AOMapIndex = materials[matIndex]->GetTextureHandle(TextureType::AO).GetIndex();
 
-            currMaterialDataSB->CopyData(matIndex, m_perMaterialSBData);
+            //currMaterialDataSB->CopyData(matIndex, m_perMaterialSBData);
 
             materials[matIndex]->FrameResetDirtyFlags();
         }
+        currMaterialDataSB->CopyData(matIndex, m_perMaterialSBData);
     }
 }
 

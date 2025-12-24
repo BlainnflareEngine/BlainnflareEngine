@@ -35,10 +35,12 @@ void AssetManager::Init()
 #pragma region LoadDefaultResource
     // TODO: create default texture
     m_textures.emplace(m_loader->LoadTexture("Textures\\Default.dds", TextureType::ALBEDO));
+    const auto& defaultTextureHandle = GetTexture("Textures\\Default.dds");
 
     // TODO: create default material
     Material material = Material("Materials\\Default.mat", "");
-    m_materials.emplace(eastl::make_shared<Material>(material));
+    material.SetTexture(defaultTextureHandle,  TextureType::ALBEDO);
+    m_materials.emplace(eastl::make_shared<Material>(std::move(material)));
     //m_materials.emplace(m_loader->LoadMaterial("Materials\\Default.mat"));
 
    /* auto &device = Device::GetInstance();
@@ -156,7 +158,8 @@ eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &relativeP
             "i will place some new texture to your index later. Index ={0}.",
             index);
 
-    vgjs::schedule([=]() { AddTextureWhenLoaded(relativePath, index, type); });
+    vgjs::schedule([&, relativePath]() { AddTextureWhenLoaded(relativePath, index, type); });
+    //AddTextureWhenLoaded(relativePath, index, type);
     return eastl::make_shared<TextureHandle>(index);
 }
 
@@ -382,12 +385,14 @@ void AssetManager::DecreaseTextureRefCount(const unsigned int index)
         {
             --value.refCount;
 
+            /*
             if (value.refCount == 1) // 1 because we have shared ptr in free list vector
             {
                 m_textures.erase(index);
                 m_texturePaths.erase(key);
                 return;
             }
+        */
         }
     }
 }
@@ -401,12 +406,14 @@ void AssetManager::DecreaseMaterialRefCount(const unsigned int index)
         {
             --value.refCount;
 
+            /*
             if (value.refCount == 1) // 1 because we have shared ptr in free list vector
             {
                 m_materials.erase(index);
                 m_materialPaths.erase(key);
                 return;
             }
+        */
         }
     }
 }
@@ -420,12 +427,14 @@ void AssetManager::DecreaseMeshRefCount(const unsigned int index)
         {
             --value.refCount;
 
+            /*
             if (value.refCount == 1) // 1 because we have shared ptr in free list vector
             {
                 m_meshes.erase(index);
                 m_meshPaths.erase(key);
                 return;
             }
+        */
         }
     }
 }
