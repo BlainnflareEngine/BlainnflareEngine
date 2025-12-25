@@ -245,7 +245,7 @@ void Blainn::AssetLoader::CreateTextureDescriptor(ID3D12Resource *texD3DResource
     auto& device = Device::GetInstance();
 
     UINT& freeTextureOffsetOfType = m_texturesOffsetsTable[type];
-    UINT texturePlacementOffset = /*m_texturesSrvHeapStartIndex*/ 7u + (static_cast<UINT>(type) - 1u) * MAX_TEXTURES + freeTextureOffsetOfType;
+    UINT texturePlacementOffset = /*m_texturesSrvHeapStartIndex*/ 7u + (static_cast<UINT>(type) - 1u) * MAX_TEX_OF_TYPE + freeTextureOffsetOfType;
     //texture.SetTextureDescriptorOffset(texturePlacementOffset);
 
     auto srvCpuStart = device.GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();

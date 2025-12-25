@@ -41,12 +41,7 @@ void AssetManager::Init()
     Material material = Material("Materials\\Default.mat", "");
     material.SetTexture(defaultTextureHandle,  TextureType::ALBEDO);
     m_materials.emplace(eastl::make_shared<Material>(std::move(material)));
-    //m_materials.emplace(m_loader->LoadMaterial("Materials\\Default.mat"));
-
-   /* auto &device = Device::GetInstance();
-    auto commandQueue = device.GetCommandQueue();
-    auto cmdList = commandQueue->GetDefaultCommandList();*/
-
+    
     auto defaultMeshData = PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f);
     Model model;
     model.SetMeshes({defaultMeshData});
@@ -406,14 +401,12 @@ void AssetManager::DecreaseMaterialRefCount(const unsigned int index)
         {
             --value.refCount;
 
-            /*
-            if (value.refCount == 1) // 1 because we have shared ptr in free list vector
+            /*if (value.refCount == 1) // 1 because we have shared ptr in free list vector
             {
                 m_materials.erase(index);
                 m_materialPaths.erase(key);
                 return;
-            }
-        */
+            }*/
         }
     }
 }
@@ -427,14 +420,13 @@ void AssetManager::DecreaseMeshRefCount(const unsigned int index)
         {
             --value.refCount;
 
-            /*
+            
             if (value.refCount == 1) // 1 because we have shared ptr in free list vector
             {
                 m_meshes.erase(index);
                 m_meshPaths.erase(key);
                 return;
             }
-        */
         }
     }
 }
