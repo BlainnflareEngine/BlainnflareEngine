@@ -42,10 +42,22 @@ public:
     void OnResize(UINT newWidth, UINT newHeight);
     void Destroy();
 
-    // Record all the commands we need to render the scene into the command list.
-    void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
+public:
+    void ToggleVSync()
+    {
+        if (!m_swapChain) return;
+        m_swapChain->ToggleVSync();
+    }
+
+    void ToggleFullscreen()
+    {
+        if (!m_swapChain) return;
+        m_swapChain->ToggleFullscreen();
+    }
 
 private:
+    // Record all the commands we need to render the scene into the command list.
+    void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
     void InitializeWindow();
 
 #pragma region BoilerplateD3D12

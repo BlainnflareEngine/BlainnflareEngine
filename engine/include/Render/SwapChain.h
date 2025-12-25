@@ -19,15 +19,15 @@ namespace Blainn
     public:
         static const UINT SwapChainFrameCount = 2u;
 
-        bool IsFullscreen() const { return m_fullscreen; }
+        bool IsFullscreen() const { return m_bIsFullscreen; }
         void SetFullscreen(bool fullscreen);
-        void ToggleFullscreen() { SetFullscreen(!m_fullscreen); }
+        void ToggleFullscreen() { SetFullscreen(!m_bIsFullscreen); }
 
-        void SetVSync(bool vSync) { m_vsync = vSync; }
-        bool GetVSync() const { return m_vsync; }
-        void ToggleVSync() { SetVSync(!m_vsync); }
+        void SetVSync(bool vSync) { m_bIsVSync = vSync; }
+        bool GetVSync() const { return m_bIsVSync; }
+        void ToggleVSync() { SetVSync(!m_bIsVSync); }
 
-        bool IsTearingSupported() const { return m_tearingSupported; }
+        bool IsTearingSupported() const { return m_bIsTearingSupported; }
 
         //void WaitForSwapChain();
         void Reset(UINT width, UINT height);
@@ -51,8 +51,8 @@ namespace Blainn
         uint32_t m_width;
         uint32_t m_height;
 
-        bool m_vsync;
-        bool m_tearingSupported;
-        bool m_fullscreen;
+        bool m_bIsVSync;
+        bool m_bIsTearingSupported;
+        bool m_bIsFullscreen;
     };
 } // namespace Blainn

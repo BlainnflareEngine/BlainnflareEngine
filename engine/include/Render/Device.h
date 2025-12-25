@@ -28,7 +28,8 @@ namespace Blainn
 
         ComPtr<ID3D12Device2> GetDevice2() const { return m_device; }
         ComPtr<IDXGIFactory4> GetFactory() const { return m_factory; }
-        
+        ComPtr<IDXGIAdapter1> GetDXGIAdapter() const { return m_hardwareAdapter; }
+
         VOID Flush();
 
         eastl::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE commandListType = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
