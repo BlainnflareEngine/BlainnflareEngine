@@ -76,6 +76,7 @@ private:
     void LoadPipeline();
     void LoadGraphicsFeatures();
     void CreateFrameResources();
+    void LoadInitTimeTextures(ID3D12GraphicsCommandList2* pCommandList);
     void LoadSrvAndSamplerDescriptorHeaps();
     void CreateRootSignature();
     void CreateShaders();
@@ -203,7 +204,9 @@ private:
 #pragma endregion Textures
 
     // TODO
-    struct MeshComponent* skyBox = nullptr;
+    eastl::unique_ptr<struct MeshComponent> skyBox = nullptr;
+    Microsoft::WRL::ComPtr<ID3D12Resource> skyBoxResource = nullptr;
+    Microsoft::WRL::ComPtr<ID3D12Resource> skyBoxUploadHeap = nullptr;
 
 private:
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTV()

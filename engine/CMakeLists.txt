@@ -20,6 +20,7 @@ set(ENGINE_SOURCES
         include/Render/Camera.h
         include/Render/CascadeShadowMap.h
         include/Render/CommandQueue.h
+        include/Render/DDSTextureLoader.h
         include/Render/Device.h
         include/Render/DXHelpers.h
         include/Render/FrameResource.h
@@ -38,6 +39,7 @@ set(ENGINE_SOURCES
         src/Render/Camera.cpp
         src/Render/CascadeShadowMap.cpp
         src/Render/CommandQueue.cpp
+        src/Render/DDSTextureLoader.cpp
         src/Render/Device.cpp
         src/Render/FrameResource.cpp
         src/Render/FreyaUtil.cpp

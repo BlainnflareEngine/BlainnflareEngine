@@ -17,6 +17,7 @@
 #include "Render/FreyaMath.h"
 #include "Render/FreyaUtil.h"
 #include "Render/PrebuiltEngineMeshes.h"
+#include "Render/DDSTextureLoader.h"
 
 #include <cassert>
 
@@ -135,7 +136,7 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
     RenderDepthOnlyPass(pCommandList);
     RenderGeometryPass(pCommandList);
     RenderLightingPass(pCommandList);
-    // RenderTransparencyPass(pCommandList);
+    RenderForwardPasses(pCommandList);
 }
 
 VOID Blainn::RenderSubsystem::InitializeWindow()
@@ -277,10 +278,11 @@ void Blainn::RenderSubsystem::LoadPipeline()
     auto commandQueue = m_device.GetCommandQueue();
     auto commandAllocator = commandQueue->GetDefaultCommandAllocator();
     auto commandList = commandQueue->GetDefaultCommandList();
-
+    
     ThrowIfFailed(commandList->Reset(commandAllocator.Get(), nullptr));
 
     CreateFrameResources();
+    LoadInitTimeTextures(commandList.Get());
     LoadSrvAndSamplerDescriptorHeaps();
     CreateRootSignature();
 
@@ -303,6 +305,8 @@ void Blainn::RenderSubsystem::LoadGraphicsFeatures()
 
     m_GBuffer = eastl::make_unique<GBuffer>(m_device.GetDevice2().Get(), m_width, m_height);
     
+    skyBox = eastl::make_unique<MeshComponent>(AssetManager::GetDefaultMesh());
+
     // Explicitly reset all window params dependent features
     //ResetGraphicsFeatures();
     m_areGraphicsFeaturesLoaded = true;
@@ -315,6 +319,11 @@ void Blainn::RenderSubsystem::CreateFrameResources()
         m_frameResources.push_back(eastl::make_unique<FrameResource>(
             m_device, static_cast<UINT>(EPassType::NumPasses), MAX_MATERIALS, 0u /*MaxPointLights*/));
     }
+}
+
+void Blainn::RenderSubsystem::LoadInitTimeTextures(ID3D12GraphicsCommandList2* pCommandList)
+{
+    ThrowIfFailed(CreateDDSTextureFromFile12(m_device.GetDevice2().Get(), pCommandList, L"./Content/Textures/sunsetcube1024.dds", skyBoxResource, skyBoxUploadHeap));
 }
 
 void Blainn::RenderSubsystem::LoadSrvAndSamplerDescriptorHeaps()
@@ -374,9 +383,8 @@ void Blainn::RenderSubsystem::LoadSrvAndSamplerDescriptorHeaps()
 
     m_skyCubeSrvHeapStartIndex = m_GBufferTexturesSrvHeapStartIndex + GBuffer::EGBufferLayer::MAX;
     localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize);
-    /*for (auto &e : m_skyTextures)
     {
-        auto &texD3DResource = e.second->Resource;
+        auto &texD3DResource = skyBoxResource;
         srvDesc.Format = texD3DResource->GetDesc().Format;
         srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
         srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -386,7 +394,7 @@ void Blainn::RenderSubsystem::LoadSrvAndSamplerDescriptorHeaps()
         m_device.CreateShaderResourceView(texD3DResource.Get(), &srvDesc, localHandle);
 
         localHandle.Offset(1, m_cbvSrvUavDescriptorSize);
-    }*/
+    }
     m_texturesSrvHeapStartIndex = m_skyCubeSrvHeapStartIndex + 1;
 }
 
@@ -611,12 +619,11 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     skyPsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
     skyPsoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO; // Disable writing explicitly (Depth still enable)
     skyPsoDesc.InputLayout = VertexPosition::InputLayout;
-    skyPsoDesc.VS = {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::SkyBoxVS)->GetBufferPointer()),
+    skyPsoDesc.VS = {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::SkyBoxVS)->GetBufferPointer()), 
                      m_shaders.at(Shader::EShaderType::SkyBoxVS)->GetBufferSize()};
     skyPsoDesc.PS = {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::SkyBoxPS)->GetBufferPointer()),
                      m_shaders.at(Shader::EShaderType::SkyBoxPS)->GetBufferSize()};
-    ThrowIfFailed(
-        m_device.CreateGraphicsPipelineState(skyPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::Sky]));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(skyPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::Sky]));
 #pragma endregion Sky
 }
 
@@ -638,7 +645,8 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
             XMStoreFloat4x4(&objConstants.World, transposeWorld);
             XMStoreFloat4x4(&objConstants.InvTransposeWorld, XMMatrixTranspose(invTransposeWorld));
             XMStoreFloat4x4(&objConstants.TexTransform, XMMatrixTranspose(entityMesh.MeshHandle->GetMesh().GetTextureTransform()));
-            
+            objConstants.MaterialIndex = entityMesh.MaterialHandle->GetIndex();
+
             entityMesh.UpdateMeshCB(objConstants);
             entityTransform.FrameResetDirtyFlags();
         }
@@ -929,9 +937,6 @@ void Blainn::RenderSubsystem::DeferredPointLightPass(ID3D12GraphicsCommandList2 
 
     // DrawInstancedMeshes(m_commandList, m_pointLights);
     // DrawInstancedRenderItems(pCommandList, m_pointLights);
-
-    // Indicate that the back buffer will now be used to present.
-    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 }
 
 void Blainn::RenderSubsystem::DeferredSpotLightPass(ID3D12GraphicsCommandList2 *pCommandList)
@@ -943,6 +948,7 @@ void Blainn::RenderSubsystem::RenderForwardPasses(ID3D12GraphicsCommandList2 *pC
     // forward-like
     // RenderTransparencyPass(pCommandList);
     RenderSkyBoxPass(pCommandList);
+    // RenderUI(pCommandList); // ImGui
 
     // Close accumulation buffer, that was opened in the light pass and indicate that the back buffer will now be used to present.
     ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
@@ -979,11 +985,14 @@ void Blainn::RenderSubsystem::DrawMesh(ID3D12GraphicsCommandList2 *pCommandList)
 {
     UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-    //auto skyBox = AssetManager::GetDefaultMesh();
     auto& model = skyBox->MeshHandle->GetMesh();
     auto currVBV = model.VertexBufferView();
     auto currIBV = model.IndexBufferView();
     auto currFrameObjCB = skyBox->ObjectCB->Get();
+
+    ObjectConstants obj;
+    XMStoreFloat4x4(&obj.World, XMMatrixTranspose(XMMatrixScaling(5000.0f, 5000.0f, 5000.0f)));
+    skyBox->UpdateMeshCB(obj);
 
     pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
@@ -1101,8 +1110,7 @@ void Blainn::RenderSubsystem::GetLightSpaceMatrices(eastl::vector<eastl::pair<XM
     }
 }
 
-eastl::vector<XMVECTOR> Blainn::RenderSubsystem::GetFrustumCornersWorldSpace(const XMMATRIX &view,
-                                                                             const XMMATRIX &projection)
+eastl::vector<XMVECTOR> Blainn::RenderSubsystem::GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection)
 {
     const auto viewProj = view * projection;
 
