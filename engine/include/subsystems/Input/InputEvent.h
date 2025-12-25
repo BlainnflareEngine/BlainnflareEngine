@@ -21,6 +21,7 @@ enum class InputEventType
     KeyPressed,
     KeyReleased,
     KeyHeld,
+    COUNT
 };
 
 enum InputEventCategory

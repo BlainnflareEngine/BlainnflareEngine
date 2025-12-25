@@ -9,10 +9,11 @@ namespace Blainn
     {
     public:
         Camera();
-        /*virtual */~Camera() = default;
+        virtual ~Camera() = default;
         
-        void Update(float deltaTime);
-        void Reset(float fovAngleY, float aspectRatio, float nearZ, float farZ);
+        virtual void Update(float deltaTime);
+        virtual void Reset(float fovAngleY, float aspectRatio, float nearZ, float farZ);
+        void SetAspectRatio(float aspectRatio);
         
         XMMATRIX GetViewMatrix() const;
         XMMATRIX GetPerspectiveProjectionMatrix() const;
@@ -34,22 +35,9 @@ namespace Blainn
         XMVECTOR GetPosition() const;
         void SetPosition(float x, float y, float z);
         void SetPosition(const XMFLOAT3& v);
-        
-        // Translation
-        void Move(const KeyCode key);
-        void AdjustRotation(float x, float y);
-        void SetCameraProperties(const KeyCode key);
-    private:
-        void SetAcceleration(bool useAcceleration) { m_bUseAcceleration = useAcceleration; }
-        void MoveRight(float d);
-        void MoveForward(float d);
-        void MoveUp(float d);
-        
-        // Rotation
-        void AdjustYaw(float adjustYawValue);
-        void AdjustPitch(float adjustPitchValue);
-        
-        private:
+
+
+    protected:
         XMFLOAT3 m_position = { 0.0f, 0.0f, 0.0f };
         XMFLOAT3 m_right	= { 1.0f, 0.0f, 0.0f };
         XMFLOAT3 m_up		= { 0.0f, 1.0f, 0.0f };

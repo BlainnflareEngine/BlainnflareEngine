@@ -55,6 +55,12 @@ public:
         m_swapChain->ToggleFullscreen();
     }
 
+    void SetCamera(Camera* camera) { m_camera = camera; }
+    Camera* GetCamera() { return m_camera; }
+    eastl::shared_ptr<Camera>& GetEditorCamera() { return m_editorCamera; }
+
+    float GetAspectRatio() const { return m_aspectRatio; }
+
 private:
     // Record all the commands we need to render the scene into the command list.
     void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
@@ -185,7 +191,8 @@ private:
     eastl::vector<eastl::unique_ptr<FrameResource>> m_frameResources;
     FrameResource *m_currFrameResource = nullptr;
 
-    eastl::unique_ptr<Camera> m_camera;
+    Camera* m_camera;
+    eastl::shared_ptr<Camera> m_editorCamera;
 
 #pragma region DeferredShading
     eastl::unique_ptr<GBuffer> m_GBuffer;
