@@ -64,7 +64,8 @@ float4 main(PSInput input) : SV_TARGET
     float3 posW = ComputeWorldPos(float3(input.iPosH.xy, 0.0f));
     
     float3 fresnelR0 = specularTex.xyz;
-    const float shininess = exp2(specularTex.a * 10.5f) * normalTex.a;
+    //const float shininess = exp2(specularTex.a * 10.5f) * normalTex.a;
+    const float shininess = 1.0f;
     
     Material mat = { diffuseAlbedo, fresnelR0, shininess };
     
