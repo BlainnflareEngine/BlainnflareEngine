@@ -16,6 +16,6 @@ struct ScriptInfo
 struct ScriptingComponent
 {
     eastl::unordered_map<eastl::string, ScriptInfo> scriptPaths;
-    eastl::unordered_map<uuid, LuaScript> scripts;
+    eastl::unordered_map<uuid, eastl::shared_ptr<LuaScript>> scripts;
 };
 } // namespace Blainn

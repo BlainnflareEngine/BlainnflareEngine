@@ -17,6 +17,10 @@
 #include "Render/FreyaMath.h"
 #include "Render/FreyaUtil.h"
 #include "Render/PrebuiltEngineMeshes.h"
+#include "Render/RootSignature.h"
+#include "Render/Shader.h"
+#include "Render/EditorCamera.h"
+#include "Render/RuntimeCamera.h"
 #include "Render/DDSTextureLoader.h"
 
 #include <cassert>
@@ -249,7 +253,8 @@ VOID Blainn::RenderSubsystem::Reset()
 
 VOID Blainn::RenderSubsystem::ResetGraphicsFeatures()
 {
-    m_camera->Reset(75.0f, m_aspectRatio, 0.1f, 250.0f);
+    //m_camera->Reset(75.0f, m_aspectRatio, 0.1f, 250.0f);
+    m_camera->SetAspectRatio(m_aspectRatio);
 
     m_GBuffer->OnResize(m_width, m_height);
     m_cascadeShadowMap->OnResize(2048u, 2048u);
@@ -298,7 +303,9 @@ void Blainn::RenderSubsystem::LoadPipeline()
 
 void Blainn::RenderSubsystem::LoadGraphicsFeatures()
 {
-    m_camera = eastl::make_unique<Camera>();
+    m_editorCamera = eastl::make_shared<EditorCamera>();
+    //m_camera = m_editorCamera.;
+    m_camera = m_editorCamera.get();
 
     m_cascadeShadowMap = eastl::make_unique<CascadeShadowMap>(m_device.GetDevice2().Get(), 2048u, 2048u, MaxCascades);
     m_cascadeShadowMap->CreateShadowCascadeSplits(m_camera->GetNearZ(), m_camera->GetFarZ());
@@ -309,6 +316,7 @@ void Blainn::RenderSubsystem::LoadGraphicsFeatures()
 
     // Explicitly reset all window params dependent features
     //ResetGraphicsFeatures();
+    m_camera->Reset(75.0f, m_aspectRatio, 0.1f, 250.0f);
     m_areGraphicsFeaturesLoaded = true;
 }
 
@@ -977,7 +985,7 @@ void Blainn::RenderSubsystem::RenderSkyBoxPass(ID3D12GraphicsCommandList2 *pComm
     pCommandList->SetGraphicsRootDescriptorTable(RootSignature::ERootParam::SkyBox, CD3DX12_GPU_DESCRIPTOR_HANDLE(m_srvHeap->GetGPUDescriptorHandleForHeapStart(), m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
     pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::Sky).Get());
     DrawMesh(pCommandList/*, m_skyRenderItem*/);
-    
+
     ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 

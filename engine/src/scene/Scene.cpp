@@ -7,6 +7,8 @@
 
 #include "Engine.h"
 #include "Serializer.h"
+#include "assimp/code/AssetLib/OpenGEX/OpenGEXStructs.h"
+#include "components/CameraComponent.h"
 #include "scene/SceneParser.h"
 
 #include "tools/Profiler.h"
@@ -16,6 +18,9 @@
 #include "subsystems/ScriptingSubsystem.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/RenderSubsystem.h"
+#include "Render/RuntimeCamera.h"
+#include "Render/EditorCamera.h"
+
 
 using namespace Blainn;
 
@@ -62,11 +67,48 @@ Scene::~Scene()
 
 void Blainn::Scene::Update()
 {
-    auto view = GetAllEntitiesWith<TransformComponent>();
-    for (const auto &[entity, transformComponent] : view.each())
+    if (!m_bPlayMode)
+        RenderSubsystem::GetInstance().SetCamera(&*RenderSubsystem::GetInstance().GetEditorCamera());
+    else do
     {
-        transformComponent.FrameResetDirtyFlags();
+        auto view = GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
+        RuntimeCamera* cam = nullptr;
+        Entity* camEntity = nullptr;
+        TransformComponent* camTransform = nullptr;
+        for (const auto& [enttity, id, transform, camera] : view.each())
+        {
+            if (camera.IsActiveCamera)
+            {
+                camEntity = &m_EntityIdMap.at(id.ID);
+                cam = &camera.camera;
+                camTransform = &transform;
+                break;
+            }
+        }
+        if (!camEntity || !cam)
+        {
+            m_editorCam = RenderSubsystem::GetInstance().GetEditorCamera();
+            RenderSubsystem::GetInstance().SetCamera(&*m_editorCam);
+            BF_ERROR("Could not find main camera, please, select an active camera");
+            break;
+        }
+
+        Mat4 camViewMat = GetWorldSpaceTransformMatrix(*camEntity).Invert();
+        cam->SetViewMatrix(camViewMat);
+        cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
+        RenderSubsystem::GetInstance().SetCamera(cam);
+
+    } while (false); // Чтобы не писать goto))) хотя по факту это просто goto)))
+
+    {
+        auto view = GetAllEntitiesWith<TransformComponent>();
+        for (const auto &[entity, transformComponent] : view.each())
+        {
+            transformComponent.FrameResetDirtyFlags();
+        }
     }
+
+
     ProcessEvents();
 }
 
@@ -99,6 +141,7 @@ void Scene::SaveScene()
         Serializer::Relationship(e, out);
         Serializer::Scripting(e, out);
         Serializer::Mesh(e, out);
+        Serializer::Camera(e, out);
 
         out << YAML::EndMap; // end for every entity
     }
@@ -280,6 +323,12 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
             {
                 entity.AddComponent<RelationshipComponent>(component);
             }
+        }
+
+        if (HasCamera(entityNode))
+        {
+            auto camera = GetCamera(entityNode["CameraComponent"]);
+            entity.AddComponent<CameraComponent>(camera);
         }
     }
 }

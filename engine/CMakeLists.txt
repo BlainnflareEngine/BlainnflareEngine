@@ -119,6 +119,11 @@ set(ENGINE_SOURCES
         src/physics/BodyGetter.cpp
         include/physics/ContactListenerImpl.h
         src/physics/ContactListenerImpl.cpp
+        include/components/CameraComponent.h
+        src/Render/EditorCamera.cpp
+        include/Render/EditorCamera.h
+        src/Render/RuntimeCamera.cpp
+        include/Render/RuntimeCamera.h
 
 )
 

@@ -96,8 +96,6 @@ void PhysicsSubsystem::Update()
     {
         if (!transformComp.IsDirty()) continue;
 
-        BF_ERROR("body updated");
-
         Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
 
         Vec3 translation, scale;
@@ -267,13 +265,6 @@ eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 direc
 
 void Blainn::PhysicsSubsystem::ProcessEvents()
 {
-    // TODO: remove?
-    // eastl::function<void()> fn;
-    // while (s_postUpdateQueue.try_dequeue(fn))
-    // {
-    //     fn();
-    // }
-
     s_physicsEventQueue.process();
 }
 PhysicsComponent &Blainn::PhysicsSubsystem::GetPhysicsComponentByBodyId(JPH::BodyID bodyId)
