@@ -221,4 +221,28 @@ inline ScriptingComponent GetScripting(const YAML::Node &node)
 
     return component;
 }
+
+inline bool HasCamera(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["CameraComponent"]) return true;
+
+    return false;
+}
+
+inline CameraComponent GetCamera(const YAML::Node &node)
+{
+    CameraComponent camera;
+    if (!node || node.IsNull() || !node.IsMap())
+    {
+        BF_WARN("Camera component not found or invalid in .scene file.");
+        return camera;
+    }
+    if (node["IsActiveCamera"])
+        camera.IsActiveCamera = node["IsActiveCamera"].as<bool>();
+    camera.camera.Reset(75.f, 16.f/9.f, 0.01, 1000);
+
+    return camera;
+}
 } // namespace Blainn

@@ -6,6 +6,7 @@
 #include "AssetManager.h"
 #include "Log.h"
 #include "PhysicsSubsystem.h"
+#include "components/CameraComponent.h"
 #include "components/MeshComponent.h"
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
@@ -142,6 +143,17 @@ public:
         out << YAML::Key << "ObjectLayer" << YAML::Value << body.GetObjectLayer();
 
         // TODO: serialize
+    }
+
+    static void Camera(Entity& entity, YAML::Emitter& out)
+    {
+        if (!entity.HasComponent<CameraComponent>()) return;
+
+        auto camera = entity.GetComponent<CameraComponent>();
+        out << YAML::Key << "CameraComponent" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "IsActiveCamera" << YAML::Value << camera.IsActiveCamera;
+        //out << YAML::Key << "ViewMat" << YAML::Value << camera.camera.;
+        out<< YAML::EndMap;
     }
 };
 } // namespace Blainn
