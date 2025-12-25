@@ -30,6 +30,8 @@ namespace Blainn
         m_width = rect.right - rect.left;
         m_height = rect.bottom - rect.top;
 
+        m_dxgiSwapChain.Reset();
+
         // Describe and create the swap chain.
         // DXGI_SWAP_CHAIN_DESC sd;
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
@@ -95,17 +97,13 @@ namespace Blainn
     //                                           TRUE); // Wait for 1 second (should never have to wait that long...)
     //}
 
-    void SwapChain::Reset(UINT width, UINT height, CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle, UINT rtvDescriptorSize)
+    void SwapChain::Reset(UINT width, UINT height)
     {
-        //if (m_width != width || m_height != height)
+        if (m_width != width || m_height != height)
         {
             m_width = std::max(1u, width);
             m_height = std::max(1u, height);
 
-            // Flush all queues
-            //m_device.Flush();
-
-            // m_RenderTarget.Reset();
             for (UINT i = 0; i < SwapChainFrameCount; ++i)
             {
                 m_renderTargets[i].Reset();
@@ -115,10 +113,10 @@ namespace Blainn
             ThrowIfFailed(m_dxgiSwapChain->GetDesc(&swapChainDesc));
             ThrowIfFailed(m_dxgiSwapChain->ResizeBuffers(SwapChainFrameCount, m_width, m_height,
                                                          swapChainDesc.BufferDesc.Format, swapChainDesc.Flags));
-            m_currBackBuffer = 0u;
-            //m_currBackBuffer = m_dxgiSwapChain->GetCurrentBackBufferIndex();
+            
+            m_currBackBuffer = m_dxgiSwapChain->GetCurrentBackBufferIndex();
 
-            ResetRenderTargets(rtvHeapHandle, rtvDescriptorSize);
+            ResetRenderTargets();
         }
     }
 
@@ -136,8 +134,13 @@ namespace Blainn
         m_currBackBuffer = m_dxgiSwapChain->GetCurrentBackBufferIndex();
     }
 
-    void SwapChain::ResetRenderTargets(CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle, UINT rtvDescriptorSize)
+    void SwapChain::ResetRenderTargets()
     {
+        auto rtvHeap = Device::GetInstance().GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        auto rtvDescriptorSize = Device::GetInstance().GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+        CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
+
         for (UINT i = 0; i < SwapChainFrameCount; ++i)
         {
             ThrowIfFailed(m_dxgiSwapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])));

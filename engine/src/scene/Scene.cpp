@@ -52,7 +52,6 @@ Scene::~Scene()
 
     while (s_postUpdateQueue.try_dequeue(fn))
     {
-        BF_DEBUG("Destroying entity!");
         fn();
     }
 

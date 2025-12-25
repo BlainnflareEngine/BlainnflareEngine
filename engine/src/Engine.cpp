@@ -35,6 +35,7 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     SetDefaultContentDirectory();
 
     Log::Init();
+    RenderSubsystem::GetInstance().PreInit();
     PhysicsSubsystem::Init(globalTimeline);
     AssetManager::GetInstance().Init();
     ScriptingSubsystem::Init();
@@ -195,6 +196,8 @@ void Engine::EscapePlayMode()
         for (auto &[id, _] : scriptComp.scripts)
             ScriptingSubsystem::UnloadScript(id);
     }
+
+    AssetManager::GetInstance().ResetTextures();
 }
 
 

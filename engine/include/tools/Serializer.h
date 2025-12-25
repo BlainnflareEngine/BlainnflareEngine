@@ -111,9 +111,9 @@ public:
 
         out << YAML::Key << "MeshComponent" << YAML::Value << YAML::BeginMap;
         out << YAML::Key << "Path" << YAML::Value
-            << AssetManager::GetInstance().GetMeshPath(*mesh.m_meshHandle).string();
+            << AssetManager::GetInstance().GetMeshPath(*mesh.MeshHandle).string();
         out << YAML::Key << "Material" << YAML::Value
-            << AssetManager::GetInstance().GetMaterialPath(*mesh.m_materialHandle).string();
+            << AssetManager::GetInstance().GetMaterialPath(*mesh.MaterialHandle).string();
         out << YAML::EndMap;
     }
 

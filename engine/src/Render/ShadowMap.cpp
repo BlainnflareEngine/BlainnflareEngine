@@ -124,4 +124,6 @@ void ShadowMap::CreateResource()
 
     ThrowIfFailed(m_device->CreateCommittedResource(&defaultHeap, D3D12_HEAP_FLAG_NONE, &textureDesc,
         D3D12_RESOURCE_STATE_GENERIC_READ, &optClear, IID_PPV_ARGS(&m_shadowMap)));
+
+    m_shadowMap->SetName(L"Shadow Map");
 }

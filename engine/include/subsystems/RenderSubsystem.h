@@ -16,27 +16,12 @@ namespace Blainn
 const int gNumFrameResources = 3;
 
 class Device;
-class Renderer;
 class RootSignature;
 struct FrameResource;
 
 class RenderSubsystem
 {
 public:
-    enum ERootParameter : UINT
-    {
-        PerObjectDataCB = 0,
-        PerPassDataCB,
-        MaterialDataSB,
-        PointLightsDataSB,
-        SpotLightsDataSB,
-        CascadedShadowMaps,
-        Textures,
-        GBufferTextures,
-
-        NumRootParameters = 8u
-    };
-
     enum EPsoType : UINT
     {
         CascadedShadowsOpaque = 0,
@@ -51,8 +36,9 @@ public:
         DeferredSpot,
 
         Transparency,
+        Sky,
 
-        NumPipelineStates = 9u
+        NumPipelineStates = 10u
     };
 
     enum EShaderType : UINT
@@ -69,7 +55,10 @@ public:
         DeferredPointPS,
         DeferredSpotPS,
 
-        NumShaders = 9U
+        SkyBoxVS,
+        SkyBoxPS,
+
+        NumShaders = 11U
     };
 
 private:
@@ -82,6 +71,7 @@ private:
 public:
     static RenderSubsystem &GetInstance();
 
+    void PreInit();
     void Init(HWND window);
     void SetWindowParams(HWND window);
     void Render(float deltaTime);
@@ -92,15 +82,14 @@ public:
     void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
 
 private:
-    void InitializeD3D();
+    void InitializeWindow();
 
 #pragma region BoilerplateD3D12
-    VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter,
-                            bool requestHighPerformanceAdapter = false);
+    VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter = false);
     VOID SetCustomWindowText(LPCWSTR text) const;
 
     VOID CreateSwapChain();
-    VOID CreateRtvAndDsvDescriptorHeaps();
+    VOID CreateDescriptorHeaps();
 
     VOID Reset();
     VOID ResetGraphicsFeatures();
@@ -110,10 +99,8 @@ private:
 
     void LoadPipeline();
     void LoadGraphicsFeatures();
-
     void CreateFrameResources();
-
-    void CreateDescriptorHeaps();
+    void LoadSrvAndSamplerDescriptorHeaps();
     void CreateRootSignature();
     void CreateShaders();
     void CreatePipelineStateObjects();
@@ -121,18 +108,16 @@ private:
 private:
     void UpdateObjectsCB(float deltaTime);
     void UpdateMaterialBuffer(float deltaTime);
-    void UpdateLightsBuffer(float deltaTime);
     void UpdateShadowTransform(float deltaTime);
     void UpdateShadowPassCB(float deltaTime);
     void UpdateGeometryPassCB(float deltaTime);
     void UpdateMainPassCB(float deltaTime);
 
 private:
-    void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
-
 #pragma region Shadows
     void RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pCommandList);
 #pragma endregion Shadows
+
 #pragma region DeferredShading
     void RenderGeometryPass(ID3D12GraphicsCommandList2 *pCommandList);
     void RenderLightingPass(ID3D12GraphicsCommandList2 *pCommandList);
@@ -143,17 +128,9 @@ private:
     void DeferredSpotLightPass(ID3D12GraphicsCommandList2 *pCommandList);
 #pragma endregion DeferredShading
 
+    void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
     void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList);
-
-    void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *cmdList,
-                             const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
-
-#pragma region CommandListIntrinsic
-    void Draw(UINT vertexCount, UINT instanceCount = 1u, UINT startVertex = 0u, UINT startInstance = 0u);
-    void DrawIndexed(UINT indexCount, UINT instanceCount = 1u, UINT startIndex = 0u, UINT baseVertex = 0u,
-                     UINT startInstance = 0u);
-
-#pragma region CommandListIntrinsic
+    void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
 
     void DrawQuad(ID3D12GraphicsCommandList2 *pCommandList);
 
@@ -196,15 +173,11 @@ private:
     eastl::shared_ptr<SwapChain> m_swapChain;
     Device &m_device = Device::GetInstance();
 
-    eastl::unique_ptr<Renderer> m_renderer = nullptr;
-
     ComPtr<ID3D12Resource> m_depthStencilBuffer;
 
     eastl::shared_ptr<RootSignature> m_rootSignature;
     eastl::unordered_map<EShaderType, ComPtr<ID3DBlob>> m_shaders;
     eastl::unordered_map<EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
-
-    // ObjectConstants m_perObjectCBData;
 
     float m_sunPhi = XM_PIDIV4;
     float m_sunTheta = 1.25f * XM_PI;
@@ -235,19 +208,23 @@ private:
 
 #pragma region DeferredShading
     eastl::unique_ptr<GBuffer> m_GBuffer;
-    CD3DX12_GPU_DESCRIPTOR_HANDLE m_GBufferTexturesSrv;
+    UINT m_GBufferTexturesSrvHeapStartIndex = 0u;
 #pragma endregion DeferredShading
 
 #pragma region CascadedShadows
     eastl::unique_ptr<ShadowMap> m_cascadeShadowMap;
-    CD3DX12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowSrv;
+    UINT m_cascadesShadowSrvHeapStartIndex = 0u;
 #pragma endregion CascadedShadows
+
+#pragma region Textures
+    UINT m_skyCubeSrvHeapStartIndex = 0u;
+    UINT m_texturesSrvHeapStartIndex = 0u;
+#pragma endregion Textures
 
 private:
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTV()
     {
-        return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
-                                             m_swapChain->GetBackBufferIndex(), m_rtvDescriptorSize);
+        return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_swapChain->GetBackBufferIndex(), m_rtvDescriptorSize);
     }
 
     D3D12_CPU_DESCRIPTOR_HANDLE GetDSV()

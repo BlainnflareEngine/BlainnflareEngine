@@ -23,26 +23,61 @@ public:
     void SetTexture(const eastl::shared_ptr<TextureHandle> &textureHandle, TextureType type);
     TextureHandle &GetTextureHandle(TextureType type);
 
+    void SetMaterialTransform(const Mat4 &matTransform)
+    {
+        m_materialTransform = matTransform;
+    }
+
+    const Mat4 &GetMaterialTransform() const { return m_materialTransform; }
+
+
     void SetAlbedoColor(const Color& color);
     void SetNormalScale(float scale);
     void SetRoughnessScale(float roughness);
     void SetMetallicScale(float metallic);
+
+    Color GetDefaultAldedo()const { return m_albedoColor; };
+    float GetDefaultNormaScale()const { return m_normalScale; };
+    float GetDefaultMetallicScale()const { return m_metallicScale; };
+    float GetDefaultRougnessScale()const { return m_roughnessScale; };
+
 
     void SetShader(const eastl::string &shader);
     const eastl::string &GetShader() const;
 
     BOOL HasTexture(TextureType type) const;
 
+    void MarkFramesDirty()
+    {
+        NumFramesDirty = kNumFramesMarkDirty;
+    };
+
+    void FrameResetDirtyFlags()
+    {
+        NumFramesDirty > 0 ? --NumFramesDirty : NumFramesDirty;
+    }
+
+    bool IsFramesDirty() const
+    {
+        // TODO : replace with actual logic
+        return true; //NumFramesDirty > 0;
+    }
 private:
+
+    Mat4 m_materialTransform = Mat4::Identity;
+
     eastl::shared_ptr<TextureHandle> m_albedoTexture;
-    Color m_albedoColor = Color(1, 1, 1, 1);
     eastl::shared_ptr<TextureHandle> m_normalTexture;
-    float m_normalScale = 1.0f;
     eastl::shared_ptr<TextureHandle> m_metallicTexture;
-    float m_metallicScale = 0.5f;
     eastl::shared_ptr<TextureHandle> m_roughnessTexture;
-    float m_roughnessScale = 0.5f;
     eastl::shared_ptr<TextureHandle> m_aoTexture;
     eastl::string m_shader;
+    Color m_albedoColor = Color(1, 1, 1, 1);
+    float m_normalScale = 1.0f;
+    float m_metallicScale = 0.5f;
+    float m_roughnessScale = 0.5f;
+
+    inline static const int kNumFramesMarkDirty = 3;
+    int NumFramesDirty = kNumFramesMarkDirty; // NumFrameResources
 };
 } // namespace Blainn

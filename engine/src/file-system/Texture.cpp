@@ -52,4 +52,9 @@ namespace Blainn
         m_uploadHeap = nullptr;
     }
 
+    void Texture::SetTextureDescriptorOffset(UINT newOffset)
+    {
+        m_textureDescriptorOffset = newOffset;
+    }
+
 } // namespace Blainn

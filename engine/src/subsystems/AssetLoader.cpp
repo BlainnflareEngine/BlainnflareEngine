@@ -2,7 +2,9 @@
 // Created by gorev on 30.09.2025.
 //
 
-#include "subsystems/AssetLoader.h"
+#include <pch.h>
+
+#include "AssetLoader.h"
 
 #include "AssetManager.h"
 #include "Engine.h"
@@ -17,6 +19,7 @@
 
 #include <DirectXTK12/Inc/DDSTextureLoader.h>
 #include <DirectXTK12/Inc/ResourceUploadBatch.h>
+#include <DirectXTK12/Inc/WICTextureLoader.h>
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -31,6 +34,8 @@ namespace Blainn
 void AssetLoader::Init()
 {
     BF_INFO("AssetLoader Init");
+
+    ResetTextureOffsetsTable();
 }
 
 
@@ -50,7 +55,7 @@ eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, cons
         BF_ERROR("AssetLoader ImportModel: path is empty");
     }
 
-    Model model = Model(absolutePath);
+    Model model = Model(relativePath);
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(absolutePath.string(),
                                              aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace
@@ -190,12 +195,12 @@ eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const Text
 {
     assert(path.is_relative());
     Microsoft::WRL::ComPtr<ID3D12Resource> temp;
-    CreateTextureGPUResources(path, temp);
+    CreateTextureGPUResources(path, temp, type);
 
     return eastl::make_shared<Texture>(path, temp, type);
 }
 
-void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource> &resource)
+void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource> &resource, TextureType type)
 {
     assert(path.is_relative());
 
@@ -205,27 +210,28 @@ void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::Co
     ResourceUploadBatch upload(device);
     upload.Begin();
 
-    // Only for DDS
-    ThrowIfFailed(CreateDDSTextureFromFile(device, upload, (Engine::GetContentDirectory() / path).wstring().c_str(), resource.ReleaseAndGetAddressOf()));
-
-    // Create default upload heap manually
+    if (path.extension() == L".dds")
     {
-        /* auto desc = CD3DX12_RESOURCE_DESC(
-            D3D12_RESOURCE_DIMENSION_TEXTURE2D, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, c_texture_size,
-            c_texture_size, 1, 1, DXGI_FORMAT_R8G8_SNORM, 1, 0, D3D12_TEXTURE_LAYOUT_UNKNOWN,
-        D3D12_RESOURCE_FLAG_NONE);
-
-        CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-
-        ThrowIfFailed(device->CreateCommittedResource(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &desc,
-                                                        D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
-                                                        IID_PPV_ARGS(&m_resource)));
-
-        D3D12_SUBRESOURCE_DATA initData = {mydata, c_texture_size * 2, 0};
-        upload.Upload(tex.Get(), 0, &initData, 1);
-
-        upload.Transition(tex.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);*/
+        ThrowIfFailed(CreateDDSTextureFromFile(
+            device,
+            upload,
+            (Engine::GetContentDirectory()/ path).wstring().c_str(),
+            resource.ReleaseAndGetAddressOf())
+            );
     }
+    else if (path.extension() == L".png" || path.extension() == L".jpg")
+    {
+        ThrowIfFailed(
+            CreateWICTextureFromFile(
+                device,
+                upload,
+                (Engine::GetContentDirectory() / path).wstring().c_str(),
+                resource.GetAddressOf()
+            )
+        );
+    }
+
+    CreateTextureDescriptor(resource.Get(), type);
 
     // Upload the resources to the GPU.
     auto finish = upload.End(commandQueue->GetCommandQueue().Get());
@@ -234,6 +240,40 @@ void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::Co
     finish.wait();
 }
 
+void Blainn::AssetLoader::CreateTextureDescriptor(ID3D12Resource *texD3DResource, TextureType type)
+{
+    auto& device = Device::GetInstance();
+
+    UINT& freeTextureOffsetOfType = m_texturesOffsetsTable[type];
+    UINT texturePlacementOffset = /*m_texturesSrvHeapStartIndex*/ 7u + (static_cast<UINT>(type) - 1u) * MAX_TEXTURES + freeTextureOffsetOfType;
+    //texture.SetTextureDescriptorOffset(texturePlacementOffset);
+
+    auto srvCpuStart = device.GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    auto cbvSrvUavDescriptorSize = device.GetDescriptorHandleIncrementSize();
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, texturePlacementOffset, cbvSrvUavDescriptorSize);
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    ZeroMemory(&srvDesc, sizeof(srvDesc));
+    srvDesc.Format = texD3DResource->GetDesc().Format;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Texture2D.MostDetailedMip = 0u;
+    srvDesc.Texture2D.MipLevels = texD3DResource->GetDesc().MipLevels;
+    srvDesc.Texture2D.PlaneSlice = 0;
+    srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+    device.CreateShaderResourceView(texD3DResource, &srvDesc, localHandle);
+
+    freeTextureOffsetOfType++;
+}
+
+void Blainn::AssetLoader::ResetTextureOffsetsTable()
+{
+    for (auto &textureOffset : m_texturesOffsetsTable)
+    {
+        textureOffset.second = 0u;
+    }
+}
 
 eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &relativePath)
 {

@@ -14,7 +14,7 @@ namespace Blainn
         virtual ~SwapChain();
 
     private:
-        void ResetRenderTargets(CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle, UINT rtvDescriptorSize);
+        void ResetRenderTargets();
      
     public:
         static const UINT SwapChainFrameCount = 2u;
@@ -30,7 +30,7 @@ namespace Blainn
         bool IsTearingSupported() const { return m_tearingSupported; }
 
         //void WaitForSwapChain();
-        void Reset(UINT width, UINT height, CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle, UINT rtvDescriptorSize);
+        void Reset(UINT width, UINT height);
 
         VOID Present();
         ID3D12Resource* GetBackBuffer() const;

@@ -16,17 +16,19 @@ struct MeshHandle;
 struct ImportMeshData;
 
 #ifndef MAX_TEXTURES
-#define MAX_TEXTURES 512
+    #define MAX_TEXTURES 128
 #endif
 #ifndef MAX_MATERIALS
-#define MAX_MATERIALS 64
+    #define MAX_MATERIALS 64
 #endif
 #ifndef MAX_MESHES
-#define MAX_MESHES 64
+    #define MAX_MESHES 64
 #endif
 
 class AssetManager
 {
+    friend class RenderSubsystem;
+
     struct AssetData
     {
         int index;
@@ -64,6 +66,7 @@ public:
     static eastl::shared_ptr<MaterialHandle> GetDefaultMaterialHandle();
     Path GetMaterialPath(const MaterialHandle &handle);
 
+    void ResetTextures();
     static bool SceneExists(const Path &relativePath);
     static void OpenScene(const Path &relativePath);
     static void CreateScene(const Path &relativePath);
@@ -75,7 +78,6 @@ private:
     friend struct MaterialHandle;
     friend struct TextureHandle;
     friend struct Handle;
-
 
     void AddTextureWhenLoaded(const Path &path, const unsigned int index, const TextureType type);
     void AddMaterialWhenLoaded(const Path &relativePath, const unsigned int index);

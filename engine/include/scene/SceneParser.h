@@ -117,11 +117,11 @@ inline MeshComponent GetMesh(const YAML::Node &node)
 
     if (!std::filesystem::is_regular_file(absolutMeshPath))
     {
-        mesh.m_meshHandle = AssetManager::GetInstance().GetDefaultMesh();
+        mesh.MeshHandle = AssetManager::GetInstance().GetDefaultMesh();
     }
     else
     {
-        mesh.m_meshHandle =
+        mesh.MeshHandle =
             AssetManager::GetInstance().HasMesh(relativeMeshPath)
                 ? AssetManager::GetInstance().GetMesh(relativeMeshPath)
                 : AssetManager::GetInstance().LoadMesh(relativeMeshPath, ImportMeshData::GetMeshData(absolutMeshPath));
@@ -129,11 +129,11 @@ inline MeshComponent GetMesh(const YAML::Node &node)
 
     if (!std::filesystem::is_regular_file(absolutMaterialPath))
     {
-        mesh.m_materialHandle = AssetManager::GetInstance().GetDefaultMaterialHandle();
+        mesh.MaterialHandle = AssetManager::GetInstance().GetDefaultMaterialHandle();
     }
     else
     {
-        mesh.m_materialHandle = AssetManager::GetInstance().HasMaterial(relativeMaterialPath)
+        mesh.MaterialHandle = AssetManager::GetInstance().HasMaterial(relativeMaterialPath)
                                     ? AssetManager::GetInstance().GetMaterial(relativeMaterialPath)
                                     : AssetManager::GetInstance().LoadMaterial(relativeMaterialPath);
     }
