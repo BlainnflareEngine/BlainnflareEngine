@@ -113,21 +113,33 @@ bool LuaScript::OnUpdateCall(float deltaTimeMs)
 
 bool LuaScript::OnDestroyCall()
 {
-    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnDestroy)) return false;
     RemovePhysicsEventListeners();
+    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnDestroy)) return false;
     return CustomCall(PredefinedFunctions::kOnDestroy);
 }
 
 bool Blainn::LuaScript::OnCollisionStartedCall(const eastl::shared_ptr<PhysicsEvent> &physicsEvent)
 {
     if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnCollisionStarted)) return false;
-    return CustomCall(PredefinedFunctions::kOnCollisionStarted, *physicsEvent);
+    sol::state &lua = ScriptingSubsystem::GetLuaState();
+    sol::state_view sv(lua);
+    sol::table tbl = sv.create_table();
+    tbl["eventType"] = static_cast<int>(physicsEvent->eventType);
+    tbl["entity1"] = physicsEvent->entity1.str();
+    tbl["entity2"] = physicsEvent->entity2.str();
+    return CustomCall(PredefinedFunctions::kOnCollisionStarted, tbl);
 }
 
 bool Blainn::LuaScript::OnCollisionEndedCall(const eastl::shared_ptr<PhysicsEvent> &physicsEvent)
 {
     if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnCollisionEnded)) return false;
-    return CustomCall(PredefinedFunctions::kOnCollisionEnded, *physicsEvent);
+    sol::state &lua = ScriptingSubsystem::GetLuaState();
+    sol::state_view sv(lua);
+    sol::table tbl = sv.create_table();
+    tbl["eventType"] = static_cast<int>(physicsEvent->eventType);
+    tbl["entity1"] = physicsEvent->entity1.str();
+    tbl["entity2"] = physicsEvent->entity2.str();
+    return CustomCall(PredefinedFunctions::kOnCollisionEnded, tbl);
 }
 
 void Blainn::LuaScript::RemovePhysicsEventListeners()

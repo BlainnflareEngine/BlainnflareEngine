@@ -54,6 +54,10 @@ struct ShapeRef
 void Blainn::RegisterPhysicsTypes(sol::state &luaState)
 {
     // Enums
+    // Expose physics event enum so Lua can listen for collision events
+    luaState.new_enum<true>("PhysicsEventType", "CollisionStarted", PhysicsEventType::CollisionStarted,
+                            "CollisionEnded", PhysicsEventType::CollisionEnded);
+
     luaState.new_enum<true>("ComponentShapeType", "Sphere", ComponentShapeType::Sphere, "Box", ComponentShapeType::Box,
                             "Capsule", ComponentShapeType::Capsule, "Cylinder", ComponentShapeType::Cylinder, "Empty",
                             ComponentShapeType::Empty);
