@@ -10,6 +10,10 @@
 #include "Render/Camera.h"
 #include "Render/GBuffer.h"
 #include "Render/CascadeShadowMap.h"
+#include "Render/RootSignature.h"
+#include "Render/Shader.h"
+#include "Render/PipelineStateObject.h"
+
 
 namespace Blainn
 {
@@ -21,46 +25,6 @@ struct FrameResource;
 
 class RenderSubsystem
 {
-public:
-    enum EPsoType : UINT
-    {
-        CascadedShadowsOpaque = 0,
-
-        DeferredGeometry,
-        Wireframe,
-
-        DeferredDirectional,
-        DeferredPointWithinFrustum,
-        DeferredPointIntersectsFarPlane,
-        DeferredPointFullQuad,
-        DeferredSpot,
-
-        Transparency,
-        Sky,
-
-        NumPipelineStates = 10u
-    };
-
-    enum EShaderType : UINT
-    {
-        CascadedShadowsVS = 0u,
-        CascadedShadowsGS,
-
-        DeferredGeometryVS,
-        DeferredGeometryPS,
-
-        DeferredDirVS,
-        DeferredDirPS,
-        DeferredLightVolumesVS,
-        DeferredPointPS,
-        DeferredSpotPS,
-
-        SkyBoxVS,
-        SkyBoxPS,
-
-        NumShaders = 11U
-    };
-
 private:
     RenderSubsystem() = default;
     RenderSubsystem(const RenderSubsystem &) = delete;
@@ -78,10 +42,22 @@ public:
     void OnResize(UINT newWidth, UINT newHeight);
     void Destroy();
 
-    // Record all the commands we need to render the scene into the command list.
-    void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
+public:
+    void ToggleVSync()
+    {
+        if (!m_swapChain) return;
+        m_swapChain->ToggleVSync();
+    }
+
+    void ToggleFullscreen()
+    {
+        if (!m_swapChain) return;
+        m_swapChain->ToggleFullscreen();
+    }
 
 private:
+    // Record all the commands we need to render the scene into the command list.
+    void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
     void InitializeWindow();
 
 #pragma region BoilerplateD3D12
@@ -120,17 +96,22 @@ private:
 
 #pragma region DeferredShading
     void RenderGeometryPass(ID3D12GraphicsCommandList2 *pCommandList);
-    void RenderLightingPass(ID3D12GraphicsCommandList2 *pCommandList);
-    void RenderTransparencyPass(ID3D12GraphicsCommandList2 *pCommandList);
 
+    void RenderLightingPass(ID3D12GraphicsCommandList2 *pCommandList);
     void DeferredDirectionalLightPass(ID3D12GraphicsCommandList2 *pCommandList);
     void DeferredPointLightPass(ID3D12GraphicsCommandList2 *pCommandList);
     void DeferredSpotLightPass(ID3D12GraphicsCommandList2 *pCommandList);
+
+    void RenderForwardPasses(ID3D12GraphicsCommandList2 *pCommandList);
+    void RenderTransparencyPass(ID3D12GraphicsCommandList2 *pCommandList);
 #pragma endregion DeferredShading
+    void RenderSkyBoxPass(ID3D12GraphicsCommandList2 *pCommandList);
 
     void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
-    void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList);
-    void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *cmdList, const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
+
+    void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList); // for draw specific meshes
+    void DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList);
+    void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
 
     void DrawQuad(ID3D12GraphicsCommandList2 *pCommandList);
 
@@ -176,8 +157,8 @@ private:
     ComPtr<ID3D12Resource> m_depthStencilBuffer;
 
     eastl::shared_ptr<RootSignature> m_rootSignature;
-    eastl::unordered_map<EShaderType, ComPtr<ID3DBlob>> m_shaders;
-    eastl::unordered_map<EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
+    eastl::unordered_map<Shader::EShaderType, ComPtr<ID3DBlob>> m_shaders;
+    eastl::unordered_map<PipelineStateObject::EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
 
     float m_sunPhi = XM_PIDIV4;
     float m_sunTheta = 1.25f * XM_PI;
@@ -220,6 +201,9 @@ private:
     UINT m_skyCubeSrvHeapStartIndex = 0u;
     UINT m_texturesSrvHeapStartIndex = 0u;
 #pragma endregion Textures
+
+    // TODO
+    struct MeshComponent* skyBox = nullptr;
 
 private:
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTV()

@@ -12,17 +12,26 @@ namespace Blainn
         , m_width(0u)
         , m_height(0u)
         , m_backBufferFormat(backBufferFormat)
-        , m_vsync(true)
-        , m_tearingSupported(false)
-        , m_fullscreen(false)
+        , m_bIsVSync(true)
+        , m_bIsTearingSupported(false)
+        , m_bIsFullscreen(false)
     {
         assert(hWnd);
         // Check for tearing support.
-        /*BOOL allowTearing = FALSE;
+
+        auto &device = Device::GetInstance();
+        auto commandQueue = device.GetCommandQueue();
+        
+        auto dxgiFactory4 = device.GetFactory();
+        ComPtr<IDXGIFactory5> dxgiFactory5;
+
+        ThrowIfFailed(dxgiFactory4.As(&dxgiFactory5));
+
+        BOOL allowTearing = FALSE;
         if (SUCCEEDED(dxgiFactory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(BOOL))))
         {
-            m_tearingSupported = (allowTearing == TRUE);
-        }*/
+            m_bIsTearingSupported = (allowTearing == TRUE);
+        }
 
         RECT rect;
         GetClientRect(hWnd, &rect);
@@ -42,35 +51,28 @@ namespace Blainn
         swapChainDesc.SampleDesc = {1u, 0u}; // No MSAA
         swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         swapChainDesc.BufferCount = SwapChainFrameCount;
-        //swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
+        swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
         swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-        swapChainDesc.Flags = m_tearingSupported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0u;
-        swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        swapChainDesc.Flags = m_bIsTearingSupported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0u;
+        swapChainDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
         DXGI_SWAP_CHAIN_FULLSCREEN_DESC swapChainFullScreenDesc = {};
         swapChainFullScreenDesc.RefreshRate.Numerator = 60u;
         swapChainFullScreenDesc.RefreshRate.Denominator = 1u;
         swapChainFullScreenDesc.Windowed = TRUE;
 
-        auto &device = Device::GetInstance();
-        auto commandQueue = device.GetCommandQueue();
-        
-        auto factory = device.GetFactory();
-
         ComPtr<IDXGISwapChain1> swapChain;
-        
-        ThrowIfFailed(factory->CreateSwapChainForHwnd(
-            commandQueue->GetCommandQueue().Get(), // Swap chain needs the queue so that it can force a flush on it.
+        ThrowIfFailed(dxgiFactory4->CreateSwapChainForHwnd(commandQueue->GetCommandQueue().Get(), // Swap chain needs the queue so that it can force a flush on it.
             hWnd, &swapChainDesc, &swapChainFullScreenDesc, nullptr, &swapChain));
 
+#if defined(DEBUG) || defined(_DEBUG)
         HRESULT hr = device.GetDevice2()->GetDeviceRemovedReason();
         auto error = _com_error(hr);
         BF_ERROR("{}", error.ErrorMessage());
-
+#endif
         // This sample does not support fullscreen transitions.
-        ThrowIfFailed(factory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER));
-
+        ThrowIfFailed(dxgiFactory4->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER));
         ThrowIfFailed(swapChain.As(&m_dxgiSwapChain));
 
         //ResetRenderTargets();
@@ -83,11 +85,11 @@ namespace Blainn
 
     void SwapChain::SetFullscreen(bool fullscreen)
     {
-        if (m_fullscreen != fullscreen)
+        if (m_bIsFullscreen != fullscreen)
         {
-            m_fullscreen = fullscreen;
+            m_bIsFullscreen = fullscreen;
             // TODO:
-            // m_dxgiSwapChain->SetFullscreenState()
+            //m_dxgiSwapChain->SetFullscreenState();
         }
     }
 
@@ -111,11 +113,9 @@ namespace Blainn
 
             DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
             ThrowIfFailed(m_dxgiSwapChain->GetDesc(&swapChainDesc));
-            ThrowIfFailed(m_dxgiSwapChain->ResizeBuffers(SwapChainFrameCount, m_width, m_height,
-                                                         swapChainDesc.BufferDesc.Format, swapChainDesc.Flags));
+            ThrowIfFailed(m_dxgiSwapChain->ResizeBuffers(SwapChainFrameCount, m_width, m_height, swapChainDesc.BufferDesc.Format, swapChainDesc.Flags));
             
             m_currBackBuffer = m_dxgiSwapChain->GetCurrentBackBufferIndex();
-
             ResetRenderTargets();
         }
     }
@@ -127,10 +127,10 @@ namespace Blainn
 
     VOID SwapChain::Present()
     {
-        /*UINT syncInterval = m_VSync ? 1 : 0;
-        UINT presentFlags = m_IsTearingSupported && !m_VSync ? DXGI_PRESENT_ALLOW_TEARING : 0;*/
+        UINT syncInterval = m_bIsVSync ? 1u : 0u;
+        UINT presentFlags = m_bIsTearingSupported && !m_bIsFullscreen && !m_bIsVSync ? DXGI_PRESENT_ALLOW_TEARING : 0u;
 
-        ThrowIfFailed(m_dxgiSwapChain->Present(1u, 0u));
+        ThrowIfFailed(m_dxgiSwapChain->Present(syncInterval, presentFlags));
         m_currBackBuffer = m_dxgiSwapChain->GetCurrentBackBufferIndex();
     }
 

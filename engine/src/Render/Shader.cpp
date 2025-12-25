@@ -1,6 +1,6 @@
 #include "Render/Shader.h"
 
-namespace Blainnflare
+namespace Blainn
 {
 	void Shader::AddDefines()
 	{

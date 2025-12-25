@@ -16,15 +16,12 @@
 #include "Render/FrameResource.h"
 #include "Render/FreyaMath.h"
 #include "Render/FreyaUtil.h"
-#include "Render/PipelineStateObject.h"
 #include "Render/PrebuiltEngineMeshes.h"
-#include "Render/RootSignature.h"
-#include "Render/Shader.h"
 
 #include <cassert>
 
-using namespace Blainn;
-
+namespace Blainn
+{
 void Blainn::RenderSubsystem::PreInit()
 {
     CreateDescriptorHeaps();
@@ -376,8 +373,8 @@ void Blainn::RenderSubsystem::LoadSrvAndSamplerDescriptorHeaps()
     m_GBuffer->CreateDescriptors();
 
     m_skyCubeSrvHeapStartIndex = m_GBufferTexturesSrvHeapStartIndex + GBuffer::EGBufferLayer::MAX;
-    /*localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize);
-    for (auto &e : m_skyTextures)
+    localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize);
+    /*for (auto &e : m_skyTextures)
     {
         auto &texD3DResource = e.second->Resource;
         srvDesc.Format = texD3DResource->GetDesc().Format;
@@ -437,34 +434,34 @@ void Blainn::RenderSubsystem::CreateShaders()
 
     const D3D_SHADER_MACRO shadowDebugDefines[] = {"SHADOW_DEBUG", "1", NULL, NULL};
 
-    m_shaders[EShaderType::CascadedShadowsVS] =
+    m_shaders[Shader::EShaderType::CascadedShadowsVS] =
         FreyaUtil::CompileShader(L"./Content/Shaders/ShadowVS.hlsl", nullptr, "main", "vs_5_1");
-    m_shaders[EShaderType::CascadedShadowsGS] =
+    m_shaders[Shader::EShaderType::CascadedShadowsGS] =
         FreyaUtil::CompileShader(L"./Content/Shaders/CascadesGS.hlsl", nullptr, "main", "gs_5_1");
 
 #pragma region DeferredShading
-    m_shaders[EShaderType::DeferredGeometryVS] =
+    m_shaders[Shader::EShaderType::DeferredGeometryVS] =
         FreyaUtil::CompileShader(L"./Content/Shaders/GBufferPassVS.hlsl", nullptr, "main", "vs_5_1");
-    m_shaders[EShaderType::DeferredGeometryPS] =
+    m_shaders[Shader::EShaderType::DeferredGeometryPS] =
         FreyaUtil::CompileShader(L"./Content/Shaders/GBufferPassPS.hlsl", nullptr, "main", "ps_5_1");
 
-    m_shaders[EShaderType::DeferredDirVS] =
+    m_shaders[Shader::EShaderType::DeferredDirVS] =
         FreyaUtil::CompileShader(L"./Content/Shaders/DeferredDirectionalLightVS.hlsl", nullptr, "main", "vs_5_1");
-    m_shaders[EShaderType::DeferredDirPS] =
+    m_shaders[Shader::EShaderType::DeferredDirPS] =
         FreyaUtil::CompileShader(L"./Content/Shaders/DeferredDirectionalLightPS.hlsl", nullptr, "main", "ps_5_1");
 
-    m_shaders[EShaderType::DeferredLightVolumesVS] =
+    m_shaders[Shader::EShaderType::DeferredLightVolumesVS] =
         FreyaUtil::CompileShader(L"./Content/Shaders/LightVolumesVS.hlsl", nullptr, "main", "vs_5_1");
-    m_shaders[EShaderType::DeferredPointPS] =
+    m_shaders[Shader::EShaderType::DeferredPointPS] =
         FreyaUtil::CompileShader(L"./Content/Shaders/DeferredPointLightPS.hlsl", nullptr, "main", "ps_5_1");
-    m_shaders[EShaderType::DeferredSpotPS] =
+    m_shaders[Shader::EShaderType::DeferredSpotPS] =
         FreyaUtil::CompileShader(L"./Content/Shaders/DeferredSpotLightPS.hlsl", nullptr, "main", "ps_5_1");
 #pragma endregion DeferredShading
 
 #pragma region ForwardShading
     #pragma region SkyBox
-        m_shaders[EShaderType::SkyBoxVS] = FreyaUtil::CompileShader(L"./Content/Shaders/SkyBox.hlsl", nullptr, "VSMain", "vs_5_1");
-        m_shaders[EShaderType::SkyBoxPS] = FreyaUtil::CompileShader(L"./Content/Shaders/SkyBox.hlsl", nullptr, "PSMain", "ps_5_1");
+        m_shaders[Shader::EShaderType::SkyBoxVS] = FreyaUtil::CompileShader(L"./Content/Shaders/SkyBox.hlsl", nullptr, "VSMain", "vs_5_1");
+        m_shaders[Shader::EShaderType::SkyBoxPS] = FreyaUtil::CompileShader(L"./Content/Shaders/SkyBox.hlsl", nullptr, "PSMain", "ps_5_1");
     #pragma endregion SkyBox
 #pragma endregion ForwardShading
 }
@@ -491,11 +488,11 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     D3D12_GRAPHICS_PIPELINE_STATE_DESC cascadeShadowPsoDesc = defaultPsoDesc;
 
     cascadeShadowPsoDesc.VS = D3D12_SHADER_BYTECODE(
-        {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::CascadedShadowsVS)->GetBufferPointer()),
-         m_shaders.at(EShaderType::CascadedShadowsVS)->GetBufferSize()});
+        {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::CascadedShadowsVS)->GetBufferPointer()),
+         m_shaders.at(Shader::EShaderType::CascadedShadowsVS)->GetBufferSize()});
     cascadeShadowPsoDesc.GS = D3D12_SHADER_BYTECODE(
-        {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::CascadedShadowsGS)->GetBufferPointer()),
-         m_shaders.at(EShaderType::CascadedShadowsGS)->GetBufferSize()});
+        {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::CascadedShadowsGS)->GetBufferPointer()),
+         m_shaders.at(Shader::EShaderType::CascadedShadowsGS)->GetBufferSize()});
 
     cascadeShadowPsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
     cascadeShadowPsoDesc.RasterizerState.DepthBias = 10000;
@@ -505,44 +502,46 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     cascadeShadowPsoDesc.NumRenderTargets = 0u;
     cascadeShadowPsoDesc.RTVFormats[0] = DXGI_FORMAT_UNKNOWN;
     ThrowIfFailed(
-        m_device.CreateGraphicsPipelineState(cascadeShadowPsoDesc, m_pipelineStates[EPsoType::CascadedShadowsOpaque]));
+        m_device.CreateGraphicsPipelineState(cascadeShadowPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::CascadedShadowsOpaque]));
 #pragma endregion CascadeShadowsDepthPass
 
 #pragma region DeferredShading
     D3D12_GRAPHICS_PIPELINE_STATE_DESC GBufferPsoDesc = defaultPsoDesc;
 
     GBufferPsoDesc.VS = D3D12_SHADER_BYTECODE(
-        {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredGeometryVS)->GetBufferPointer()),
-         m_shaders.at(EShaderType::DeferredGeometryVS)->GetBufferSize()});
+        {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::DeferredGeometryVS)->GetBufferPointer()),
+         m_shaders.at(Shader::EShaderType::DeferredGeometryVS)->GetBufferSize()});
     GBufferPsoDesc.PS = D3D12_SHADER_BYTECODE(
-        {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredGeometryPS)->GetBufferPointer()),
-         m_shaders.at(EShaderType::DeferredGeometryPS)->GetBufferSize()});
+        {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::DeferredGeometryPS)->GetBufferPointer()),
+         m_shaders.at(Shader::EShaderType::DeferredGeometryPS)->GetBufferSize()});
 
     GBufferPsoDesc.NumRenderTargets = static_cast<UINT>(GBuffer::EGBufferLayer::MAX) - 1u;
     GBufferPsoDesc.RTVFormats[0] = m_GBuffer->GetBufferTextureFormat(GBuffer::EGBufferLayer::DIFFUSE_ALBEDO);
     GBufferPsoDesc.RTVFormats[1] = m_GBuffer->GetBufferTextureFormat(GBuffer::EGBufferLayer::AMBIENT_OCCLUSION);
     GBufferPsoDesc.RTVFormats[2] = m_GBuffer->GetBufferTextureFormat(GBuffer::EGBufferLayer::NORMAL);
     GBufferPsoDesc.RTVFormats[3] = m_GBuffer->GetBufferTextureFormat(GBuffer::EGBufferLayer::SPECULAR);
-    ThrowIfFailed(m_device.CreateGraphicsPipelineState(GBufferPsoDesc, m_pipelineStates[EPsoType::DeferredGeometry]));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(
+        GBufferPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::DeferredGeometry]));
 
     // not sure it works
 #pragma region Wireframe
     D3D12_GRAPHICS_PIPELINE_STATE_DESC opaqueWireframe = GBufferPsoDesc;
     opaqueWireframe.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-    ThrowIfFailed(m_device.CreateGraphicsPipelineState(opaqueWireframe, m_pipelineStates[EPsoType::Wireframe]));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(opaqueWireframe,
+                                                       m_pipelineStates[PipelineStateObject::EPsoType::Wireframe]));
 #pragma endregion Wireframe
 
 #pragma region DeferredDirectional
     D3D12_GRAPHICS_PIPELINE_STATE_DESC dirLightPsoDesc = defaultPsoDesc;
     dirLightPsoDesc.VS =
-        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredDirVS)->GetBufferPointer()),
-                               m_shaders.at(EShaderType::DeferredDirVS)->GetBufferSize()});
+        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::DeferredDirVS)->GetBufferPointer()),
+                               m_shaders.at(Shader::EShaderType::DeferredDirVS)->GetBufferSize()});
     dirLightPsoDesc.PS =
-        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredDirPS)->GetBufferPointer()),
-                               m_shaders.at(EShaderType::DeferredDirPS)->GetBufferSize()});
+        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::DeferredDirPS)->GetBufferPointer()),
+                               m_shaders.at(Shader::EShaderType::DeferredDirPS)->GetBufferSize()});
     dirLightPsoDesc.InputLayout = SimpleVertex::InputLayout;
-    ThrowIfFailed(
-        m_device.CreateGraphicsPipelineState(dirLightPsoDesc, m_pipelineStates[EPsoType::DeferredDirectional]));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(
+        dirLightPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::DeferredDirectional]));
 #pragma endregion DeferredDirectional
 
 #pragma region DeferredPointLight
@@ -564,11 +563,11 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     RTBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
     pointLightIntersectsFarPlanePsoDesc.VS = D3D12_SHADER_BYTECODE(
-        {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredLightVolumesVS)->GetBufferPointer()),
-         m_shaders.at(EShaderType::DeferredLightVolumesVS)->GetBufferSize()});
+        {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::DeferredLightVolumesVS)->GetBufferPointer()),
+         m_shaders.at(Shader::EShaderType::DeferredLightVolumesVS)->GetBufferSize()});
     pointLightIntersectsFarPlanePsoDesc.PS =
-        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredPointPS)->GetBufferPointer()),
-                               m_shaders.at(EShaderType::DeferredPointPS)->GetBufferSize()});
+        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::DeferredPointPS)->GetBufferPointer()),
+                               m_shaders.at(Shader::EShaderType::DeferredPointPS)->GetBufferSize()});
     pointLightIntersectsFarPlanePsoDesc.BlendState.AlphaToCoverageEnable = FALSE;
     pointLightIntersectsFarPlanePsoDesc.BlendState.IndependentBlendEnable = FALSE;
     pointLightIntersectsFarPlanePsoDesc.BlendState.RenderTarget[0] = RTBlendDesc;
@@ -581,22 +580,22 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.StencilReadMask = 0xFF;
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.StencilWriteMask = 0xFF;
     ThrowIfFailed(m_device.CreateGraphicsPipelineState(pointLightIntersectsFarPlanePsoDesc,
-                                                       m_pipelineStates[EPsoType::DeferredPointIntersectsFarPlane]));
+        m_pipelineStates[PipelineStateObject::EPsoType::DeferredPointIntersectsFarPlane]));
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC pointLightWithinFrustumPsoDesc = pointLightIntersectsFarPlanePsoDesc;
     pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; // ???
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
-    ThrowIfFailed(m_device.CreateGraphicsPipelineState(pointLightWithinFrustumPsoDesc,
-                                                       m_pipelineStates[EPsoType::DeferredPointWithinFrustum]));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(pointLightWithinFrustumPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::DeferredPointWithinFrustum]));
 
 #pragma endregion DeferredPointLight
 
 #pragma region DeferredSpotLight
     D3D12_GRAPHICS_PIPELINE_STATE_DESC spotLightPsoDesc = pointLightIntersectsFarPlanePsoDesc;
     spotLightPsoDesc.PS =
-        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::DeferredSpotPS)->GetBufferPointer()),
-                               m_shaders.at(EShaderType::DeferredSpotPS)->GetBufferSize()});
-    ThrowIfFailed(m_device.CreateGraphicsPipelineState(spotLightPsoDesc, m_pipelineStates[EPsoType::DeferredSpot]));
+        D3D12_SHADER_BYTECODE({reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::DeferredSpotPS)->GetBufferPointer()),
+                               m_shaders.at(Shader::EShaderType::DeferredSpotPS)->GetBufferSize()});
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(spotLightPsoDesc,
+                                                       m_pipelineStates[PipelineStateObject::EPsoType::DeferredSpot]));
 #pragma endregion DeferredSpotLight
 #pragma endregion DeferredShading
 
@@ -612,11 +611,12 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     skyPsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
     skyPsoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO; // Disable writing explicitly (Depth still enable)
     skyPsoDesc.InputLayout = VertexPosition::InputLayout;
-    skyPsoDesc.VS = {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::SkyBoxVS)->GetBufferPointer()),
-                     m_shaders.at(EShaderType::SkyBoxVS)->GetBufferSize()};
-    skyPsoDesc.PS = {reinterpret_cast<BYTE *>(m_shaders.at(EShaderType::SkyBoxPS)->GetBufferPointer()),
-                     m_shaders.at(EShaderType::SkyBoxPS)->GetBufferSize()};
-    ThrowIfFailed(m_device.CreateGraphicsPipelineState(skyPsoDesc, m_pipelineStates[EPsoType::Sky]));
+    skyPsoDesc.VS = {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::SkyBoxVS)->GetBufferPointer()),
+                     m_shaders.at(Shader::EShaderType::SkyBoxVS)->GetBufferSize()};
+    skyPsoDesc.PS = {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::SkyBoxPS)->GetBufferPointer()),
+                     m_shaders.at(Shader::EShaderType::SkyBoxPS)->GetBufferSize()};
+    ThrowIfFailed(
+        m_device.CreateGraphicsPipelineState(skyPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::Sky]));
 #pragma endregion Sky
 }
 
@@ -806,7 +806,7 @@ void Blainn::RenderSubsystem::RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pC
     pCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u,
                                         nullptr);
 
-    pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::CascadedShadowsOpaque).Get());
+    pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::CascadedShadowsOpaque).Get());
     DrawMeshes(pCommandList);
 
     ResourceBarrier(pCommandList, m_cascadeShadowMap->Get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_GENERIC_READ);
@@ -857,7 +857,7 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
     pCommandList->ClearRenderTargetView(m_GBuffer->GetRtv(GBuffer::EGBufferLayer::SPECULAR), clearColor, 0u, nullptr);
     pCommandList->ClearDepthStencilView(m_GBuffer->GetDsv(GBuffer::EGBufferLayer::DEPTH), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u, nullptr);
 
-    pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::DeferredGeometry).Get());
+    pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::DeferredGeometry).Get());
 
     DrawMeshes(pCommandList);
 
@@ -889,7 +889,7 @@ void Blainn::RenderSubsystem::DeferredDirectionalLightPass(ID3D12GraphicsCommand
     auto rtvHandle = GetRTV();
     auto dsvHandle = GetDSV();
 
-    const float *clearColor = &m_mainPassCBData.FogColor.x;
+    const float clearColor[4] = {0.7f, 0.7f, 0.7f, 1.0f};
     pCommandList->OMSetRenderTargets(1u, &rtvHandle, TRUE, &dsvHandle);
     pCommandList->ClearRenderTargetView(rtvHandle, clearColor, 0u, nullptr);
     pCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0u, 0u, nullptr);
@@ -908,7 +908,7 @@ void Blainn::RenderSubsystem::DeferredDirectionalLightPass(ID3D12GraphicsCommand
     pCommandList->SetGraphicsRootDescriptorTable(RootSignature::ERootParam::SkyBox, CD3DX12_GPU_DESCRIPTOR_HANDLE(srvGpuStart, m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
 #pragma endregion BypassResources
 
-    pCommandList->SetPipelineState(m_pipelineStates.at(EPsoType::DeferredDirectional).Get());
+    pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::DeferredDirectional).Get());
     DrawQuad(pCommandList);
 }
 
@@ -938,8 +938,62 @@ void Blainn::RenderSubsystem::DeferredSpotLightPass(ID3D12GraphicsCommandList2 *
 {
 }
 
+void Blainn::RenderSubsystem::RenderForwardPasses(ID3D12GraphicsCommandList2 *pCommandList)
+{
+    // forward-like
+    // RenderTransparencyPass(pCommandList);
+    RenderSkyBoxPass(pCommandList);
+
+    // Close accumulation buffer, that was opened in the light pass and indicate that the back buffer will now be used to present.
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+}
+
 void Blainn::RenderSubsystem::RenderTransparencyPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
+}
+
+void Blainn::RenderSubsystem::RenderSkyBoxPass(ID3D12GraphicsCommandList2 *pCommandList)
+{
+    UINT passCBByteSize = FreyaUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
+
+    // Set GBuffer depth for read to properly draw sky box
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_READ);
+
+    auto rtvHandle = GetRTV();
+    CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart(), 2, m_dsvDescriptorSize);
+    pCommandList->OMSetRenderTargets(1u, &rtvHandle, TRUE, &dsvHandle);
+
+    auto currFramePassCB = m_currFrameResource->PassCB->Get();
+    auto currFrameGPUVirtualAddress = FreyaUtil::GetGPUVirtualAddress(currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DeferredLighting));
+    pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerPassDataCB, currFrameGPUVirtualAddress);
+
+    // Bind SkyBox texture
+    pCommandList->SetGraphicsRootDescriptorTable(RootSignature::ERootParam::SkyBox, CD3DX12_GPU_DESCRIPTOR_HANDLE(m_srvHeap->GetGPUDescriptorHandleForHeapStart(), m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
+    pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::Sky).Get());
+    DrawMesh(pCommandList/*, m_skyRenderItem*/);
+    
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
+}
+
+void Blainn::RenderSubsystem::DrawMesh(ID3D12GraphicsCommandList2 *pCommandList)
+{
+    UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
+
+    //auto skyBox = AssetManager::GetDefaultMesh();
+    auto& model = skyBox->MeshHandle->GetMesh();
+    auto currVBV = model.VertexBufferView();
+    auto currIBV = model.IndexBufferView();
+    auto currFrameObjCB = skyBox->ObjectCB->Get();
+
+    pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
+    pCommandList->IASetIndexBuffer(&currIBV);
+
+    D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currFrameObjCB->GetGPUVirtualAddress(), objCBByteSize, 0u);
+
+    pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerObjectDataCB, objCBAddress);
+
+    pCommandList->DrawIndexedInstanced(model.GetIndicesCount(), 1u, 0u, 0u, 0u);
 }
 
 void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList)
@@ -1072,4 +1126,5 @@ eastl::vector<XMVECTOR> Blainn::RenderSubsystem::GetFrustumCornersWorldSpace(con
         }
     }
     return frustumCorners;
+}
 }

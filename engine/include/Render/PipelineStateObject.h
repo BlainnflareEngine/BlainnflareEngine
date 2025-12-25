@@ -2,7 +2,7 @@
 
 #include "Render/DXHelpers.h"
 
-namespace Blainnflare
+namespace Blainn
 {
     struct BlainnPipelineStateDesc
     {
@@ -12,7 +12,7 @@ namespace Blainnflare
     class PipelineStateObject
     {
     public:
-        enum class EPsoType : UINT
+        enum EPsoType : UINT
         {
             CascadedShadowsOpaque = 0,
 
@@ -26,8 +26,9 @@ namespace Blainnflare
             DeferredSpot,
 
             Transparency,
+            Sky,
 
-            NumPipelineStates = 9u
+            NumPipelineStates = 10u
         };
 
     public:

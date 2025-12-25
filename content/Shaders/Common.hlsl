@@ -20,7 +20,7 @@
 #endif
 
 #ifndef INVALID_INDEX 
-    #define INVALID_INDEX 4294967295
+    #define INVALID_INDEX 4294967295u
 #endif
 
 #include "LightUtil.hlsl"
@@ -66,9 +66,9 @@ cbuffer cbPerPass : register(b1)
     
     float4 gAmbient;
     
-    float4 gFogColor;
-    float gFogStart;
-    float gFogRange;
+    //float4 gFogColor;
+    //float gFogStart;
+    //float gFogRange;
     
     Light gDirLight;
 };
@@ -80,7 +80,7 @@ StructuredBuffer<InstanceData /*Light*/> gSpotLights : register(t2);
 Texture2DArray gShadowMaps : register(t0, space1);
 Texture2D gGBuffer[GBufferSize] : register(t1, space1); // t1, t2, t3, t4, t5 in space1
 TextureCube gCubeMap : register(t6, space1);
-Texture2D gDiffuseMap[]: register(t7, space1);
+Texture2D gTextures[] : register(t7, space1);
 
 SamplerState gSamplerPointWrap : register(s0);
 SamplerState gSamplerLinearWrap : register(s1);
