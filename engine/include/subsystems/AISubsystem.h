@@ -32,13 +32,13 @@ public:
 private:
     AISubsystem() = default;
 
-    void LoadBehaviourTrees();
-    void LoadUtilities(); // на будущее
+    void LoadBlackboard(std::unique_ptr<Blackboard> &blackboard);
+    void LoadBehaviourTrees(BTMap &behaviourTrees);
+    void LoadUtility(std::unique_ptr<UtilitySelector> &utility);
 
 private:
     sol::state* m_lua = nullptr;
 
-    std::unordered_map<std::string, std::unique_ptr<BehaviourTree>> m_behaviourTrees;
     std::unordered_map<uuid, AIController> m_controllers;
 };
 } // namespace Blainn

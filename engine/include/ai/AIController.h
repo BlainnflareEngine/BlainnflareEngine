@@ -15,28 +15,26 @@ public:
     AIController() = default;
 
     void Init(
-        std::unordered_map<std::string, BehaviourTree*> trees, // TODO: Currently controller doesn't own bt, mb it's wrong, mb utility doesn't need to be in here too, idk, nada podumot'
-        std::unique_ptr<UtilitySelector> utility
+        BTMap trees,
+        std::unique_ptr<UtilitySelector> utility,
+        std::unique_ptr<Blackboard> blackboard
     );
 
     void Update(float dt);
 
-    Blackboard& GetBlackboard() { return m_blackboard; }
+    Blackboard& GetBlackboard() { return *m_blackboard; }
+    void SetActiveBT(const std::string& treeName);
 
 private:
-    void SwitchTree(const std::string& treeName);
-
-private:
-    Blackboard m_blackboard;
+    std::unique_ptr<UtilitySelector> m_utility;
     UtilityContext m_utilityContext;
 
-    std::unique_ptr<UtilitySelector> m_utility;
-
-    std::unordered_map<std::string, BehaviourTree*> m_trees;
-
+    BTMap m_trees;
     BehaviourTree* m_activeTree = nullptr;
     std::string m_activeTreeName;
     std::string m_activeDecisionName;
+
+    std::unique_ptr<Blackboard> m_blackboard;
 };
 
 } // namespace Blainn

@@ -16,6 +16,7 @@ public:
     UtilitySelector( std::vector<UtilityDecision> decisions, Settings settings = {} );
 
     std::string Evaluate( UtilityContext& context, Blackboard& blackboard, float deltaTime );
+    std::string FindDecisionBTName( std::string decisionName );
 
 private:
     std::vector<UtilityDecision> m_decisions;

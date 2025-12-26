@@ -21,4 +21,7 @@ private:
     std::string m_name;
     BTNodePtr m_root;
 };
+
+using BTMap = std::unordered_map<std::string, std::unique_ptr<BehaviourTree>>;
+
 }

@@ -73,3 +73,11 @@ std::string Blainn::UtilitySelector::Evaluate(UtilityContext &context, Blackboar
     context.currentDecision = bestDecision;
     return bestDecision;
 }
+
+std::string Blainn::UtilitySelector::FindDecisionBTName(std::string decisionName)
+{
+    for (auto decision : m_decisions)
+        if (decision.name == decisionName)
+            return decision.BTName;
+    return std::string();
+}

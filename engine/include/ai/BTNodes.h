@@ -26,7 +26,6 @@ struct BTNode
 };
 
 using BTNodePtr = std::unique_ptr<BTNode>;
-using BTMap = std::unordered_map<std::string, std::unique_ptr<BehaviourTree>>;
 
 struct CompositeNode : BTNode
 {

@@ -16,11 +16,13 @@ using BlackboardValue = std::variant<
 
 struct AIControllerComponent
 {
-    std::string utilityProfile;
+    // std::string utilityProfile;
 
-    std::vector<std::string> behaviourTrees;
+    // std::vector<std::string> behaviourTrees;
 
-    std::unordered_map<std::string, BlackboardValue> initialBlackboard;
+    // std::unordered_map<std::string, BlackboardValue> initialBlackboard;
+
+    std::string ScriptPath;
 };
 
 } // namespace Blainn
