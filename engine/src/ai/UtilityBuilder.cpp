@@ -30,3 +30,32 @@ std::unique_ptr<Blainn::UtilitySelector> Blainn::UtilityBuilder::Build(sol::tabl
 
     return std::make_unique<UtilitySelector>(std::move(decisions), settings);
 }
+
+// Вот так должен выглядеть table в lua для utility
+// UtilityAI =
+// {
+//     normalize = true,
+//     hysteresis = 0.2,
+
+//     decisions =
+//     {
+//         {
+//             name = "Idle",
+//             bt   = "Idle",
+
+//             score = function(bb)
+//                 return 0.1
+//             end
+//         },
+
+//         {
+//             name = "Chase",
+//             bt   = "Chase",
+
+//             cooldown = 1.0,
+//             score = function(bb)
+//                 return bb.seesEnemy and 1.0 or 0.0
+//             end
+//         }
+//     }
+// }

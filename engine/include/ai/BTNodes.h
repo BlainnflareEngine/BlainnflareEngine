@@ -15,7 +15,7 @@ enum class BTStatus : uint8_t
     Failure = 1, 
     Running = 2, 
     Aborted = 3, 
-    Error = 4,
+    Error = 4, // TODO: Make Error and Aborted logic for BT
 };
 
 struct BTNode
@@ -26,7 +26,7 @@ struct BTNode
 };
 
 using BTNodePtr = std::unique_ptr<BTNode>;
-using BTMap = std::unordered_map<std::string, BTNodePtr>;
+using BTMap = std::unordered_map<std::string, std::unique_ptr<BehaviourTree>>;
 
 struct CompositeNode : BTNode
 {

@@ -52,6 +52,226 @@ BTBuilder &BTBuilder::End()
     return *this;
 }
 
+bool BTBuilder::ReadLuaBTType(sol::table node, BTType& outType)
+{
+    sol::object t = node["type"];
+    if (!t.valid() || t.get_type() == sol::type::nil)
+    {
+        BF_ERROR("ReadLuaBTType(): node missing 'type'");
+        return false;
+    }
+
+    if (!t.is<int>())
+    {
+        BF_ERROR("ReadLuaBTType(): 'type' must be an int enum");
+        return false;
+    }
+
+    outType = static_cast<BTType>(t.as<int>());
+    return true;
+}
+
+bool BTBuilder::ReadLuaChildrenTable(sol::table node, sol::table& out)
+{
+    sol::object c = node["children"];
+    if (!c.valid() || c.get_type() == sol::type::nil)
+    {
+        out = sol::table(); // empty -> allowed for composites (you can make this an error)
+        return true;
+    }
+    if (!c.is<sol::table>())
+    {
+        BF_ERROR("ReadLuaChildrenTable(): 'children' must be a table");
+        return false;
+    }
+    out = c.as<sol::table>();
+    return;
+}
+
+bool BTBuilder::ReadLuaActionFn(sol::table node, sol::function& outFn)
+{
+    sol::object f = node["fn"];
+    if (!f.valid() || f.get_type() == sol::type::nil)
+    {
+        BF_ERROR("ReadLuaActionFn(): Action node missing 'fn'");
+        return false;
+    }
+    if (!f.is<sol::function>())
+    {
+        BF_ERROR("ReadLuaActionFn(): Action node 'fn' must be a function");
+        return false;
+    }
+
+    outFn = f.as<sol::function>();
+    return false;
+}
+
+bool BTBuilder::ParseDecorators(sol::table node)
+{
+    sol::object d = node["decorators"];
+
+    if (!d.valid() || d == sol::nil)
+        return false;
+
+    sol::table decorators = d.as<sol::table>();
+
+    for (std::size_t i = 1;; ++i)
+    {
+        sol::object o = decorators[i];
+        if (!o.valid() || o == sol::nil) 
+            break;
+
+        sol::table dec = o;
+        BTType type;
+        if (!ReadLuaBTType(dec, type))
+        {
+            BF_ERROR("ParseDecorators(): ReadLuaBTType didn't return type")
+            Reset();
+            return false;
+        }
+
+        sol::function fn = dec["fn"];
+
+        if (type == BTType::Negate)
+            AddNegate();
+        else if (type == BTType::Condition)
+        {
+            if (!fn.valid())
+            {
+                BF_ERROR("ParseDecorators(): Condition node doesn't have condition function");
+                Reset();
+                return false;
+            }
+            AddCondition(fn);
+        }
+        else
+            BF_ERROR("ParseDecorators(): Unknown decorator type enum while parsing");
+            Reset();
+            return false;
+    }
+
+    return true;
+}
+
+bool BTBuilder::CalculateBT(sol::table node)
+{
+    if (HasError())
+    {
+        BF_ERROR("BTBuilder::CalculateBT(): BTBuilder has errors")
+        return false;
+    }
+
+    if (!node.valid())
+    {
+        BF_ERROR("BTBuilder::CalculateBT(): invalid node table");
+        return false;
+    }
+
+    if (!ParseDecorators(node))
+    {
+        BF_ERROR("BTBuilder::CalculateBT(): ParseDecorators has errors");
+        return false;
+    }
+
+    BTType type;
+    if (!ReadLuaBTType(node, type))
+    {
+        BF_ERROR("BTBuilder::CalculateBT(): ReadLuaBTType didn't return type")
+        Reset();
+        return false;
+    }
+
+    switch (type) {
+        case BTType::Sequence:
+        case BTType::Selector:
+        {
+            if (type == BTType::Selector)
+                AddSelector();
+            else if (type == BTType::Sequence)
+                AddSequence();
+            
+            sol::table children;
+            if (!ReadLuaChildrenTable(node, children))
+            {
+                BF_ERROR("BTBuilder::CalculateBT(): ReadLuaChildrenTable didn't return children")
+                Reset();
+                return false;
+            }
+
+            if (children.valid())
+            {
+                for (std::size_t i = 1;; ++i)
+                {
+                    sol::object childObj = children[i];
+                    if (!childObj.valid() || childObj.get_type() == sol::type::nil)
+                        break;
+
+                    if (!childObj.is<sol::table>())
+                    {
+                        BF_ERROR("BTBuilder::BT parse: child must be a table");
+                        Reset();
+                        return false;
+                    }
+
+                    CalculateBT(childObj.as<sol::table>());
+                    if (HasError())
+                    {
+                        BF_ERROR("BTBuilder::CalculateBT(): CalculateBT has errors");
+                        return false;
+                    }
+                }
+            }
+
+            End();
+            return false;
+        }
+        case BTType::Action:
+        {
+            sol::function fn;
+            if (!ReadLuaActionFn(node, fn))
+            {
+                BF_ERROR("BTBuilder::CalculateBT(): ReadLuaActionFn didn't return function");
+                Reset();
+                return false;
+            }
+            AddAction(fn);
+            return false;
+        }
+        case BTType::Negate:
+        {
+            AddNegate();
+
+            sol::table children;
+            if (!ReadLuaChildrenTable(node, children))
+            {
+                BF_ERROR("BTBuilder::CalculateBT(): ReadLuaChildrenTable didn't return table")
+                Reset();
+                return false;
+            }
+            if (!children.valid() || children[1] == sol::nil)
+            {
+                BF_ERROR("BTBuilder::CalculateBT(): Negate must have exactly one child")
+                Reset();
+                return false;
+            }
+            if (children[2] != sol::nil)
+            {
+                BF_ERROR("BTBuilder::CalculateBT(): Negate must have only one child")
+                Reset();
+                return false;               
+            }
+
+            sol::object c = children[1];
+            CalculateBT(c.as<sol::table>());
+            return false;
+        }
+        default:
+            BF_ERROR("BTBuilder::CalculateBT(): unknown node type enum while parsing");
+            Reset();
+            return false;
+    }
+}
+
 BTNodePtr BTBuilder::Build()
 {
     if (m_hasError)
@@ -76,12 +296,33 @@ BTNodePtr BTBuilder::Build()
     return std::move(m_root);
 }
 
+std::unique_ptr<BehaviourTree> BTBuilder::BuildFromLua(sol::table rootTable)
+{
+    sol::object nameObj = rootTable["name"];
+    if (!nameObj.valid() || !nameObj.is<std::string>())
+    {
+        BF_ERROR("BT must have string name");
+        return nullptr;
+    }
+
+    std::string name = nameObj.as<std::string>();
+
+    if (!CalculateBT(rootTable))
+    {
+        BF_ERROR("Failed to build BT: " + name);
+        return nullptr;
+    }
+
+    BTNodePtr root = Build();
+
+    return std::make_unique<BehaviourTree>(name, std::move(root));
+}
+
 void BTBuilder::Reset()
 {
     m_root->Reset();
     m_stack.clear();
     m_pendingDecorators.clear();
-    m_btName = "None";
     m_hasError = false;
 }
 
@@ -146,16 +387,5 @@ bool Blainn::BTBuilder::WrapDecorators(BTNodePtr &node)
     }
 
     m_pendingDecorators.clear();
-    return true;
-}
-
-bool Blainn::BTBuilder::SetBTName(const std::string& newName)
-{
-    if(newName.empty())
-    {
-        BF_ERROR("BT name is empty");
-        return false;
-    }
-    m_btName = newName;
     return true;
 }

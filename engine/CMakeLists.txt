@@ -118,13 +118,26 @@ set(ENGINE_SOURCES
 
         include/subsystems/AISubsystem.h
         src/subsystems/AISubsystem.cpp
-        # include/components/AIControllerComponent.h
+        include/ai/AIController.h
+        src/ai/AIController.cpp
+        include/components/AIControllerComponent.h
         include/ai/Blackboard.h
-        include/ai/BT.h
-        src/ai/BT.cpp
+        include/ai/BTNodes.h
+        src/ai/BTNodes.cpp
+        include/ai/BehaviourTree.h
+        src/ai/BehaviourTree.cpp
         include/ai/BTBuilder.h
         src/ai/BTBuilder.cpp
-        src/ai/FromLuaToBTBuilder.cpp
+        include/ai/UtilityBuilder.h
+        src/ai/UtilityBuilder.cpp
+        include/ai/UtilityContext.h
+        src/ai/UtilityContext.cpp
+        include/ai/UtilityDecision.h
+        src/ai/UtilityDecision.cpp
+        include/ai/UtilitySelector.h
+        src/ai/UtilitySelector.cpp
+        # src/ai/FromLuaToAIController.cpp
+
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})

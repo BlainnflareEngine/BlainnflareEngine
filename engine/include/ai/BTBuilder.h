@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ai/Blackboard.h"
-#include "ai/BT.h"
+#include "ai/BehaviourTree.h"
 
 namespace Blainn
 {
@@ -30,11 +30,15 @@ public:
     BTBuilder& AddNegate();
     BTBuilder& AddCondition(sol::function cond);
     BTBuilder& End();
+    bool ReadLuaBTType(sol::table node, BTType& outType);
+    bool ReadLuaChildrenTable(sol::table node, sol::table& out);
+    bool ReadLuaActionFn(sol::table node, sol::function& outFn);
+    bool ParseDecorators(sol::table node);
+    bool CalculateBT(sol::table node);
     BTNodePtr Build();
+    std::unique_ptr<BehaviourTree> BuildFromLua(sol::table rootTable);
     void Reset();
     bool HasError() const { return m_hasError; }
-    bool SetBTName(const std::string& newName);
-    const std::string& GetBTName() const { return m_btName; }
 
 private:
     void AttachNode(BTNodePtr node);
@@ -55,7 +59,6 @@ private:
     bool m_hasError = false;
 
     BTNodePtr m_root{};
-    std::string m_btName = "None";
     std::vector<CompositeNode*> m_stack{}; // non owning pointers into nodes we own via unique_ptr
     std::vector<PendingDecorator> m_pendingDecorators;
 };
