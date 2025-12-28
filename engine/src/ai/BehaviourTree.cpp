@@ -13,16 +13,22 @@ Blainn::BTStatus Blainn::BehaviourTree::Update(Blackboard &bb)
 
     if (m_abortRequested)
     {
-
         return BTStatus::Aborted;
     }
 
-    return m_root->Update(bb);
+    BTStatus s = m_root->Update(bb);
+
+    if (s == BTStatus::Error)
+        m_hasError = true;
+    
+    return s;
 }
 
 void Blainn::BehaviourTree::Reset()
 {
     m_abortRequested = false;
+    m_hasError = false;
+
     if (m_root)
         m_root->Reset();
 }

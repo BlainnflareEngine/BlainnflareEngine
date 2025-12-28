@@ -29,13 +29,23 @@ BTStatus SequenceNode::Update(Blackboard &bb)
     {
         BTStatus s = children[m_currentIndex]->Update(bb);
 
-        if (s == BTStatus::Running)
-            return BTStatus::Running;
+        switch (s)
+        {
+            case BTStatus::Success:
+                m_currentIndex++;
+                break;
 
-        if (s == BTStatus::Failure || s == BTStatus::Aborted)
-            return s;
+            case BTStatus::Running:
+                return s;
+                
+            case BTStatus::Failure:
+            case BTStatus::Aborted:
+            case BTStatus::Error:
+                return s;
 
-        m_currentIndex++;
+            default:
+                break;
+        }
     }
 
     return BTStatus::Success;
@@ -56,16 +66,25 @@ BTStatus SelectorNode::Update(Blackboard &bb)
     {
         BTStatus s = children[m_currentIndex]->Update(bb);
 
-        if (s == BTStatus::Running)
-            return BTStatus::Running;
+        switch (s)
+        {
+            case BTStatus::Success:
+                return BTStatus::Success;
 
-        if (s == BTStatus::Success)
-            return BTStatus::Success;
+            case BTStatus::Running:
+                return BTStatus::Running;
 
-        if (s == BTStatus::Aborted)
-            return BTStatus::Aborted;
+            case BTStatus::Failure:
+                m_currentIndex++;
+                break;
 
-        m_currentIndex++;
+            case BTStatus::Aborted:
+            case BTStatus::Error:
+                return s;
+            
+            default:
+                break;
+        }
     }
 
     return BTStatus::Failure;
@@ -229,6 +248,7 @@ BTStatus Blainn::NegateNode::Update(Blackboard &bb)
         case BTStatus::Success: return BTStatus::Failure;
         case BTStatus::Failure: return BTStatus::Success;
         case BTStatus::Running: return BTStatus::Running;
+        case BTStatus::Aborted: return BTStatus::Aborted;
     }
 
     BF_ERROR("NegateNode: invalid BTStatus");
@@ -250,7 +270,12 @@ BTStatus Blainn::ConditionNode::Update(Blackboard &bb)
     if (!condResult)
         return BTStatus::Failure;
 
-    return child->Update(bb);
+    BTStatus s = child->Update(bb);
+
+    if (s == BTStatus::Error)
+        return BTStatus::Error;
+
+    return s;
 }
 
 void Blainn::ConditionNode::Reset()

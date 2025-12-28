@@ -24,6 +24,7 @@ private:
     std::string m_name;
     BTNodePtr m_root;
     bool m_abortRequested = false;
+    bool m_hasError = false;
 };
 
 using BTMap = std::unordered_map<std::string, std::unique_ptr<BehaviourTree>>;

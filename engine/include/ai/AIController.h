@@ -28,6 +28,7 @@ private:
     void ActivateDecision(const std::string& decisionName);
     void SetActiveBT(const std::string& treeName);
     void CleanupActiveTree();
+    void HandleBTError();
 
 private:
     std::unique_ptr<UtilitySelector> m_utility;

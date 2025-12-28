@@ -47,15 +47,34 @@ void AIController::Update(float dt)
 
     BTStatus status = m_activeTree->Update(*m_blackboard);
 
-    if ( status == BTStatus::Running )
-        return;
-    
-    CleanupActiveTree(); // если завершился любым способом
-
-    if ( !newDecision.empty() ) // если дерево было и закончилось и есть новое решение, то запускаем следующее дерево
+    switch (status)
     {
-        ActivateDecision(newDecision);
+    case BTStatus::Running:
+        return;
+    case BTStatus::Success:
+    case BTStatus::Failure:
+    case BTStatus::Aborted:
+        CleanupActiveTree(); // TODO: Надо ли после этого запускать некст decision?
+        /*
+        if ( !newDecision.empty() ) // если дерево было и закончилось и есть новое решение, то запускаем следующее дерево
+        {
+            ActivateDecision(newDecision);
+        }
+        */
+        return;
+    case BTStatus::Error:
+        HandleBTError();
+        return;
+    default:
+        break;
     }
+
+    // if ( status == BTStatus::Running )
+    //     return;
+    
+    // CleanupActiveTree(); // если завершился любым способом
+
+
 }
 
 void AIController::ActivateDecision(const std::string& decision)
@@ -88,4 +107,18 @@ void AIController::SetActiveBT(const std::string& treeName)
     m_activeTree = it->second.get();
     m_activeTreeName = treeName;
 }
+
+void AIController::HandleBTError()
+{
+    BF_ERROR("AIController: BehaviourTree " + m_activeTreeName + " failed with ERROR");
+
+    if (m_activeTree)
+        m_activeTree->Reset();
+
+    m_activeTree = nullptr;
+    m_activeTreeName.clear();
+    m_activeDecisionName.clear();
+    m_abortRequested = false;
+}
+
 } // namespace Blainn
