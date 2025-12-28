@@ -59,7 +59,7 @@ eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, cons
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(absolutePath.string(),
                                              aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace
-                                                 | aiProcess_FixInfacingNormals | aiProcess_ConvertToLeftHanded);
+                                                 | aiProcess_FindInvalidData | aiProcess_FixInfacingNormals | aiProcess_FlipUVs | aiProcess_ConvertToLeftHanded);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -140,7 +140,7 @@ MeshData<> AssetLoader::ProcessMesh(const Path &path, const aiMesh &mesh, const 
             vertex.bitangent = Vec3::Zero;
         }
 
-        if (mesh.HasTextureCoords(i)) vertex.texCoord = GetTextCoords(mesh, i);
+        if (mesh.HasTextureCoords(0)) vertex.texCoord = GetTextCoords(mesh, i);
 
         result_mesh.vertices.emplace_back(vertex);
     }

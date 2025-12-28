@@ -36,7 +36,6 @@ namespace Blainn {
                                     [this](const InputEventPointer& event)
                                     {
                                         const MouseMovedEvent *mouseEvent = static_cast<const MouseMovedEvent *>(event.get());
-                                        BF_INFO("Mouse Delta: {0} {1}", mouseEvent->GetX(), mouseEvent->GetY());
                                         AdjustRotation(mouseEvent->GetX(), mouseEvent->GetY());
                                     }), InputEventType::MouseDelta});
 
