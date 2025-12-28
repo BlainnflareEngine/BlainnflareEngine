@@ -7,7 +7,7 @@ BTBuilder &BTBuilder::AddSequence() { return OpenComposite<SequenceNode>(); }
 
 BTBuilder &BTBuilder::AddSelector() { return OpenComposite<SelectorNode>(); }
 
-BTBuilder &BTBuilder::AddAction(sol::function fn)
+BTBuilder &BTBuilder::AddAction(sol::function fn, sol::function onReset)
 {
     if (!fn.valid())
     {
@@ -15,8 +15,14 @@ BTBuilder &BTBuilder::AddAction(sol::function fn)
         m_hasError = true;
         return *this;
     }
+    if (!onReset.valid())
+    {
+        BF_ERROR("AddAction: invalid Lua onReset function");
+        m_hasError = true;
+        return *this;
+    }
 
-    BTNodePtr node = std::make_unique<ActionNode>(std::move(fn));
+    BTNodePtr node = std::make_unique<ActionNode>(std::move(fn), std::move(onReset));
     AttachNode(std::move(node));
     return *this;
 }
@@ -88,9 +94,10 @@ bool BTBuilder::ReadLuaChildrenTable(sol::table node, sol::table& out)
     return;
 }
 
-bool BTBuilder::ReadLuaActionFn(sol::table node, sol::function& outFn)
+bool BTBuilder::ReadLuaActionFn(sol::table node, sol::function& outFn, sol::function& outOnReset)
 {
     sol::object f = node["fn"];
+    sol::object onReset = node["onReset"];
     if (!f.valid() || f.get_type() == sol::type::nil)
     {
         BF_ERROR("ReadLuaActionFn(): Action node missing 'fn'");
@@ -102,7 +109,19 @@ bool BTBuilder::ReadLuaActionFn(sol::table node, sol::function& outFn)
         return false;
     }
 
+    if (!onReset.valid() || onReset.get_type() == sol::type::nil)
+    {
+        BF_ERROR("ReadLuaActionFn(): Action node missing 'onReset'");
+        return false;
+    }
+    if (!onReset.is<sol::function>())
+    {
+        BF_ERROR("ReadLuaActionFn(): Action node 'onReset' must be a function");
+        return false;
+    }
+
     outFn = f.as<sol::function>();
+    outOnReset = onReset.as<sol::function>();
     return false;
 }
 
@@ -228,13 +247,14 @@ bool BTBuilder::CalculateBT(sol::table node)
         case BTType::Action:
         {
             sol::function fn;
-            if (!ReadLuaActionFn(node, fn))
+            sol::function onReset;
+            if (!ReadLuaActionFn(node, fn, onReset))
             {
                 BF_ERROR("BTBuilder::CalculateBT(): ReadLuaActionFn didn't return function");
                 Reset();
                 return false;
             }
-            AddAction(fn);
+            AddAction(fn, onReset);
             return false;
         }
         case BTType::Negate:

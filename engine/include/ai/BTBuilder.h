@@ -26,13 +26,13 @@ class BTBuilder
 public:
     BTBuilder& AddSequence();
     BTBuilder& AddSelector();
-    BTBuilder& AddAction(sol::function fn);
+    BTBuilder& AddAction(sol::function fn, sol::function onRes);
     BTBuilder& AddNegate();
     BTBuilder& AddCondition(sol::function cond);
     BTBuilder& End();
     bool ReadLuaBTType(sol::table node, BTType& outType);
     bool ReadLuaChildrenTable(sol::table node, sol::table& out);
-    bool ReadLuaActionFn(sol::table node, sol::function& outFn);
+    bool ReadLuaActionFn(sol::table node, sol::function& outFn, sol::function& outOnReset);
     bool ParseDecorators(sol::table node);
     bool CalculateBT(sol::table node);
     BTNodePtr Build();

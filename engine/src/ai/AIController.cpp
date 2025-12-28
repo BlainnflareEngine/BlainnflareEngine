@@ -68,7 +68,7 @@ void AIController::ActivateDecision(const std::string& decision)
 void AIController::CleanupActiveTree()
 {
     if (m_activeTree)
-        m_activeTree->Reset(); // TODO: make reset realisation
+        m_activeTree->Reset();
 
     m_activeTree = nullptr;
     m_activeTreeName.clear();

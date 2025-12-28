@@ -14,18 +14,37 @@ void CompositeNode::AddChild(BTNodePtr n)
     children.emplace_back(std::move(n));
 }
 
+void CompositeNode::Reset()
+{
+    for (auto& c : children)
+        c->Reset();
+}
+
 BTStatus SequenceNode::Update(Blackboard &bb)
 {
     if (bb.btAbortRequested)
         return BTStatus::Aborted;
 
-    for (auto& c : children)
+    while (m_currentIndex < children.size())
     {
-        BTStatus s = c->Update(bb);
-        if (s != BTStatus::Success) return s;
+        BTStatus s = children[m_currentIndex]->Update(bb);
+
+        if (s == BTStatus::Running)
+            return BTStatus::Running;
+
+        if (s == BTStatus::Failure || s == BTStatus::Aborted)
+            return s;
+
+        m_currentIndex++;
     }
 
     return BTStatus::Success;
+}
+
+void SequenceNode::Reset()
+{
+    m_currentIndex = 0;
+    CompositeNode::Reset();
 }
 
 BTStatus SelectorNode::Update(Blackboard &bb)
@@ -33,20 +52,41 @@ BTStatus SelectorNode::Update(Blackboard &bb)
     if (bb.btAbortRequested)
         return BTStatus::Aborted;
 
-    for (auto& c : children)
+    while (m_currentIndex < children.size())
     {
-        BTStatus s = c->Update(bb);
-        return s;
+        BTStatus s = children[m_currentIndex]->Update(bb);
+
+        if (s == BTStatus::Running)
+            return BTStatus::Running;
+
+        if (s == BTStatus::Success)
+            return BTStatus::Success;
+
+        if (s == BTStatus::Aborted)
+            return BTStatus::Aborted;
+
+        m_currentIndex++;
     }
 
     return BTStatus::Failure;
 }
 
-ActionNode::ActionNode(sol::function f) : fn(std::move(f))
+void SelectorNode::Reset()
+{
+    m_currentIndex = 0;
+    CompositeNode::Reset();
+}
+
+ActionNode::ActionNode(sol::function f, sol::function onRes) : fn(std::move(f)), onReset(std::move(onRes))
 {
     if (!fn.valid())
     {
         BF_ERROR("ActionNode got invalid Lua function");
+        return;
+    }
+    if (!fn.valid())
+    {
+        BF_ERROR("ActionNode got invalid Lua onReset function");
         return;
     }
 }
@@ -100,6 +140,12 @@ BTStatus ActionNode::Update(Blackboard &bb)
 
     BF_ERROR("Lua action returned unsupported status type");
     return BTStatus::Error;
+}
+
+void Blainn::ActionNode::Reset()
+{
+    if (onReset.valid())
+        onReset();
 }
 
 Blainn::DecoratorNode::DecoratorNode(BTNodePtr c) : child(std::move(c))
@@ -162,6 +208,12 @@ bool Blainn::DecoratorNode::CheckCondition(Blackboard &bb, bool& outResult)
     return true;
 }
 
+void DecoratorNode::Reset()
+{
+    if (child)
+        child->Reset();
+}
+
 BTStatus Blainn::NegateNode::Update(Blackboard &bb)
 {
     bool condResult = false;
@@ -183,6 +235,12 @@ BTStatus Blainn::NegateNode::Update(Blackboard &bb)
     return BTStatus::Error;
 }
 
+void Blainn::NegateNode::Reset()
+{
+    if (child)
+        child->Reset();
+}
+
 BTStatus Blainn::ConditionNode::Update(Blackboard &bb)
 {
     bool condResult = false;
@@ -193,4 +251,10 @@ BTStatus Blainn::ConditionNode::Update(Blackboard &bb)
         return BTStatus::Failure;
 
     return child->Update(bb);
+}
+
+void Blainn::ConditionNode::Reset()
+{
+    if (child)
+        child->Reset();
 }
