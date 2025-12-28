@@ -26,35 +26,54 @@ void AIController::Update(float dt)
 
     m_utilityContext.UpdateCooldowns(dt);
 
-    std::string decision =
+    std::string newDecision =
         m_utility.get()->Evaluate(m_utilityContext, *m_blackboard, dt);
 
-    if (decision.empty())
-        return;
-
-    m_activeDecisionName = decision;
-    std::string btName = m_utility.get()->FindDecisionBTName(m_activeDecisionName);
-
-    if ( btName.empty() && btName != m_activeTreeName )
+    if ( !m_activeTree )
     {
-        SetActiveBT(btName);
+        if (!newDecision.empty())
+        {
+            ActivateDecision(newDecision);
+        }
+        return;
     }
 
-    if (!m_activeTree)
-        return;
+    std::string btName;
+    if ( !m_abortRequested && !newDecision.empty() && newDecision != m_activeDecisionName )
+    {
+        m_abortRequested = true;
+        m_activeTree->RequestAbort();
+    }
 
     BTStatus status = m_activeTree->Update(*m_blackboard);
 
-    // TODO: status == Success or Failure start tree again, if aborted ???
-    if (status == BTStatus::Success ||
-        status == BTStatus::Failure ||
-        status == BTStatus::Aborted)
+    if ( status == BTStatus::Running )
+        return;
+    
+    CleanupActiveTree(); // если завершился любым способом
+
+    if ( !newDecision.empty() ) // если дерево было и закончилось и есть новое решение, то запускаем следующее дерево
     {
-        m_activeTree->Reset();
-        m_activeTree = nullptr;
-        m_activeTreeName.clear();
-        m_activeDecisionName.clear();
+        ActivateDecision(newDecision);
     }
+}
+
+void AIController::ActivateDecision(const std::string& decision)
+{
+    m_activeDecisionName = decision;
+    std::string btName = m_utility->FindDecisionBTName(decision);
+    SetActiveBT(btName);
+}
+
+void AIController::CleanupActiveTree()
+{
+    if (m_activeTree)
+        m_activeTree->Reset(); // TODO: make reset realisation
+
+    m_activeTree = nullptr;
+    m_activeTreeName.clear();
+    m_activeDecisionName.clear();
+    m_abortRequested = false;
 }
 
 void AIController::SetActiveBT(const std::string& treeName)
@@ -65,9 +84,6 @@ void AIController::SetActiveBT(const std::string& treeName)
         BF_ERROR("AIController: BT not found: " + treeName);
         return;
     }
-
-    if (m_activeTree)
-        m_activeTree->Reset(); // TODO: Make sure that reset is working after implementation will start existing
 
     m_activeTree = it->second.get();
     m_activeTreeName = treeName;

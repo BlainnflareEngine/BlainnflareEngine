@@ -1,6 +1,5 @@
 #include <pch.h>
-#include "ai/BT.h"
-#include "BT.h"
+#include "ai/BTNodes.h"
 
 using namespace Blainn;
 
@@ -17,6 +16,9 @@ void CompositeNode::AddChild(BTNodePtr n)
 
 BTStatus SequenceNode::Update(Blackboard &bb)
 {
+    if (bb.btAbortRequested)
+        return BTStatus::Aborted;
+
     for (auto& c : children)
     {
         BTStatus s = c->Update(bb);
@@ -28,11 +30,13 @@ BTStatus SequenceNode::Update(Blackboard &bb)
 
 BTStatus SelectorNode::Update(Blackboard &bb)
 {
+    if (bb.btAbortRequested)
+        return BTStatus::Aborted;
+
     for (auto& c : children)
     {
         BTStatus s = c->Update(bb);
-        if (s == BTStatus::Success) return BTStatus::Success;
-        if (s == BTStatus::Running) return BTStatus::Running;
+        return s;
     }
 
     return BTStatus::Failure;
@@ -49,18 +53,22 @@ ActionNode::ActionNode(sol::function f) : fn(std::move(f))
 
 BTStatus ActionNode::Update(Blackboard &bb)
 {
+    // Every Lua action must have logic if bb.btAbortRequested is true!
     // Convention: Lua action returns:
     //  - integer: 0=Failure, 1=Success, 2=Running, 3=Aborted OR
     //  - string: "failure"/"success"/"running"/"aborted", OR
     //  - nothing => treated as Error
     sol::protected_function pf = fn;
-    sol::protected_function_result r = pf(&bb); // pass BB pointer (or userdata) as you prefer
+    sol::protected_function_result r = pf(&bb); // pass BB pointer
 
     if (!r.valid()) {
         sol::error err = r;
         BF_ERROR(std::string("Lua action error: ") + err.what());
         return BTStatus::Error;
     }
+
+    if (bb.btAbortRequested) // TODO: Make sure it's working
+        return BTStatus::Aborted;
 
     if (r.return_count() == 0) {
         return BTStatus::Success;

@@ -9,6 +9,7 @@ class Blackboard
 {
 public:
     struct BaseValue { virtual ~BaseValue() = default; };
+    bool btAbortRequested = false;
 
     template<typename T>
     struct Value : BaseValue
@@ -39,5 +40,6 @@ public:
 
 private:
     std::unordered_map<std::string, std::shared_ptr<BaseValue>> values;
+
 };
 } // namespace Blainn

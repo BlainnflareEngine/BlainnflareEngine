@@ -17,9 +17,13 @@ public:
     BTStatus Update(Blackboard& bb);
     void Reset();
 
+    void RequestAbort();
+    bool IsAborting() const;
+
 private:
     std::string m_name;
     BTNodePtr m_root;
+    bool m_abortRequested = false;
 };
 
 using BTMap = std::unordered_map<std::string, std::unique_ptr<BehaviourTree>>;

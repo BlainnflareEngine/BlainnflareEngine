@@ -23,7 +23,11 @@ public:
     void Update(float dt);
 
     Blackboard& GetBlackboard() { return *m_blackboard; }
+
+private:
+    void ActivateDecision(const std::string& decisionName);
     void SetActiveBT(const std::string& treeName);
+    void CleanupActiveTree();
 
 private:
     std::unique_ptr<UtilitySelector> m_utility;
@@ -35,6 +39,8 @@ private:
     std::string m_activeDecisionName;
 
     std::unique_ptr<Blackboard> m_blackboard;
+
+    bool m_abortRequested = false;
 };
 
 } // namespace Blainn
