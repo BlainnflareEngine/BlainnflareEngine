@@ -389,8 +389,10 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
         return id;
     };
 
+    // TODO: забанить?
     physicsTable.set_function("AddEventListener", add_listener_func);
 
+    // TODO: забанить?
     physicsTable.set_function("RemoveEventListener",
                               [](int eventTypeInt, uint64_t id)
                               {

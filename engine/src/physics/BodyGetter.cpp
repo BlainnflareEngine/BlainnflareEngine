@@ -16,6 +16,13 @@ Quat BodyGetter::GetRotation()
     return ToBlainnQuat(m_body.GetRotation());
 }
 
+Vec3 Blainn::BodyGetter::GetScale()
+{
+    const JPH::Body &body = m_bodyLock.GetBody();
+    JPH::Vec3 scale = static_cast<const JPH::ScaledShape *>(body.GetShape())->GetScale();
+    return ToBlainnVec3(scale);
+}
+
 JPH::RefConst<JPH::Shape> BodyGetter::GetShape()
 {
     return m_body.GetShape();
@@ -79,6 +86,11 @@ PhysicsComponentMotionType BodyGetter::GetMotionType()
 bool BodyGetter::isTrigger()
 {
     return m_body.IsSensor();
+}
+
+bool Blainn::BodyGetter::collidesKinematicVsNonDynamic()
+{
+    return m_body.GetCollideKinematicVsNonDynamic();
 }
 
 eastl::optional<float> Blainn::BodyGetter::GetSphereShapeRadius()

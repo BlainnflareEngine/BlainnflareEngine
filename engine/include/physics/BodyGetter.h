@@ -25,7 +25,7 @@ public:
 
     Vec3 GetPosition();
     Quat GetRotation();
-    Vec3 GetScale(); // TODO:?
+    Vec3 GetScale();
 
     JPH::RefConst<JPH::Shape> GetShape();
     ComponentShapeType GetShapeType();
@@ -36,6 +36,7 @@ public:
     float GetMaxAngularVelocity();
     float GetGravityFactor();
     bool isTrigger();
+    bool collidesKinematicVsNonDynamic();
 
     ObjectLayer GetObjectLayer();
     PhysicsComponentMotionType GetMotionType();

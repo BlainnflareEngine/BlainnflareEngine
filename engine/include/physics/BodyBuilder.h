@@ -22,6 +22,7 @@ public:
     BodyBuilder &SetAngularVelocity(Vec3 vec);
     BodyBuilder &SetIsTrigger(bool isTrigger);
     BodyBuilder &SetGravityFactor(float factor);
+    BodyBuilder &SetCollideKinematicVsNonDynamic(bool collide);
 
     JPH::BodyID Build(EActivation activate = EActivation::DontActivate);
 
