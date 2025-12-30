@@ -10,30 +10,36 @@
 #include "scene/EntityTemplates.h"
 #include "components/CameraComponent.h"
 #include "input-widgets/bool_input_field.h"
+#include "entity/mesh_widget.h"
 
-namespace editor {
-    camera_widget::camera_widget(const Blainn::Entity &entity, QWidget *parent)
-        : component_widget_base(entity, "Camera widget", parent)
+namespace editor
+{
+camera_widget::camera_widget(const Blainn::Entity &entity, QWidget *parent)
+    : component_widget_base(entity, "Camera widget", parent)
+{
+    auto *cam = m_entity.TryGetComponent<Blainn::CameraComponent>();
+    if (!cam) destroy();
+
+    m_isActiveCamera = new bool_input_field("Main Camera", cam->IsActiveCamera, this);
+
+    layout()->addWidget(m_isActiveCamera);
+
+    connect(m_isActiveCamera, &bool_input_field::toggled, this, &camera_widget::OnIsActiveChanged);
+}
+
+void camera_widget::OnIsActiveChanged(bool value)
+{
+    auto *cam = m_entity.TryGetComponent<Blainn::CameraComponent>();
+    if (cam)
     {
-        m_isActiveCamera = new bool_input_field("Is Main Cam", false, this);
-
-        layout()->addWidget(m_isActiveCamera);
-
-        connect(m_isActiveCamera, &bool_input_field::toggled, this, &camera_widget::OnIsActiveChanged);
+        cam->IsActiveCamera = value;
     }
+}
 
-    void camera_widget::OnIsActiveChanged(bool value)
-    {
-        auto* cam = m_entity.TryGetComponent<Blainn::CameraComponent>();
-        if (cam) {
-            cam->IsActiveCamera = value;
-        }
-    }
+void camera_widget::DeleteComponent()
+{
+    if (m_entity.IsValid()) m_entity.RemoveComponent<Blainn::CameraComponent>();
 
-    void camera_widget::DeleteComponent()
-    {
-        if (m_entity.IsValid()) m_entity.RemoveComponent<Blainn::CameraComponent>();
-
-        deleteLater();
-    }
-} // editor
+    deleteLater();
+}
+} // namespace editor

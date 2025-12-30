@@ -8,19 +8,20 @@
 #include "component_widget_base.h"
 
 
-namespace editor {
-    class bool_input_field;
+namespace editor
+{
+class bool_input_field;
 
-    class camera_widget : public component_widget_base
-    {
-    public:
-        explicit camera_widget(const Blainn::Entity &entity, QWidget *parent = nullptr);
-        void DeleteComponent() override;
+class camera_widget : public component_widget_base
+{
+public:
+    explicit camera_widget(const Blainn::Entity &entity, QWidget *parent = nullptr);
+    void DeleteComponent() override;
 
-    protected slots:
-        void OnIsActiveChanged(bool value);
+protected slots:
+    void OnIsActiveChanged(bool value);
 
-    private:
-        bool_input_field *m_isActiveCamera = nullptr;
-    };
-} // editor
+private:
+    bool_input_field *m_isActiveCamera = nullptr;
+};
+} // namespace editor
