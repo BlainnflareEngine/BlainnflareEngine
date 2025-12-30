@@ -359,50 +359,6 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
                                   return sol::make_object(lua, *res);
                               });
 
-    // Event listener: wrap Lua function and call with a PhysicsEvent table
-    auto add_listener_func = [&luaState](int eventTypeInt, sol::function listener) -> uint64_t
-    {
-        PhysicsEventType eventType = static_cast<PhysicsEventType>(eventTypeInt);
-        sol::function luaListener = listener;
-        uint64_t id = s_nextListenerId.fetch_add(1);
-
-        auto handle = Blainn::PhysicsSubsystem::AddEventListener(
-            eventType,
-            [&luaState, luaListener](const eastl::shared_ptr<PhysicsEvent> &ev)
-            {
-                sol::state_view lua(luaState);
-                sol::table tbl = lua.create_table();
-                tbl["eventType"] = static_cast<int>(ev->eventType);
-                tbl["entity1"] = ev->entity1.str();
-                tbl["entity2"] = ev->entity2.str();
-
-                sol::protected_function pfunc = luaListener;
-                sol::protected_function_result result = pfunc(tbl);
-                if (!result.valid())
-                {
-                    sol::error err = result;
-                    BF_ERROR("Lua physics listener error: " + eastl::string(err.what()));
-                }
-            });
-
-        s_listenerHandles[id] = handle;
-        return id;
-    };
-
-    // TODO: забанить?
-    physicsTable.set_function("AddEventListener", add_listener_func);
-
-    // TODO: забанить?
-    physicsTable.set_function("RemoveEventListener",
-                              [](int eventTypeInt, uint64_t id)
-                              {
-                                  auto it = s_listenerHandles.find(id);
-                                  if (it == s_listenerHandles.end()) return;
-                                  PhysicsEventType eventType = static_cast<PhysicsEventType>(eventTypeInt);
-                                  Blainn::PhysicsSubsystem::RemoveEventListener(eventType, it->second);
-                                  s_listenerHandles.erase(it);
-                              });
-
     luaState["Physics"] = physicsTable;
 }
 

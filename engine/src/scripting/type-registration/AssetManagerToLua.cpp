@@ -47,12 +47,6 @@ void Blainn::RegisterAssetManagerTypes(sol::state &luaState)
     MaterialType.set_function("GetShader", [](Material &m) { return std::string(m.GetShader().c_str()); });
     MaterialType.set_function("HasTexture", &Material::HasTexture);
 
-    // TODO: повтор
-    // Register texture type enum for convenience
-    luaState.new_enum<true>("TextureType", "NONE", TextureType::NONE, "ALBEDO", TextureType::ALBEDO, "NORMAL",
-                            TextureType::NORMAL, "METALLIC", TextureType::METALLIC, "ROUGHNESS", TextureType::ROUGHNESS,
-                            "AO", TextureType::AO, "OTHER", TextureType::OTHER);
-
     sol::table manager = luaState.create_table();
 
     manager.set_function("LoadMesh",
