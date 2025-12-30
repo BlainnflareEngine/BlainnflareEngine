@@ -22,9 +22,13 @@ namespace Blainn
         
         FORCEINLINE float GetNearZ() const { return m_nearZ; }
         FORCEINLINE float GetFarZ() const { return m_farZ; }
-        
+        void SetNearZ(float value);
+        void SetFarZ(float value);
+
         float GetFovYRad() const;
         float GetFovXRad() const;
+        float GetFovDegrees() const;
+        void SetFovDegrees(float value);
         
         FORCEINLINE float GetNearWindowHeight() const { return m_nearWindowHeight; }
         FORCEINLINE float GetNearWindowWidth() const{ return m_nearWindowHeight * m_aspectRatio; }

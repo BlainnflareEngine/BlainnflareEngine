@@ -111,8 +111,7 @@ public:
         auto &mesh = entity.GetComponent<MeshComponent>();
 
         out << YAML::Key << "MeshComponent" << YAML::Value << YAML::BeginMap;
-        out << YAML::Key << "Path" << YAML::Value
-            << AssetManager::GetInstance().GetMeshPath(*mesh.MeshHandle).string();
+        out << YAML::Key << "Path" << YAML::Value << AssetManager::GetInstance().GetMeshPath(*mesh.MeshHandle).string();
         out << YAML::Key << "Material" << YAML::Value
             << AssetManager::GetInstance().GetMaterialPath(*mesh.MaterialHandle).string();
         out << YAML::EndMap;
@@ -145,15 +144,20 @@ public:
         // TODO: serialize
     }
 
-    static void Camera(Entity& entity, YAML::Emitter& out)
+    static void Camera(Entity &entity, YAML::Emitter &out)
     {
         if (!entity.HasComponent<CameraComponent>()) return;
 
         auto camera = entity.GetComponent<CameraComponent>();
         out << YAML::Key << "CameraComponent" << YAML::Value << YAML::BeginMap;
         out << YAML::Key << "IsActiveCamera" << YAML::Value << camera.IsActiveCamera;
-        //out << YAML::Key << "ViewMat" << YAML::Value << camera.camera.;
-        out<< YAML::EndMap;
+        out << YAML::Key << "CameraSettings" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "FOV" << YAML::Value << camera.camera.GetFovDegrees();
+        out << YAML::Key << "NearZ" << YAML::Value << camera.camera.GetNearZ();
+        out << YAML::Key << "FarZ" << YAML::Value << camera.camera.GetFarZ();
+
+        out << YAML::EndMap;
+        out << YAML::EndMap;
     }
 };
 } // namespace Blainn

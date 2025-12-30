@@ -243,6 +243,14 @@ inline CameraComponent GetCamera(const YAML::Node &node)
         camera.IsActiveCamera = node["IsActiveCamera"].as<bool>();
     camera.camera.Reset(75.f, 16.f/9.f, 0.01, 1000);
 
+    if(auto& settings = node["CameraSettings"])
+    {
+        // TODO: other settigns
+        camera.camera.SetFovDegrees(settings["FOV"].as<float>());
+        camera.camera.SetNearZ(settings["NearZ"].as<float>());
+        camera.camera.SetFarZ(settings["FarZ"].as<float>());
+    }
+
     return camera;
 }
 } // namespace Blainn
