@@ -41,6 +41,8 @@ public:
     ObjectLayer GetObjectLayer();
     PhysicsComponentMotionType GetMotionType();
 
+    AABox GetShapeBoundingBox();
+
     eastl::optional<float> GetSphereShapeRadius();
     eastl::optional<Vec3> GetBoxShapeHalfExtents();
     eastl::optional<eastl::pair<float, float>> GetCylinderShapeHalfHeightAndRadius();

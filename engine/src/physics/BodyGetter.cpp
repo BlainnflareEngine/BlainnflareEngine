@@ -83,6 +83,15 @@ PhysicsComponentMotionType BodyGetter::GetMotionType()
     return m_body.GetMotionType();
 }
 
+
+AABox Blainn::BodyGetter::GetShapeBoundingBox()
+{
+    const JPH::Body &body = m_bodyLock.GetBody();
+    JPH::Vec3 scale = static_cast<const JPH::ScaledShape *>(body.GetShape())->GetScale();
+    JPH::Mat44 comTransform = body.GetCenterOfMassTransform();
+    return body.GetShape()->GetWorldSpaceBounds(comTransform, scale);
+}
+
 bool BodyGetter::isTrigger()
 {
     return m_body.IsSensor();
