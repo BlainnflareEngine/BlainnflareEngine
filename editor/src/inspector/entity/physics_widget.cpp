@@ -106,7 +106,7 @@ void physics_widget::OnObjectLayerChanged(int)
 
     Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
     bodyUpdater.SetObjectLayer(layer);
-
+    BF_DEBUG("New layer is {}", static_cast<int>(layer));
     // TODO: check later
 }
 
@@ -120,6 +120,9 @@ void physics_widget::OnObjectTypeChanged(int)
     }
 
     Blainn::PhysicsComponentMotionType type = m_objectType->GetValue();
+    Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
+    bodyUpdater.SetMotionType(type);
+    BF_DEBUG("New layer is {}", static_cast<int>(type));
 
     // TODO: check later
 }
@@ -130,6 +133,8 @@ void physics_widget::OnGravityChanged()
     if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>()) return;
 
     BF_DEBUG("Change gravity in physics widget");
+    Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
+    bodyUpdater.SetGravityFactor(m_gravityFactor->GetValue());
 }
 
 
@@ -138,6 +143,7 @@ void physics_widget::OnTriggerChanged()
     if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>()) return;
 
     BF_DEBUG("Change is trigger in physics widget");
+    Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
 }
 
 
@@ -146,14 +152,25 @@ void physics_widget::OnRadiusChanged()
     if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>()) return;
 
     BF_DEBUG("Change radius in physics widget");
+    Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
+    bodyUpdater.SetSphereShapeSettings(m_radius->GetValue());
 }
 
 
 void physics_widget::OnHalfHeightChanged()
 {
+    using namespace Blainn;
+
     if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>()) return;
 
     BF_DEBUG("Change halfheight in physics widget");
+
+    Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
+
+    if(m_shape->GetValue() == ComponentShapeType::Cylinder)
+        bodyUpdater.SetCylinderShapeSettings(m_halfHeight->GetValue(),m_radius->GetValue());
+    else if(m_shape->GetValue() == ComponentShapeType::Capsule)
+        bodyUpdater.SetCapsuleShapeSettings(m_halfHeight->GetValue(),m_radius->GetValue());
 }
 
 
@@ -162,13 +179,17 @@ void physics_widget::OnExtentsChanged()
     if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>()) return;
 
     BF_DEBUG("Change extents in physics widget");
+    Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
+    bodyUpdater.SetBoxShapeSettings(m_extents->GetValue());
 }
 
 
 void physics_widget::ShowSphereSettings()
 {
-    m_radius = new float_input_field("Radius", 1, this);
+    m_radius = new float_input_field("Radius", 1, this, false);
 
+    m_radius->SetMinValue(0.01);
+    m_radius->SetDecimals(2);
     layout()->addWidget(m_radius);
 
     OnRadiusChanged();
@@ -178,7 +199,9 @@ void physics_widget::ShowSphereSettings()
 
 void physics_widget::ShowBoxSettings()
 {
-    m_extents = new vector3_input_widget("Extents", {0.5f, 0.5f, 0.5f}, this);
+    m_extents = new vector3_input_widget("Extents", {0.5f, 0.5f, 0.5f}, false, this);
+    m_extents->SetMinValue(0.01);
+    m_extents->SetDecimals(2);
 
     layout()->addWidget(m_extents);
 
@@ -189,8 +212,14 @@ void physics_widget::ShowBoxSettings()
 
 void physics_widget::ShowCylinderSettings()
 {
-    m_radius = new float_input_field("Radius", 1, this);
-    m_halfHeight = new float_input_field("Half height", 0.5, this);
+    m_radius = new float_input_field("Radius", 1, this, false);
+    m_halfHeight = new float_input_field("Half height", 0.5, this, false);
+
+    m_radius->SetMinValue(0.01);
+    m_halfHeight->SetMinValue(0.01);
+
+    m_halfHeight->SetDecimals(2);
+    m_radius->SetDecimals(2);
 
     layout()->addWidget(m_radius);
     layout()->addWidget(m_halfHeight);
@@ -204,9 +233,15 @@ void physics_widget::ShowCylinderSettings()
 
 void physics_widget::ShowCapsuleSettings()
 {
-    m_radius = new float_input_field("Radius", 1, this);
-    m_halfHeight = new float_input_field("Half height", 0.5, this);
+    m_radius = new float_input_field("Radius", 1, this, false);
+    m_halfHeight = new float_input_field("Half height", 0.5, this, false);
 
+    m_radius->SetMinValue(0.01);
+    m_halfHeight->SetMinValue(0.01);
+
+    m_halfHeight->SetDecimals(2);
+    m_radius->SetDecimals(2);
+    
     layout()->addWidget(m_radius);
     layout()->addWidget(m_halfHeight);
 

@@ -123,16 +123,6 @@ public:
 
         auto &physics = entity.GetComponent<PhysicsComponent>();
 
-        /*struct PhysicsComponent
-        {
-            uuid parentId = {};
-            JPH::BodyID bodyId = JPH::BodyID();
-            ComponentShapeType shapeType = ComponentShapeType::Empty;
-            ShapeHierarchy shapeHierarchy = {};
-            Vec3 prevFrameScale = Vec3::One; // for rescale tracking
-            bool controlParentTransform = true;
-        };*/
-
         out << YAML::Key << "PhysicsComponent" << YAML::Value << YAML::BeginMap;
         out << YAML::Key << "ParentID" << YAML::Value << physics.parentId.str();
         out << YAML::Key << "ShapeType" << YAML::Value << static_cast<int>(physics.GetShapeType());
@@ -140,8 +130,55 @@ public:
 
         BodyGetter body = PhysicsSubsystem::GetBodyGetter(entity);
         out << YAML::Key << "ObjectLayer" << YAML::Value << body.GetObjectLayer();
+        out << YAML::Key << "MotionType" << YAML::Value << static_cast<int>(body.GetMotionType());
+        out << YAML::Key << "GravityFactor" << YAML::Value << body.GetGravityFactor();
+        out << YAML::Key << "IsTrigger" << YAML::Value << body.isTrigger();
+        
+        Transform(entity, out);
 
-        // TODO: serialize
+        out << YAML::Key << "ShapeSettings" << YAML::Value << YAML::BeginMap;
+        switch (physics.GetShapeType())
+        {
+        case ComponentShapeType::Box:
+        {
+            Vec3 vec = body.GetBoxShapeHalfExtents().value();
+            out << YAML::Key << "HalfExtent" << YAML::Value << YAML::BeginMap;
+            out << YAML::Key << "X" << YAML::Value << vec.x;
+            out << YAML::Key << "Y" << YAML::Value << vec.y;
+            out << YAML::Key << "Z" << YAML::Value << vec.z;
+            out << YAML::EndMap;
+            break;
+        }
+
+        case ComponentShapeType::Sphere:
+        {
+            float radius = body.GetSphereShapeRadius().value();
+            out << YAML::Key << "Radius" << YAML::Value << radius;
+            break;
+        }
+
+        case ComponentShapeType::Capsule:
+        {
+            auto halfHeightAndRadius = body.GetCapsuleShapeHalfHeightAndRadius().value();
+            out << YAML::Key << "HalfHeight" << YAML::Value << halfHeightAndRadius.first;
+            out << YAML::Key << "Radius" << YAML::Value << halfHeightAndRadius.second;
+            break;
+        }
+
+        case ComponentShapeType::Cylinder:
+        {
+            auto halfHeightAndRadius = body.GetCylinderShapeHalfHeightAndRadius().value();
+            out << YAML::Key << "HalfHeight" << YAML::Value << halfHeightAndRadius.first;
+            out << YAML::Key << "Radius" << YAML::Value << halfHeightAndRadius.second;
+            break;
+        }
+
+        case ComponentShapeType::Empty:
+            break;
+        }
+
+        out << YAML::EndMap;
+        out << YAML::EndMap;
     }
 
     static void Camera(Entity &entity, YAML::Emitter &out)

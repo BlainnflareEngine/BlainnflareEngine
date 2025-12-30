@@ -142,6 +142,7 @@ void Scene::SaveScene()
         Serializer::Scripting(e, out);
         Serializer::Mesh(e, out);
         Serializer::Camera(e, out);
+        Serializer::Physics(e, out);
 
         out << YAML::EndMap; // end for every entity
     }
@@ -329,6 +330,12 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
         {
             auto camera = GetCamera(entityNode["CameraComponent"]);
             entity.AddComponent<CameraComponent>(camera);
+        }
+
+        if(HasPhysics(entityNode))
+        {
+            auto physics = GetPhysics(entityNode["PhysicsComponent"]);
+            entity.AddComponent<PhysicsComponent>(physics);
         }
     }
 }

@@ -7,6 +7,10 @@
 #include "pch.h"
 
 #include "components/ScriptingComponent.h"
+#include "components/CameraComponent.h"
+#include "components/MeshComponent.h"
+#include "physics/BodyBuilder.h"
+#include "Engine.h"
 
 namespace Blainn
 {
@@ -134,8 +138,8 @@ inline MeshComponent GetMesh(const YAML::Node &node)
     else
     {
         mesh.MaterialHandle = AssetManager::GetInstance().HasMaterial(relativeMaterialPath)
-                                    ? AssetManager::GetInstance().GetMaterial(relativeMaterialPath)
-                                    : AssetManager::GetInstance().LoadMaterial(relativeMaterialPath);
+                                  ? AssetManager::GetInstance().GetMaterial(relativeMaterialPath)
+                                  : AssetManager::GetInstance().LoadMaterial(relativeMaterialPath);
     }
 
     return mesh;
@@ -222,6 +226,57 @@ inline ScriptingComponent GetScripting(const YAML::Node &node)
     return component;
 }
 
+inline bool HasPhysics(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["PhysicsComponent"]) return true;
+
+    return false;
+}
+
+inline PhysicsComponent GetPhysics(const YAML::Node &node)
+{
+    PhysicsComponent physics;
+
+    if (!node || node.IsNull()) return physics;
+
+
+    physics.parentId = uuid::fromStrFactory(node["ParentID"].as<std::string>());
+    ComponentShapeType shapeType = static_cast<ComponentShapeType>(node["ShapeType"].as<int>());
+    PhysicsComponentMotionType motionType = static_cast<PhysicsComponentMotionType>(node["MotionType"].as<int>());
+    float gravityFactor = node["GravityFactor"].as<float>();
+    bool isTrigger = node["IsTrigger"].as<bool>();
+    ObjectLayer layer = static_cast<ObjectLayer>(node["ObjectLayer"].as<int>());
+
+    ShapeCreationSettings shapeSettings(shapeType);
+    eastl::optional<ShapeHierarchy> createdShapeHierarchy = ShapeFactory::CreateShape(shapeSettings);
+
+    if (!createdShapeHierarchy.has_value())
+    {
+        BF_ERROR("Error in creating shape for physics component");
+        return physics;
+    }
+
+    physics.UpdateShape(shapeType, createdShapeHierarchy.value());
+
+    auto transform = GetTransform(node["TransformComponent"]);
+
+    BodyBuilder builder;
+    builder.SetMotionType(motionType)
+        .SetPosition(transform.GetTranslation())
+        .SetRotation(transform.GetRotation())
+        .SetShape(createdShapeHierarchy.value().shapePtr)
+        .SetIsTrigger(isTrigger)
+        .SetGravityFactor(gravityFactor)
+        .SetLayer(layer);
+
+    physics.bodyId = builder.Build();
+    PhysicsSubsystem::AddBodyConnection(physics.bodyId, physics.parentId);
+
+    return physics;
+}
+
 inline bool HasCamera(const YAML::Node &node)
 {
     if (!node || node.IsNull()) return false;
@@ -239,11 +294,10 @@ inline CameraComponent GetCamera(const YAML::Node &node)
         BF_WARN("Camera component not found or invalid in .scene file.");
         return camera;
     }
-    if (node["IsActiveCamera"])
-        camera.IsActiveCamera = node["IsActiveCamera"].as<bool>();
-    camera.camera.Reset(75.f, 16.f/9.f, 0.01, 1000);
+    if (node["IsActiveCamera"]) camera.IsActiveCamera = node["IsActiveCamera"].as<bool>();
+    camera.camera.Reset(75.f, 16.f / 9.f, 0.01, 1000);
 
-    if(auto& settings = node["CameraSettings"])
+    if (auto &settings = node["CameraSettings"])
     {
         // TODO: other settigns
         camera.camera.SetFovDegrees(settings["FOV"].as<float>());
