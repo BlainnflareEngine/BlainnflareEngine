@@ -49,13 +49,14 @@ private:
     float_input_field *m_halfHeight = nullptr;
     vector3_input_widget *m_extents = nullptr;
 
-    void ShowSphereSettings();
-    void ShowBoxSettings();
-    void ShowCylinderSettings();
-    void ShowCapsuleSettings();
+    void ShowSphereSettings(float radius);
+    void ShowBoxSettings(const Blainn::Vec3& extents);
+    void ShowCylinderSettings(float radius, float halfHeight);
+    void ShowCapsuleSettings(float radius, float halfHeight);
     void ClearSettings();
 
     void LoadValues();
+    void LoadShape();
     void BlockSignals(bool value);
 };
 

@@ -137,7 +137,7 @@ public:
         Transform(entity, out);
 
         out << YAML::Key << "ShapeSettings" << YAML::Value << YAML::BeginMap;
-        switch (physics.GetShapeType())
+        switch (body.GetShapeType())
         {
         case ComponentShapeType::Box:
         {

@@ -250,15 +250,34 @@ inline PhysicsComponent GetPhysics(const YAML::Node &node)
     ObjectLayer layer = static_cast<ObjectLayer>(node["ObjectLayer"].as<int>());
 
     ShapeCreationSettings shapeSettings(shapeType);
-    eastl::optional<ShapeHierarchy> createdShapeHierarchy = ShapeFactory::CreateShape(shapeSettings);
+    
+    if(auto& shapeSettingsNode = node["ShapeSettings"])
+    {
+        if(shapeSettingsNode["HalfHeight"])
+        {
+            shapeSettings.halfCylinderHeight = shapeSettingsNode["HalfHeight"].as<float>();
+        }
 
-    if (!createdShapeHierarchy.has_value())
+        if(shapeSettingsNode["Radius"])
+        {
+            shapeSettings.radius = shapeSettingsNode["Radius"].as<float>();
+        }
+
+        if(auto& extents = shapeSettingsNode["HalfExtent"])
+        {
+           shapeSettings.halfExtents = Blainn::Vec3(extents["X"].as<float>(), extents["Y"].as<float>(), extents["Z"].as<float>()); 
+        }
+    }
+
+    eastl::optional<ShapeHierarchy>* createdShapeHierarchy = new eastl::optional<ShapeHierarchy>(ShapeFactory::CreateShape(shapeSettings));
+
+    if (!createdShapeHierarchy->has_value())
     {
         BF_ERROR("Error in creating shape for physics component");
         return physics;
     }
 
-    physics.UpdateShape(shapeType, createdShapeHierarchy.value());
+    physics.UpdateShape(shapeType, createdShapeHierarchy->value());
 
     auto transform = GetTransform(node["TransformComponent"]);
 
@@ -266,7 +285,7 @@ inline PhysicsComponent GetPhysics(const YAML::Node &node)
     builder.SetMotionType(motionType)
         .SetPosition(transform.GetTranslation())
         .SetRotation(transform.GetRotation())
-        .SetShape(createdShapeHierarchy.value().shapePtr)
+        .SetShape(createdShapeHierarchy->value().shapePtr)
         .SetIsTrigger(isTrigger)
         .SetGravityFactor(gravityFactor)
         .SetLayer(layer);
