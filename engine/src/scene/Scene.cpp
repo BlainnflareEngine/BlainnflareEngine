@@ -334,8 +334,7 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
 
         if(HasPhysics(entityNode))
         {
-            auto physics = GetPhysics(entityNode["PhysicsComponent"]);
-            entity.AddComponent<PhysicsComponent>(physics);
+            GetPhysics(entityNode["PhysicsComponent"], entity);
         }
     }
 }

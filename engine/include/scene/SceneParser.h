@@ -235,14 +235,8 @@ inline bool HasPhysics(const YAML::Node &node)
     return false;
 }
 
-inline PhysicsComponent GetPhysics(const YAML::Node &node)
+inline void GetPhysics(const YAML::Node &node, const Entity& entity)
 {
-    PhysicsComponent physics;
-
-    if (!node || node.IsNull()) return physics;
-
-
-    physics.parentId = uuid::fromStrFactory(node["ParentID"].as<std::string>());
     ComponentShapeType shapeType = static_cast<ComponentShapeType>(node["ShapeType"].as<int>());
     PhysicsComponentMotionType motionType = static_cast<PhysicsComponentMotionType>(node["MotionType"].as<int>());
     float gravityFactor = node["GravityFactor"].as<float>();
@@ -250,7 +244,7 @@ inline PhysicsComponent GetPhysics(const YAML::Node &node)
     ObjectLayer layer = static_cast<ObjectLayer>(node["ObjectLayer"].as<int>());
 
     ShapeCreationSettings shapeSettings(shapeType);
-    
+
     if(auto& shapeSettingsNode = node["ShapeSettings"])
     {
         if(shapeSettingsNode["HalfHeight"])
@@ -269,31 +263,13 @@ inline PhysicsComponent GetPhysics(const YAML::Node &node)
         }
     }
 
-    eastl::optional<ShapeHierarchy>* createdShapeHierarchy = new eastl::optional<ShapeHierarchy>(ShapeFactory::CreateShape(shapeSettings));
-
-    if (!createdShapeHierarchy->has_value())
-    {
-        BF_ERROR("Error in creating shape for physics component");
-        return physics;
-    }
-
-    physics.UpdateShape(shapeType, createdShapeHierarchy->value());
-
-    auto transform = GetTransform(node["TransformComponent"]);
-
-    BodyBuilder builder;
-    builder.SetMotionType(motionType)
-        .SetPosition(transform.GetTranslation())
-        .SetRotation(transform.GetRotation())
-        .SetShape(createdShapeHierarchy->value().shapePtr)
-        .SetIsTrigger(isTrigger)
-        .SetGravityFactor(gravityFactor)
-        .SetLayer(layer);
-
-    physics.bodyId = builder.Build();
-    PhysicsSubsystem::AddBodyConnection(physics.bodyId, physics.parentId);
-
-    return physics;
+    PhysicsComponentSettings settings(entity, shapeType);
+    settings.gravityFactor = gravityFactor;
+    settings.isTrigger = isTrigger;
+    settings.layer = layer;
+    settings.motionType = motionType;
+    settings.shapeSettings = shapeSettings;
+    PhysicsSubsystem::CreateAttachPhysicsComponent(settings);
 }
 
 inline bool HasCamera(const YAML::Node &node)
