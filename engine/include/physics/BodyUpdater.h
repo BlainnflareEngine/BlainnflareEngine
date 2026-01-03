@@ -44,6 +44,9 @@ public:
     BodyUpdater &SetMotionType(PhysicsComponentMotionType motionType,
                                EActivation activation = EActivation::DontActivate);
 
+    BodyUpdater &ActivateBody();
+    BodyUpdater &DeactivateBody();
+
     /// @brief  will show error and do noting if body shape type is not sphere
     BodyUpdater &SetSphereShapeSettings(float radius);
 

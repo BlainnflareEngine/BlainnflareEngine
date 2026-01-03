@@ -105,17 +105,16 @@ void Engine::Update(float deltaTime)
 void Engine::StartPlayMode()
 {
     if (s_isPlayMode) return;
+    if (!s_activeScene) return;
 
-    if (s_activeScene)
-    {
-        s_activeScene->StartPlayMode();
-        s_activeScene->SaveScene();
-    }
-    else return;
+    s_activeScene->StartPlayMode();
+    s_activeScene->SaveScene();
 
     s_playModeTimeline.Reset();
     s_playModeTimeline.Start();
     s_isPlayMode = true;
+
+    PhysicsSubsystem::StartSimulation();
 
     for (auto [entity, id, scriptComp] : s_activeScene->GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
     {
@@ -129,6 +128,7 @@ void Engine::StartPlayMode()
 void Engine::StopPlayMode()
 {
     s_playModeTimeline.Pause();
+    PhysicsSubsystem::StopSimulation();
 }
 
 
@@ -143,6 +143,8 @@ void Engine::EscapePlayMode()
 
 
     s_isPlayMode = false;
+
+    PhysicsSubsystem::StopSimulation();
 
     for (auto [entity, id, scriptComp] : s_activeScene->GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
     {

@@ -18,7 +18,7 @@ class vector3_input_widget : public QWidget
     Q_OBJECT;
 
 public:
-    explicit vector3_input_widget(const QString &title, const Blainn::Vec3 &value = Blainn::Vec3::Zero,
+    explicit vector3_input_widget(const QString &title, const Blainn::Vec3 &value = Blainn::Vec3::Zero, bool immediate = true,
                                   QWidget *parent = nullptr);
 
     Blainn::Vec3 GetValue() const;
@@ -32,6 +32,8 @@ public:
     void SetDecimals(int value);
 
     void SetSingleStep(float step) const;
+    void SetMinValue(float value);
+    void SetMaxValue(float value);
 
 signals:
     void ValueChanged(const Blainn::Vec3 &value);

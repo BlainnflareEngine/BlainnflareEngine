@@ -12,7 +12,7 @@
 
 namespace editor
 {
-vector3_input_widget::vector3_input_widget(const QString &title, const Blainn::Vec3 &value, QWidget *parent)
+vector3_input_widget::vector3_input_widget(const QString &title, const Blainn::Vec3 &value, bool immediate, QWidget *parent)
 {
     auto *gridLayout = new QGridLayout(this);
     gridLayout->setContentsMargins(0, 5, 0, 5);
@@ -30,17 +30,17 @@ vector3_input_widget::vector3_input_widget(const QString &title, const Blainn::V
 
     QSize fieldSize{70, 20};
 
-    m_x = new float_input_field("X", value.x, this, xColor);
+    m_x = new float_input_field("X", value.x, this, immediate, xColor);
     m_x->setMinimumSize(fieldSize);
     m_x->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(m_x, 1, 0);
 
-    m_y = new float_input_field("Y", value.y, this, yColor);
+    m_y = new float_input_field("Y", value.y, this, immediate, yColor);
     m_y->setMinimumSize(fieldSize);
     m_y->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(m_y, 1, 1);
 
-    m_z = new float_input_field("Z", value.z, this, zColor);
+    m_z = new float_input_field("Z", value.z, this, immediate, zColor);
     m_z->setMinimumSize(fieldSize);
     m_z->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(m_z, 1, 2);
@@ -99,6 +99,21 @@ void vector3_input_widget::SetSingleStep(float step) const
     m_y->SetSingleStep(step);
     m_z->SetSingleStep(step);
 }
+
+void vector3_input_widget::SetMinValue(float value)
+{
+    m_x->SetMinValue(value);
+    m_y->SetMinValue(value);
+    m_z->SetMinValue(value);
+}
+
+void vector3_input_widget::SetMaxValue(float value)
+{
+    m_x->SetMaxValue(value);
+    m_y->SetMaxValue(value);
+    m_z->SetMaxValue(value);
+}
+
 
 void vector3_input_widget::OnComponentEditingFinished()
 {

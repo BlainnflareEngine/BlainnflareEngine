@@ -132,11 +132,31 @@ void PhysicsSubsystem::Update()
 void PhysicsSubsystem::StartSimulation()
 {
     m_physicsTimeline->Start();
+
+    eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
+    auto enities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
+
+    for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
+    {
+        Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
+        BodyUpdater bodyUpdater = GetBodyUpdater(entity);
+        bodyUpdater.ActivateBody();
+    }
 }
 
 void PhysicsSubsystem::StopSimulation()
 {
     m_physicsTimeline->Pause();
+
+    eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
+    auto enities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
+
+    for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
+    {
+        Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
+        BodyUpdater bodyUpdater = GetBodyUpdater(entity);
+        bodyUpdater.DeactivateBody();
+    }
 }
 
 void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &settings)

@@ -11,8 +11,9 @@
 namespace editor
 {
 
-float_input_field::float_input_field(const QString &name, float value, QWidget *parent, QColor nameColor)
-    : QWidget(parent)
+float_input_field::float_input_field(const QString &name, float value, QWidget *parent,bool immediate, QColor nameColor)
+    : QWidget(parent),
+    m_immediateMode(immediate)
 {
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
@@ -49,7 +50,9 @@ float_input_field::float_input_field(const QString &name, float value, QWidget *
     m_lastValue = value;
 
     connect(m_input, &NumericInputWidget::editingFinished, this, &float_input_field::OnEditingFinished);
-    connect(m_input, &NumericInputWidget::ValueChanged, this, &float_input_field::OnEditingFinished);
+    
+    if(immediate)
+        connect(m_input, &NumericInputWidget::ValueChanged, this, &float_input_field::OnEditingFinished);
 }
 
 
