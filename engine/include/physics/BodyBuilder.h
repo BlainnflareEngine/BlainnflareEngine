@@ -10,7 +10,7 @@ namespace Blainn
 class BodyBuilder
 {
 public:
-    BodyBuilder() = default;
+    BodyBuilder();
 
     BodyBuilder &SetMotionType(PhysicsComponentMotionType motionType);
     BodyBuilder &SetShape(JPH::Shape *shape);

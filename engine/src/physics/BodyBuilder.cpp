@@ -7,6 +7,11 @@
 
 using namespace Blainn;
 
+Blainn::BodyBuilder::BodyBuilder()
+{
+    m_settings.mCollideKinematicVsNonDynamic = true;
+}
+
 BodyBuilder &BodyBuilder::SetMotionType(PhysicsComponentMotionType motionType)
 {
     m_settings.mMotionType = motionType;
