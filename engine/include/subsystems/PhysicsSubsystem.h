@@ -67,8 +67,6 @@ public:
     // TODO: hide somehow?
     static JPH::PhysicsSystem &GetPhysicsSystem();
 
-    static void AddBodyConnection(JPH::BodyID bodyID, uuid parentID);
-
 private:
     PhysicsSubsystem() = delete;
 

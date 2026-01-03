@@ -236,11 +236,6 @@ JPH::PhysicsSystem &PhysicsSubsystem::GetPhysicsSystem()
     return *m_joltPhysicsSystem;
 }
 
-void PhysicsSubsystem::AddBodyConnection(JPH::BodyID bodyID, uuid parentID)
-{
-    m_bodyEntityConnections.try_emplace(bodyID, parentID);
-}
-
 eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 directionAndDistance)
 {
     JPH::RRayCast ray(ToJoltRVec3(origin), ToJoltRVec3(directionAndDistance));
