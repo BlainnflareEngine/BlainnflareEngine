@@ -120,6 +120,18 @@ BodyUpdater &BodyUpdater::SetMotionType(PhysicsComponentMotionType motionType,
     return *this;
 }
 
+BodyUpdater &Blainn::BodyUpdater::ActivateBody()
+{
+    m_bodyInterface.ActivateBody(m_bodyId);
+    return *this;
+}
+
+BodyUpdater &Blainn::BodyUpdater::DeactivateBody()
+{
+    m_bodyInterface.DeactivateBody(m_bodyId);
+    return *this;
+}
+
 
 BodyUpdater &BodyUpdater::SetCollideKinematicVsNonDynamic(bool collide)
 {

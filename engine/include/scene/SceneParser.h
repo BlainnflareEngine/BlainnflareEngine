@@ -7,6 +7,10 @@
 #include "pch.h"
 
 #include "components/ScriptingComponent.h"
+#include "components/CameraComponent.h"
+#include "components/MeshComponent.h"
+#include "physics/BodyBuilder.h"
+#include "Engine.h"
 
 namespace Blainn
 {
@@ -134,8 +138,8 @@ inline MeshComponent GetMesh(const YAML::Node &node)
     else
     {
         mesh.MaterialHandle = AssetManager::GetInstance().HasMaterial(relativeMaterialPath)
-                                    ? AssetManager::GetInstance().GetMaterial(relativeMaterialPath)
-                                    : AssetManager::GetInstance().LoadMaterial(relativeMaterialPath);
+                                  ? AssetManager::GetInstance().GetMaterial(relativeMaterialPath)
+                                  : AssetManager::GetInstance().LoadMaterial(relativeMaterialPath);
     }
 
     return mesh;
@@ -222,6 +226,52 @@ inline ScriptingComponent GetScripting(const YAML::Node &node)
     return component;
 }
 
+inline bool HasPhysics(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["PhysicsComponent"]) return true;
+
+    return false;
+}
+
+inline void GetPhysics(const YAML::Node &node, const Entity& entity)
+{
+    ComponentShapeType shapeType = static_cast<ComponentShapeType>(node["ShapeType"].as<int>());
+    PhysicsComponentMotionType motionType = static_cast<PhysicsComponentMotionType>(node["MotionType"].as<int>());
+    float gravityFactor = node["GravityFactor"].as<float>();
+    bool isTrigger = node["IsTrigger"].as<bool>();
+    ObjectLayer layer = static_cast<ObjectLayer>(node["ObjectLayer"].as<int>());
+
+    ShapeCreationSettings shapeSettings(shapeType);
+
+    if(auto& shapeSettingsNode = node["ShapeSettings"])
+    {
+        if(shapeSettingsNode["HalfHeight"])
+        {
+            shapeSettings.halfCylinderHeight = shapeSettingsNode["HalfHeight"].as<float>();
+        }
+
+        if(shapeSettingsNode["Radius"])
+        {
+            shapeSettings.radius = shapeSettingsNode["Radius"].as<float>();
+        }
+
+        if(auto& extents = shapeSettingsNode["HalfExtent"])
+        {
+           shapeSettings.halfExtents = Blainn::Vec3(extents["X"].as<float>(), extents["Y"].as<float>(), extents["Z"].as<float>()); 
+        }
+    }
+
+    PhysicsComponentSettings settings(entity, shapeType);
+    settings.gravityFactor = gravityFactor;
+    settings.isTrigger = isTrigger;
+    settings.layer = layer;
+    settings.motionType = motionType;
+    settings.shapeSettings = shapeSettings;
+    PhysicsSubsystem::CreateAttachPhysicsComponent(settings);
+}
+
 inline bool HasCamera(const YAML::Node &node)
 {
     if (!node || node.IsNull()) return false;
@@ -239,9 +289,16 @@ inline CameraComponent GetCamera(const YAML::Node &node)
         BF_WARN("Camera component not found or invalid in .scene file.");
         return camera;
     }
-    if (node["IsActiveCamera"])
-        camera.IsActiveCamera = node["IsActiveCamera"].as<bool>();
-    camera.camera.Reset(75.f, 16.f/9.f, 0.01, 1000);
+    if (node["IsActiveCamera"]) camera.IsActiveCamera = node["IsActiveCamera"].as<bool>();
+    camera.camera.Reset(75.f, 16.f / 9.f, 0.01, 1000);
+
+    if (auto &settings = node["CameraSettings"])
+    {
+        // TODO: other settigns
+        camera.camera.SetFovDegrees(settings["FOV"].as<float>());
+        camera.camera.SetNearZ(settings["NearZ"].as<float>());
+        camera.camera.SetFarZ(settings["FarZ"].as<float>());
+    }
 
     return camera;
 }

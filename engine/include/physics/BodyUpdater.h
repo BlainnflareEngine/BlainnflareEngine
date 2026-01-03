@@ -44,6 +44,9 @@ public:
                                EActivation activation = EActivation::DontActivate);
     BodyUpdater &SetCollideKinematicVsNonDynamic(bool collide);
 
+    BodyUpdater &ActivateBody();
+    BodyUpdater &DeactivateBody();
+
     /// @brief  will show error and do noting if body shape type is not sphere
     BodyUpdater &SetSphereShapeSettings(float radius);
 
