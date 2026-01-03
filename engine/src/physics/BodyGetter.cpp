@@ -68,7 +68,7 @@ float BodyGetter::GetGravityFactor()
     if (m_body.IsStatic())
     {
         BF_ERROR("cannot get gravity factor from static object");
-        return 0.0f;
+        return 1.0f;
     }
     return m_body.GetMotionProperties()->GetGravityFactor();
 }

@@ -67,38 +67,37 @@ Scene::~Scene()
 
 void Blainn::Scene::Update()
 {
-    if (!m_bPlayMode)
-        RenderSubsystem::GetInstance().SetCamera(&*RenderSubsystem::GetInstance().GetEditorCamera());
+    if (!m_bPlayMode) RenderSubsystem::GetInstance().SetCamera(&*RenderSubsystem::GetInstance().GetEditorCamera());
     else do
-    {
-        auto view = GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
-        RuntimeCamera* cam = nullptr;
-        Entity* camEntity = nullptr;
-        TransformComponent* camTransform = nullptr;
-        for (const auto& [enttity, id, transform, camera] : view.each())
         {
-            if (camera.IsActiveCamera)
+            auto view = GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
+            RuntimeCamera *cam = nullptr;
+            Entity *camEntity = nullptr;
+            TransformComponent *camTransform = nullptr;
+            for (const auto &[enttity, id, transform, camera] : view.each())
             {
-                camEntity = &m_EntityIdMap.at(id.ID);
-                cam = &camera.camera;
-                camTransform = &transform;
+                if (camera.IsActiveCamera)
+                {
+                    camEntity = &m_EntityIdMap.at(id.ID);
+                    cam = &camera.camera;
+                    camTransform = &transform;
+                    break;
+                }
+            }
+            if (!camEntity || !cam)
+            {
+                m_editorCam = RenderSubsystem::GetInstance().GetEditorCamera();
+                RenderSubsystem::GetInstance().SetCamera(&*m_editorCam);
+                BF_ERROR("Could not find main camera, please, select an active camera");
                 break;
             }
-        }
-        if (!camEntity || !cam)
-        {
-            m_editorCam = RenderSubsystem::GetInstance().GetEditorCamera();
-            RenderSubsystem::GetInstance().SetCamera(&*m_editorCam);
-            BF_ERROR("Could not find main camera, please, select an active camera");
-            break;
-        }
 
-        Mat4 camViewMat = GetWorldSpaceTransformMatrix(*camEntity).Invert();
-        cam->SetViewMatrix(camViewMat);
-        cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
-        RenderSubsystem::GetInstance().SetCamera(cam);
+            Mat4 camViewMat = GetWorldSpaceTransformMatrix(*camEntity).Invert();
+            cam->SetViewMatrix(camViewMat);
+            cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
+            RenderSubsystem::GetInstance().SetCamera(cam);
 
-    } while (false); // Чтобы не писать goto))) хотя по факту это просто goto)))
+        } while (false); // Чтобы не писать goto))) хотя по факту это просто goto)))
 
     {
         auto view = GetAllEntitiesWith<TransformComponent>();
@@ -332,7 +331,7 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
             entity.AddComponent<CameraComponent>(camera);
         }
 
-        if(HasPhysics(entityNode))
+        if (HasPhysics(entityNode))
         {
             GetPhysics(entityNode["PhysicsComponent"], entity);
         }
@@ -384,6 +383,7 @@ void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool firs
     // before actually destroying remove components that might require ID of the entity
     s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity, id));
 
+    PhysicsSubsystem::DestroyPhysicsComponent(entity);
     ScriptingSubsystem::DestroyScriptingComponent(entity);
     m_Registry.destroy(entity);
     m_EntityIdMap.erase(id);
@@ -572,8 +572,7 @@ Mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
 {
     Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
 
-    if (parent)
-        return  entity.Transform().GetTransform() * GetWorldSpaceTransformMatrix(parent);
+    if (parent) return entity.Transform().GetTransform() * GetWorldSpaceTransformMatrix(parent);
 
     return entity.Transform().GetTransform();
 }

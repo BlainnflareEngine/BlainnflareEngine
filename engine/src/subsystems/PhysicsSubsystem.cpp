@@ -214,11 +214,13 @@ bool PhysicsSubsystem::HasPhysicsComponent(Entity entity)
 
 void PhysicsSubsystem::DestroyPhysicsComponent(Entity entity)
 {
-    PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
+    PhysicsComponent *component = entity.TryGetComponent<PhysicsComponent>();
+    if (!component) return;
+
     JPH::BodyInterface &bodyInterface = m_joltPhysicsSystem->GetBodyInterface();
-    bodyInterface.RemoveBody(component.bodyId);
-    bodyInterface.DestroyBody(component.bodyId);
-    m_bodyEntityConnections.erase(component.bodyId);
+    bodyInterface.RemoveBody(component->bodyId);
+    bodyInterface.DestroyBody(component->bodyId);
+    m_bodyEntityConnections.erase(component->bodyId);
     entity.RemoveComponent<PhysicsComponent>();
 }
 
