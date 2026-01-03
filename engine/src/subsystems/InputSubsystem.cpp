@@ -119,17 +119,14 @@ void Blainn::Input::UpdateKeyState(KeyCode key, KeyState state)
     case KeyState::Pressed:
         if (s_keyStates[key] == KeyState::Held) return;
         s_keyStates[key] = state;
-        // BF_DEBUG("Key Pressed 111 {}", static_cast<int>(key))
         s_inputEventQueue.enqueue(eastl::make_shared<KeyPressedEvent>(key));
         return;
     case KeyState::Released:
-        // BF_DEBUG("Key Released  11111 {}", static_cast<int>(key))
         s_keyStates[key] = state;
         s_inputEventQueue.enqueue(eastl::make_shared<KeyReleasedEvent>(key));
         return;
     case KeyState::Held:
         s_keyStates[key] = state;
-        // BF_DEBUG("Key Held {}", static_cast<int>(key))
         s_inputEventQueue.enqueue(eastl::make_shared<KeyHeldEvent>(key));
         return;
     default:

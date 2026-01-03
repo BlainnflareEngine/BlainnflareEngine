@@ -37,8 +37,6 @@ public:
     static void StartSimulation();
     static void StopSimulation();
 
-    // TODO: QueuePhysicsComponentCreation()?;
-
     static void CreateAttachPhysicsComponent(PhysicsComponentSettings &settings);
     static bool HasPhysicsComponent(Entity entity);
     static void DestroyPhysicsComponent(Entity entity);

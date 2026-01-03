@@ -17,9 +17,7 @@ public:
         : m_bodyLockInterface(bodyLockInterface)
         , m_bodyInterface(bodyInterface)
         , m_bodyId(bodyId)
-    //, m_bodyLock(bodyLockInterface, bodyId)
     {
-        // assert(m_bodyLock.Succeeded());
     }
     NO_COPY_DEFAULT_MOVE(BodyUpdater);
     ~BodyUpdater() = default;
@@ -34,6 +32,7 @@ public:
     BodyUpdater &SetMaxAngularVelocity(float maxAngularVelocity);
     BodyUpdater &SetGravityFactor(float gravityFactor);
     BodyUpdater &SetObjectLayer(JPH::ObjectLayer layer);
+    BodyUpdater &SetIsTrigger(bool isTrigger);
 
     BodyUpdater &AddVelocity(Vec3 deltaVelocity);
     BodyUpdater &AddImpulse(Vec3 impulse);
@@ -43,6 +42,7 @@ public:
     BodyUpdater &ReplaceBodyShape(ShapeCreationSettings &settings, EActivation activation = EActivation::DontActivate);
     BodyUpdater &SetMotionType(PhysicsComponentMotionType motionType,
                                EActivation activation = EActivation::DontActivate);
+    BodyUpdater &SetCollideKinematicVsNonDynamic(bool collide);
 
     BodyUpdater &ActivateBody();
     BodyUpdater &DeactivateBody();

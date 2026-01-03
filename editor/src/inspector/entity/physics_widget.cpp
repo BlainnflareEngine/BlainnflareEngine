@@ -49,7 +49,6 @@ void physics_widget::DeleteComponent()
 }
 
 
-
 void physics_widget::OnShapeChanged(int)
 {
     using namespace Blainn;
@@ -68,7 +67,7 @@ void physics_widget::OnShapeChanged(int)
     {
         BodyGetter getter = PhysicsSubsystem::GetBodyGetter(m_entity);
         currentShapeType = getter.GetShapeType();
-        
+
         switch (currentShapeType)
         {
         case ComponentShapeType::Sphere:
@@ -117,7 +116,6 @@ void physics_widget::OnShapeChanged(int)
     case ComponentShapeType::Empty:
         break;
     }
-
 }
 
 void physics_widget::LoadShape()
@@ -138,7 +136,7 @@ void physics_widget::LoadShape()
     {
         BodyGetter getter = PhysicsSubsystem::GetBodyGetter(m_entity);
         currentShapeType = getter.GetShapeType();
-        
+
         switch (currentShapeType)
         {
         case ComponentShapeType::Sphere:
@@ -213,7 +211,7 @@ void physics_widget::OnObjectTypeChanged(int)
     Blainn::PhysicsComponentMotionType type = m_objectType->GetValue();
     Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
     bodyUpdater.SetMotionType(type);
-    BF_DEBUG("New layer is {}", static_cast<int>(type));
+    BF_DEBUG("New object type is {}", static_cast<int>(type));
 
     // TODO: check later
 }
@@ -258,10 +256,10 @@ void physics_widget::OnHalfHeightChanged()
 
     Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
 
-    if(m_shape->GetValue() == ComponentShapeType::Cylinder)
-        bodyUpdater.SetCylinderShapeSettings(m_halfHeight->GetValue(),m_radius->GetValue());
-    else if(m_shape->GetValue() == ComponentShapeType::Capsule)
-        bodyUpdater.SetCapsuleShapeSettings(m_halfHeight->GetValue(),m_radius->GetValue());
+    if (m_shape->GetValue() == ComponentShapeType::Cylinder)
+        bodyUpdater.SetCylinderShapeSettings(m_halfHeight->GetValue(), m_radius->GetValue());
+    else if (m_shape->GetValue() == ComponentShapeType::Capsule)
+        bodyUpdater.SetCapsuleShapeSettings(m_halfHeight->GetValue(), m_radius->GetValue());
 }
 
 
@@ -288,7 +286,7 @@ void physics_widget::ShowSphereSettings(float radius)
 }
 
 
-void physics_widget::ShowBoxSettings(const Blainn::Vec3& extents)
+void physics_widget::ShowBoxSettings(const Blainn::Vec3 &extents)
 {
     m_extents = new vector3_input_widget("Extents", extents, false, this);
     m_extents->SetMinValue(0.01);
@@ -383,7 +381,7 @@ void physics_widget::LoadValues()
     Blainn::ObjectLayer objectLayer;
     Blainn::ComponentShapeType shapeType;
     Blainn::PhysicsComponentMotionType motionType;
-    
+
     {
         auto body = Blainn::PhysicsSubsystem::GetBodyGetter(m_entity);
         isTrigger = body.isTrigger();
