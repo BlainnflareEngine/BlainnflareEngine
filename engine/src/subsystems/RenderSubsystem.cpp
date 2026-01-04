@@ -13,6 +13,7 @@
 #include "Scene/Scene.h"
 
 #include "Render/CommandQueue.h"
+#include "Render/DebugRenderer.h"
 #include "Render/FrameResource.h"
 #include "Render/FreyaMath.h"
 #include "Render/FreyaUtil.h"
@@ -41,6 +42,8 @@ void Blainn::RenderSubsystem::Init(HWND window)
     InitializeWindow();
     LoadGraphicsFeatures();
     LoadPipeline();
+
+    m_debugRenderer = eastl::make_unique<Blainn::DebugRenderer>(m_device);
 
     m_isInitialized = true;
     BF_INFO("RenderSubsystem::Init() called");
@@ -141,6 +144,15 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
     RenderGeometryPass(pCommandList);
     RenderLightingPass(pCommandList);
     RenderForwardPasses(pCommandList);
+
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    m_debugRenderer->BeginDebugRenderPass(pCommandList, GetRTV(), m_GBuffer->GetDsv(GBuffer::EGBufferLayer::DEPTH));
+    m_debugRenderer->SetViewProjMatrix(m_mainPassCBData.ViewProj);
+    Vec3 from = {0.f, 0.0f, 0.2f};
+    Vec3 to = {0.f, 3.0f, 0.2f};
+    m_debugRenderer->DrawLine(from, to, {1.f, 0.0f, 1.f, 1.f});
+    //m_debugRenderer->EndDebugRenderPass();
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 }
 
 VOID Blainn::RenderSubsystem::InitializeWindow()
