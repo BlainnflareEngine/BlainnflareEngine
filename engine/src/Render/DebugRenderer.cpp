@@ -40,6 +40,9 @@ void DebugRenderer::BeginDebugRenderPass(ID3D12GraphicsCommandList2 *commandList
 
 void DebugRenderer::EndDebugRenderPass()
 {
+    auto nextFence = m_device.GetCommandQueue()->Signal() + 1;
+    for (auto it = m_lineRequests.end()--; it != m_lineRequests.begin() && it->first != -1; --it)
+        it->first = nextFence;
     while (!m_lineRequests.empty() && m_device.GetCommandQueue()->IsFenceComplete(m_lineRequests.front().first))
         m_lineRequests.pop_front();
 
@@ -59,7 +62,10 @@ void DebugRenderer::SetViewProjMatrix(const Mat4 &viewProjMat)
 
 void Blainn::DebugRenderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor)
 {
-
+    Color col = {inColor.r / 255.f, inColor.g / 255.f, inColor.b / 255.f, inColor.a / 255.f};
+    Vec3 from = {inFrom.GetX(), inFrom.GetY(), inFrom.GetZ()};
+    Vec3 to = {inTo.GetX(), inTo.GetY(), inTo.GetZ()};
+    DrawLine(from, to, col);
 }
 
 void Blainn::DebugRenderer::DrawLine(Vec3 inFrom, Vec3 inTo, Color color)
@@ -83,6 +89,7 @@ void Blainn::DebugRenderer::DrawLine(Vec3 inFrom, Vec3 inTo, Color color)
         nullptr,
         IID_PPV_ARGS(lineVertexBuffer.GetAddressOf())
         ));
+    m_lineRequests.push_back({-1, lineVertexBuffer});
 
     UINT8* pVertexDataBegin;
     CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
@@ -103,8 +110,6 @@ void Blainn::DebugRenderer::DrawLine(Vec3 inFrom, Vec3 inTo, Color color)
     m_commandList->DrawInstanced(2, 1, 0, 0);
 
 
-    auto value = m_device.GetCommandQueue()->Signal() + 1;
-    m_lineRequests.push_back({value, lineVertexBuffer});
 }
 
 void Blainn::DebugRenderer::CreateRootSignature()

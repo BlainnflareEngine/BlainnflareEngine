@@ -152,6 +152,9 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
     Vec3 from = {0.f, 0.0f, 0.2f};
     Vec3 to = {0.f, 3.0f, 0.2f};
     m_debugRenderer->DrawLine(from, to, {1.f, 0.0f, 1.f, 1.f});
+
+    m_debugRenderer->DrawBox(JPH::AABox(JPH::Vec3(-1.f, 1.f, -1.f), JPH::Vec3(1.f, 2.f, 1.f)), {255, 0, 0, 255});
+
     m_debugRenderer->EndDebugRenderPass();
     ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
     ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
