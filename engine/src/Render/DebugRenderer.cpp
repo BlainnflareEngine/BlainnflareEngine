@@ -6,6 +6,7 @@
 #include "Render/DebugRenderer.h"
 
 #include "VertexTypes.h"
+#include "Render/CommandQueue.h"
 #include "Render/FreyaUtil.h"
 #include "Render/RootSignature.h"
 
@@ -39,7 +40,9 @@ void DebugRenderer::BeginDebugRenderPass(ID3D12GraphicsCommandList2 *commandList
 
 void DebugRenderer::EndDebugRenderPass()
 {
-    m_lineRequests.clear();
+    while (!m_lineRequests.empty() && m_device.GetCommandQueue()->IsFenceComplete(m_lineRequests.front().first))
+        m_lineRequests.pop_front();
+
     m_bIsRenderPassOngoing = false;
 }
 
@@ -80,7 +83,6 @@ void Blainn::DebugRenderer::DrawLine(Vec3 inFrom, Vec3 inTo, Color color)
         nullptr,
         IID_PPV_ARGS(lineVertexBuffer.GetAddressOf())
         ));
-    m_lineRequests.push_front(lineVertexBuffer);
 
     UINT8* pVertexDataBegin;
     CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
@@ -99,6 +101,10 @@ void Blainn::DebugRenderer::DrawLine(Vec3 inFrom, Vec3 inTo, Color color)
 
     m_commandList->IASetVertexBuffers(0, 1, &vbView);
     m_commandList->DrawInstanced(2, 1, 0, 0);
+
+
+    auto value = m_device.GetCommandQueue()->Signal() + 1;
+    m_lineRequests.push_back({value, lineVertexBuffer});
 }
 
 void Blainn::DebugRenderer::CreateRootSignature()

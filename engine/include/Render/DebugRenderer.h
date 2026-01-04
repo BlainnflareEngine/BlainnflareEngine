@@ -56,6 +56,6 @@ namespace Blainn
         ID3D12GraphicsCommandList2* m_commandList;
         Mat4 m_viewProj;
 
-        eastl::deque<ComPtr<ID3D12Resource>> m_lineRequests;
+        eastl::deque<eastl::pair<uint64_t, ComPtr<ID3D12Resource>>> m_lineRequests;
     };
 }
