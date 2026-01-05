@@ -40,11 +40,44 @@ void DebugRenderer::BeginDebugRenderPass(ID3D12GraphicsCommandList2 *commandList
 
 void DebugRenderer::EndDebugRenderPass()
 {
+    BLAINN_PROFILE_SCOPE(EndDebugRenderPass);
     auto nextFence = m_device.GetCommandQueue()->Signal() + 1;
-    for (auto it = m_lineRequests.end()--; it != m_lineRequests.begin() && it->first != -1; --it)
-        it->first = nextFence;
-    while (!m_lineRequests.empty() && m_device.GetCommandQueue()->IsFenceComplete(m_lineRequests.front().first))
-        m_lineRequests.pop_front();
+
+    while (!m_debugRequests.empty() && m_device.GetCommandQueue()->IsFenceComplete(m_debugRequests.front().first))
+        m_debugRequests.pop_front();
+
+    UINT vertexBufferSize = m_lineListVertices.size() * sizeof(VertexPositionColor);
+    Microsoft::WRL::ComPtr<ID3D12Resource> lineVertexBuffer;
+
+    const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+    const auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
+    ThrowIfFailed(m_device.GetDevice2()->CreateCommittedResource(
+        &heapProps,
+        D3D12_HEAP_FLAG_NONE,
+        &resDesc,
+        D3D12_RESOURCE_STATE_COMMON,
+        nullptr,
+        IID_PPV_ARGS(lineVertexBuffer.GetAddressOf())
+        ));
+    m_debugRequests.push_back({nextFence, lineVertexBuffer});
+
+    UINT8* pVertexDataBegin;
+    CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
+    ThrowIfFailed(lineVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
+    memcpy(pVertexDataBegin, m_lineListVertices.data(), vertexBufferSize);
+    lineVertexBuffer->Unmap(0, nullptr);
+
+    D3D12_VERTEX_BUFFER_VIEW vbView = {};
+    vbView.BufferLocation = lineVertexBuffer->GetGPUVirtualAddress();
+    vbView.StrideInBytes = sizeof(VertexPositionColor);
+    vbView.SizeInBytes = vertexBufferSize;
+
+    m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+
+    m_commandList->IASetVertexBuffers(0, 1, &vbView);
+    m_commandList->DrawInstanced(m_lineListVertices.size(), 1, 0, 0);
+
+    m_lineListVertices.clear();
 
     m_bIsRenderPassOngoing = false;
 }
@@ -70,46 +103,46 @@ void Blainn::DebugRenderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, J
 
 void Blainn::DebugRenderer::DrawLine(Vec3 inFrom, Vec3 inTo, Color color)
 {
+    BLAINN_PROFILE_SCOPE(DrawLine);
     if (!m_bIsRenderPassOngoing)
     {
         BF_ERROR("Trying render debug without initialization");
         return;
     }
-    VertexPosition lineVertices[] = { inFrom, inTo };
-    UINT vertexBufferSize = sizeof(lineVertices);
-    Microsoft::WRL::ComPtr<ID3D12Resource> lineVertexBuffer;
+    m_lineListVertices.push_back({inFrom, color});
+    m_lineListVertices.push_back({inTo, color});
+}
 
-    const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-    const auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-    ThrowIfFailed(m_device.GetDevice2()->CreateCommittedResource(
-        &heapProps,
-        D3D12_HEAP_FLAG_NONE,
-        &resDesc,
-        D3D12_RESOURCE_STATE_COMMON,
-        nullptr,
-        IID_PPV_ARGS(lineVertexBuffer.GetAddressOf())
-        ));
-    m_lineRequests.push_back({-1, lineVertexBuffer});
+void DebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor,
+    ECastShadow inCastShadow)
+{
+    //DebugRendererSimple::DrawTriangle(inV1, inV2, inV3, inColor, inCastShadow);
+    const Color col = {inColor.r / 255.f, inColor.g / 255.f, inColor.b / 255.f, inColor.a / 255.f};
+    const Vec3 V1 = {inV1.GetX(), inV1.GetY(), inV1.GetZ()};
+    const Vec3 V2 = {inV2.GetX(), inV2.GetY(), inV2.GetZ()};
+    const Vec3 V3 = {inV3.GetX(), inV3.GetY(), inV3.GetZ()};
 
-    UINT8* pVertexDataBegin;
-    CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
-    ThrowIfFailed(lineVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
-    memcpy(pVertexDataBegin, lineVertices, sizeof(lineVertices));
-    lineVertexBuffer->Unmap(0, nullptr);
+    DrawTriangle(V1, V2, V3, col);
+}
 
-    D3D12_VERTEX_BUFFER_VIEW vbView = {};
-    vbView.BufferLocation = lineVertexBuffer->GetGPUVirtualAddress();
-    vbView.StrideInBytes = sizeof(VertexPosition);
-    vbView.SizeInBytes = vertexBufferSize;
+void DebugRenderer::DrawTriangle(Vec3 inV1, Vec3 inV2, Vec3 inV3, Color inColor)
+{
+    BLAINN_PROFILE_SCOPE(DrawTriangle);
+    if (!m_bIsRenderPassOngoing)
+    {
+        BF_ERROR("Trying render debug without initialization");
+        return;
+    }
+    VertexPositionColor lineVertices[] = { {inV1, inColor}, {inV2, inColor}, {inV3, inColor}, {inV1, inColor} };
+    m_lineListVertices.push_back({inV1, inColor});
+    m_lineListVertices.push_back({inV2, inColor});
 
-    m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-
-    m_commandList->SetGraphicsRoot32BitConstants(1, sizeof(Vec4) / sizeof(float), &color, 0);
-
-    m_commandList->IASetVertexBuffers(0, 1, &vbView);
-    m_commandList->DrawInstanced(2, 1, 0, 0);
+    m_lineListVertices.push_back({inV2, inColor});
+    m_lineListVertices.push_back({inV3, inColor});
 
 
+    m_lineListVertices.push_back({inV3, inColor});
+    m_lineListVertices.push_back({inV1, inColor});
 }
 
 void Blainn::DebugRenderer::CreateRootSignature()
@@ -117,9 +150,8 @@ void Blainn::DebugRenderer::CreateRootSignature()
     m_rootSignature = eastl::make_shared<RootSignature>();
 
     // sorry for magic values, i don't want to drag the common header and the common types ;)
-    CD3DX12_ROOT_PARAMETER slotRootParameter[2];
+    CD3DX12_ROOT_PARAMETER slotRootParameter[1];
     slotRootParameter[0].InitAsConstants(sizeof(Mat4) / sizeof(float), SHADER_REGISTER(0u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
-    slotRootParameter[1].InitAsConstants(sizeof(Vec4) / sizeof(float), SHADER_REGISTER(1), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
 
     m_rootSignature->Create(m_device, ARRAYSIZE(slotRootParameter), slotRootParameter, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 }
@@ -163,7 +195,7 @@ void Blainn::DebugRenderer::CreatePSO()
     debugPSODesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
     debugPSODesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 
-    debugPSODesc.InputLayout = VertexPosition::InputLayout;
+    debugPSODesc.InputLayout = VertexPositionColor::InputLayout;
     debugPSODesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
     debugPSODesc.NumRenderTargets = 1u;
     debugPSODesc.RTVFormats[0] = BackBufferFormat;
