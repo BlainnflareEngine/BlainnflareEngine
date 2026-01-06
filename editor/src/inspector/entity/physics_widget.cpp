@@ -15,7 +15,7 @@
 namespace editor
 {
 physics_widget::physics_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "Physics widget", parent)
+    : component_widget_base(entity, "Physics", parent)
 {
     m_isTrigger = new bool_input_field("Is Trigger", false, this);
 

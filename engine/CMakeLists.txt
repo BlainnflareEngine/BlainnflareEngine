@@ -124,7 +124,7 @@ set(ENGINE_SOURCES
         include/Render/EditorCamera.h
         src/Render/RuntimeCamera.cpp
         include/Render/RuntimeCamera.h
-
+        include/components/SkyboxComponent.h
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})

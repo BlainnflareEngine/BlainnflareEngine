@@ -77,7 +77,7 @@ void transform_widget::OnUpdate()
 
 void transform_widget::DeleteComponent()
 {
-    if (m_entity.IsValid()) m_entity.RemoveComponent<Blainn::TransformComponent>();
+    if (m_entity.IsValid()) m_entity.RemoveComponentIfExists<Blainn::TransformComponent>();
     deleteLater();
 }
 

@@ -12,6 +12,7 @@
 #include "File-System/Texture.h"
 
 #include "Render/PrebuiltEngineMeshes.h"
+#include "AssetManager.h"
 
 namespace Blainn
 {
@@ -290,6 +291,10 @@ Texture &AssetManager::GetTextureByHandle(const TextureHandle &handle)
     return *m_textures[index];
 }
 
+Path AssetManager::GetTexturePath(const TextureHandle& handle)
+{
+    return m_textures[handle.GetIndex()]->GetPath();
+}
 
 bool AssetManager::HasMaterial(const Path &relativePath)
 {

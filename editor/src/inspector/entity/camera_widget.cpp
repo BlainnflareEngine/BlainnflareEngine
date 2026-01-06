@@ -55,7 +55,7 @@ void camera_widget::OnIsActiveChanged(bool value)
 
 void camera_widget::DeleteComponent()
 {
-    if (m_entity.IsValid()) m_entity.RemoveComponent<Blainn::CameraComponent>();
+    if (m_entity.IsValid()) m_entity.RemoveComponentIfExists<Blainn::CameraComponent>();
 
     deleteLater();
 }
