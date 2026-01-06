@@ -9,6 +9,7 @@
 #include "components/ScriptingComponent.h"
 #include "components/CameraComponent.h"
 #include "components/MeshComponent.h"
+#include "components/SkyboxComponent.h"
 #include "physics/BodyBuilder.h"
 #include "Engine.h"
 
@@ -235,7 +236,7 @@ inline bool HasPhysics(const YAML::Node &node)
     return false;
 }
 
-inline void GetPhysics(const YAML::Node &node, const Entity& entity)
+inline void GetPhysics(const YAML::Node &node, const Entity &entity)
 {
     ComponentShapeType shapeType = static_cast<ComponentShapeType>(node["ShapeType"].as<int>());
     PhysicsComponentMotionType motionType = static_cast<PhysicsComponentMotionType>(node["MotionType"].as<int>());
@@ -245,21 +246,22 @@ inline void GetPhysics(const YAML::Node &node, const Entity& entity)
 
     ShapeCreationSettings shapeSettings(shapeType);
 
-    if(auto& shapeSettingsNode = node["ShapeSettings"])
+    if (auto &shapeSettingsNode = node["ShapeSettings"])
     {
-        if(shapeSettingsNode["HalfHeight"])
+        if (shapeSettingsNode["HalfHeight"])
         {
             shapeSettings.halfCylinderHeight = shapeSettingsNode["HalfHeight"].as<float>();
         }
 
-        if(shapeSettingsNode["Radius"])
+        if (shapeSettingsNode["Radius"])
         {
             shapeSettings.radius = shapeSettingsNode["Radius"].as<float>();
         }
 
-        if(auto& extents = shapeSettingsNode["HalfExtent"])
+        if (auto &extents = shapeSettingsNode["HalfExtent"])
         {
-           shapeSettings.halfExtents = Blainn::Vec3(extents["X"].as<float>(), extents["Y"].as<float>(), extents["Z"].as<float>()); 
+            shapeSettings.halfExtents =
+                Blainn::Vec3(extents["X"].as<float>(), extents["Y"].as<float>(), extents["Z"].as<float>());
         }
     }
 
@@ -301,5 +303,40 @@ inline CameraComponent GetCamera(const YAML::Node &node)
     }
 
     return camera;
+}
+
+inline bool HasSkybox(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["SkyboxComponent"]) return true;
+
+    return false;
+}
+
+inline SkyboxComponent GetSkybox(const YAML::Node &node)
+{
+    SkyboxComponent component;
+
+    if (!node || node.IsNull() || !node.IsMap())
+    {
+        BF_WARN("Skybox component not found or invalid in .scene file.");
+        return component;
+    }
+
+    Path relativePath;
+    Path absolutPath;
+
+    relativePath = node["Path"].as<std::string>();
+    absolutPath = Engine::GetContentDirectory() / relativePath;
+
+    if (std::filesystem::is_regular_file(absolutPath))
+    {
+        component.textureHandle = AssetManager::GetInstance().HasTexture(relativePath)
+                                      ? AssetManager::GetInstance().GetTexture(relativePath)
+                                      : AssetManager::GetInstance().LoadTexture(relativePath, TextureType::ALBEDO);
+    }
+
+    return component;
 }
 } // namespace Blainn

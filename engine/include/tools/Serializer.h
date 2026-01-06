@@ -10,6 +10,7 @@
 #include "components/MeshComponent.h"
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
+#include "components/SkyboxComponent.h"
 #include "physics/BodyGetter.h"
 #include "scene/Entity.h"
 #include "yaml-cpp/emitter.h"
@@ -194,6 +195,17 @@ public:
         out << YAML::Key << "FarZ" << YAML::Value << camera.camera.GetFarZ();
 
         out << YAML::EndMap;
+        out << YAML::EndMap;
+    }
+
+    static void Skybox(Entity &entity, YAML::Emitter &out)
+    {
+        if (!entity.HasComponent<SkyboxComponent>()) return;
+
+        auto skybox = entity.GetComponent<SkyboxComponent>();
+        out << YAML::Key << "SkyboxComponent" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "Path" << YAML::Value
+            << AssetManager::GetInstance().GetTexturePath(*skybox.textureHandle).string();
         out << YAML::EndMap;
     }
 };

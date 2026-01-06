@@ -15,6 +15,7 @@
 #include "tools/random.h"
 
 #include "components/MeshComponent.h"
+#include "components/SkyboxComponent.h"
 #include "subsystems/ScriptingSubsystem.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/RenderSubsystem.h"
@@ -142,6 +143,7 @@ void Scene::SaveScene()
         Serializer::Mesh(e, out);
         Serializer::Camera(e, out);
         Serializer::Physics(e, out);
+        Serializer::Skybox(e, out);
 
         out << YAML::EndMap; // end for every entity
     }
@@ -334,6 +336,12 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
         if (HasPhysics(entityNode))
         {
             GetPhysics(entityNode["PhysicsComponent"], entity);
+        }
+
+        if (HasSkybox(entityNode))
+        {
+            auto skybox = GetSkybox(entityNode["SkyboxComponent"]);
+            entity.AddComponent<SkyboxComponent>(skybox);
         }
     }
 }

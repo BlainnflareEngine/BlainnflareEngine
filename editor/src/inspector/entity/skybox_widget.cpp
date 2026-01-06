@@ -3,6 +3,7 @@
 #include "input-widgets/path_input_field.h"
 #include "FileSystemUtils.h"
 #include "file-system/TextureType.h"
+#include "scene/EntityTemplates.h"
 #include <QLayout>
 
 namespace editor
@@ -13,6 +14,7 @@ skybox_widget::skybox_widget(const Blainn::Entity &entity, QWidget *parent)
     m_texture_input = new path_input_field("Texture", formats::supportedTextureFormats, this);
     layout()->addWidget(m_texture_input);
 
+    UpdatePath();
     connect(m_texture_input, &path_input_field::PathChanged, this, &skybox_widget::OnSetNewPath);
 }
 

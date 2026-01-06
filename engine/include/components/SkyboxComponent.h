@@ -8,7 +8,10 @@ namespace Blainn
 {
 struct SkyboxComponent
 {
-    SkyboxComponent() = default;
+    SkyboxComponent()
+    {
+        textureHandle = eastl::make_shared<TextureHandle>(0);
+    }
 
     SkyboxComponent(eastl::shared_ptr<TextureHandle>& handle)
     : textureHandle(handle)
