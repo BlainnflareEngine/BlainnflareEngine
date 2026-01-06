@@ -31,6 +31,8 @@ public:
     void OpenMenu(const QPoint &pos, const QModelIndex &index = QModelIndex());
 
     void AddEntity(const QModelIndex &index);
+    void AddCamera(const QModelIndex &index);
+    void AddSkybox(const QModelIndex &index);
     void RenameEntity(const QModelIndex &index) const;
     void DeleteEntity(const QModelIndex &index);
 
