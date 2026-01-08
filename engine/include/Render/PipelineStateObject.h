@@ -27,8 +27,9 @@ namespace Blainn
 
             Transparency,
             Sky,
+            Debug,
 
-            NumPipelineStates = 10u
+            NumPipelineStates = 11u
         };
 
     public:

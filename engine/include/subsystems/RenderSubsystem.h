@@ -1,9 +1,7 @@
 #pragma once
 
-#include <Windows.h>
-#include "Render/DXHelpers.h"
-#include "Render/SwapChain.h"
 #include "Render/Device.h"
+#include "Render/SwapChain.h"
 
 #include "handles/Handle.h"
 #include "scene/Entity.h"
@@ -14,7 +12,6 @@
 #include "Render/Shader.h"
 #include "Render/PipelineStateObject.h"
 
-
 namespace Blainn
 {
 const int gNumFrameResources = 3;
@@ -22,6 +19,7 @@ const int gNumFrameResources = 3;
 class Device;
 class RootSignature;
 struct FrameResource;
+class SelectionManager;
 
 class RenderSubsystem
 {
@@ -116,7 +114,8 @@ private:
 
     void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
 
-    void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList); // for draw specific meshes
+    // For drawing specific meshes
+    void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList, eastl::unique_ptr<struct MeshComponent>& mesh); 
     void DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList);
     void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
 
@@ -209,11 +208,13 @@ private:
     UINT m_skyCubeSrvHeapStartIndex = 0u;
     UINT m_texturesSrvHeapStartIndex = 0u;
 #pragma endregion Textures
-
+    
     // TODO
     eastl::unique_ptr<struct MeshComponent> skyBox = nullptr;
     Microsoft::WRL::ComPtr<ID3D12Resource> skyBoxResource = nullptr;
     Microsoft::WRL::ComPtr<ID3D12Resource> skyBoxUploadHeap = nullptr;
+
+    eastl::unique_ptr<SelectionManager> m_selectionManager = nullptr;
 
 private:
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTV()

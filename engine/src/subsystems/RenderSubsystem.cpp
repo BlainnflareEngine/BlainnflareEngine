@@ -21,6 +21,7 @@
 #include "Render/Shader.h"
 #include "Render/EditorCamera.h"
 #include "Render/RuntimeCamera.h"
+#include "Render/SelectionManager.h"
 #include "Render/DDSTextureLoader.h"
 
 #include <cassert>
@@ -633,6 +634,44 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
                      m_shaders.at(Shader::EShaderType::SkyBoxPS)->GetBufferSize()};
     ThrowIfFailed(m_device.CreateGraphicsPipelineState(skyPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::Sky]));
 #pragma endregion Sky
+
+#pragma region DebugDraw
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC debugPsoDesc = defaultPsoDesc;
+    debugPsoDesc.InputLayout = DebugVertex::InputLayout;
+    // set debug shaders
+    //debugPsoDesc.VS = 
+    //debugPsoDesc.PS = 
+    //ThrowIfFailed(m_device.CreateGraphicsPipelineState(debugPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::Debug]));
+#pragma endregion DebugDraw
+
+#pragma region Outline
+    D3D12_DEPTH_STENCILOP_DESC stencilOpReplace = {};
+    stencilOpReplace.StencilFailOp = D3D12_STENCIL_OP_REPLACE;
+    stencilOpReplace.StencilDepthFailOp = D3D12_STENCIL_OP_REPLACE;
+    stencilOpReplace.StencilPassOp = D3D12_STENCIL_OP_REPLACE;
+    stencilOpReplace.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+
+    D3D12_DEPTH_STENCILOP_DESC stencilOpKeep = {};
+    stencilOpKeep.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+    stencilOpKeep.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP;
+    stencilOpKeep.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+    stencilOpKeep.StencilFunc = D3D12_COMPARISON_FUNC_NOT_EQUAL;
+
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC outlineWritePsoDesc = defaultPsoDesc;
+    outlineWritePsoDesc.DepthStencilState.DepthEnable = FALSE;
+    outlineWritePsoDesc.DepthStencilState.StencilEnable = TRUE;
+    outlineWritePsoDesc.DepthStencilState.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+    outlineWritePsoDesc.DepthStencilState.BackFace = stencilOpReplace;
+    outlineWritePsoDesc.DepthStencilState.FrontFace = stencilOpReplace;
+
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC outlineReadPsoDesc = outlineWritePsoDesc;
+    outlineReadPsoDesc.DepthStencilState.DepthEnable = FALSE;
+    outlineReadPsoDesc.DepthStencilState.StencilEnable = TRUE;
+    outlineReadPsoDesc.DepthStencilState.StencilWriteMask = D3D12_DEFAULT_STENCIL_READ_MASK;
+    outlineReadPsoDesc.DepthStencilState.FrontFace = stencilOpKeep;
+    outlineReadPsoDesc.DepthStencilState.BackFace = stencilOpKeep;
+
+#pragma endregion
 }
 
 void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
@@ -984,23 +1023,23 @@ void Blainn::RenderSubsystem::RenderSkyBoxPass(ID3D12GraphicsCommandList2 *pComm
     // Bind SkyBox texture
     pCommandList->SetGraphicsRootDescriptorTable(RootSignature::ERootParam::SkyBox, CD3DX12_GPU_DESCRIPTOR_HANDLE(m_srvHeap->GetGPUDescriptorHandleForHeapStart(), m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
     pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::Sky).Get());
-    DrawMesh(pCommandList/*, m_skyRenderItem*/);
+    DrawMesh(pCommandList, skyBox);
 
     ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 
-void Blainn::RenderSubsystem::DrawMesh(ID3D12GraphicsCommandList2 *pCommandList)
+void Blainn::RenderSubsystem::DrawMesh(ID3D12GraphicsCommandList2 *pCommandList, eastl::unique_ptr<struct MeshComponent>& meshComponent)
 {
     UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-    auto& model = skyBox->MeshHandle->GetMesh();
+    auto &model = meshComponent->MeshHandle->GetMesh();
     auto currVBV = model.VertexBufferView();
     auto currIBV = model.IndexBufferView();
-    auto currFrameObjCB = skyBox->ObjectCB->Get();
+    auto currFrameObjCB = meshComponent->ObjectCB->Get();
 
     ObjectConstants obj;
     XMStoreFloat4x4(&obj.World, XMMatrixTranspose(XMMatrixScaling(5000.0f, 5000.0f, 5000.0f)));
-    skyBox->UpdateMeshCB(obj);
+    meshComponent->UpdateMeshCB(obj);
 
     pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
