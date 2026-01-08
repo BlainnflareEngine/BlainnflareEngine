@@ -147,6 +147,9 @@ set(ENGINE_SOURCES
         include/Render/EditorCamera.h
         src/Render/RuntimeCamera.cpp
         include/Render/RuntimeCamera.h
+        include/Render/DebugRenderer.h
+        src/Render/DebugRenderer.cpp
+
         include/components/SkyboxComponent.h
 )
 

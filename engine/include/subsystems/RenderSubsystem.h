@@ -19,6 +19,7 @@ namespace Blainn
 {
 const int gNumFrameResources = 3;
 
+class DebugRenderer;
 class Device;
 class RootSignature;
 struct FrameResource;
@@ -53,6 +54,11 @@ public:
     {
         if (!m_swapChain) return;
         m_swapChain->ToggleFullscreen();
+    }
+
+    void SetEnableDebug(bool newValue)
+    {
+        m_enableDebugLayer = newValue;
     }
 
     void SetCamera(Camera* camera) { m_camera = camera; }
@@ -114,6 +120,8 @@ private:
 #pragma endregion DeferredShading
     void RenderSkyBoxPass(ID3D12GraphicsCommandList2 *pCommandList);
 
+    void RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList);
+
     void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
 
     void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList); // for draw specific meshes
@@ -154,6 +162,8 @@ private:
     bool m_isWireframe = false;     // Fill mode
     bool m_is4xMsaaState = false;
 
+    bool m_enableDebugLayer = true;
+
     UINT m_4xMsaaQuality = 0u;
 
 private:
@@ -166,6 +176,8 @@ private:
     eastl::shared_ptr<RootSignature> m_rootSignature;
     eastl::unordered_map<Shader::EShaderType, ComPtr<ID3DBlob>> m_shaders;
     eastl::unordered_map<PipelineStateObject::EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
+
+    eastl::unique_ptr<Blainn::DebugRenderer> m_debugRenderer;
 
     float m_sunPhi = XM_PIDIV4;
     float m_sunTheta = 1.25f * XM_PI;
