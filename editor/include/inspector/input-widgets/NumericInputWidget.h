@@ -21,16 +21,16 @@ public:
         f.setWeight(QFont::Normal);
         setFont(f);
 
-        connect(this, &NumericInputWidget::valueChanged, this, [this]() { emit ValueChanged(); });
+        connect(this, &NumericInputWidget::valueChanged, this, [this]() { emit ValueChanged(value()); });
     }
 
 
     void focusOutEvent(QFocusEvent *event) override
     {
-        emit ValueChanged();
         QDoubleSpinBox::focusOutEvent(event);
+        emit ValueChanged(value());
     }
 
 signals:
-    void ValueChanged();
+    void ValueChanged(float value);
 };

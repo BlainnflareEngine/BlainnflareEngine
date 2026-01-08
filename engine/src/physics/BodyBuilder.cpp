@@ -7,6 +7,11 @@
 
 using namespace Blainn;
 
+Blainn::BodyBuilder::BodyBuilder()
+{
+    m_settings.mCollideKinematicVsNonDynamic = true;
+}
+
 BodyBuilder &BodyBuilder::SetMotionType(PhysicsComponentMotionType motionType)
 {
     m_settings.mMotionType = motionType;
@@ -52,11 +57,6 @@ BodyBuilder &BodyBuilder::SetAngularVelocity(Vec3 vec)
 BodyBuilder &Blainn::BodyBuilder::SetIsTrigger(bool isTrigger)
 {
     m_settings.mIsSensor = isTrigger;
-    if (isTrigger)
-    {
-        m_settings.mCollideKinematicVsNonDynamic = true;
-    }
-
     return *this;
 }
 
@@ -67,8 +67,16 @@ BodyBuilder &Blainn::BodyBuilder::SetGravityFactor(float factor)
     return *this;
 }
 
+
+BodyBuilder &Blainn::BodyBuilder::SetCollideKinematicVsNonDynamic(bool collide)
+{
+    m_settings.mCollideKinematicVsNonDynamic = collide;
+    return *this;
+}
+
 JPH::BodyID BodyBuilder::Build(EActivation activate /*= JPH::EActivation::Activate*/)
 {
+
     m_settings.mAllowDynamicOrKinematic = true;
     m_settings.mAllowSleeping = false;
     JPH::BodyInterface &interf = PhysicsSubsystem::GetPhysicsSystem().GetBodyInterface();

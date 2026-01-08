@@ -28,8 +28,11 @@ QIcon IconProvider::icon(const QFileInfo &file_info) const
     if (file_info.isDir()) return QIcon(":/icons/folder.png");
 
     QString suffix = file_info.suffix().toLower();
+    QString fileName = file_info.fileName();
 
     if (formats::supportedTextureFormats.contains(suffix)) return QIcon(":/icons/image.png");
+
+    if (fileName.endsWith(".AI.lua", Qt::CaseInsensitive)) return QIcon(":/icons/behaviorScript.png");
 
     if (suffix == formats::scriptFormat) return QIcon(":/icons/lua.png");
 

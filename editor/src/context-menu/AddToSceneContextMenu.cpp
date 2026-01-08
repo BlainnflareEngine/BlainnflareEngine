@@ -5,6 +5,9 @@
 #include "context-menu/AddToSceneContextMenu.h"
 
 #include "Engine.h"
+#include "components/CameraComponent.h"
+#include "components/SkyboxComponent.h"
+#include "scene/EntityTemplates.h"
 #include "SceneItemModel.h"
 #include "oclero/qlementine/widgets/Menu.hpp"
 #include "scene_hierarchy_widget.h"
@@ -27,6 +30,9 @@ void AddToSceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index
     QMenu *menu = new QMenu(nullptr);
 
     QAction *createEntityAction = menu->addAction("Create entity");
+    QAction *createCameraAction = menu->addAction("Create camera");
+    QAction *createSkyboxAction = menu->addAction("Create skybox");
+
     QAction *editAction = nullptr;
     QAction *deleteAction = nullptr;
 
@@ -44,6 +50,11 @@ void AddToSceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index
     if (createEntityAction)
         connect(createEntityAction, &QAction::triggered, this, [this, index]() { AddEntity(index); });
 
+    if (createCameraAction)
+        connect(createCameraAction, &QAction::triggered, this, [this, index]() { AddCamera(index); });
+
+    if (createSkyboxAction)
+        connect(createSkyboxAction, &QAction::triggered, this, [this, index]() { AddSkybox(index); });
 
     if (editAction) connect(editAction, &QAction::triggered, this, [this, index]() { RenameEntity(index); });
 
@@ -86,6 +97,50 @@ void AddToSceneContextMenu::AddEntity(const QModelIndex &index)
     else
     {
         Blainn::Engine::GetActiveScene()->CreateEntity("Entity", false, true);
+    }
+}
+
+
+void AddToSceneContextMenu::AddCamera(const QModelIndex &index)
+{
+    if (index.isValid())
+    {
+        Blainn::Entity parent = SceneItemModel::GetNodeFromIndex(index)->GetEntity();
+
+        if (parent.IsValid())
+        {
+            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Camera", false, true);
+            entity.AddComponent<Blainn::TransformComponent>();
+            entity.AddComponent<Blainn::CameraComponent>();
+        }
+        else BF_ERROR("Parent entity is invalid.");
+    }
+    else
+    {
+        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Camera", false, true);
+        entity.AddComponent<Blainn::TransformComponent>();
+        entity.AddComponent<Blainn::CameraComponent>();
+    }
+}
+
+
+void AddToSceneContextMenu::AddSkybox(const QModelIndex &index)
+{
+    if (index.isValid())
+    {
+        Blainn::Entity parent = SceneItemModel::GetNodeFromIndex(index)->GetEntity();
+
+        if (parent.IsValid())
+        {
+            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Skybox", false, true);
+            entity.AddComponent<Blainn::SkyboxComponent>();
+        }
+        else BF_ERROR("Parent entity is invalid.");
+    }
+    else
+    {
+        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Skybox", false, true);
+        entity.AddComponent<Blainn::SkyboxComponent>();
     }
 }
 

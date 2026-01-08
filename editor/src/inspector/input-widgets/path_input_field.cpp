@@ -29,9 +29,6 @@ path_input_field::path_input_field(const QString &name, const QStringList &accep
     layout()->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     m_name = new QLabel(name, this);
-    m_name->setStyleSheet("QLabel {"
-                          "    font-weight: bold;"
-                          "}");
     m_name->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     m_name->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_name->adjustSize();
