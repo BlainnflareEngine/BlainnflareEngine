@@ -6,9 +6,11 @@
 #include "AssetManager.h"
 #include "Log.h"
 #include "PhysicsSubsystem.h"
+#include "components/CameraComponent.h"
 #include "components/MeshComponent.h"
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
+#include "components/SkyboxComponent.h"
 #include "physics/BodyGetter.h"
 #include "scene/Entity.h"
 #include "yaml-cpp/emitter.h"
@@ -110,10 +112,9 @@ public:
         auto &mesh = entity.GetComponent<MeshComponent>();
 
         out << YAML::Key << "MeshComponent" << YAML::Value << YAML::BeginMap;
-        out << YAML::Key << "Path" << YAML::Value
-            << AssetManager::GetInstance().GetMeshPath(*mesh.m_meshHandle).string();
+        out << YAML::Key << "Path" << YAML::Value << AssetManager::GetInstance().GetMeshPath(*mesh.MeshHandle).string();
         out << YAML::Key << "Material" << YAML::Value
-            << AssetManager::GetInstance().GetMaterialPath(*mesh.m_materialHandle).string();
+            << AssetManager::GetInstance().GetMaterialPath(*mesh.MaterialHandle).string();
         out << YAML::EndMap;
     }
 
@@ -123,16 +124,6 @@ public:
 
         auto &physics = entity.GetComponent<PhysicsComponent>();
 
-        /*struct PhysicsComponent
-        {
-            uuid parentId = {};
-            JPH::BodyID bodyId = JPH::BodyID();
-            ComponentShapeType shapeType = ComponentShapeType::Empty;
-            ShapeHierarchy shapeHierarchy = {};
-            Vec3 prevFrameScale = Vec3::One; // for rescale tracking
-            bool controlParentTransform = true;
-        };*/
-
         out << YAML::Key << "PhysicsComponent" << YAML::Value << YAML::BeginMap;
         out << YAML::Key << "ParentID" << YAML::Value << physics.parentId.str();
         out << YAML::Key << "ShapeType" << YAML::Value << static_cast<int>(physics.GetShapeType());
@@ -140,8 +131,82 @@ public:
 
         BodyGetter body = PhysicsSubsystem::GetBodyGetter(entity);
         out << YAML::Key << "ObjectLayer" << YAML::Value << body.GetObjectLayer();
+        out << YAML::Key << "MotionType" << YAML::Value << static_cast<int>(body.GetMotionType());
+        out << YAML::Key << "GravityFactor" << YAML::Value << body.GetGravityFactor();
+        out << YAML::Key << "IsTrigger" << YAML::Value << body.isTrigger();
+        
+        Transform(entity, out);
 
-        // TODO: serialize
+        out << YAML::Key << "ShapeSettings" << YAML::Value << YAML::BeginMap;
+        switch (body.GetShapeType())
+        {
+        case ComponentShapeType::Box:
+        {
+            Vec3 vec = body.GetBoxShapeHalfExtents().value();
+            out << YAML::Key << "HalfExtent" << YAML::Value << YAML::BeginMap;
+            out << YAML::Key << "X" << YAML::Value << vec.x;
+            out << YAML::Key << "Y" << YAML::Value << vec.y;
+            out << YAML::Key << "Z" << YAML::Value << vec.z;
+            out << YAML::EndMap;
+            break;
+        }
+
+        case ComponentShapeType::Sphere:
+        {
+            float radius = body.GetSphereShapeRadius().value();
+            out << YAML::Key << "Radius" << YAML::Value << radius;
+            break;
+        }
+
+        case ComponentShapeType::Capsule:
+        {
+            auto halfHeightAndRadius = body.GetCapsuleShapeHalfHeightAndRadius().value();
+            out << YAML::Key << "HalfHeight" << YAML::Value << halfHeightAndRadius.first;
+            out << YAML::Key << "Radius" << YAML::Value << halfHeightAndRadius.second;
+            break;
+        }
+
+        case ComponentShapeType::Cylinder:
+        {
+            auto halfHeightAndRadius = body.GetCylinderShapeHalfHeightAndRadius().value();
+            out << YAML::Key << "HalfHeight" << YAML::Value << halfHeightAndRadius.first;
+            out << YAML::Key << "Radius" << YAML::Value << halfHeightAndRadius.second;
+            break;
+        }
+
+        case ComponentShapeType::Empty:
+            break;
+        }
+
+        out << YAML::EndMap;
+        out << YAML::EndMap;
+    }
+
+    static void Camera(Entity &entity, YAML::Emitter &out)
+    {
+        if (!entity.HasComponent<CameraComponent>()) return;
+
+        auto camera = entity.GetComponent<CameraComponent>();
+        out << YAML::Key << "CameraComponent" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "IsActiveCamera" << YAML::Value << camera.IsActiveCamera;
+        out << YAML::Key << "CameraSettings" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "FOV" << YAML::Value << camera.camera.GetFovDegrees();
+        out << YAML::Key << "NearZ" << YAML::Value << camera.camera.GetNearZ();
+        out << YAML::Key << "FarZ" << YAML::Value << camera.camera.GetFarZ();
+
+        out << YAML::EndMap;
+        out << YAML::EndMap;
+    }
+
+    static void Skybox(Entity &entity, YAML::Emitter &out)
+    {
+        if (!entity.HasComponent<SkyboxComponent>()) return;
+
+        auto skybox = entity.GetComponent<SkyboxComponent>();
+        out << YAML::Key << "SkyboxComponent" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "Path" << YAML::Value
+            << AssetManager::GetInstance().GetTexturePath(*skybox.textureHandle).string();
+        out << YAML::EndMap;
     }
 };
 } // namespace Blainn

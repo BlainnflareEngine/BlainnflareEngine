@@ -12,8 +12,7 @@
 #include "File-System/Texture.h"
 
 #include "Render/PrebuiltEngineMeshes.h"
-#include "Render/Device.h"
-#include "Render/CommandQueue.h"
+#include "AssetManager.h"
 
 namespace Blainn
 {
@@ -36,17 +35,14 @@ void AssetManager::Init()
 
 #pragma region LoadDefaultResource
     // TODO: create default texture
-    m_textures.emplace(
-        m_loader->LoadTexture(Engine::GetContentDirectory() / "Textures\\Default.dds", TextureType::ALBEDO));
+    m_textures.emplace(m_loader->LoadTexture("Textures\\Default.dds", TextureType::ALBEDO));
+    const auto& defaultTextureHandle = GetTexture("Textures\\Default.dds");
 
     // TODO: create default material
-    Material material = Material(Engine::GetContentDirectory() / "Materials\\Default.mat", "Default");
-    m_materials.emplace(eastl::make_shared<Material>(material));
-
-    auto &device = Device::GetInstance();
-    auto commandQueue = device.GetCommandQueue();
-    auto cmdList = commandQueue->GetDefaultCommandList();
-
+    Material material = Material("Materials\\Default.mat", "");
+    material.SetTexture(defaultTextureHandle,  TextureType::ALBEDO);
+    m_materials.emplace(eastl::make_shared<Material>(std::move(material)));
+    
     auto defaultMeshData = PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f);
     Model model;
     model.SetMeshes({defaultMeshData});
@@ -132,6 +128,7 @@ Path AssetManager::GetMeshPath(const MeshHandle &handle)
 
 bool AssetManager::HasTexture(const Path &path)
 {
+    assert(path.is_relative());
     return m_texturePaths.find(ToEASTLString(path.string())) != m_texturePaths.end();
 }
 
@@ -146,16 +143,19 @@ eastl::shared_ptr<TextureHandle> AssetManager::GetTexture(const Path &path)
 }
 
 
-eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &path, const TextureType type)
+eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &relativePath, const TextureType type)
 {
+    assert(relativePath.is_relative());
+
     int index = m_textures.emplace(eastl::make_shared<Texture>(GetDefaultTexture()));
-    m_texturePaths[ToEASTLString(path.string())] = AssetData{index, 1};
+    m_texturePaths[ToEASTLString(relativePath.string())] = AssetData{index, 1};
 
     BF_INFO("Shiiiii... I don't have such texture, here is default one, "
             "i will place some new texture to your index later. Index ={0}.",
             index);
 
-    vgjs::schedule([=]() { AddTextureWhenLoaded(path, index, type); });
+    vgjs::schedule([&, relativePath]() { AddTextureWhenLoaded(relativePath, index, type); });
+    //AddTextureWhenLoaded(relativePath, index, type);
     return eastl::make_shared<TextureHandle>(index);
 }
 
@@ -172,6 +172,8 @@ eastl::shared_ptr<MaterialHandle> AssetManager::GetMaterial(const Path &path)
 
 eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path, AssetData data)
 {
+    assert(path.is_relative());
+
     int index = data.index == -1 ? m_materials.emplace(eastl::make_shared<Material>(GetDefaultMaterial())) : data.index;
     int count = data.refCount == 0 ? 1 : data.refCount;
 
@@ -226,6 +228,7 @@ eastl::shared_ptr<MaterialHandle> AssetManager::GetDefaultMaterialHandle()
 
 Path AssetManager::GetMaterialPath(const MaterialHandle &handle)
 {
+    auto a = m_materials[handle.GetIndex()]->GetPath();
     return m_materials[handle.GetIndex()]->GetPath();
 }
 
@@ -288,6 +291,10 @@ Texture &AssetManager::GetTextureByHandle(const TextureHandle &handle)
     return *m_textures[index];
 }
 
+Path AssetManager::GetTexturePath(const TextureHandle& handle)
+{
+    return m_textures[handle.GetIndex()]->GetPath();
+}
 
 bool AssetManager::HasMaterial(const Path &relativePath)
 {
@@ -295,8 +302,15 @@ bool AssetManager::HasMaterial(const Path &relativePath)
 }
 
 
+void AssetManager::ResetTextures()
+{
+    m_loader->ResetTextureOffsetsTable();
+}
+
 void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int index, const TextureType type)
 {
+    assert(path.is_relative());
+
     BF_INFO("Started loading texture.");
     m_textures[index] = m_loader->LoadTexture(path, type);
     auto str = "Placing texture to index " + std::to_string(index);
@@ -306,9 +320,9 @@ void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int ind
 
 void AssetManager::AddMaterialWhenLoaded(const Path &relativePath, const unsigned int index)
 {
+    assert(relativePath.is_relative());
     BF_INFO("Started loading material.");
-    Path absolutPat = Engine::GetContentDirectory() / relativePath;
-    m_materials[index] = m_loader->LoadMaterial(absolutPat);
+    m_materials[index] = m_loader->LoadMaterial(relativePath);
     auto str = "Placing material to index " + std::to_string(index);
     BF_INFO(str);
 }
@@ -316,6 +330,7 @@ void AssetManager::AddMaterialWhenLoaded(const Path &relativePath, const unsigne
 
 void AssetManager::AddMeshWhenLoaded(const Path &relativePath, const unsigned int index, const ImportMeshData data)
 {
+    assert(relativePath.is_relative());
     BF_INFO("Started loading model.");
     m_meshes[index] = m_loader->ImportModel(relativePath, data);
     auto str = "Placing model to index " + std::to_string(index);
@@ -370,12 +385,14 @@ void AssetManager::DecreaseTextureRefCount(const unsigned int index)
         {
             --value.refCount;
 
+            /*
             if (value.refCount == 1) // 1 because we have shared ptr in free list vector
             {
                 m_textures.erase(index);
                 m_texturePaths.erase(key);
                 return;
             }
+        */
         }
     }
 }
@@ -389,12 +406,12 @@ void AssetManager::DecreaseMaterialRefCount(const unsigned int index)
         {
             --value.refCount;
 
-            if (value.refCount == 1) // 1 because we have shared ptr in free list vector
+            /*if (value.refCount == 1) // 1 because we have shared ptr in free list vector
             {
                 m_materials.erase(index);
                 m_materialPaths.erase(key);
                 return;
-            }
+            }*/
         }
     }
 }
@@ -408,6 +425,7 @@ void AssetManager::DecreaseMeshRefCount(const unsigned int index)
         {
             --value.refCount;
 
+            
             if (value.refCount == 1) // 1 because we have shared ptr in free list vector
             {
                 m_meshes.erase(index);

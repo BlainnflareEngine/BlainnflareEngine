@@ -1,0 +1,12 @@
+ID: 401348b3-58ac-42e5-8270-681e15778ac2
+Path: Default.mat
+ShaderPath: ""
+AlbedoPath: Textures/bricks3.dds
+AlbedoColor: "#ffffffff"
+NormalPath: ""
+NormalScale: 1
+MetallicPath: ""
+MetallicScale: 1
+RoughnessPath: ""
+RoughnessScale: 1
+AOPath: ""

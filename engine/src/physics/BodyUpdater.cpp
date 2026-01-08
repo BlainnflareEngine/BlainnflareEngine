@@ -67,6 +67,12 @@ BodyUpdater &BodyUpdater::SetObjectLayer(JPH::ObjectLayer layer)
     return *this;
 }
 
+
+BodyUpdater &BodyUpdater::SetIsTrigger(bool isTrigger)
+{
+    m_bodyInterface.SetIsSensor(m_bodyId, isTrigger);
+    return *this;
+}
 BodyUpdater &BodyUpdater::AddVelocity(Vec3 deltaVelocity)
 {
     m_bodyInterface.AddLinearVelocity(m_bodyId, ToJoltVec3(deltaVelocity));
@@ -93,7 +99,7 @@ BodyUpdater &BodyUpdater::AddForce(Vec3 force)
 
 BodyUpdater &BodyUpdater::ReplaceBodyShape(ShapeCreationSettings &settings, EActivation activation)
 {
-    eastl::optional<Blainn::ShapeHierarchy> hierarchy = ShapeFactory::CreateShape(settings);
+    eastl::optional<ShapeHierarchy> hierarchy = ShapeFactory::CreateShape(settings);
     if (!hierarchy.has_value())
     {
         BF_ERROR("Error in replacing physics body shape - shape not created");
@@ -114,8 +120,35 @@ BodyUpdater &BodyUpdater::SetMotionType(PhysicsComponentMotionType motionType,
     return *this;
 }
 
+BodyUpdater &Blainn::BodyUpdater::ActivateBody()
+{
+    m_bodyInterface.ActivateBody(m_bodyId);
+    return *this;
+}
+
+BodyUpdater &Blainn::BodyUpdater::DeactivateBody()
+{
+    m_bodyInterface.DeactivateBody(m_bodyId);
+    return *this;
+}
+
+
+BodyUpdater &BodyUpdater::SetCollideKinematicVsNonDynamic(bool collide)
+{
+    JPH::BodyLockWrite bodyLock(m_bodyLockInterface, m_bodyId);
+    JPH::Body &body = bodyLock.GetBody();
+    body.SetCollideKinematicVsNonDynamic(collide);
+    return *this;
+}
+
 BodyUpdater &BodyUpdater::SetSphereShapeSettings(float radius)
 {
+    if (radius <= 0.0f)
+    {
+        BF_ERROR("Sphere radius must be a positive value");
+        return *this;
+    }
+
     const ComponentShapeType sphereShapeType = ComponentShapeType::Sphere;
 
     PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
@@ -138,8 +171,14 @@ BodyUpdater &BodyUpdater::SetSphereShapeSettings(float radius)
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::SetBoxShapeSettings(Vec3 halfExtents)
+BodyUpdater &BodyUpdater::SetBoxShapeSettings(Vec3 halfExtents)
 {
+    if (halfExtents.x <= 0.0f || halfExtents.y <= 0.0f || halfExtents.z <= 0.0f)
+    {
+        BF_ERROR("Box half extents must be positive values");
+        return *this;
+    }
+
     const ComponentShapeType boxShapeType = ComponentShapeType::Box;
 
     PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
@@ -162,8 +201,14 @@ BodyUpdater &Blainn::BodyUpdater::SetBoxShapeSettings(Vec3 halfExtents)
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::SetCapsuleShapeSettings(float halfCylinderHeight, float radius)
+BodyUpdater &BodyUpdater::SetCapsuleShapeSettings(float halfCylinderHeight, float radius)
 {
+    if (halfCylinderHeight <= 0.0f || radius <= 0.0f)
+    {
+        BF_ERROR("Capsule half height and radius must be positive values");
+        return *this;
+    }
+
     const ComponentShapeType capsuleShapeType = ComponentShapeType::Capsule;
 
     PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
@@ -187,8 +232,14 @@ BodyUpdater &Blainn::BodyUpdater::SetCapsuleShapeSettings(float halfCylinderHeig
     return *this;
 }
 
-BodyUpdater &Blainn::BodyUpdater::SetCylinderShapeSettings(float halfCylinderHeight, float radius)
+BodyUpdater &BodyUpdater::SetCylinderShapeSettings(float halfCylinderHeight, float radius)
 {
+    if (halfCylinderHeight <= 0.0f || radius <= 0.0f)
+    {
+        BF_ERROR("Cylinder half height and radius must be positive values");
+        return *this;
+    }
+
     const ComponentShapeType cylinderShapeType = ComponentShapeType::Cylinder;
 
     PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);

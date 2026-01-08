@@ -96,8 +96,6 @@ void PhysicsSubsystem::Update()
     {
         if (!transformComp.IsDirty()) continue;
 
-        BF_ERROR("body updated");
-
         Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
 
         Vec3 translation, scale;
@@ -134,11 +132,31 @@ void PhysicsSubsystem::Update()
 void PhysicsSubsystem::StartSimulation()
 {
     m_physicsTimeline->Start();
+
+    eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
+    auto enities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
+
+    for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
+    {
+        Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
+        BodyUpdater bodyUpdater = GetBodyUpdater(entity);
+        bodyUpdater.ActivateBody();
+    }
 }
 
 void PhysicsSubsystem::StopSimulation()
 {
     m_physicsTimeline->Pause();
+
+    eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
+    auto enities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
+
+    for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
+    {
+        Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
+        BodyUpdater bodyUpdater = GetBodyUpdater(entity);
+        bodyUpdater.DeactivateBody();
+    }
 }
 
 void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &settings)
@@ -196,11 +214,13 @@ bool PhysicsSubsystem::HasPhysicsComponent(Entity entity)
 
 void PhysicsSubsystem::DestroyPhysicsComponent(Entity entity)
 {
-    PhysicsComponent &component = entity.GetComponent<PhysicsComponent>();
+    PhysicsComponent *component = entity.TryGetComponent<PhysicsComponent>();
+    if (!component) return;
+
     JPH::BodyInterface &bodyInterface = m_joltPhysicsSystem->GetBodyInterface();
-    bodyInterface.RemoveBody(component.bodyId);
-    bodyInterface.DestroyBody(component.bodyId);
-    m_bodyEntityConnections.erase(component.bodyId);
+    bodyInterface.RemoveBody(component->bodyId);
+    bodyInterface.DestroyBody(component->bodyId);
+    m_bodyEntityConnections.erase(component->bodyId);
     entity.RemoveComponent<PhysicsComponent>();
 }
 
@@ -267,13 +287,6 @@ eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 direc
 
 void Blainn::PhysicsSubsystem::ProcessEvents()
 {
-    // TODO: remove?
-    // eastl::function<void()> fn;
-    // while (s_postUpdateQueue.try_dequeue(fn))
-    // {
-    //     fn();
-    // }
-
     s_physicsEventQueue.process();
 }
 PhysicsComponent &Blainn::PhysicsSubsystem::GetPhysicsComponentByBodyId(JPH::BodyID bodyId)

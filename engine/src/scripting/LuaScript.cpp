@@ -3,7 +3,7 @@
 #include "scripting/LuaScript.h"
 
 #include "subsystems/ScriptingSubsystem.h"
-#include "tools/random.h"
+
 
 using namespace Blainn;
 
@@ -12,11 +12,20 @@ LuaScript::LuaScript()
     m_id = Rand::getRandomUUID();
 }
 
+Blainn::LuaScript::~LuaScript()
+{
+    RemovePhysicsEventListeners();
+}
+
 bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
 {
     m_scriptPath = scriptPath;
 
     sol::state &lua = ScriptingSubsystem::GetLuaState();
+
+    m_environment = sol::environment(lua, sol::create, lua.globals());
+    m_environment["OwningEntity"] = owningEntity.GetUUID().str();
+
     sol::load_result script = lua.load_file(scriptPath.string());
     if (!script.valid())
     {
@@ -26,8 +35,7 @@ bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
     }
 
     sol::protected_function scriptAsFunc = script.get<sol::protected_function>();
-    m_environment = sol::environment(lua, sol::create, lua.globals());
-    m_environment["OwningEntity"] = owningEntity.GetUUID().str();
+
     sol::set_environment(m_environment, scriptAsFunc);
     // load lua functions to environment
     sol::protected_function_result result = script();
@@ -38,9 +46,24 @@ bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
         return false;
     }
 
-    if (HasFunction(PredefinedFunctions::OnStart)) m_predefinedFunctions.insert(PredefinedFunctions::OnStart);
-    if (HasFunction(PredefinedFunctions::OnUpdate)) m_predefinedFunctions.insert(PredefinedFunctions::OnUpdate);
-    if (HasFunction(PredefinedFunctions::OnDestroy)) m_predefinedFunctions.insert(PredefinedFunctions::OnDestroy);
+    if (HasFunction(PredefinedFunctions::kOnStart)) m_predefinedFunctions.insert(PredefinedFunctions::kOnStart);
+    if (HasFunction(PredefinedFunctions::kOnUpdate)) m_predefinedFunctions.insert(PredefinedFunctions::kOnUpdate);
+    if (HasFunction(PredefinedFunctions::kOnDestroy)) m_predefinedFunctions.insert(PredefinedFunctions::kOnDestroy);
+
+    if (HasFunction(PredefinedFunctions::kOnCollisionStarted))
+    {
+        m_predefinedFunctions.insert(PredefinedFunctions::kOnCollisionStarted);
+        m_onCollisionStartedHandle = PhysicsSubsystem::AddEventListener(
+            PhysicsEventType::CollisionStarted,
+            [this](const eastl::shared_ptr<PhysicsEvent> &physicsEvent) { OnCollisionStartedCall(physicsEvent); });
+    }
+    if (HasFunction(PredefinedFunctions::kOnCollisionEnded))
+    {
+        m_predefinedFunctions.insert(PredefinedFunctions::kOnCollisionEnded);
+        m_onCollisionEndedHandle = PhysicsSubsystem::AddEventListener(
+            PhysicsEventType::CollisionEnded,
+            [this](const eastl::shared_ptr<PhysicsEvent> &physicsEvent) { OnCollisionEndedCall(physicsEvent); });
+    }
 
     m_isLoaded = true;
     return true;
@@ -61,6 +84,11 @@ const uuid &Blainn::LuaScript::GetId() const
     return m_id;
 }
 
+const sol::table &Blainn::LuaScript::GetEnvironment() const
+{
+    return m_environment;
+}
+
 bool Blainn::LuaScript::HasFunction(const eastl::string &functionName) const
 {
     sol::protected_function customFunc = m_environment[functionName.data()];
@@ -73,18 +101,56 @@ bool Blainn::LuaScript::HasFunction(const eastl::string &functionName) const
 
 bool LuaScript::OnStartCall()
 {
-    if (!m_predefinedFunctions.contains(PredefinedFunctions::OnStart)) return false;
-    return CustomCall(PredefinedFunctions::OnStart);
+    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnStart)) return false;
+    return CustomCall(PredefinedFunctions::kOnStart);
 }
 
 bool LuaScript::OnUpdateCall(float deltaTimeMs)
 {
-    if (!m_predefinedFunctions.contains(PredefinedFunctions::OnUpdate)) return false;
-    return CustomCall(PredefinedFunctions::OnUpdate, deltaTimeMs);
+    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnUpdate)) return false;
+    return CustomCall(PredefinedFunctions::kOnUpdate, deltaTimeMs);
 }
 
 bool LuaScript::OnDestroyCall()
 {
-    if (!m_predefinedFunctions.contains(PredefinedFunctions::OnDestroy)) return false;
-    return CustomCall(PredefinedFunctions::OnDestroy);
+    RemovePhysicsEventListeners();
+    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnDestroy)) return false;
+    return CustomCall(PredefinedFunctions::kOnDestroy);
+}
+
+bool Blainn::LuaScript::OnCollisionStartedCall(const eastl::shared_ptr<PhysicsEvent> &physicsEvent)
+{
+    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnCollisionStarted)) return false;
+    sol::state &lua = ScriptingSubsystem::GetLuaState();
+    sol::state_view sv(lua);
+    sol::table tbl = sv.create_table();
+    tbl["eventType"] = static_cast<int>(physicsEvent->eventType);
+    tbl["entity1"] = physicsEvent->entity1.str();
+    tbl["entity2"] = physicsEvent->entity2.str();
+    return CustomCall(PredefinedFunctions::kOnCollisionStarted, tbl);
+}
+
+bool Blainn::LuaScript::OnCollisionEndedCall(const eastl::shared_ptr<PhysicsEvent> &physicsEvent)
+{
+    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnCollisionEnded)) return false;
+    sol::state &lua = ScriptingSubsystem::GetLuaState();
+    sol::state_view sv(lua);
+    sol::table tbl = sv.create_table();
+    tbl["eventType"] = static_cast<int>(physicsEvent->eventType);
+    tbl["entity1"] = physicsEvent->entity1.str();
+    tbl["entity2"] = physicsEvent->entity2.str();
+    return CustomCall(PredefinedFunctions::kOnCollisionEnded, tbl);
+}
+
+void Blainn::LuaScript::RemovePhysicsEventListeners()
+{
+    if (m_predefinedFunctions.contains(PredefinedFunctions::kOnCollisionStarted))
+    {
+        PhysicsSubsystem::RemoveEventListener(PhysicsEventType::CollisionStarted, m_onCollisionStartedHandle);
+    }
+
+    if (m_predefinedFunctions.contains(PredefinedFunctions::kOnCollisionEnded))
+    {
+        PhysicsSubsystem::RemoveEventListener(PhysicsEventType::CollisionEnded, m_onCollisionEndedHandle);
+    }
 }

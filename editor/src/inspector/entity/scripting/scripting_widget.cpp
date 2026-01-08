@@ -48,17 +48,54 @@ void scripting_widget::OnAddScript()
 }
 
 
-void scripting_widget::OnScriptItemChanged()
+/*void scripting_widget::OnScriptItemChanged()
 {
     SyncToEntity();
+}*/
+
+
+void scripting_widget::OnScriptItemPathChanged(const QString &oldPath, const QString &newPath)
+{
+    if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::ScriptingComponent>())
+    {
+        deleteLater();
+        return;
+    }
+
+    auto &comp = m_entity.GetComponent<Blainn::ScriptingComponent>();
+
+    auto scriptInfo = comp.scriptPaths[ToEASTLString(oldPath)];
+    comp.scriptPaths.erase(ToEASTLString(oldPath));
+
+    if (newPath.isEmpty()) return;
+
+    comp.scriptPaths[ToEASTLString(newPath)] = scriptInfo;
+}
+
+
+void scripting_widget::OnScriptItemShouldTriggerStartChanged(const QString &path, const bool value)
+{
+    if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::ScriptingComponent>())
+    {
+        deleteLater();
+        return;
+    }
+
+    m_entity.GetComponent<Blainn::ScriptingComponent>().scriptPaths[ToEASTLString(path)].shouldTriggerStart = value;
 }
 
 
 void scripting_widget::OnScriptItemRemoved(scripting_item_widget *widget)
 {
+    if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::ScriptingComponent>())
+    {
+        deleteLater();
+        return;
+    }
+
+    m_entity.GetComponent<Blainn::ScriptingComponent>().scriptPaths.erase(ToEASTLString(widget->GetScriptPath()));
     widget->setVisible(false);
     widget->deleteLater();
-    SyncToEntity();
 }
 
 
@@ -108,7 +145,6 @@ void scripting_widget::SyncToEntity()
         if (!widget) continue;
 
         eastl::string path = ToEASTLString(widget->GetScriptPath());
-        if (path.empty()) continue;
 
         Blainn::ScriptInfo info;
         info.shouldTriggerStart = widget->GetShouldTriggerStart();
@@ -119,8 +155,9 @@ void scripting_widget::SyncToEntity()
 
 void scripting_widget::ConnectScriptItemSignals(scripting_item_widget *widget)
 {
-    connect(widget, &scripting_item_widget::ShouldTriggerStartChanged, this, &scripting_widget::OnScriptItemChanged);
-    connect(widget, &scripting_item_widget::ScriptPathChanged, this, &scripting_widget::OnScriptItemChanged);
+    connect(widget, &scripting_item_widget::ShouldTriggerStartChanged, this,
+            &scripting_widget::OnScriptItemShouldTriggerStartChanged);
+    connect(widget, &scripting_item_widget::ScriptPathChanged, this, &scripting_widget::OnScriptItemPathChanged);
     connect(widget, &scripting_item_widget::Removed, this, [this, widget]() { OnScriptItemRemoved(widget); });
 }
 } // namespace editor

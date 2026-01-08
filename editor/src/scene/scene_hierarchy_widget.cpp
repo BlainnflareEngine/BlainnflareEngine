@@ -59,7 +59,6 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
             [this](...)
             {
                 this->viewport()->update();
-                BF_DEBUG("Update view!!!");
             });
 }
 

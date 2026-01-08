@@ -37,8 +37,6 @@ public:
     static void StartSimulation();
     static void StopSimulation();
 
-    // TODO: QueuePhysicsComponentCreation()?;
-
     static void CreateAttachPhysicsComponent(PhysicsComponentSettings &settings);
     static bool HasPhysicsComponent(Entity entity);
     static void DestroyPhysicsComponent(Entity entity);
@@ -49,7 +47,7 @@ public:
     /// @brief does not check entity or component exist! You are warned.
     static PhysicsComponent &GetPhysicsComponentByBodyId(JPH::BodyID bodyId);
 
-    bool IsBodyActive(Entity entity);
+    static bool IsBodyActive(Entity entity);
     static void ActivateBody(Entity entity);
     static void DeactivateBody(Entity entity);
 

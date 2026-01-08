@@ -7,6 +7,11 @@
 #include "pch.h"
 
 #include "components/ScriptingComponent.h"
+#include "components/CameraComponent.h"
+#include "components/MeshComponent.h"
+#include "components/SkyboxComponent.h"
+#include "physics/BodyBuilder.h"
+#include "Engine.h"
 
 namespace Blainn
 {
@@ -117,11 +122,11 @@ inline MeshComponent GetMesh(const YAML::Node &node)
 
     if (!std::filesystem::is_regular_file(absolutMeshPath))
     {
-        mesh.m_meshHandle = AssetManager::GetInstance().GetDefaultMesh();
+        mesh.MeshHandle = AssetManager::GetInstance().GetDefaultMesh();
     }
     else
     {
-        mesh.m_meshHandle =
+        mesh.MeshHandle =
             AssetManager::GetInstance().HasMesh(relativeMeshPath)
                 ? AssetManager::GetInstance().GetMesh(relativeMeshPath)
                 : AssetManager::GetInstance().LoadMesh(relativeMeshPath, ImportMeshData::GetMeshData(absolutMeshPath));
@@ -129,13 +134,13 @@ inline MeshComponent GetMesh(const YAML::Node &node)
 
     if (!std::filesystem::is_regular_file(absolutMaterialPath))
     {
-        mesh.m_materialHandle = AssetManager::GetInstance().GetDefaultMaterialHandle();
+        mesh.MaterialHandle = AssetManager::GetInstance().GetDefaultMaterialHandle();
     }
     else
     {
-        mesh.m_materialHandle = AssetManager::GetInstance().HasMaterial(relativeMaterialPath)
-                                    ? AssetManager::GetInstance().GetMaterial(relativeMaterialPath)
-                                    : AssetManager::GetInstance().LoadMaterial(relativeMaterialPath);
+        mesh.MaterialHandle = AssetManager::GetInstance().HasMaterial(relativeMaterialPath)
+                                  ? AssetManager::GetInstance().GetMaterial(relativeMaterialPath)
+                                  : AssetManager::GetInstance().LoadMaterial(relativeMaterialPath);
     }
 
     return mesh;
@@ -217,6 +222,119 @@ inline ScriptingComponent GetScripting(const YAML::Node &node)
         }
 
         component.scriptPaths[eastl::string(path.c_str())] = ScriptInfo{shouldTriggerStart};
+    }
+
+    return component;
+}
+
+inline bool HasPhysics(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["PhysicsComponent"]) return true;
+
+    return false;
+}
+
+inline void GetPhysics(const YAML::Node &node, const Entity &entity)
+{
+    ComponentShapeType shapeType = static_cast<ComponentShapeType>(node["ShapeType"].as<int>());
+    PhysicsComponentMotionType motionType = static_cast<PhysicsComponentMotionType>(node["MotionType"].as<int>());
+    float gravityFactor = node["GravityFactor"].as<float>();
+    bool isTrigger = node["IsTrigger"].as<bool>();
+    ObjectLayer layer = static_cast<ObjectLayer>(node["ObjectLayer"].as<int>());
+
+    ShapeCreationSettings shapeSettings(shapeType);
+
+    if (auto &shapeSettingsNode = node["ShapeSettings"])
+    {
+        if (shapeSettingsNode["HalfHeight"])
+        {
+            shapeSettings.halfCylinderHeight = shapeSettingsNode["HalfHeight"].as<float>();
+        }
+
+        if (shapeSettingsNode["Radius"])
+        {
+            shapeSettings.radius = shapeSettingsNode["Radius"].as<float>();
+        }
+
+        if (auto &extents = shapeSettingsNode["HalfExtent"])
+        {
+            shapeSettings.halfExtents =
+                Blainn::Vec3(extents["X"].as<float>(), extents["Y"].as<float>(), extents["Z"].as<float>());
+        }
+    }
+
+    PhysicsComponentSettings settings(entity, shapeType);
+    settings.gravityFactor = gravityFactor;
+    settings.isTrigger = isTrigger;
+    settings.layer = layer;
+    settings.motionType = motionType;
+    settings.shapeSettings = shapeSettings;
+    PhysicsSubsystem::CreateAttachPhysicsComponent(settings);
+}
+
+inline bool HasCamera(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["CameraComponent"]) return true;
+
+    return false;
+}
+
+inline CameraComponent GetCamera(const YAML::Node &node)
+{
+    CameraComponent camera;
+    if (!node || node.IsNull() || !node.IsMap())
+    {
+        BF_WARN("Camera component not found or invalid in .scene file.");
+        return camera;
+    }
+    if (node["IsActiveCamera"]) camera.IsActiveCamera = node["IsActiveCamera"].as<bool>();
+    camera.camera.Reset(75.f, 16.f / 9.f, 0.01, 1000);
+
+    if (auto &settings = node["CameraSettings"])
+    {
+        // TODO: other settigns
+        camera.camera.SetFovDegrees(settings["FOV"].as<float>());
+        camera.camera.SetNearZ(settings["NearZ"].as<float>());
+        camera.camera.SetFarZ(settings["FarZ"].as<float>());
+    }
+
+    return camera;
+}
+
+inline bool HasSkybox(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["SkyboxComponent"]) return true;
+
+    return false;
+}
+
+inline SkyboxComponent GetSkybox(const YAML::Node &node)
+{
+    SkyboxComponent component;
+
+    if (!node || node.IsNull() || !node.IsMap())
+    {
+        BF_WARN("Skybox component not found or invalid in .scene file.");
+        return component;
+    }
+
+    Path relativePath;
+    Path absolutPath;
+
+    relativePath = node["Path"].as<std::string>();
+    absolutPath = Engine::GetContentDirectory() / relativePath;
+
+    if (std::filesystem::is_regular_file(absolutPath))
+    {
+        component.textureHandle = AssetManager::GetInstance().HasTexture(relativePath)
+                                      ? AssetManager::GetInstance().GetTexture(relativePath)
+                                      : AssetManager::GetInstance().LoadTexture(relativePath, TextureType::ALBEDO);
     }
 
     return component;

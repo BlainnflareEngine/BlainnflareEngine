@@ -32,6 +32,7 @@ namespace Blainn
         static void Init();
         static void Destroy();
         static void AddSink(const std::shared_ptr<spdlog::sinks::base_sink<std::mutex>>& sink, const std::string & pattern = "%^[%Y-%m-%d %H:%M:%S.%e] %v%$");
+        static void RemoveSink(const std::shared_ptr<spdlog::sinks::base_sink<std::mutex>>& sink);
 
     private:
         Log() = default;

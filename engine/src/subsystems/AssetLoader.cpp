@@ -2,7 +2,9 @@
 // Created by gorev on 30.09.2025.
 //
 
-#include "subsystems/AssetLoader.h"
+#include <pch.h>
+
+#include "AssetLoader.h"
 
 #include "AssetManager.h"
 #include "Engine.h"
@@ -17,6 +19,7 @@
 
 #include <DirectXTK12/Inc/DDSTextureLoader.h>
 #include <DirectXTK12/Inc/ResourceUploadBatch.h>
+#include <DirectXTK12/Inc/WICTextureLoader.h>
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -31,6 +34,8 @@ namespace Blainn
 void AssetLoader::Init()
 {
     BF_INFO("AssetLoader Init");
+
+    ResetTextureOffsetsTable();
 }
 
 
@@ -42,17 +47,19 @@ void AssetLoader::Destroy()
 
 eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, const ImportMeshData &data)
 {
+    assert(relativePath.is_relative());
+
     Path absolutePath = Engine::GetContentDirectory() / relativePath;
     if (absolutePath.empty())
     {
         BF_ERROR("AssetLoader ImportModel: path is empty");
     }
 
-    Model model = Model(absolutePath);
+    Model model = Model(relativePath);
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(absolutePath.string(),
                                              aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace
-                                                 | aiProcess_FixInfacingNormals | aiProcess_ConvertToLeftHanded);
+                                                 | aiProcess_FindInvalidData | aiProcess_FixInfacingNormals | aiProcess_FlipUVs | aiProcess_ConvertToLeftHanded);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -133,7 +140,7 @@ MeshData<> AssetLoader::ProcessMesh(const Path &path, const aiMesh &mesh, const 
             vertex.bitangent = Vec3::Zero;
         }
 
-        if (mesh.HasTextureCoords(i)) vertex.texCoord = GetTextCoords(mesh, i);
+        if (mesh.HasTextureCoords(0)) vertex.texCoord = GetTextCoords(mesh, i);
 
         result_mesh.vertices.emplace_back(vertex);
     }
@@ -186,44 +193,45 @@ Vec2 AssetLoader::GetTextCoords(const aiMesh &mesh, const unsigned int meshIndex
 
 eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const TextureType type)
 {
-    BF_INFO("I am loading a very big texture...");
-    BF_INFO("Loading texture completed!");
-
+    assert(path.is_relative());
     Microsoft::WRL::ComPtr<ID3D12Resource> temp;
-    CreateTextureGPUResources(path, temp);
+    CreateTextureGPUResources(path, temp, type);
 
     return eastl::make_shared<Texture>(path, temp, type);
 }
 
-void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource> &resource)
+void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource> &resource, TextureType type)
 {
+    assert(path.is_relative());
+
     auto device = Device::GetInstance().GetDevice2().Get();
     auto commandQueue = Device::GetInstance().GetCommandQueue();
 
     ResourceUploadBatch upload(device);
     upload.Begin();
 
-    // Only for DDS
-    ThrowIfFailed(CreateDDSTextureFromFile(device, upload, path.wstring().c_str(), resource.ReleaseAndGetAddressOf()));
-
-    // Create default upload heap manually
+    if (path.extension() == L".dds")
     {
-        /* auto desc = CD3DX12_RESOURCE_DESC(
-            D3D12_RESOURCE_DIMENSION_TEXTURE2D, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, c_texture_size,
-            c_texture_size, 1, 1, DXGI_FORMAT_R8G8_SNORM, 1, 0, D3D12_TEXTURE_LAYOUT_UNKNOWN,
-        D3D12_RESOURCE_FLAG_NONE);
-
-        CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-
-        ThrowIfFailed(device->CreateCommittedResource(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &desc,
-                                                        D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
-                                                        IID_PPV_ARGS(&m_resource)));
-
-        D3D12_SUBRESOURCE_DATA initData = {mydata, c_texture_size * 2, 0};
-        upload.Upload(tex.Get(), 0, &initData, 1);
-
-        upload.Transition(tex.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);*/
+        ThrowIfFailed(CreateDDSTextureFromFile(
+            device,
+            upload,
+            (Engine::GetContentDirectory()/ path).wstring().c_str(),
+            resource.ReleaseAndGetAddressOf())
+            );
     }
+    else if (path.extension() == L".png" || path.extension() == L".jpg")
+    {
+        ThrowIfFailed(
+            CreateWICTextureFromFile(
+                device,
+                upload,
+                (Engine::GetContentDirectory() / path).wstring().c_str(),
+                resource.GetAddressOf()
+            )
+        );
+    }
+
+    CreateTextureDescriptor(resource.Get(), type);
 
     // Upload the resources to the GPU.
     auto finish = upload.End(commandQueue->GetCommandQueue().Get());
@@ -232,10 +240,47 @@ void AssetLoader::CreateTextureGPUResources(const Path &path, Microsoft::WRL::Co
     finish.wait();
 }
 
-
-eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &path)
+void Blainn::AssetLoader::CreateTextureDescriptor(ID3D12Resource *texD3DResource, TextureType type)
 {
-    YAML::Node config = YAML::LoadFile(path.string());
+    auto& device = Device::GetInstance();
+
+    UINT& freeTextureOffsetOfType = m_texturesOffsetsTable[type];
+    UINT texturePlacementOffset = /*m_texturesSrvHeapStartIndex*/ 7u + (static_cast<UINT>(type) - 1u) * MAX_TEX_OF_TYPE + freeTextureOffsetOfType;
+    //texture.SetTextureDescriptorOffset(texturePlacementOffset);
+
+    auto srvCpuStart = device.GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    auto cbvSrvUavDescriptorSize = device.GetDescriptorHandleIncrementSize();
+
+    CD3DX12_CPU_DESCRIPTOR_HANDLE localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, texturePlacementOffset, cbvSrvUavDescriptorSize);
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    ZeroMemory(&srvDesc, sizeof(srvDesc));
+    srvDesc.Format = texD3DResource->GetDesc().Format;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Texture2D.MostDetailedMip = 0u;
+    srvDesc.Texture2D.MipLevels = texD3DResource->GetDesc().MipLevels;
+    srvDesc.Texture2D.PlaneSlice = 0;
+    srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+    device.CreateShaderResourceView(texD3DResource, &srvDesc, localHandle);
+
+    freeTextureOffsetOfType++;
+}
+
+void Blainn::AssetLoader::ResetTextureOffsetsTable()
+{
+    for (auto &textureOffset : m_texturesOffsetsTable)
+    {
+        textureOffset.second = 0u;
+    }
+}
+
+eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &relativePath)
+{
+    assert(relativePath.is_relative());
+
+    auto absolutePath = Engine::GetContentDirectory() / relativePath;
+    YAML::Node config = YAML::LoadFile(absolutePath.string());
 
     auto shaderPath = config["ShaderPath"].as<std::string>();
     auto albedo = config["AlbedoPath"].as<std::string>();
@@ -249,15 +294,28 @@ eastl::shared_ptr<Material> AssetLoader::LoadMaterial(const Path &path)
     auto metallicScale = config["MetallicScale"].as<float>();
     auto roughnessScale = config["RoughnessScale"].as<float>();
 
-    auto material = eastl::make_shared<Material>(path, ToEASTLString(shaderPath));
+    auto material = eastl::make_shared<Material>(relativePath, ToEASTLString(shaderPath));
+    auto &manager = AssetManager::GetInstance();
 
-    if (!albedo.empty()) material->SetTexture(AssetManager::GetInstance().GetTexture(albedo), TextureType::ALBEDO);
-    if (!normal.empty()) material->SetTexture(AssetManager::GetInstance().GetTexture(normal), TextureType::NORMAL);
+    if (!albedo.empty())
+        if (manager.HasTexture(albedo)) material->SetTexture(manager.GetTexture(albedo), TextureType::ALBEDO);
+        else material->SetTexture(manager.LoadTexture(albedo, TextureType::ALBEDO), TextureType::ALBEDO);
+
+    if (!normal.empty())
+        if (manager.HasTexture(normal)) material->SetTexture(manager.GetTexture(normal), TextureType::NORMAL);
+        else material->SetTexture(manager.LoadTexture(normal, TextureType::NORMAL), TextureType::NORMAL);
+
     if (!metallic.empty())
-        material->SetTexture(AssetManager::GetInstance().GetTexture(metallic), TextureType::METALLIC);
+        if (manager.HasTexture(metallic)) material->SetTexture(manager.GetTexture(metallic), TextureType::METALLIC);
+        else material->SetTexture(manager.LoadTexture(metallic, TextureType::METALLIC), TextureType::METALLIC);
+
     if (!roughness.empty())
-        material->SetTexture(AssetManager::GetInstance().GetTexture(roughness), TextureType::ROUGHNESS);
-    if (!ambient.empty()) material->SetTexture(AssetManager::GetInstance().GetTexture(ambient), TextureType::AO);
+        if (manager.HasTexture(roughness)) material->SetTexture(manager.GetTexture(roughness), TextureType::ROUGHNESS);
+        else material->SetTexture(manager.LoadTexture(roughness, TextureType::ROUGHNESS), TextureType::ROUGHNESS);
+
+    if (!ambient.empty())
+        if (manager.HasTexture(ambient)) material->SetTexture(manager.GetTexture(ambient), TextureType::AO);
+        else material->SetTexture(manager.LoadTexture(ambient, TextureType::AO), TextureType::AO);
 
     material->SetAlbedoColor(HexToColor(albedoColor));
     material->SetNormalScale(normalScale);

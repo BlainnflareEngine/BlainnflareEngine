@@ -1,7 +1,6 @@
 ﻿//
 // Created by gorev on 17.11.2025.
 //
-
 #include "entity/mesh_widget.h"
 
 #include "Engine.h"
@@ -33,8 +32,6 @@ mesh_widget::mesh_widget(const Blainn::Entity &entity, QWidget *parent)
 
     connect(m_path_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewPath);
     connect(m_material_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewMaterial);
-    connect(m_path_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewPath);
-    connect(m_material_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewMaterial);
 }
 
 
@@ -44,7 +41,7 @@ void mesh_widget::UpdatePath()
 
     const QString path =
         QString::fromStdString(Blainn::AssetManager::GetInstance()
-                                   .GetMeshPath(*m_entity.GetComponent<Blainn::MeshComponent>().m_meshHandle)
+                                   .GetMeshPath(*m_entity.GetComponent<Blainn::MeshComponent>().MeshHandle)
                                    .string());
     m_path_input->SetPath(path);
 }
@@ -56,7 +53,7 @@ void mesh_widget::UpdateMaterial()
 
     const QString path =
         QString::fromStdString(Blainn::AssetManager::GetInstance()
-                                   .GetMaterialPath(*m_entity.GetComponent<Blainn::MeshComponent>().m_materialHandle)
+                                   .GetMaterialPath(*m_entity.GetComponent<Blainn::MeshComponent>().MaterialHandle)
                                    .string());
 
     m_material_input->SetPath(path);
@@ -73,9 +70,9 @@ void mesh_widget::SetNewPath(const QString &oldPath, const QString &newPath)
     auto &mesh = m_entity.GetComponent<Blainn::MeshComponent>();
 
     if (Blainn::AssetManager::GetInstance().HasMesh(path))
-        mesh.m_meshHandle = Blainn::AssetManager::GetInstance().GetMesh(path);
+        mesh.MeshHandle = Blainn::AssetManager::GetInstance().GetMesh(path);
     else
-        mesh.m_meshHandle = Blainn::AssetManager::GetInstance().LoadMesh(
+        mesh.MeshHandle = Blainn::AssetManager::GetInstance().LoadMesh(
             path, Blainn::ImportMeshData::GetMeshData(Blainn::Engine::GetContentDirectory() / path));
 }
 
@@ -90,14 +87,14 @@ void mesh_widget::SetNewMaterial(const QString &oldPath, const QString &newPath)
     auto &mesh = m_entity.GetComponent<Blainn::MeshComponent>();
 
     if (Blainn::AssetManager::GetInstance().HasMaterial(path))
-        mesh.m_materialHandle = Blainn::AssetManager::GetInstance().GetMaterial(path);
-    else mesh.m_materialHandle = Blainn::AssetManager::GetInstance().LoadMaterial(path);
+        mesh.MaterialHandle = Blainn::AssetManager::GetInstance().GetMaterial(path);
+    else mesh.MaterialHandle = Blainn::AssetManager::GetInstance().LoadMaterial(path);
 }
 
 
 void mesh_widget::DeleteComponent()
 {
-    if (m_entity.IsValid()) m_entity.RemoveComponent<Blainn::MeshComponent>();
+    if (m_entity.IsValid()) m_entity.RemoveComponentIfExists<Blainn::MeshComponent>();
 
     deleteLater();
 }

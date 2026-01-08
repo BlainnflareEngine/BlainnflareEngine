@@ -42,7 +42,7 @@ void transform_widget::OnPositionChanged()
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
     transform.SetTranslation(m_position->GetValue());
-    scene->ConvertToWorldSpace(m_entity);
+    //scene->ConvertToWorldSpace(m_entity);
 }
 
 
@@ -77,7 +77,7 @@ void transform_widget::OnUpdate()
 
 void transform_widget::DeleteComponent()
 {
-    if (m_entity.IsValid()) m_entity.RemoveComponent<Blainn::TransformComponent>();
+    if (m_entity.IsValid()) m_entity.RemoveComponentIfExists<Blainn::TransformComponent>();
     deleteLater();
 }
 
@@ -107,7 +107,7 @@ void transform_widget::LoadTransformValues()
     const auto &scene = Blainn::Engine::GetActiveScene();
     if (!scene) return;
 
-    scene->ConvertToLocalSpace(m_entity);
+    //scene->ConvertToLocalSpace(m_entity);
 
     BlockSignals(true);
     if (!m_position->HasFocus()) m_position->SetValue(transform.GetTranslation());
@@ -117,7 +117,7 @@ void transform_widget::LoadTransformValues()
     if (!m_scale->HasFocus()) m_scale->SetValue(transform.GetScale());
     BlockSignals(false);
 
-    scene->ConvertToWorldSpace(m_entity);
+    //scene->ConvertToWorldSpace(m_entity);
 }
 
 
@@ -170,18 +170,18 @@ QWidget *transform_widget::CreateVector3(const QString &title, float_input_field
 
     QSize fieldSize{70, 20};
 
-    xField = new float_input_field("X", 0, group, xColor);
+    xField = new float_input_field("X", 0, group, true, xColor);
     xField->setMinimumSize(fieldSize);
     xField->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(xField, 2, 0);
 
 
-    yField = new float_input_field("Y", 0, group, yColor);
+    yField = new float_input_field("Y", 0, group, true, yColor);
     yField->setMinimumSize(fieldSize);
     yField->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(yField, 2, 1);
 
-    zField = new float_input_field("Z", 0, group, zColor);
+    zField = new float_input_field("Z", 0, group, true, zColor);
     zField->setMinimumSize(fieldSize);
     zField->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(zField, 2, 2);

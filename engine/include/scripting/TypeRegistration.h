@@ -19,5 +19,6 @@ void RegisterScriptingTypes(sol::state &luaState);
 void RegisterAssetManagerTypes(sol::state &luaState);
 void RegisterAssetLoaderTypes(sol::state &luaState);
 void RegisterEngineTypes(sol::state &luaState);
+void RegisterPhysicsTypes(sol::state &luaState);
 #endif
 } // namespace Blainn

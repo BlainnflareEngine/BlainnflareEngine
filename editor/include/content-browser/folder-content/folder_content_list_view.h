@@ -32,6 +32,6 @@ protected:
     void dragMoveEvent(QDragMoveEvent *event) override;
 
 private:
-    Ui::folder_content_list_view* ui;
+    Ui::folder_content_list_view *ui;
 };
 } // namespace editor

@@ -37,6 +37,8 @@ inline static const QString materialFormat = "mat";
 
 inline static const QString scriptFormat = "lua";
 
+inline static const QString behaviorFormat = "AI.lua";
+
 inline static const QString sceneFormat = "scene";
 
 inline static const QStringList supportedTextureFormats = {"png", "jpg", "dds", "jpeg", "tga", "bmp"};

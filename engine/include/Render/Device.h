@@ -28,7 +28,8 @@ namespace Blainn
 
         ComPtr<ID3D12Device2> GetDevice2() const { return m_device; }
         ComPtr<IDXGIFactory4> GetFactory() const { return m_factory; }
-        
+        ComPtr<IDXGIAdapter1> GetDXGIAdapter() const { return m_hardwareAdapter; }
+
         VOID Flush();
 
         eastl::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE commandListType = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
@@ -36,11 +37,19 @@ namespace Blainn
         eastl::shared_ptr<SwapChain> CreateSwapChain(HWND window, DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R10G10B10A2_UNORM);
         HRESULT CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE commandListType, ComPtr<ID3D12CommandAllocator>&  commandAllocator);
         
-        HRESULT CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors,
+        HRESULT CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors,
+                                     D3D12_DESCRIPTOR_HEAP_FLAGS flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+                                     UINT nodeMask = 0u);
+
+    private:
+        HRESULT CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors,
                                      ComPtr<ID3D12DescriptorHeap> &descriptorHeap,
                                      D3D12_DESCRIPTOR_HEAP_FLAGS flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
                                      UINT nodeMask = 0u);
-        UINT GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType);
+        
+    public:
+        UINT GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) const;
+
         HRESULT CreateGraphicsPipelineState(const D3D12_GRAPHICS_PIPELINE_STATE_DESC& psoDesc, ComPtr<ID3D12PipelineState>& pipelineState);
         
         VOID CreateDepthStencilView(ID3D12Resource *pResource, /*probably should pass whole desc*/ const DXGI_FORMAT format,
@@ -60,6 +69,10 @@ namespace Blainn
         VOID CreateCommandQueues();
         bool IsInitialized() const { return m_isInitialized; }
 
+    public:
+
+        ComPtr<ID3D12DescriptorHeap> GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) const;
+
     private:
         VOID GetHardwareAdapter(_In_ IDXGIFactory1 *pFactory, _Outptr_result_maybenull_ IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter = false);
 
@@ -77,6 +90,14 @@ namespace Blainn
         ComPtr<ID3D12Device2> m_device = nullptr;
         //ComPtr<ID3D12Device4> m_device4 = nullptr;
         ComPtr<IDXGIFactory4> m_factory = nullptr;
+
+        ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
+        ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
+        ComPtr<ID3D12DescriptorHeap> m_srvHeap;
+        
+        UINT m_rtvDescriptorSize;
+        UINT m_dsvDescriptorSize;
+        UINT m_cbvSrvUavDescriptorSize;
 
         bool m_isInitialized = false;
     };

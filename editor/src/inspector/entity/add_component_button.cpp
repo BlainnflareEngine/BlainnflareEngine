@@ -5,16 +5,21 @@
 #include "entity/add_component_button.h"
 
 #include "PhysicsSubsystem.h"
-#include "../../../include/inspector/entity/scripting/scripting_widget.h"
+#include "entity/scripting/scripting_widget.h"
 #include "ScriptingSubsystem.h"
 #include "components/MeshComponent.h"
 #include "components/PhysicsComponent.h"
+#include "components/SkyboxComponent.h"
 #include "entity/mesh_widget.h"
 #include "entity/physics_widget.h"
+#include "entity/skybox_widget.h"
 #include "entity/transform_widget.h"
 #include "scene/EntityTemplates.h"
 
 #include <QLayout>
+
+#include "components/CameraComponent.h"
+#include "entity/camera_widget.h"
 
 
 namespace editor
@@ -30,6 +35,8 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
     m_meshAction = m_menu->addAction("Mesh");
     m_physicsAction = m_menu->addAction("Physics");
     m_scriptingAction = m_menu->addAction("Scripting");
+    m_cameraAction = m_menu->addAction("Camera");
+    m_skyboxAction = m_menu->addAction("Skybox");
 
     setText("Add component");
 
@@ -39,6 +46,8 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
     connect(m_meshAction, &QAction::triggered, this, &add_component_button::OnMeshAction);
     connect(m_physicsAction, &QAction::triggered, this, &add_component_button::OnPhysicsAction);
     connect(m_scriptingAction, &QAction::triggered, this, &add_component_button::OnScriptingAction);
+    connect(m_cameraAction, &QAction::triggered, this, &add_component_button::OnCameraAction);
+    connect(m_skyboxAction, &QAction::triggered, this, &add_component_button::OnSkyboxAction);
 }
 
 
@@ -96,4 +105,25 @@ void add_component_button::OnScriptingAction()
     m_layout->insertWidget(m_layout->count() - 1, scripting);
 }
 
+void add_component_button::OnCameraAction()
+{
+    if (!m_entity.IsValid()) return;
+
+    if (m_entity.HasComponent<Blainn::CameraComponent>()) return;
+    auto& comp = m_entity.AddComponent<Blainn::CameraComponent>();
+    comp.camera.Reset(75.f, 16/9.f, 0.01, 10000);
+
+    auto camera = new camera_widget(m_entity, this);
+    m_layout->insertWidget(m_layout->count() - 1, camera);
+}
+
+void add_component_button::OnSkyboxAction()
+{
+    if (!m_entity.IsValid()) return;
+
+    if (m_entity.HasComponent<Blainn::SkyboxComponent>()) return;
+    auto &comp = m_entity.AddComponent<Blainn::SkyboxComponent>();
+    auto widget = new skybox_widget(m_entity, this);
+    m_layout->insertWidget(m_layout->count() - 1, widget);
+}
 } // namespace editor

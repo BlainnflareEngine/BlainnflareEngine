@@ -4,15 +4,19 @@
 
 #include "entity_inspector_content.h"
 
-#include "../../include/inspector/entity/scripting/scripting_widget.h"
+#include "entity/scripting/scripting_widget.h"
 #include "LabelsUtils.h"
+#include "components/CameraComponent.h"
 #include "components/MeshComponent.h"
+#include "components/SkyboxComponent.h"
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
 #include "entity/add_component_button.h"
+#include "entity/camera_widget.h"
 #include "entity/mesh_widget.h"
 #include "entity/physics_widget.h"
 #include "entity/transform_widget.h"
+#include "entity/skybox_widget.h"
 
 namespace editor
 {
@@ -64,6 +68,18 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     {
         auto mesh = new mesh_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(mesh);
+    }
+
+    if (entity.HasComponent<Blainn::SkyboxComponent>())
+    {
+        auto skybox = new skybox_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(skybox);
+    }
+
+    if (entity.HasComponent<Blainn::CameraComponent>())
+    {
+        auto camera = new camera_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(camera);
     }
 
     auto *addButton = new add_component_button(data.node->GetEntity(),  boxLayout, this);

@@ -46,8 +46,10 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
     // TransformComponent
     sol::usertype<TransformComponent> TransformComponentType =
         luaState.new_usertype<TransformComponent>("TransformComponent", sol::constructors<TransformComponent()>());
-    TransformComponentType["Translation"] = &TransformComponent::Translation;
-    TransformComponentType["Scale"] = &TransformComponent::Scale;
+    TransformComponentType.set_function("GetTranslation", &TransformComponent::GetTranslation);
+    TransformComponentType.set_function("SetTranslation", &TransformComponent::SetTranslation);
+    TransformComponentType.set_function("GetScale", &TransformComponent::GetScale);
+    TransformComponentType.set_function("SetScale", &TransformComponent::SetScale);
     TransformComponentType.set_function("GetTransform", &TransformComponent::GetTransform);
     TransformComponentType.set_function("SetTransform", &TransformComponent::SetTransform);
     TransformComponentType.set_function("GetRotationEuler", &TransformComponent::GetRotationEuler);
@@ -58,7 +60,7 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
         "MeshComponent", sol::constructors<MeshComponent(const eastl::shared_ptr<MeshHandle> &),
                                            MeshComponent(eastl::shared_ptr<MeshHandle> &&)>());
     MeshComponentType.set_function("GetHandleIndex",
-                                   [](MeshComponent &m) { return m.m_meshHandle ? m.m_meshHandle->GetIndex() : 0u; });
+                                   [](MeshComponent &m) { return m.MeshHandle ? m.MeshHandle->GetIndex() : 0u; });
 
     // ScriptingComponent (expose a method to list attached scripts by UUID)
     sol::usertype<ScriptingComponent> ScriptingComponentType =

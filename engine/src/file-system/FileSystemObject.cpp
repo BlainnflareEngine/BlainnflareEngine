@@ -10,9 +10,10 @@ namespace Blainn
 {
 
 
-FileSystemObject::FileSystemObject(const Path &absolutPath)
-    : m_path(std::filesystem::relative(absolutPath, Engine::GetContentDirectory()))
+FileSystemObject::FileSystemObject(const Path &relativePath)
+    : m_path(relativePath)
 {
+    assert(m_path.is_relative());
 }
 
 

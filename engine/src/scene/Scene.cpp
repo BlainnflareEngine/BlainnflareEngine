@@ -7,15 +7,21 @@
 
 #include "Engine.h"
 #include "Serializer.h"
+#include "assimp/code/AssetLib/OpenGEX/OpenGEXStructs.h"
+#include "components/CameraComponent.h"
 #include "scene/SceneParser.h"
 
 #include "tools/Profiler.h"
 #include "tools/random.h"
 
 #include "components/MeshComponent.h"
+#include "components/SkyboxComponent.h"
 #include "subsystems/ScriptingSubsystem.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/RenderSubsystem.h"
+#include "Render/RuntimeCamera.h"
+#include "Render/EditorCamera.h"
+
 
 using namespace Blainn;
 
@@ -52,7 +58,6 @@ Scene::~Scene()
 
     while (s_postUpdateQueue.try_dequeue(fn))
     {
-        BF_DEBUG("Destroying entity!");
         fn();
     }
 
@@ -63,11 +68,47 @@ Scene::~Scene()
 
 void Blainn::Scene::Update()
 {
-    auto view = GetAllEntitiesWith<TransformComponent>();
-    for (const auto &[entity, transformComponent] : view.each())
+    if (!m_bPlayMode) RenderSubsystem::GetInstance().SetCamera(&*RenderSubsystem::GetInstance().GetEditorCamera());
+    else do
+        {
+            auto view = GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
+            RuntimeCamera *cam = nullptr;
+            Entity *camEntity = nullptr;
+            TransformComponent *camTransform = nullptr;
+            for (const auto &[enttity, id, transform, camera] : view.each())
+            {
+                if (camera.IsActiveCamera)
+                {
+                    camEntity = &m_EntityIdMap.at(id.ID);
+                    cam = &camera.camera;
+                    camTransform = &transform;
+                    break;
+                }
+            }
+            if (!camEntity || !cam)
+            {
+                m_editorCam = RenderSubsystem::GetInstance().GetEditorCamera();
+                RenderSubsystem::GetInstance().SetCamera(&*m_editorCam);
+                BF_ERROR("Could not find main camera, please, select an active camera");
+                break;
+            }
+
+            Mat4 camViewMat = GetWorldSpaceTransformMatrix(*camEntity).Invert();
+            cam->SetViewMatrix(camViewMat);
+            cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
+            RenderSubsystem::GetInstance().SetCamera(cam);
+
+        } while (false); // Чтобы не писать goto))) хотя по факту это просто goto)))
+
     {
-        transformComponent.FrameResetDirtyFlags();
+        auto view = GetAllEntitiesWith<TransformComponent>();
+        for (const auto &[entity, transformComponent] : view.each())
+        {
+            transformComponent.FrameResetDirtyFlags();
+        }
     }
+
+
     ProcessEvents();
 }
 
@@ -100,6 +141,9 @@ void Scene::SaveScene()
         Serializer::Relationship(e, out);
         Serializer::Scripting(e, out);
         Serializer::Mesh(e, out);
+        Serializer::Camera(e, out);
+        Serializer::Physics(e, out);
+        Serializer::Skybox(e, out);
 
         out << YAML::EndMap; // end for every entity
     }
@@ -282,6 +326,23 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
                 entity.AddComponent<RelationshipComponent>(component);
             }
         }
+
+        if (HasCamera(entityNode))
+        {
+            auto camera = GetCamera(entityNode["CameraComponent"]);
+            entity.AddComponent<CameraComponent>(camera);
+        }
+
+        if (HasPhysics(entityNode))
+        {
+            GetPhysics(entityNode["PhysicsComponent"], entity);
+        }
+
+        if (HasSkybox(entityNode))
+        {
+            auto skybox = GetSkybox(entityNode["SkyboxComponent"]);
+            entity.AddComponent<SkyboxComponent>(skybox);
+        }
     }
 }
 
@@ -330,6 +391,7 @@ void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool firs
     // before actually destroying remove components that might require ID of the entity
     s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity, id));
 
+    PhysicsSubsystem::DestroyPhysicsComponent(entity);
     ScriptingSubsystem::DestroyScriptingComponent(entity);
     m_Registry.destroy(entity);
     m_EntityIdMap.erase(id);
@@ -516,13 +578,11 @@ void Scene::ConvertToWorldSpace(Entity entity)
 
 Mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
 {
-    Mat4 transform = Mat4::Identity;
-
     Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
 
-    if (parent) return GetWorldSpaceTransformMatrix(parent);
+    if (parent) return entity.Transform().GetTransform() * GetWorldSpaceTransformMatrix(parent);
 
-    return entity.Transform().GetTransform() * transform;
+    return entity.Transform().GetTransform();
 }
 
 void Blainn::Scene::SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTransform)

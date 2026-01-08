@@ -144,6 +144,11 @@ set(EDITOR_SOURCES
         include/inspector/input-widgets/vector3_input_widget.h
         src/inspector/input-widgets/color_input_field.cpp
         include/inspector/input-widgets/color_input_field.h
+        ../engine/include/components/CameraComponent.h
+        src/inspector/entity/camera_widget.cpp
+        include/inspector/entity/camera_widget.h
+        include/inspector/entity/skybox_widget.h
+        src/inspector/entity/skybox_widget.cpp
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

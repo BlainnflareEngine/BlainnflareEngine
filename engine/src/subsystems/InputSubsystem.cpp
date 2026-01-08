@@ -75,7 +75,6 @@ void Blainn::Input::UpdateMousePosition(const float x, const float y)
 void Blainn::Input::UpdateMousePosition(const MousePosition newPos)
 {
     s_mouseDelta = newPos - s_mousePosition;
-    BF_DEBUG("MousePosition updated {} {}", s_mouseDelta.X, s_mouseDelta.Y);
 
     s_mousePosition = newPos;
     s_inputEventQueue.enqueue(InputEventType::MouseMoved, eastl::make_shared<MouseMovedEvent>(newPos.X, newPos.Y));
@@ -120,17 +119,14 @@ void Blainn::Input::UpdateKeyState(KeyCode key, KeyState state)
     case KeyState::Pressed:
         if (s_keyStates[key] == KeyState::Held) return;
         s_keyStates[key] = state;
-        BF_DEBUG("Key Pressed 111 {}", static_cast<int>(key))
         s_inputEventQueue.enqueue(eastl::make_shared<KeyPressedEvent>(key));
         return;
     case KeyState::Released:
-        BF_DEBUG("Key Released  11111 {}", static_cast<int>(key))
         s_keyStates[key] = state;
         s_inputEventQueue.enqueue(eastl::make_shared<KeyReleasedEvent>(key));
         return;
     case KeyState::Held:
         s_keyStates[key] = state;
-        BF_DEBUG("Key Held {}", static_cast<int>(key))
         s_inputEventQueue.enqueue(eastl::make_shared<KeyHeldEvent>(key));
         return;
     default:
@@ -160,10 +156,15 @@ void Blainn::Input::UpdateButtonState(MouseButton button, ButtonState state)
     }
 }
 
-void Blainn::Input::AddEventListener(InputEventType eventType,
-                                     eastl::function<void(const InputEventPointer &)> listener)
+auto Blainn::Input::AddEventListener(InputEventType eventType,
+                                     eastl::function<void(const InputEventPointer &)> listener) -> EventHandle
 {
-    s_inputEventQueue.appendListener(eventType, listener);
+    return s_inputEventQueue.appendListener(eventType, listener);
+}
+
+bool Blainn::Input::RemoveEventListener(InputEventType eventType, EventHandle handle)
+{
+    return s_inputEventQueue.removeListener(eventType, handle);
 }
 
 void Blainn::Input::ProcessEvents()
