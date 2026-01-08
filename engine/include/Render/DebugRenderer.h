@@ -20,6 +20,7 @@ namespace Blainn
 
     class DebugRenderer : public JPH::DebugRendererSimple
     {
+        using Super = JPH::DebugRendererSimple;
     public:
         DebugRenderer(Device& device);
         virtual ~DebugRenderer();
@@ -35,6 +36,16 @@ namespace Blainn
 
         virtual void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow) override;
         void DrawTriangle(Vec3 inV1, Vec3 inV2, Vec3 inV3, Color inColor);
+
+        void DrawWireBox(Vec3 min, Vec3 max, Color color);
+        void DrawWireBox(Mat4 matrix, Vec3 min, Vec3 max, Color color);
+
+        void DrawWireSphere(Vec3 center, float radius, Color color);
+        void DrawWireUnitSphere(Mat4 matrix, Color color);
+
+        void DrawCapsule(Mat4 matrix, float halfHeightOfCylinder, float radius, Color color);
+
+        void DrawCylinder(Mat4 matrix, float halfHeight, float radius, Color color);
 
         // this is not working, we didn't yet bother to render text!
         virtual void DrawText3D(JPH::RVec3Arg inPosition, const std::string_view &inString, JPH::ColorArg inColor, float inHeight) override {}

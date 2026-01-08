@@ -145,6 +145,107 @@ void DebugRenderer::DrawTriangle(Vec3 inV1, Vec3 inV2, Vec3 inV3, Color inColor)
     m_lineListVertices.push_back({inV1, inColor});
 }
 
+void DebugRenderer::DrawWireBox(Vec3 min, Vec3 max, Color color)
+{
+    JPH::Vec3 vmin = {min.x, min.y, min.z};
+    JPH::Vec3 vmax = {max.x, max.y, max.z};
+    JPH::AABox box = {vmin, vmax};
+    JPH::Color col;
+    col.r = floor(color.R() * 255);
+    col.g = floor(color.G() * 255);
+    col.b = floor(color.B() * 255);
+    col.a = floor(color.A() * 255);
+    Super::DrawWireBox(box, col);
+}
+
+void DebugRenderer::DrawWireBox(Mat4 matrix, Vec3 min, Vec3 max, Color color)
+{
+    JPH::Vec3 vmin = {min.x, min.y, min.z};
+    JPH::Vec3 vmax = {max.x, max.y, max.z};
+    JPH::AABox box = {vmin, vmax};
+    JPH::Color col;
+    col.r = floor(color.R() * 255);
+    col.g = floor(color.G() * 255);
+    col.b = floor(color.B() * 255);
+    col.a = floor(color.A() * 255);
+
+    JPH::Vec4 row1 = {matrix._11, matrix._12, matrix._13, matrix._14};
+    JPH::Vec4 row2 = {matrix._21, matrix._22, matrix._23, matrix._24};
+    JPH::Vec4 row3 = {matrix._31, matrix._32, matrix._33, matrix._34};
+    JPH::Vec4 row4 = {matrix._41, matrix._42, matrix._43, matrix._44};
+
+    JPH::Mat44 jphMat{row1, row2, row3, row4};
+
+    Super::DrawWireBox(jphMat, box, col);
+}
+
+void DebugRenderer::DrawWireSphere(Vec3 center, float radius, Color color)
+{
+    JPH::Vec3 V1 = {center.x, center.y, center.z};
+
+    JPH::Color col;
+    col.r = floor(color.R() * 255);
+    col.g = floor(color.G() * 255);
+    col.b = floor(color.B() * 255);
+    col.a = floor(color.A() * 255);
+
+    Super::DrawWireSphere(V1, radius, col);
+}
+
+void DebugRenderer::DrawWireUnitSphere(Mat4 matrix, Color color)
+{
+    JPH::Color col;
+    col.r = floor(color.R() * 255);
+    col.g = floor(color.G() * 255);
+    col.b = floor(color.B() * 255);
+    col.a = floor(color.A() * 255);
+
+    JPH::Vec4 row1 = {matrix._11, matrix._12, matrix._13, matrix._14};
+    JPH::Vec4 row2 = {matrix._21, matrix._22, matrix._23, matrix._24};
+    JPH::Vec4 row3 = {matrix._31, matrix._32, matrix._33, matrix._34};
+    JPH::Vec4 row4 = {matrix._41, matrix._42, matrix._43, matrix._44};
+
+    JPH::Mat44 jphMat{row1, row2, row3, row4};
+
+    Super::DrawWireUnitSphere(jphMat, col);
+}
+
+void DebugRenderer::DrawCapsule(Mat4 matrix, float halfHeightOfCylinder, float radius, Color color)
+{
+    JPH::Color col;
+    col.r = floor(color.R() * 255);
+    col.g = floor(color.G() * 255);
+    col.b = floor(color.B() * 255);
+    col.a = floor(color.A() * 255);
+
+    JPH::Vec4 row1 = {matrix._11, matrix._12, matrix._13, matrix._14};
+    JPH::Vec4 row2 = {matrix._21, matrix._22, matrix._23, matrix._24};
+    JPH::Vec4 row3 = {matrix._31, matrix._32, matrix._33, matrix._34};
+    JPH::Vec4 row4 = {matrix._41, matrix._42, matrix._43, matrix._44};
+
+    JPH::Mat44 jphMat{row1, row2, row3, row4};
+
+    Super::DrawCapsule(jphMat, halfHeightOfCylinder, radius, col);
+}
+
+void DebugRenderer::DrawCylinder(Mat4 matrix, float halfHeight, float radius, Color color)
+{
+    JPH::Color col;
+    col.r = floor(color.R() * 255);
+    col.g = floor(color.G() * 255);
+    col.b = floor(color.B() * 255);
+    col.a = floor(color.A() * 255);
+
+    JPH::Vec4 row1 = {matrix._11, matrix._12, matrix._13, matrix._14};
+    JPH::Vec4 row2 = {matrix._21, matrix._22, matrix._23, matrix._24};
+    JPH::Vec4 row3 = {matrix._31, matrix._32, matrix._33, matrix._34};
+    JPH::Vec4 row4 = {matrix._41, matrix._42, matrix._43, matrix._44};
+
+    JPH::Mat44 jphMat{row1, row2, row3, row4};
+
+    Super::DrawCylinder(jphMat, halfHeight, radius, col);
+}
+
 void Blainn::DebugRenderer::CreateRootSignature()
 {
     m_rootSignature = eastl::make_shared<RootSignature>();

@@ -26,6 +26,9 @@
 
 #include <cassert>
 
+#include "PhysicsSubsystem.h"
+#include "components/PhysicsComponent.h"
+
 namespace Blainn
 {
 void Blainn::RenderSubsystem::PreInit()
@@ -145,19 +148,8 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
     RenderLightingPass(pCommandList);
     RenderForwardPasses(pCommandList);
 
-    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_READ);
-    m_debugRenderer->BeginDebugRenderPass(pCommandList, GetRTV(), m_GBuffer->GetDsv(GBuffer::EGBufferLayer::DEPTH));
-    m_debugRenderer->SetViewProjMatrix(m_mainPassCBData.ViewProj);
-    Vec3 from = {0.f, 0.0f, 0.2f};
-    Vec3 to = {0.f, 3.0f, 0.2f};
-    m_debugRenderer->DrawLine(from, to, {1.f, 0.0f, 1.f, 1.f});
-
-    m_debugRenderer->DrawBox(JPH::AABox(JPH::Vec3(-1.f, 1.f, -1.f), JPH::Vec3(1.f, 2.f, 1.f)), {255, 0, 0, 255});
-
-    m_debugRenderer->EndDebugRenderPass();
-    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
+    if (m_enableDebugLayer)
+        RenderDebugPass(pCommandList);
 }
 
 VOID Blainn::RenderSubsystem::InitializeWindow()
@@ -1003,6 +995,56 @@ void Blainn::RenderSubsystem::RenderSkyBoxPass(ID3D12GraphicsCommandList2 *pComm
     pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::Sky).Get());
     DrawMesh(pCommandList/*, m_skyRenderItem*/);
 
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
+}
+
+void RenderSubsystem::RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList)
+{
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_READ);
+    m_debugRenderer->BeginDebugRenderPass(pCommandList, GetRTV(), m_GBuffer->GetDsv(GBuffer::EGBufferLayer::DEPTH));
+    m_debugRenderer->SetViewProjMatrix(m_mainPassCBData.ViewProj);
+
+    auto view = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
+    for (const auto &[_, id, transformComponent, physicsComponent] : view.each())
+    {
+        Entity entity = Engine::GetActiveScene()->GetEntityWithUUID(id.ID);
+        auto bodyGetter = PhysicsSubsystem::GetBodyGetter(entity);
+
+        auto transform = transformComponent.GetTransform();
+        switch (physicsComponent.GetShapeType())
+        {
+        case ComponentShapeType::Box:
+        {
+            auto min = bodyGetter.GetBoxShapeHalfExtents().value();
+            m_debugRenderer->DrawWireBox(transform, min, -min , {0,1,0,1});
+            break;
+        }
+        case ComponentShapeType::Sphere:
+        {
+            float sphereRadius = bodyGetter.GetSphereShapeRadius().value();
+            m_debugRenderer->DrawWireSphere(bodyGetter.GetPosition(), sphereRadius, {0,1,0,1});
+            break;
+        }
+        case ComponentShapeType::Capsule:
+        {
+            auto capsuleHalfHeightAndRadius = bodyGetter.GetCapsuleShapeHalfHeightAndRadius().value();
+            m_debugRenderer->DrawCapsule(transform, capsuleHalfHeightAndRadius.first, capsuleHalfHeightAndRadius.second, {0,1,0,1});
+            break;
+        }
+        case ComponentShapeType::Cylinder:
+        {
+            auto cylinderHalfHeightAndRadius = bodyGetter.GetCylinderShapeHalfHeightAndRadius().value();
+            m_debugRenderer->DrawCylinder(transform, cylinderHalfHeightAndRadius.first, cylinderHalfHeightAndRadius.second, {0,1,0,1});
+            break;
+        }
+        default:
+            BF_ERROR("Unknown shape type");
+        }
+    }
+
+    m_debugRenderer->EndDebugRenderPass();
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
     ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 

@@ -56,6 +56,11 @@ public:
         m_swapChain->ToggleFullscreen();
     }
 
+    void SetEnableDebug(bool newValue)
+    {
+        m_enableDebugLayer = newValue;
+    }
+
     void SetCamera(Camera* camera) { m_camera = camera; }
     Camera* GetCamera() { return m_camera; }
     eastl::shared_ptr<Camera>& GetEditorCamera() { return m_editorCamera; }
@@ -115,6 +120,8 @@ private:
 #pragma endregion DeferredShading
     void RenderSkyBoxPass(ID3D12GraphicsCommandList2 *pCommandList);
 
+    void RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList);
+
     void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
 
     void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList); // for draw specific meshes
@@ -154,6 +161,8 @@ private:
     bool m_fullscreenState = false; // fullscreen enabled
     bool m_isWireframe = false;     // Fill mode
     bool m_is4xMsaaState = false;
+
+    bool m_enableDebugLayer = true;
 
     UINT m_4xMsaaQuality = 0u;
 
