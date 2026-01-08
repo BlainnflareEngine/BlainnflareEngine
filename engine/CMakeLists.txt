@@ -125,9 +125,16 @@ set(ENGINE_SOURCES
         src/Render/RuntimeCamera.cpp
         include/Render/RuntimeCamera.h
         include/components/SkyboxComponent.h
+        include/components/NavMeshVolumeComponent.h
+        include/subsystems/Navigation/NavigationSubsystem.h
+        src/subsystems/Navigation/NavigationSubsystem.cpp
+        include/subsystems/Navigation/NavmeshBuilder.h
+        src/subsystems/Navigation/NavmeshBuilder.cpp
 )
 
+
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
+
 
 target_compile_options(ENGINE PRIVATE /bigobj)
 
@@ -145,6 +152,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${LUA_INCLUDE_DIR}"
         "${SOL2_INCLUDE_DIR}"
         "${CMAKE_SOURCE_DIR}/libs/eventpp/include"
+        "${CMAKE_SOURCE_DIR}/libs/recastnavigation/Recast/Include"
+        "${CMAKE_SOURCE_DIR}/libs/recastnavigation/Detour/Include"
 )
 
 
@@ -158,5 +167,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         spdlog
         pch
         lua
+        Recast
+        Detour
         d3d12.lib
         d3dcompiler.lib)

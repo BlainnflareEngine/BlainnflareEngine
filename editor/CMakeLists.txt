@@ -151,7 +151,7 @@ set(EDITOR_SOURCES
         src/inspector/entity/skybox_widget.cpp
 )
 
-add_library(EDITOR STATIC ${EDITOR_SOURCES})
+add_library(EDITOR STATIC ${EDITOR_SOURCES} "include/inspector/entity/navmesh_volume_widget.h" "src/inspector/entity/navmesh_volume_widget.cpp")
 
 source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${EDITOR_SOURCES})
 

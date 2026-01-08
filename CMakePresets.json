@@ -27,6 +27,19 @@
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe"
             }
+        },
+        {
+            "name": "Visual Studio 2026",
+            "displayName": "Visual Studio 2026",
+            "description": "Using compilers for Visual Studio 18 2026 (x64 architecture)",
+            "generator": "Visual Studio 18 2026",
+            "architecture": "x64",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_PREFIX_PATH": "F:/Qt/6.9.2/msvc2022_64",
+                "CMAKE_POLICY_VERSION_MINIMUM": "3.5"
+            }
         }
     ],
     "buildPresets": [
@@ -41,6 +54,12 @@
             "name": "Visual Studio Community 2022 Release - amd64-debug",
             "displayName": "Visual Studio Community 2022 Release - amd64 - Debug",
             "configurePreset": "Visual Studio Community 2022 Release - amd64",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Visual Studio 2026",
+            "displayName": "Visual Studio 2026",
+            "configurePreset": "Visual Studio 2026",
             "configuration": "Debug"
         }
     ]

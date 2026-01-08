@@ -16,7 +16,8 @@ https://github.com/jbeder/yaml-cpp.git ^
 https://github.com/skypjack/entt.git ^
 https://github.com/cameron314/concurrentqueue.git ^
 https://github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator.git ^
-https://github.com/wqking/eventpp.git
+https://github.com/wqking/eventpp.git ^
+https://github.com/recastnavigation/recastnavigation.git
 
 REM Change to the directory containing this script
 cd /d "%~dp0"
