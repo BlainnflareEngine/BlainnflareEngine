@@ -205,5 +205,6 @@ void Blainn::ScriptingSubsystem::RegisterBlainnTypes()
     RegisterEngineTypes(m_lua);
     RegisterPhysicsTypes(m_lua);
     RegisterScriptingTypes(m_lua);
+    RegisterAITypes(m_lua);
 #endif
 }

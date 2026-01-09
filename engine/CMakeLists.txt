@@ -102,6 +102,7 @@ set(ENGINE_SOURCES
         src/scripting/type-registration/ComponentsToLua.cpp
         src/scripting/type-registration/EngineToLua.cpp
         src/scripting/type-registration/PhysicsToLua.cpp
+        src/scripting/type-registration/AiToLua.cpp
 
         include/subsystems/PhysicsSubsystem.h
         src/subsystems/PhysicsSubsystem.cpp

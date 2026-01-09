@@ -98,14 +98,26 @@ void AISubsystem::CreateAttachAIControllerComponent(Entity entity, const Path &a
     }
     AIControllerComponent &component = entity.AddComponent<AIControllerComponent>();
     component.scriptPath = aiScriptPath.string();
-    component.aiScript = ScriptingSubsystem::LoadAiScript(entity, aiScriptPath);
-    if (!component.aiScript)
+}
+
+
+bool Blainn::AISubsystem::CreateAIController(Entity entity)
+{
+    AIControllerComponent *componentPtr = entity.TryGetComponent<AIControllerComponent>();
+    if (!componentPtr)
+    {
+        BF_ERROR("AI controller error: entity " + entity.GetUUID().str() + "does not have AI controller component");
+        return false;
+    }
+
+    componentPtr->aiScript = ScriptingSubsystem::LoadAiScript(entity, componentPtr->scriptPath);
+    if (!componentPtr->aiScript)
     {
         BF_ERROR("AI controller error: failed to load AI script for entity " + entity.GetUUID().str());
         entity.RemoveComponent<AIControllerComponent>();
-        return;
+        return false;
     }
-    const sol::table &scriptEnv = component.aiScript->GetEnvironment();
+    const sol::table &scriptEnv = componentPtr->aiScript->GetEnvironment();
 
     std::unique_ptr<Blackboard> bb;
     LoadBlackboard(scriptEnv, bb);
@@ -116,7 +128,8 @@ void AISubsystem::CreateAttachAIControllerComponent(Entity entity, const Path &a
     std::unique_ptr<UtilitySelector> utility;
     LoadUtility(scriptEnv, utility);
 
-    component.aiController.Init(std::move(trees), std::move(utility), std::move(bb));
+    componentPtr->aiController.Init(std::move(trees), std::move(utility), std::move(bb));
+    return true;
 }
 
 void AISubsystem::DestroyAIControllerComponent(Entity entity)

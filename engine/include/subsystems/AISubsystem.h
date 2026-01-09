@@ -26,6 +26,7 @@ public:
     void Update(float dt);
 
     void CreateAttachAIControllerComponent(Entity entity, const Path &aiScriptPath);
+    bool CreateAIController(Entity entity);
     void DestroyAIControllerComponent(Entity entity);
 
     BehaviourTree *GetBehaviourTree(const std::string &name);
