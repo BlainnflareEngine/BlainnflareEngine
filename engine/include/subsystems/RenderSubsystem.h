@@ -61,6 +61,9 @@ public:
         m_enableDebugLayer = newValue;
     }
 
+    const DebugRenderer &GetDebugRenderer() const { return *m_debugRenderer; }
+    DebugRenderer &GetDebugRenderer() { return *m_debugRenderer; }
+
     void SetCamera(Camera* camera) { m_camera = camera; }
     Camera* GetCamera() { return m_camera; }
     eastl::shared_ptr<Camera>& GetEditorCamera() { return m_editorCamera; }

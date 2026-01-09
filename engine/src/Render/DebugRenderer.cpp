@@ -46,6 +46,9 @@ void DebugRenderer::EndDebugRenderPass()
     while (!m_debugRequests.empty() && m_device.GetCommandQueue()->IsFenceComplete(m_debugRequests.front().first))
         m_debugRequests.pop_front();
 
+    if (m_lineListVertices.empty())
+        return;
+
     UINT vertexBufferSize = m_lineListVertices.size() * sizeof(VertexPositionColor);
     Microsoft::WRL::ComPtr<ID3D12Resource> lineVertexBuffer;
 
