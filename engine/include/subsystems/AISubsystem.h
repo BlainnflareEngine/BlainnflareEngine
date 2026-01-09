@@ -9,6 +9,7 @@
 #include "ai/BTBuilder.h"
 #include "ai/AIController.h"
 #include "components/AIControllerComponent.h"
+#include "scene/Entity.h"
 
 namespace Blainn
 {
@@ -17,28 +18,24 @@ class AISubsystem
 public:
     NO_COPY_NO_MOVE(AISubsystem);
 
-    static AISubsystem& GetInstance();
+    static AISubsystem &GetInstance();
 
-    void Init(sol::state* lua);
+    void Init();
     void Destroy();
 
     void Update(float dt);
 
-    void CreateController(uuid entityID, const AIControllerComponent& component);
-    void DestroyController(uuid entityID);
+    void CreateAttachAIControllerComponent(Entity entity, const Path &aiScriptPath);
+    bool CreateAIController(Entity entity);
+    void DestroyAIControllerComponent(Entity entity);
 
-    BehaviourTree* GetBehaviourTree(const std::string& name);
+    BehaviourTree *GetBehaviourTree(const std::string &name);
 
 private:
     AISubsystem() = default;
 
-    void LoadBlackboard(std::unique_ptr<Blackboard> &blackboard);
-    void LoadBehaviourTrees(BTMap &behaviourTrees);
-    void LoadUtility(std::unique_ptr<UtilitySelector> &utility);
-
-private:
-    sol::state* m_lua = nullptr;
-
-    std::unordered_map<uuid, AIController> m_controllers;
+    void LoadBlackboard(const sol::table &scriptEnvironment, std::unique_ptr<Blackboard> &blackboard);
+    void LoadBehaviourTrees(const sol::table &scriptEnvironment, BTMap &behaviourTrees);
+    void LoadUtility(const sol::table &scriptEnvironment, std::unique_ptr<UtilitySelector> &utility);
 };
 } // namespace Blainn
