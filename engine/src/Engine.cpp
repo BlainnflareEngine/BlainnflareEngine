@@ -15,6 +15,7 @@
 #include "subsystems/PhysicsSubsystem.h"
 #include "subsystems/RenderSubsystem.h"
 #include "subsystems/ScriptingSubsystem.h"
+#include "subsystems/AISubsystem.h"
 #include "tools/Profiler.h"
 
 using namespace Blainn;
@@ -39,6 +40,7 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     PhysicsSubsystem::Init(globalTimeline);
     AssetManager::GetInstance().Init();
     ScriptingSubsystem::Init();
+    AISubsystem::GetInstance().Init();
 }
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
@@ -52,6 +54,7 @@ void Engine::Destroy()
 {
     s_activeScene = nullptr;
 
+    AISubsystem::GetInstance().Destroy();
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
 
@@ -88,9 +91,10 @@ void Engine::Update(float deltaTime)
 
     if (s_isPlayMode)
     {
-        float playModeDelta = s_playModeTimeline.Tick();
+        float playModeDelta = s_playModeTimeline.Tick() / 1000.0f;
         PhysicsSubsystem::Update();
-        ScriptingSubsystem::Update(*s_activeScene, playModeDelta / 1000.0f);
+        ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
+        AISubsystem::GetInstance().Update(playModeDelta);
     }
 
     s_activeScene->Update();

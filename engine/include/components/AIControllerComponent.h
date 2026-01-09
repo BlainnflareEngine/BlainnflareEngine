@@ -6,23 +6,15 @@
 
 namespace Blainn
 {
+class LuaScript;
 
-using BlackboardValue = std::variant<
-    int,
-    float,
-    bool,
-    std::string
->;
+using BlackboardValue = std::variant<int, float, bool, std::string>;
 
 struct AIControllerComponent
 {
-    // std::string utilityProfile;
-
-    // std::vector<std::string> behaviourTrees;
-
-    // std::unordered_map<std::string, BlackboardValue> initialBlackboard;
-
-    std::string ScriptPath;
+    std::string scriptPath;
+    AIController aiController;
+    eastl::unique_ptr<LuaScript> aiScript;
 };
 
 } // namespace Blainn

@@ -45,7 +45,7 @@ public:
 
     /// @brief Load AI script with specific structure
     /// @param path - ai script path relative to content folder
-    static eastl::optional<LuaScript> LoadAiScript(Entity entity, const Path &path);
+    static eastl::unique_ptr<LuaScript> LoadAiScript(Entity entity, const Path &path);
 
     template <typename... Args>
     static bool CallScriptFunction(const uuid &scriptUuid, const eastl::string &functionName, Args... args)

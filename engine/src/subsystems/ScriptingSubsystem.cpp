@@ -150,18 +150,18 @@ eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const Path &
     return eastl::optional(eastl::move(scriptUuid));
 }
 
-eastl::optional<LuaScript> Blainn::ScriptingSubsystem::LoadAiScript(Entity entity, const Path &path)
+eastl::unique_ptr<LuaScript> Blainn::ScriptingSubsystem::LoadAiScript(Entity entity, const Path &path)
 {
     Path scriptLoadPath = Engine::GetContentDirectory() / path;
     if (!std::filesystem::exists(scriptLoadPath.c_str()))
     {
         BF_ERROR("Script load error: script" + scriptLoadPath.string() + "does not exist");
-        return eastl::nullopt;
+        return nullptr;
     }
 
-    LuaScript luaScript;
-    if (!luaScript.Load(scriptLoadPath, entity)) return eastl::nullopt;
-    return eastl::optional<LuaScript>(eastl::move(luaScript));
+    eastl::unique_ptr<LuaScript> luaScript = eastl::make_unique<LuaScript>();
+    if (!luaScript->Load(scriptLoadPath, entity)) return nullptr;
+    return luaScript;
 }
 
 void ScriptingSubsystem::UnloadScript(const uuid &scriptUuid)
