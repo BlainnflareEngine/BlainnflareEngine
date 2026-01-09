@@ -91,7 +91,7 @@ bool BTBuilder::ReadLuaChildrenTable(sol::table node, sol::table& out)
         return false;
     }
     out = c.as<sol::table>();
-    return;
+    return true;
 }
 
 bool BTBuilder::ReadLuaActionFn(sol::table node, sol::function& outFn, sol::function& outOnReset)
