@@ -38,10 +38,7 @@ namespace Blainn
 
         eastl::shared_ptr<Model> ImportModel(const Path &relativePath, const ImportMeshData &data);
         void CreateModelGPUResources(Model& model);
-
         eastl::shared_ptr<Texture> LoadTexture(const Path &path, TextureType type);
-        void CreateTextureGPUResources(const Path &path, Microsoft::WRL::ComPtr<ID3D12Resource> &resource, TextureType type);
-
         eastl::shared_ptr<Material> LoadMaterial(const Path &relativePath);
 
     private:
@@ -55,7 +52,6 @@ namespace Blainn
         MeshData<BlainnVertex, uint32_t> ProcessMesh(const Path &path, const aiMesh &mesh, const aiScene &scene, const aiNode &node,
                             const Mat4 &parentMatrix, Model &model);
 
-        void CreateTextureDescriptor(ID3D12Resource* textureRes, TextureType type);
         void ResetTextureOffsetsTable();
 
         static Vec3 GetPosition(const aiMesh &mesh, const unsigned int meshIndex);

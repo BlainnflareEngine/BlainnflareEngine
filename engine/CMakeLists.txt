@@ -32,6 +32,7 @@ set(ENGINE_SOURCES
         include/Render/PipelineStateObject.h
         include/Render/PrebuiltEngineMeshes.h
         include/Render/RootSignature.h
+        include/Render/SelectionManager.h
         include/Render/Shader.h
         include/Render/ShadowMap.h
         include/Render/SwapChain.h 
@@ -47,6 +48,7 @@ set(ENGINE_SOURCES
         src/Render/PipelineStateObject.cpp
         src/Render/PrebuiltEngineMeshes.cpp
         src/Render/RootSignature.cpp
+        src/Render/SelectionManager.cpp
         src/Render/Shader.cpp
         src/Render/ShadowMap.cpp
         src/Render/SwapChain.cpp
@@ -178,6 +180,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME} PRIVATE
         EASTL
         DirectXTK12
+        DirectXTex
         Jolt
         ozz_animation
         assimp::assimp

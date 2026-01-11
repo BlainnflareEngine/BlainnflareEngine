@@ -97,7 +97,6 @@ Model::Model()
 
     void Model::CreateGPUBuffers(ID3D12GraphicsCommandList2 *pCommandList/*, UINT64 frameValue*/)
     {
-        //m_frameValue = frameValue;
         CreateGPUBuffers(pCommandList, allVertices, allIndices);
     }
 
