@@ -11,6 +11,7 @@
 #include "Render/RootSignature.h"
 #include "Render/Shader.h"
 #include "Render/PipelineStateObject.h"
+#include "Render/RenderTarget.h"
 
 namespace Blainn
 {
@@ -176,10 +177,13 @@ private:
     ComPtr<ID3D12Resource> m_depthStencilBuffer;
 
     eastl::shared_ptr<RootSignature> m_rootSignature;
+    eastl::shared_ptr<RootSignature> m_UUIDRootSignature;
     eastl::unordered_map<Shader::EShaderType, ComPtr<ID3DBlob>> m_shaders;
     eastl::unordered_map<PipelineStateObject::EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
 
     eastl::unique_ptr<Blainn::DebugRenderer> m_debugRenderer;
+
+    RenderTarget m_uuidRenderTarget;
 
     float m_sunPhi = XM_PIDIV4;
     float m_sunTheta = 1.25f * XM_PI;

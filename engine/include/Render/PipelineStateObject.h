@@ -29,7 +29,9 @@ namespace Blainn
             Sky,
             Debug,
 
-            NumPipelineStates = 11u
+            UUID,
+
+            NumPipelineStates = 12u
         };
 
     public:

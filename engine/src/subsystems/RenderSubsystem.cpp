@@ -450,6 +450,20 @@ void Blainn::RenderSubsystem::CreateRootSignature()
     slotRootParameter[RootSignature::ERootParam::Textures          ].InitAsDescriptorTable(1u, &textureTable, D3D12_SHADER_VISIBILITY_PIXEL);
 
     m_rootSignature->Create(m_device, ARRAYSIZE(slotRootParameter), slotRootParameter, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+#pragma region UUID
+
+    m_UUIDRootSignature = eastl::make_shared<RootSignature>();
+    CD3DX12_ROOT_PARAMETER uuidRootParameter[2];
+    // mat4 + 128(32 * 4) bit uuid
+    uuidRootParameter[0].InitAsConstants(20, SHADER_REGISTER(0));
+    // mat4 viewproj
+    uuidRootParameter[1].InitAsConstants(16, SHADER_REGISTER(1));
+    //uuidRootParameter[0].InitAsConstantBufferView(0, 0);
+    //uuidRootParameter[1].InitAsConstantBufferView(1, 0);
+    m_UUIDRootSignature->Create(m_device, ARRAYSIZE(uuidRootParameter), uuidRootParameter, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+#pragma endregion
 }
 
 void Blainn::RenderSubsystem::CreateShaders()
@@ -490,6 +504,13 @@ void Blainn::RenderSubsystem::CreateShaders()
         m_shaders[Shader::EShaderType::SkyBoxPS] = FreyaUtil::CompileShader(L"./Content/Shaders/SkyBox.hlsl", nullptr, "PSMain", "ps_5_1");
     #pragma endregion SkyBox
 #pragma endregion ForwardShading
+
+#pragma region UUIDBuffer
+    m_shaders[Shader::EShaderType::UUIDVS] =
+        FreyaUtil::CompileShader(L"./Content/Shaders/UUID.hlsl", nullptr, "VSMain", "vs_5_1");
+    m_shaders[Shader::EShaderType::UUIDPS] =
+        FreyaUtil::CompileShader(L"./Content/Shaders/UUID.hlsl", nullptr, "PSMain", "ps_5_1");
+#pragma endregion UUIDBuffer
 }
 
 void Blainn::RenderSubsystem::CreatePipelineStateObjects()
@@ -679,6 +700,39 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     outlineReadPsoDesc.DepthStencilState.StencilWriteMask = D3D12_DEFAULT_STENCIL_READ_MASK;
     outlineReadPsoDesc.DepthStencilState.FrontFace = stencilOpKeep;
     outlineReadPsoDesc.DepthStencilState.BackFace = stencilOpKeep;
+
+#pragma endregion
+
+#pragma region UUID
+
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC uuidDrawPSO;
+    ZeroMemory(&uuidDrawPSO, sizeof(uuidDrawPSO));
+    uuidDrawPSO.pRootSignature = m_UUIDRootSignature->Get();
+
+    uuidDrawPSO.VS = {static_cast<BYTE *>(m_shaders.at(Shader::EShaderType::UUIDVS)->GetBufferPointer()),
+                        m_shaders.at(Shader::EShaderType::UUIDVS)->GetBufferSize()};
+    uuidDrawPSO.PS = {static_cast<BYTE *>(m_shaders.at(Shader::EShaderType::UUIDPS)->GetBufferPointer()),
+                        m_shaders.at(Shader::EShaderType::UUIDPS)->GetBufferSize()};
+
+    uuidDrawPSO.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT); // Blend state is disable
+    uuidDrawPSO.SampleMask = UINT_MAX;
+    uuidDrawPSO.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+
+    D3D12_DEPTH_STENCIL_DESC uuidDepthDesc;
+    uuidDepthDesc.DepthEnable = TRUE;
+    uuidDepthDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+    uuidDepthDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    uuidDepthDesc.StencilEnable = FALSE;
+    uuidDrawPSO.DepthStencilState = uuidDepthDesc;
+
+    uuidDrawPSO.InputLayout = BlainnVertex::InputLayout;
+    uuidDrawPSO.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    uuidDrawPSO.NumRenderTargets = 1u;
+    uuidDrawPSO.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_UINT;
+    uuidDrawPSO.DSVFormat = DepthStencilFormat;
+    uuidDrawPSO.SampleDesc = {1u, 0u};
+
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(uuidDrawPSO, m_pipelineStates[PipelineStateObject::EPsoType::UUID]));
 
 #pragma endregion
 }
