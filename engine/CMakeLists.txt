@@ -154,6 +154,12 @@ set(ENGINE_SOURCES
         src/Render/DebugRenderer.cpp
 
         include/components/SkyboxComponent.h
+        include/Render/RenderTarget.h
+        include/Render/Texture.h
+        include/Render/Resource.h
+        src/Render/Resource.cpp
+        src/Render/Texture.cpp
+        src/Render/RenderTarget.cpp
 )
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
