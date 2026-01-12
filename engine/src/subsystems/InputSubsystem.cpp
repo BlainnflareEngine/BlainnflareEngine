@@ -141,15 +141,15 @@ void Blainn::Input::UpdateButtonState(MouseButton button, ButtonState state)
     case ButtonState::Pressed:
         if (s_mouseButtonStates[button] == ButtonState::Held) return;
         s_mouseButtonStates[button] = state;
-        s_inputEventQueue.enqueue(eastl::make_shared<MouseButtonPressedEvent>(button));
+        s_inputEventQueue.enqueue(eastl::make_shared<MouseButtonPressedEvent>(button, s_mousePosition.X, s_mousePosition.Y));
         return;
     case ButtonState::Released:
         s_mouseButtonStates[button] = state;
-        s_inputEventQueue.enqueue(eastl::make_shared<MouseButtonReleasedEvent>(button));
+        s_inputEventQueue.enqueue(eastl::make_shared<MouseButtonReleasedEvent>(button, s_mousePosition.X, s_mousePosition.Y));
         return;
     case ButtonState::Held:
         s_mouseButtonStates[button] = state;
-        s_inputEventQueue.enqueue(eastl::make_shared<MouseButtonHeldEvent>(button));
+        s_inputEventQueue.enqueue(eastl::make_shared<MouseButtonHeldEvent>(button, s_mousePosition.X, s_mousePosition.Y));
         return;
     default:
         return;

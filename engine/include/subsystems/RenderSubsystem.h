@@ -69,6 +69,8 @@ public:
 
     float GetAspectRatio() const { return m_aspectRatio; }
 
+    uuid GetUUIDAt(uint32_t x, uint32_t y);
+
 private:
     // Record all the commands we need to render the scene into the command list.
     void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);

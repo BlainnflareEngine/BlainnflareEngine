@@ -137,6 +137,77 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
 #pragma endregion RenderStage
 }
 
+uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
+{
+    auto device = m_device.GetDevice2();
+    m_device.Flush();
+
+    auto copyQueue = m_device.GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
+    auto directQueue = m_device.GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
+
+    ComPtr<ID3D12CommandAllocator> copyAllocator;
+    m_device.CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COPY, copyAllocator);
+
+    ComPtr<ID3D12CommandAllocator> directAllocator;
+    m_device.CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, directAllocator);
+
+    ComPtr<ID3D12GraphicsCommandList2> copyList = copyQueue->GetCommandList(copyAllocator.Get());
+    ComPtr<ID3D12GraphicsCommandList2> directList = directQueue->GetCommandList(directAllocator.Get());
+
+    RenderUUIDPass(directList.Get());
+
+    directQueue->ExecuteCommandList(directList.Get());
+    m_device.Flush();
+    auto texture = m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0);
+
+    auto texDesc = texture->GetD3D12ResourceDesc();
+    auto textureRes = texture->GetD3D12Resource();
+
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
+    UINT numRows;
+    UINT64 rowSizeInBytes;
+    UINT64 totalSize = 0;
+
+    device->GetCopyableFootprints(
+        &texDesc,
+        0, 1, 0,
+        &footprint,
+        &numRows,
+        &rowSizeInBytes,
+        &totalSize);
+
+    D3D12_RESOURCE_DESC buffersDesc = CD3DX12_RESOURCE_DESC::Buffer(totalSize);
+    D3D12_HEAP_PROPERTIES const heapPropertiesReadback = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
+
+    ID3D12Resource* textureReadback = nullptr;
+    device->CreateCommittedResource(&heapPropertiesReadback, D3D12_HEAP_FLAG_NONE, &buffersDesc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&textureReadback));
+
+    m_device.Flush();
+
+    D3D12_TEXTURE_COPY_LOCATION src{};
+    src.pResource = textureRes.Get();
+    src.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+    src.SubresourceIndex = 0;
+
+    D3D12_TEXTURE_COPY_LOCATION dst{};
+    dst.pResource = textureReadback;
+    dst.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+    dst.PlacedFootprint = footprint;
+
+    copyList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+
+    copyQueue->ExecuteCommandList(copyList.Get());
+    m_device.Flush();
+
+    uint8_t* data;
+    textureReadback->Map(0, nullptr, reinterpret_cast<void**>(&data));
+
+    uint8_t* rowStart = data + y * footprint.Footprint.RowPitch;
+    uint8_t* texel = rowStart + x * 16;
+    uuid id(texel);
+    return id;
+}
+
 void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList)
 {
     pCommandList->SetGraphicsRootSignature(m_rootSignature->Get());
@@ -152,8 +223,6 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
 
     if (m_enableDebugLayer)
         RenderDebugPass(pCommandList);
-
-    RenderUUIDPass(pCommandList);
 }
 
 VOID Blainn::RenderSubsystem::InitializeWindow()
@@ -336,7 +405,7 @@ void Blainn::RenderSubsystem::LoadGraphicsFeatures()
     optClearValue.Color[0] = 0.f;
     optClearValue.Color[1] = 0.f;
     optClearValue.Color[2] = 0.f;
-    optClearValue.Color[3] = 1.f;
+    optClearValue.Color[3] = 0.f;
 
     eastl::shared_ptr<GTexture> uuidTexture = eastl::make_shared<GTexture>(m_device, uuidTexDesc, &optClearValue);
     uuidTexture->SetName(L"UUID Render Target");
