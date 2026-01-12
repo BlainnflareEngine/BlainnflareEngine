@@ -21,6 +21,7 @@
 #include "subsystems/RenderSubsystem.h"
 #include "Render/RuntimeCamera.h"
 #include "Render/EditorCamera.h"
+#include "subsystems/AISubsystem.h"
 
 
 using namespace Blainn;
@@ -393,6 +394,7 @@ void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool firs
 
     PhysicsSubsystem::DestroyPhysicsComponent(entity);
     ScriptingSubsystem::DestroyScriptingComponent(entity);
+    AISubsystem::GetInstance().DestroyAIControllerComponent(entity);
     m_Registry.destroy(entity);
     m_EntityIdMap.erase(id);
 

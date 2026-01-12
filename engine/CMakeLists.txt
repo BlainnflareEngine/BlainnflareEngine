@@ -32,6 +32,7 @@ set(ENGINE_SOURCES
         include/Render/PipelineStateObject.h
         include/Render/PrebuiltEngineMeshes.h
         include/Render/RootSignature.h
+        include/Render/SelectionManager.h
         include/Render/Shader.h
         include/Render/ShadowMap.h
         include/Render/SwapChain.h 
@@ -47,6 +48,7 @@ set(ENGINE_SOURCES
         src/Render/PipelineStateObject.cpp
         src/Render/PrebuiltEngineMeshes.cpp
         src/Render/RootSignature.cpp
+        src/Render/SelectionManager.cpp
         src/Render/Shader.cpp
         src/Render/ShadowMap.cpp
         src/Render/SwapChain.cpp
@@ -102,6 +104,7 @@ set(ENGINE_SOURCES
         src/scripting/type-registration/ComponentsToLua.cpp
         src/scripting/type-registration/EngineToLua.cpp
         src/scripting/type-registration/PhysicsToLua.cpp
+        src/scripting/type-registration/AiToLua.cpp
 
         include/subsystems/PhysicsSubsystem.h
         src/subsystems/PhysicsSubsystem.cpp
@@ -119,11 +122,37 @@ set(ENGINE_SOURCES
         src/physics/BodyGetter.cpp
         include/physics/ContactListenerImpl.h
         src/physics/ContactListenerImpl.cpp
+
+        include/subsystems/AISubsystem.h
+        src/subsystems/AISubsystem.cpp
+        include/ai/AIController.h
+        src/ai/AIController.cpp
+        include/components/AIControllerComponent.h
+        include/ai/Blackboard.h
+        include/ai/BTNodes.h
+        src/ai/BTNodes.cpp
+        include/ai/BehaviourTree.h
+        src/ai/BehaviourTree.cpp
+        include/ai/BTBuilder.h
+        src/ai/BTBuilder.cpp
+        include/ai/UtilityBuilder.h
+        src/ai/UtilityBuilder.cpp
+        include/ai/UtilityContext.h
+        src/ai/UtilityContext.cpp
+        include/ai/UtilityDecision.h
+        src/ai/UtilityDecision.cpp
+        include/ai/UtilitySelector.h
+        src/ai/UtilitySelector.cpp
+        # src/ai/FromLuaToAIController.cpp
+
         include/components/CameraComponent.h
         src/Render/EditorCamera.cpp
         include/Render/EditorCamera.h
         src/Render/RuntimeCamera.cpp
         include/Render/RuntimeCamera.h
+        include/Render/DebugRenderer.h
+        src/Render/DebugRenderer.cpp
+
         include/components/SkyboxComponent.h
         include/components/NavMeshVolumeComponent.h
         include/subsystems/Navigation/NavigationSubsystem.h
@@ -160,6 +189,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME} PRIVATE
         EASTL
         DirectXTK12
+        DirectXTex
         Jolt
         ozz_animation
         assimp::assimp

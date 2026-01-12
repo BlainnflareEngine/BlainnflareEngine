@@ -14,7 +14,7 @@ namespace Blainn
     class Texture : public FileSystemObject
     {
     public:
-        Texture(const Path &path, const Microsoft::WRL::ComPtr<ID3D12Resource> &resource, TextureType type);
+        Texture(const Path &path, TextureType type, uint32_t& textureTableOffset);
         virtual ~Texture() override;
 
         virtual void Move() override;
@@ -22,16 +22,21 @@ namespace Blainn
         virtual void Copy() override;
 
         ID3D12Resource* GetResource() const;
-        void SetTextureDescriptorOffset(UINT newOffset);
-        UINT GetTextureDescOffset() const { return m_textureDescriptorOffset; }
-        TextureType GetTextureType() const { return m_type; }
+        TextureType GetType() const { return m_type; }
+        UINT GetDescriptorOffset() const { return m_descriptorHeapOffset; }
+        bool IsInitialized() const { return m_bIsInitialized; }
 
+        void SetDescriptorOffset(UINT newOffset);
         void DisposeUploaders();
-
     private:
-        UINT m_textureDescriptorOffset = 0u;
-        TextureType m_type;
-        Microsoft::WRL::ComPtr<ID3D12Resource> m_resource;
-        Microsoft::WRL::ComPtr<ID3D12Resource> m_uploadHeap = nullptr;
+        void CreateGPUResources(ID3D12GraphicsCommandList2 *cmdList, uint32_t &textureTableOffset);
+    private:
+        Microsoft::WRL::ComPtr<ID3D12Resource> m_resource = nullptr;
+        Microsoft::WRL::ComPtr<ID3D12Resource> m_uploadResource = nullptr;
+        
+        TextureType m_type = TextureType::NONE;
+        UINT m_descriptorHeapOffset = 0u;
+        
+        bool m_bIsInitialized = false;
     };
 } // namespace Blainn

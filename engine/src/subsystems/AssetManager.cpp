@@ -25,6 +25,9 @@ AssetManager &AssetManager::GetInstance()
 
 void AssetManager::Init()
 {
+    // For DirectXTex
+    ThrowIfFailed(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
+
     BF_INFO("AssetManager Init");
     m_loader = eastl::make_unique<AssetLoader>();
     m_loader->Init();

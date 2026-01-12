@@ -72,6 +72,7 @@ endif()
 
 set (BUILD_TESTING OFF)
 add_subdirectory(libs/DIRECTXTK12)
+add_subdirectory(libs/DIRECTXTEX)
 
 set (ozz_build_tools OFF)
 set (ozz_build_howtos OFF)
@@ -109,6 +110,7 @@ target_link_libraries(pch INTERFACE
         TracyClient
         yaml-cpp
         DirectXTK12
+        DirectXTex
         D3D12MemoryAllocator
         Jolt
 )

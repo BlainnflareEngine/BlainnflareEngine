@@ -1,9 +1,7 @@
 #pragma once
 
-#include <Windows.h>
-#include "Render/DXHelpers.h"
-#include "Render/SwapChain.h"
 #include "Render/Device.h"
+#include "Render/SwapChain.h"
 
 #include "handles/Handle.h"
 #include "scene/Entity.h"
@@ -14,14 +12,15 @@
 #include "Render/Shader.h"
 #include "Render/PipelineStateObject.h"
 
-
 namespace Blainn
 {
 const int gNumFrameResources = 3;
 
+class DebugRenderer;
 class Device;
 class RootSignature;
 struct FrameResource;
+class SelectionManager;
 
 class RenderSubsystem
 {
@@ -54,6 +53,14 @@ public:
         if (!m_swapChain) return;
         m_swapChain->ToggleFullscreen();
     }
+
+    void SetEnableDebug(bool newValue)
+    {
+        m_enableDebugLayer = newValue;
+    }
+
+    const DebugRenderer &GetDebugRenderer() const { return *m_debugRenderer; }
+    DebugRenderer &GetDebugRenderer() { return *m_debugRenderer; }
 
     void SetCamera(Camera* camera) { m_camera = camera; }
     Camera* GetCamera() { return m_camera; }
@@ -114,9 +121,12 @@ private:
 #pragma endregion DeferredShading
     void RenderSkyBoxPass(ID3D12GraphicsCommandList2 *pCommandList);
 
+    void RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList);
+
     void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
 
-    void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList); // for draw specific meshes
+    // For drawing specific meshes
+    void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList, eastl::unique_ptr<struct MeshComponent>& mesh); 
     void DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList);
     void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
 
@@ -154,6 +164,8 @@ private:
     bool m_isWireframe = false;     // Fill mode
     bool m_is4xMsaaState = false;
 
+    bool m_enableDebugLayer = true;
+
     UINT m_4xMsaaQuality = 0u;
 
 private:
@@ -166,6 +178,8 @@ private:
     eastl::shared_ptr<RootSignature> m_rootSignature;
     eastl::unordered_map<Shader::EShaderType, ComPtr<ID3DBlob>> m_shaders;
     eastl::unordered_map<PipelineStateObject::EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
+
+    eastl::unique_ptr<Blainn::DebugRenderer> m_debugRenderer;
 
     float m_sunPhi = XM_PIDIV4;
     float m_sunTheta = 1.25f * XM_PI;
@@ -209,11 +223,13 @@ private:
     UINT m_skyCubeSrvHeapStartIndex = 0u;
     UINT m_texturesSrvHeapStartIndex = 0u;
 #pragma endregion Textures
-
+    
     // TODO
     eastl::unique_ptr<struct MeshComponent> skyBox = nullptr;
     Microsoft::WRL::ComPtr<ID3D12Resource> skyBoxResource = nullptr;
     Microsoft::WRL::ComPtr<ID3D12Resource> skyBoxUploadHeap = nullptr;
+
+    eastl::unique_ptr<SelectionManager> m_selectionManager = nullptr;
 
 private:
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTV()
