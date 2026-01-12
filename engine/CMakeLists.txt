@@ -155,10 +155,10 @@ set(ENGINE_SOURCES
 
         include/components/SkyboxComponent.h
         include/Render/RenderTarget.h
-        include/Render/Texture.h
+        include/Render/GTexture.h
         include/Render/Resource.h
         src/Render/Resource.cpp
-        src/Render/Texture.cpp
+        src/Render/GTexture.cpp
         src/Render/RenderTarget.cpp
 )
 

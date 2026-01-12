@@ -15,7 +15,7 @@
 namespace Blainn
 {
 
-class Texture;
+class GTexture;
 
 struct AttachmentPoint
 {
@@ -44,8 +44,8 @@ public:
     RenderTarget& operator=(const RenderTarget& other) = default;
     RenderTarget& operator=(      RenderTarget&& other) = default;
 
-    void AttachTexture(AttachmentPoint::Enum attachmentPoint, eastl::shared_ptr<Texture> texture);
-    eastl::shared_ptr<Texture> GetTexture(AttachmentPoint::Enum attachmentPoint) const;
+    void AttachTexture(AttachmentPoint::Enum attachmentPoint, eastl::shared_ptr<GTexture> texture);
+    eastl::shared_ptr<GTexture> GetTexture(AttachmentPoint::Enum attachmentPoint) const;
 
     void Resize(UINT width, UINT height);
     UINT GetWidth() const;
@@ -54,7 +54,7 @@ public:
     D3D12_VIEWPORT GetViewport(DirectX::XMFLOAT2 scale = {1.f, 1.f}, DirectX::XMFLOAT2 bias = {0.f, 0.f},
                                                             float minDepth = 0.f, float maxDepth = 0.f) const;
 
-    const eastl::vector<eastl::shared_ptr<Texture>>& GetTextures() const;
+    const eastl::vector<eastl::shared_ptr<GTexture>>& GetTextures() const;
 
     D3D12_RT_FORMAT_ARRAY GetRenderTargetFormats() const;
 
@@ -68,7 +68,7 @@ public:
     }
 
 private:
-    using RenderTargetList = eastl::vector<eastl::shared_ptr<Texture>>;
+    using RenderTargetList = eastl::vector<eastl::shared_ptr<GTexture>>;
     RenderTargetList m_Textures;
 
     UINT m_width, m_height;

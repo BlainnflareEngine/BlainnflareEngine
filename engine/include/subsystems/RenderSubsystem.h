@@ -124,6 +124,8 @@ private:
 
     void RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList);
 
+    void RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList);
+
     void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
 
     // For drawing specific meshes

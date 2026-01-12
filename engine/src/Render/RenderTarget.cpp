@@ -5,7 +5,7 @@
 
 #include "Render/RenderTarget.h"
 
-#include "Render/Texture.h"
+#include "Render/GTexture.h"
 
 using namespace Blainn;
 
@@ -16,7 +16,7 @@ RenderTarget::RenderTarget()
 {
 }
 
-void RenderTarget::AttachTexture(AttachmentPoint::Enum attachmentPoint, eastl::shared_ptr<Texture> texture)
+void RenderTarget::AttachTexture(AttachmentPoint::Enum attachmentPoint, eastl::shared_ptr<GTexture> texture)
 {
     m_Textures[attachmentPoint] = texture;
 
@@ -28,7 +28,7 @@ void RenderTarget::AttachTexture(AttachmentPoint::Enum attachmentPoint, eastl::s
     }
 }
 
-eastl::shared_ptr<Texture> RenderTarget::GetTexture(AttachmentPoint::Enum attachmentPoint) const
+eastl::shared_ptr<GTexture> RenderTarget::GetTexture(AttachmentPoint::Enum attachmentPoint) const
 {
     return m_Textures[attachmentPoint];
 }
@@ -81,7 +81,7 @@ D3D12_VIEWPORT RenderTarget::GetViewport(DirectX::XMFLOAT2 scale, DirectX::XMFLO
     return viewport;
 }
 
-const eastl::vector<eastl::shared_ptr<Texture>> & RenderTarget::GetTextures() const
+const eastl::vector<eastl::shared_ptr<GTexture>> & RenderTarget::GetTextures() const
 {
     return m_Textures;
 }

@@ -29,6 +29,7 @@
 
 #include "PhysicsSubsystem.h"
 #include "components/PhysicsComponent.h"
+#include "Render/GTexture.h"
 
 namespace Blainn
 {
@@ -151,6 +152,8 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
 
     if (m_enableDebugLayer)
         RenderDebugPass(pCommandList);
+
+    RenderUUIDPass(pCommandList);
 }
 
 VOID Blainn::RenderSubsystem::InitializeWindow()
@@ -176,9 +179,9 @@ VOID Blainn::RenderSubsystem::CreateSwapChain()
 VOID Blainn::RenderSubsystem::CreateDescriptorHeaps()
 {
     // Describe and create a render target view (RTV) descriptor heap.
-    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, SwapChainFrameCount + (GBuffer::EGBufferLayer::MAX - 1u)));
-    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 3u));
-    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2048u, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE));
+    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, SwapChainFrameCount + (GBuffer::EGBufferLayer::MAX - 1u) + 10));
+    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 3u + 10));
+    ThrowIfFailed(m_device.CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2048u + 1000, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE));
 
     // Cache descriptor heaps
     m_rtvHeap = m_device.GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -268,6 +271,8 @@ VOID Blainn::RenderSubsystem::ResetGraphicsFeatures()
 
     m_GBuffer->OnResize(m_width, m_height);
     m_cascadeShadowMap->OnResize(2048u, 2048u);
+
+    m_uuidRenderTarget.Resize(m_width, m_height);
 }
 
 VOID Blainn::RenderSubsystem::Present()
@@ -323,6 +328,27 @@ void Blainn::RenderSubsystem::LoadGraphicsFeatures()
     m_GBuffer = eastl::make_unique<GBuffer>(m_device.GetDevice2().Get(), m_width, m_height);
     
     skyBox = eastl::make_unique<MeshComponent>(AssetManager::GetDefaultMesh());
+
+    auto uuidTexDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32G32B32A32_UINT, m_width, m_height,
+        1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+    D3D12_CLEAR_VALUE optClearValue = {};
+    optClearValue.Format = uuidTexDesc.Format;
+    optClearValue.Color[0] = 0.f;
+    optClearValue.Color[1] = 0.f;
+    optClearValue.Color[2] = 0.f;
+    optClearValue.Color[3] = 1.f;
+
+    eastl::shared_ptr<GTexture> uuidTexture = eastl::make_shared<GTexture>(m_device, uuidTexDesc, &optClearValue);
+    uuidTexture->SetName(L"UUID Render Target");
+    m_uuidRenderTarget.AttachTexture(AttachmentPoint::Color0, std::move(uuidTexture));
+
+    /*
+    optClearValue.Format = m_GBuffer->GetBufferTextureFormat(GBuffer::EGBufferLayer::DEPTH);
+    optClearValue.DepthStencil.Depth = 1.f;
+    optClearValue.DepthStencil.Stencil = 0;
+    auto gBufferDepthTexture = eastl::make_shared<GTexture>(m_device, m_GBuffer->GetBufferTexture(GBuffer::EGBufferLayer::DEPTH)->m_resource, &optClearValue);
+    m_uuidRenderTarget.AttachTexture(AttachmentPoint::DepthStencil, gBufferDepthTexture);
+    */
 
     // Explicitly reset all window params dependent features
     //ResetGraphicsFeatures();
@@ -1138,6 +1164,62 @@ void RenderSubsystem::RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList)
 
     m_debugRenderer->EndDebugRenderPass();
     ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
+}
+
+void RenderSubsystem::RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList)
+{
+    ResourceBarrier(pCommandList, m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetD3D12Resource().Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_READ);
+
+    const float clearColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    pCommandList->ClearRenderTargetView(m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetRenderTargetView(), clearColor, 0u, nullptr);
+
+    pCommandList->SetGraphicsRootSignature(m_UUIDRootSignature->Get());
+    pCommandList->SetPipelineState(m_pipelineStates[PipelineStateObject::EPsoType::UUID].Get());
+
+    auto rtvHandle = m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetRenderTargetView();
+    CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart(), 2, m_dsvDescriptorSize);
+    pCommandList->OMSetRenderTargets(1, &rtvHandle, TRUE, &dsvHandle);
+    pCommandList->RSSetViewports(1u, &m_viewport);
+    pCommandList->RSSetScissorRects(1u, &m_scissorRect);
+
+    Mat4 ViewProjMat = m_mainPassCBData.ViewProj;
+    pCommandList->SetGraphicsRoot32BitConstants(1, 16, &ViewProjMat, 0);
+
+    pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    auto view = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
+    for (const auto &[entity, idComponent, transformComponent, meshComponent] : view.each())
+    {
+        struct Data
+        {
+            Mat4 world;
+            char id[16];
+        } objData;
+        objData.world = transformComponent.GetTransform().Transpose();
+        idComponent.ID.bytes(objData.id);
+
+        pCommandList->SetGraphicsRoot32BitConstants(0, 20, &objData, 0);
+
+        auto& model = meshComponent.MeshHandle->GetMesh();
+        auto currVBV = model.VertexBufferView();
+        auto currIBV = model.IndexBufferView();
+
+        pCommandList->IASetVertexBuffers(0, 1, &currVBV);
+        pCommandList->IASetIndexBuffer(&currIBV);
+
+        [[likely]]
+        if (currIBV.SizeInBytes)
+        {
+            pCommandList->DrawIndexedInstanced(model.GetIndicesCount(), 1u, 0u, 0u, 0u);
+        }
+        else
+        {
+            pCommandList->DrawInstanced(model.GetVerticesCount(), 1u, 0u, 0u);
+        }
+    }
+
+    ResourceBarrier(pCommandList, m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
     ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 

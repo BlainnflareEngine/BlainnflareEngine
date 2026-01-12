@@ -12,13 +12,13 @@ namespace Blainn
 
 class Device;
 
-class Texture : public Resource
+class GTexture : public Resource
 {
 public:
-    Texture(Device& device, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12_CLEAR_VALUE* clearValue = nullptr);
-    Texture(Device& device, const ComPtr<ID3D12Resource>& resource, const D3D12_CLEAR_VALUE* clearValue = nullptr);
+    GTexture(Device& device, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12_CLEAR_VALUE* clearValue = nullptr);
+    GTexture(Device& device, const ComPtr<ID3D12Resource>& resource, const D3D12_CLEAR_VALUE* clearValue = nullptr);
 
-    virtual ~Texture();
+    virtual ~GTexture();
 
     void Resize(UINT width, UINT height, UINT depthOrArraySize = 1);
 
@@ -48,6 +48,11 @@ public:
     {
         return CheckFormatSupport( D3D12_FORMAT_SUPPORT1_DEPTH_STENCIL );
     }
+
+    void CreateRenderTargetView(const eastl::shared_ptr<D3D12_RENDER_TARGET_VIEW_DESC>& rtvDesc = nullptr);
+    void CreateDepthStencilView(const eastl::shared_ptr<D3D12_DEPTH_STENCIL_VIEW_DESC>& dsvDesc = nullptr);
+    void CreateShaderResourceView(const eastl::shared_ptr<D3D12_SHADER_RESOURCE_VIEW_DESC>& srvDesc = nullptr);
+    void CreateUnorderedAccessView(const eastl::shared_ptr<D3D12_UNORDERED_ACCESS_VIEW_DESC>& uavDesc = nullptr);
 
 private:
     void CreateViews();
