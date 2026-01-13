@@ -11,6 +11,7 @@
 #include "Render/RootSignature.h"
 #include "Render/Shader.h"
 #include "Render/PipelineStateObject.h"
+#include "Render/RenderTarget.h"
 
 namespace Blainn
 {
@@ -68,6 +69,8 @@ public:
 
     float GetAspectRatio() const { return m_aspectRatio; }
 
+    uuid GetUUIDAt(uint32_t x, uint32_t y);
+
 private:
     // Record all the commands we need to render the scene into the command list.
     void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
@@ -123,6 +126,8 @@ private:
 
     void RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList);
 
+    void RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList);
+
     void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
 
     // For drawing specific meshes
@@ -176,10 +181,13 @@ private:
     ComPtr<ID3D12Resource> m_depthStencilBuffer;
 
     eastl::shared_ptr<RootSignature> m_rootSignature;
+    eastl::shared_ptr<RootSignature> m_UUIDRootSignature;
     eastl::unordered_map<Shader::EShaderType, ComPtr<ID3DBlob>> m_shaders;
     eastl::unordered_map<PipelineStateObject::EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
 
     eastl::unique_ptr<Blainn::DebugRenderer> m_debugRenderer;
+
+    RenderTarget m_uuidRenderTarget;
 
     float m_sunPhi = XM_PIDIV4;
     float m_sunTheta = 1.25f * XM_PI;

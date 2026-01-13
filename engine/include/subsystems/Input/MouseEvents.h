@@ -49,24 +49,31 @@ private:
 class MouseButtonEvent : public InputEvent
 {
 public:
+
+    [[nodiscard]] inline float GetX() const { return m_mouseX; }
+    [[nodiscard]] inline float GetY() const { return m_mouseY; }
+
     [[nodiscard]] inline MouseButton GetMouseButton() const { return m_mouseButton; }
 
     EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryMouseButton)
 
 protected:
-    MouseButtonEvent(const MouseButton button)
+    MouseButtonEvent(const MouseButton button, const float x, const float y)
         : m_mouseButton(button)
+        , m_mouseX(x)
+        , m_mouseY(y)
     {}
 
 private:
     MouseButton m_mouseButton;
+    float m_mouseX, m_mouseY;
 };
 
 class MouseButtonPressedEvent : public MouseButtonEvent
 {
 public:
-    MouseButtonPressedEvent(const MouseButton button)
-        : MouseButtonEvent(button) {}
+    MouseButtonPressedEvent(const MouseButton button, const float x, const float y)
+        : MouseButtonEvent(button, x, y) {}
 
     EVENT_CLASS_TYPE(MouseButtonPressed)
 };
@@ -74,8 +81,8 @@ public:
 class MouseButtonHeldEvent : public MouseButtonEvent
 {
 public:
-    MouseButtonHeldEvent(const MouseButton button)
-        : MouseButtonEvent(button) {}
+    MouseButtonHeldEvent(const MouseButton button, const float x, const float y)
+        : MouseButtonEvent(button, x, y) {}
 
     EVENT_CLASS_TYPE(MouseButtonHeld)
 };
@@ -83,8 +90,8 @@ public:
 class MouseButtonReleasedEvent : public MouseButtonEvent
 {
 public:
-    MouseButtonReleasedEvent(const MouseButton button)
-        : MouseButtonEvent(button) {}
+    MouseButtonReleasedEvent(const MouseButton button, const float x, const float y)
+        : MouseButtonEvent(button, x, y) {}
 
     EVENT_CLASS_TYPE(MouseButtonReleased)
 };

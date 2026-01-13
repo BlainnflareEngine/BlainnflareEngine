@@ -411,12 +411,14 @@ void Scene::DestroyEntityInternal(const uuid &entityID, bool excludeChildren, bo
 
 Entity Scene::GetEntityWithUUID(const uuid &id) const
 {
+    BLAINN_PROFILE_FUNC();
     assert(m_EntityIdMap.contains(id) && "Invalid entity id or it doesn't exist");
     return m_EntityIdMap.at(id);
 }
 
 Entity Scene::TryGetEntityWithUUID(const uuid &id) const
 {
+    BLAINN_PROFILE_FUNC();
     if (const auto iter = m_EntityIdMap.find(id); iter != m_EntityIdMap.end()) return iter->second;
     return Entity{};
 }

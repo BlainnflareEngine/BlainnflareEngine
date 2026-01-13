@@ -52,6 +52,8 @@ public slots:
 protected:
     void keyPressEvent(QKeyEvent *event) override;
 
+    void ChangeSelection(Blainn::uuid id);
+
 private:
     Ui::scene_hierarchy_widget *ui;
     SceneItemModel *m_sceneModel;
