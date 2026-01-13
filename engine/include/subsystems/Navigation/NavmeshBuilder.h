@@ -27,7 +27,6 @@ struct NavMeshBuildSettings
 
 struct NavMeshBuildResult
 {
-    dtNavMesh *navMesh = nullptr;
     unsigned char *navData = nullptr;
     int navDataSize = 0;
     eastl::string errorMsg;

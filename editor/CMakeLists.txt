@@ -184,6 +184,7 @@ target_link_libraries(EDITOR
         pch
         ENGINE
         qlementine
+        Jolt
 )
 
 

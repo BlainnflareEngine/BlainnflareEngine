@@ -4,6 +4,7 @@
 #include "DetourCommon.h"
 #include "DetourAssert.h"
 #include "Engine.h"
+#include "Render/DebugRenderer.h"
 #include "components/MeshComponent.h"
 #include "components/NavMeshVolumeComponent.h"
 #include "scene/TransformComponent.h"
@@ -45,50 +46,57 @@ void NavigationSubsystem::Destroy()
 bool NavigationSubsystem::LoadNavMesh(const Path &relativePath)
 {
     Path absolutePath = Engine::GetContentDirectory() / relativePath;
-
     if (!std::filesystem::exists(absolutePath))
     {
         BF_ERROR("File does not exists - {}", absolutePath.string());
         return false;
     }
 
-    std::ifstream file(absolutePath, std::ios::binary | std::ios::ate);
+    std::ifstream file(absolutePath, std::ios::binary);
     if (!file.is_open())
     {
         BF_ERROR("Failed to open navmesh file - {}", absolutePath.string());
         return false;
     }
 
-    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::end);
+    size_t size = file.tellg();
     file.seekg(0, std::ios::beg);
 
-    if (size <= 0)
+    if (size == 0)
     {
-        BF_ERROR("NavMesh file is empty - {}", absolutePath.string());
+        BF_ERROR("NavMesh file is empty");
         return false;
     }
 
-    eastl::vector<unsigned char> buffer;
-    buffer.resize(static_cast<size_t>(size));
-
-    if (!file.read(reinterpret_cast<char *>(buffer.data()), size))
+    unsigned char *data = (unsigned char *)dtAlloc(size, DT_ALLOC_PERM);
+    if (!data)
     {
-        BF_ERROR("Failed to read navmesh file - {}", absolutePath.string());
+        BF_ERROR("Failed to allocate memory for navmesh");
+        return false;
+    }
+
+    if (!file.read(reinterpret_cast<char *>(data), size))
+    {
+        dtFree(data);
+        BF_ERROR("Failed to read navmesh file");
         return false;
     }
 
     dtNavMesh *navMesh = dtAllocNavMesh();
     if (!navMesh)
     {
+        dtFree(data);
         BF_ERROR("Failed to allocate dtNavMesh");
         return false;
     }
 
-    dtStatus status = navMesh->init(buffer.data(), static_cast<int>(size), DT_TILE_FREE_DATA);
+    dtStatus status = navMesh->init(data, static_cast<int>(size), DT_TILE_FREE_DATA);
     if (dtStatusFailed(status))
     {
+        dtFree(data);
         dtFreeNavMesh(navMesh);
-        BF_ERROR("Failed to initialize dtNavMesh from file - {}", absolutePath.string());
+        BF_ERROR("Failed to initialize dtNavMesh from file");
         return false;
     }
 
@@ -101,7 +109,6 @@ bool NavigationSubsystem::LoadNavMesh(const Path &relativePath)
     m_navQuery->init(m_navMesh, 2048);
 
     BF_INFO("NavMesh loaded successfully: {}", absolutePath.string());
-
     return true;
 }
 
@@ -133,10 +140,17 @@ bool NavigationSubsystem::BakeNavMesh(Scene &scene, Entity navVolumeEntity, cons
     settings.agentMaxSlope = volume.AgentMaxSlope;
 
     auto result = NavmeshBuilder::BuildNavMesh(geometry, worldBounds, settings);
-    if (!result.success)
+    if (!result.success || !result.navData || result.navDataSize <= 0)
     {
-        BF_ERROR("NavMesh build failed: {}", result.errorMsg.c_str());
+        BF_ERROR("NavMesh build failed: {}", result.errorMsg.empty() ? "Unknown error" : result.errorMsg.c_str());
         return false;
+    }
+
+    BF_INFO("Navmesh build SUCCESS. Size: {} bytes", result.navDataSize);
+    if (result.navDataSize >= 4)
+    {
+        BF_INFO("First 4 bytes: {:02X} {:02X} {:02X} {:02X}", result.navData[0], result.navData[1], result.navData[2],
+                result.navData[3]);
     }
 
     Path absPath = Engine::GetContentDirectory() / outputRelativePath;
@@ -145,14 +159,16 @@ bool NavigationSubsystem::BakeNavMesh(Scene &scene, Entity navVolumeEntity, cons
     std::ofstream file(absPath, std::ios::binary);
     if (!file.is_open())
     {
-        dtFreeNavMesh(result.navMesh);
+        dtFree(result.navData);
         BF_ERROR("Failed to open output file: {}", absPath.string().c_str());
         return false;
     }
 
     file.write(reinterpret_cast<const char *>(result.navData), result.navDataSize);
+    file.close();
 
-    dtFreeNavMesh(result.navMesh);
+    dtFree(result.navData);
+
     BF_INFO("NavMesh baked: {}", absPath.string().c_str());
     return true;
 }
@@ -188,6 +204,41 @@ bool NavigationSubsystem::FindPath(const Vec3 &start, const Vec3 &end, eastl::ve
     }
 
     return true;
+}
+
+
+void NavigationSubsystem::DrawDebugMesh()
+{
+    if (!m_navMesh) return;
+
+    const dtNavMesh *nav = m_navMesh;
+    const int numTiles = nav->getMaxTiles();
+
+    for (int i = 0; i < numTiles; ++i)
+    {
+        const dtMeshTile *tile = nav->getTile(i);
+        if (!tile || !tile->header) continue;
+
+        for (int j = 0; j < tile->header->polyCount; ++j)
+        {
+            const dtPoly *poly = &tile->polys[j];
+            if (poly->vertCount < 3) continue;
+
+            eastl::vector<Vec3> verts;
+            for (int k = 0; k < poly->vertCount; ++k)
+            {
+                const float *v = &tile->verts[poly->verts[k] * 3];
+                verts.emplace_back(v[0], v[1], v[2]);
+            }
+
+            for (int k = 0; k < poly->vertCount; ++k)
+            {
+                const Vec3 &a = verts[k];
+                const Vec3 &b = verts[(k + 1) % poly->vertCount];
+                RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(a, b, Color(0.0f, 1.0f, 0.0f, 1.0f));
+            }
+        }
+    }
 }
 
 

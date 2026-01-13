@@ -145,6 +145,7 @@ void Scene::SaveScene()
         Serializer::Camera(e, out);
         Serializer::Physics(e, out);
         Serializer::Skybox(e, out);
+        Serializer::NavMeshVolume(e, out);
 
         out << YAML::EndMap; // end for every entity
     }
@@ -343,6 +344,12 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
         {
             auto skybox = GetSkybox(entityNode["SkyboxComponent"]);
             entity.AddComponent<SkyboxComponent>(skybox);
+        }
+
+        if (HasNavMeshVolume(entityNode))
+        {
+            auto navMeshVolume = GetNavMeshVolume(entityNode["NavMeshVolumeComponent"]);
+            entity.AddComponent<NavmeshVolumeComponent>(navMeshVolume);
         }
     }
 }

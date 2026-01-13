@@ -8,6 +8,7 @@
 #include "PhysicsSubsystem.h"
 #include "components/CameraComponent.h"
 #include "components/MeshComponent.h"
+#include "components/NavMeshVolumeComponent.h"
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
 #include "components/SkyboxComponent.h"
@@ -134,7 +135,7 @@ public:
         out << YAML::Key << "MotionType" << YAML::Value << static_cast<int>(body.GetMotionType());
         out << YAML::Key << "GravityFactor" << YAML::Value << body.GetGravityFactor();
         out << YAML::Key << "IsTrigger" << YAML::Value << body.isTrigger();
-        
+
         Transform(entity, out);
 
         out << YAML::Key << "ShapeSettings" << YAML::Value << YAML::BeginMap;
@@ -206,6 +207,28 @@ public:
         out << YAML::Key << "SkyboxComponent" << YAML::Value << YAML::BeginMap;
         out << YAML::Key << "Path" << YAML::Value
             << AssetManager::GetInstance().GetTexturePath(*skybox.textureHandle).string();
+        out << YAML::EndMap;
+    }
+
+    static void NavMeshVolume(Entity &entity, YAML::Emitter &out)
+    {
+        if (!entity.HasComponent<NavmeshVolumeComponent>()) return;
+
+        auto volume = entity.GetComponent<NavmeshVolumeComponent>();
+        out << YAML::Key << "NavmeshVolumeComponent" << YAML::Value << YAML::BeginMap;
+
+        out << YAML::Key << "Extent" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "X" << volume.LocalBounds.GetExtent().GetX();
+        out << YAML::Key << "Y" << volume.LocalBounds.GetExtent().GetY();
+        out << YAML::Key << "Z" << volume.LocalBounds.GetExtent().GetZ();
+        out << YAML::EndMap;
+
+        out << YAML::Key << "Enabled" << YAML::Value << volume.IsEnabled;
+        out << YAML::Key << "CellSize" << YAML::Value << volume.CellSize;
+        out << YAML::Key << "AgentHeight" << YAML::Value << volume.AgentHeight;
+        out << YAML::Key << "AgentRadius" << YAML::Value << volume.AgentRadius;
+        out << YAML::Key << "AgentMaxClimb" << YAML::Value << volume.AgentMaxClimb;
+        out << YAML::Key << "AgentMaxSlope" << YAML::Value << volume.AgentMaxSlope;
         out << YAML::EndMap;
     }
 };

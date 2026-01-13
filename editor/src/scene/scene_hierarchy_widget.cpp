@@ -236,6 +236,7 @@ void scene_hierarchy_widget::OnItemDataChanged(const QModelIndex &topLeft, const
 
 void scene_hierarchy_widget::OnSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
+
     QModelIndexList selectedIndexes = selected.indexes();
 
     if (selectedIndexes.isEmpty())

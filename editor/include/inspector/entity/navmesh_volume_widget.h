@@ -14,8 +14,11 @@ public:
 
 protected:
     virtual void DeleteComponent() override;
+    void OnUpdate() override;
 
 private:
     vector3_input_widget *m_extents = nullptr;
+
+    void OnExtentsChanged();
 };
 } // namespace editor

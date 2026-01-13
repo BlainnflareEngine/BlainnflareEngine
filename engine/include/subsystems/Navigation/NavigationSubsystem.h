@@ -32,6 +32,18 @@ public:
         return m_navMesh != nullptr;
     }
 
+    static void DrawDebugMesh();
+
+    static bool ShouldDrawDebug()
+    {
+        return s_drawDebug;
+    }
+
+    static void SetShouldDrawDebug(bool drawDebug)
+    {
+        s_drawDebug = drawDebug;
+    }
+
 private:
     inline static dtNavMesh *m_navMesh = nullptr;
     inline static dtNavMeshQuery *m_navQuery = nullptr;
@@ -41,5 +53,7 @@ private:
     static eastl::vector<NavMeshInputMesh> CollectGeometryForNavmesh(Scene &scene,
                                                                      const JPH::AABox &navVolumeWorldBounds);
     static bool FindPolysAlongPath(const Vec3 &start, const Vec3 &end, dtPolyRef *polys, int &npolys, int maxPolys);
+
+    inline static bool s_drawDebug = true;
 };
 } // namespace Blainn

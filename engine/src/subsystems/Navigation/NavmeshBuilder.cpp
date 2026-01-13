@@ -1,13 +1,15 @@
+// Navigation/NavmeshBuilder.cpp
 #include "Navigation/NavmeshBuilder.h"
 #include <DetourNavMesh.h>
 #include <DetourNavMeshBuilder.h>
 
-
 namespace Blainn
 {
-NavMeshBuildResult Blainn::NavmeshBuilder::BuildNavMesh(const eastl::vector<NavMeshInputMesh> &meshes,
-                                                        const JPH::AABox &bounds, const NavMeshBuildSettings &settings)
+NavMeshBuildResult NavmeshBuilder::BuildNavMesh(const eastl::vector<NavMeshInputMesh> &meshes,
+                                                const JPH::AABox &bounds, const NavMeshBuildSettings &settings)
 {
+    BF_DEBUG("Building navmesh");
+
     NavMeshBuildResult result;
     RcContext ctx;
 
@@ -147,6 +149,25 @@ NavMeshBuildResult Blainn::NavmeshBuilder::BuildNavMesh(const eastl::vector<NavM
     params.ch = cfg.ch;
     params.buildBvTree = true;
 
+    BF_INFO("Poly mesh stats:");
+    BF_INFO("  Verts: {}", pmesh->nverts);
+    BF_INFO("  Polys: {}", pmesh->npolys);
+    BF_INFO("  Max verts per poly: {}", pmesh->nvp);
+
+    if (dmesh)
+    {
+        BF_INFO("  Detail mesh: {} verts, {} tris", dmesh->nverts, dmesh->ntris);
+    }
+    else
+    {
+        BF_INFO("  No detail mesh");
+    }
+
+    if (pmesh->npolys == 0)
+    {
+        BF_ERROR("NO POLYGONS GENERATED! Check input geometry, bounds, and agent settings.");
+    }
+
     unsigned char *navData = nullptr;
     int navDataSize = 0;
     if (!dtCreateNavMeshData(&params, &navData, &navDataSize))
@@ -157,34 +178,13 @@ NavMeshBuildResult Blainn::NavmeshBuilder::BuildNavMesh(const eastl::vector<NavM
         return result;
     }
 
-    dtNavMesh *navMesh = dtAllocNavMesh();
-    if (!navMesh)
-    {
-        dtFree(navData);
-        rcFreePolyMesh(pmesh);
-        rcFreePolyMeshDetail(dmesh);
-        result.errorMsg = "Could not allocate dtNavMesh";
-        return result;
-    }
-
-    dtStatus status = navMesh->init(navData, navDataSize, DT_TILE_FREE_DATA);
-    if (dtStatusFailed(status))
-    {
-        dtFree(navData);
-        dtFreeNavMesh(navMesh);
-        rcFreePolyMesh(pmesh);
-        rcFreePolyMeshDetail(dmesh);
-        result.errorMsg = "Could not initialize dtNavMesh";
-        return result;
-    }
+    result.navData = navData;
+    result.navDataSize = navDataSize;
+    result.success = true;
 
     rcFreePolyMesh(pmesh);
     rcFreePolyMeshDetail(dmesh);
 
-    result.navMesh = navMesh;
-    result.navData = navData;
-    result.navDataSize = navDataSize;
-    result.success = true;
     return result;
 }
 } // namespace Blainn

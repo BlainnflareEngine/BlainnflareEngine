@@ -9,6 +9,7 @@
 #include "Input/InputSubsystem.h"
 #include "Input/KeyboardEvents.h"
 #include "aliases.h"
+#include "Navigation/NavigationSubsystem.h"
 #include "scene/Scene.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
@@ -41,6 +42,8 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     AssetManager::GetInstance().Init();
     ScriptingSubsystem::Init();
     AISubsystem::GetInstance().Init();
+    NavigationSubsystem::Init();
+    NavigationSubsystem::SetShouldDrawDebug(true);
 }
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
@@ -54,6 +57,7 @@ void Engine::Destroy()
 {
     s_activeScene = nullptr;
 
+    NavigationSubsystem::Destroy();
     AISubsystem::GetInstance().Destroy();
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
@@ -98,6 +102,9 @@ void Engine::Update(float deltaTime)
     }
 
     s_activeScene->Update();
+
+    if (NavigationSubsystem::ShouldDrawDebug())
+        NavigationSubsystem::DrawDebugMesh();
 
     RenderSubsystem::GetInstance().Render(deltaTime);
 

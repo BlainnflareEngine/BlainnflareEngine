@@ -8,12 +8,14 @@
 #include "LabelsUtils.h"
 #include "components/CameraComponent.h"
 #include "components/MeshComponent.h"
+#include "components/NavMeshVolumeComponent.h"
 #include "components/SkyboxComponent.h"
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
 #include "entity/add_component_button.h"
 #include "entity/camera_widget.h"
 #include "entity/mesh_widget.h"
+#include "entity/navmesh_volume_widget.h"
 #include "entity/physics_widget.h"
 #include "entity/transform_widget.h"
 #include "entity/skybox_widget.h"
@@ -82,7 +84,13 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
         layout()->addWidget(camera);
     }
 
-    auto *addButton = new add_component_button(data.node->GetEntity(),  boxLayout, this);
+    if (entity.HasComponent<Blainn::NavmeshVolumeComponent>())
+    {
+        auto navmeshVolume = new navmesh_volume_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(navmeshVolume);
+    }
+
+    auto *addButton = new add_component_button(data.node->GetEntity(), boxLayout, this);
     layout()->addWidget(addButton);
 }
 

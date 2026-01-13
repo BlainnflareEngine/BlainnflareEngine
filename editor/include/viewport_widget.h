@@ -28,7 +28,6 @@ protected:
     void resizeEvent(QResizeEvent *event) override
     {
         QWidget::resizeEvent(event);
-        BF_DEBUG("Resized!");
 
         Blainn::RenderSubsystem::GetInstance().OnResize(event->size().width(), event->size().height());
     }

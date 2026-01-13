@@ -11,6 +11,8 @@
 #include "editor_settings.h"
 #include "folder_content_widget.h"
 #include "ui_editor_main.h"
+#include "Navigation/NavigationSubsystem.h"
+#include "components/NavMeshVolumeComponent.h"
 
 #include <QListView>
 
@@ -65,6 +67,7 @@ editor_main::editor_main(QWidget *parent)
 
     connect(ui->actionEditor_settings, &QAction::triggered, this, &editor_main::OnOpenSettings);
     connect(ui->actionSave, &QAction::triggered, this, &editor_main::OnSaveScene);
+    connect(ui->actionBuildNavmesh, &QAction::triggered, this, &editor_main::OnBuildNavMesh);
 }
 
 
@@ -129,6 +132,21 @@ void editor_main::OnSaveScene()
 {
     Blainn::Engine::GetActiveScene()->SaveScene();
     ui->Entities->SaveCurrentMeta();
+}
+
+
+void editor_main::OnBuildNavMesh()
+{
+    auto scene = Blainn::Engine::GetActiveScene();
+    if (!scene) return;
+
+    for (const auto &[entity, volume] : scene->GetAllEntitiesWith<Blainn::NavmeshVolumeComponent>().each())
+    {
+        Blainn::Path relativePath = Blainn::Path(scene->GetName().c_str()).replace_extension("") / (scene->GetName() + ".navmesh").c_str();
+
+        Blainn::NavigationSubsystem::BakeNavMesh(*scene, Blainn::Entity(entity, scene.get()), relativePath);
+        Blainn::NavigationSubsystem::LoadNavMesh(relativePath);
+    }
 }
 
 
