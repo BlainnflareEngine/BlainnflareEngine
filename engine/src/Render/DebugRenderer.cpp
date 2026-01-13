@@ -107,11 +107,6 @@ void Blainn::DebugRenderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, J
 void Blainn::DebugRenderer::DrawLine(Vec3 inFrom, Vec3 inTo, Color color)
 {
     BLAINN_PROFILE_SCOPE(DrawLine);
-    if (!m_bIsRenderPassOngoing)
-    {
-        BF_ERROR("Trying render debug without initialization");
-        return;
-    }
     m_lineListVertices.push_back({inFrom, color});
     m_lineListVertices.push_back({inTo, color});
 }
@@ -131,11 +126,6 @@ void DebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RV
 void DebugRenderer::DrawTriangle(Vec3 inV1, Vec3 inV2, Vec3 inV3, Color inColor)
 {
     BLAINN_PROFILE_SCOPE(DrawTriangle);
-    if (!m_bIsRenderPassOngoing)
-    {
-        BF_ERROR("Trying render debug without initialization");
-        return;
-    }
     VertexPositionColor lineVertices[] = { {inV1, inColor}, {inV2, inColor}, {inV3, inColor}, {inV1, inColor} };
     m_lineListVertices.push_back({inV1, inColor});
     m_lineListVertices.push_back({inV2, inColor});
