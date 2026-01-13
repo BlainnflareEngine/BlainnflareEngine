@@ -22,7 +22,6 @@
 #include "Render/Shader.h"
 #include "Render/EditorCamera.h"
 #include "Render/RuntimeCamera.h"
-#include "Render/SelectionManager.h"
 #include "Render/DDSTextureLoader.h"
 
 #include <cassert>
@@ -139,6 +138,7 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
 
 uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
 {
+    BLAINN_PROFILE_FUNC();
     auto device = m_device.GetDevice2();
     m_device.Flush();
 
