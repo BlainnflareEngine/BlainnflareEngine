@@ -29,7 +29,10 @@ namespace Blainn
             SkyBoxVS,
             SkyBoxPS,
 
-            NumShaders = 11U
+            UUIDVS,
+            UUIDPS,
+
+            NumShaders = 13U
         };
 
     public:

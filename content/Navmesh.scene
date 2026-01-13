@@ -7,23 +7,23 @@ Entities:
       Tag: Floor
     TransformComponent:
       Translation:
-        x: -5.75
+        x: 0
         y: 0
         z: 0
       Rotation:
         x: 0
-        y: 3.1415927
+        y: 0
         z: 0
       Scale:
-        x: 10
-        y: 2
-        z: 10
+        x: 1
+        y: 1
+        z: 1
     RelationshipComponent:
       Parent: 00000000-0000-0000-0000-000000000000
       Children:
         []
     MeshComponent:
-      Path: guitar/Guitar.gltf
+      Path: Navmesh/nav_test.obj
       Material: Materials\Default.mat
   - Name: Entity
     EntityID: 0834e488-d7c9-4959-b551-f04a0e7ede8c
@@ -48,9 +48,9 @@ Entities:
         []
     NavmeshVolumeComponent:
       Extent:
-        X: 5
-        Y: 5
-        Z: 5
+        X: 50
+        Y: 50
+        Z: 50
       Enabled: true
       CellSize: 0.3
       AgentHeight: 2

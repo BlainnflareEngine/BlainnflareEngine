@@ -32,7 +32,6 @@ set(ENGINE_SOURCES
         include/Render/PipelineStateObject.h
         include/Render/PrebuiltEngineMeshes.h
         include/Render/RootSignature.h
-        include/Render/SelectionManager.h
         include/Render/Shader.h
         include/Render/ShadowMap.h
         include/Render/SwapChain.h 
@@ -48,7 +47,6 @@ set(ENGINE_SOURCES
         src/Render/PipelineStateObject.cpp
         src/Render/PrebuiltEngineMeshes.cpp
         src/Render/RootSignature.cpp
-        src/Render/SelectionManager.cpp
         src/Render/Shader.cpp
         src/Render/ShadowMap.cpp
         src/Render/SwapChain.cpp
@@ -144,7 +142,6 @@ set(ENGINE_SOURCES
         include/ai/UtilitySelector.h
         src/ai/UtilitySelector.cpp
         # src/ai/FromLuaToAIController.cpp
-
         include/components/CameraComponent.h
         src/Render/EditorCamera.cpp
         include/Render/EditorCamera.h
@@ -152,13 +149,20 @@ set(ENGINE_SOURCES
         include/Render/RuntimeCamera.h
         include/Render/DebugRenderer.h
         src/Render/DebugRenderer.cpp
-
         include/components/SkyboxComponent.h
         include/components/NavMeshVolumeComponent.h
         include/subsystems/Navigation/NavigationSubsystem.h
         src/subsystems/Navigation/NavigationSubsystem.cpp
         include/subsystems/Navigation/NavmeshBuilder.h
         src/subsystems/Navigation/NavmeshBuilder.cpp
+        include/Render/RenderTarget.h
+        include/Render/GTexture.h
+        include/Render/Resource.h
+        src/Render/Resource.cpp
+        src/Render/GTexture.cpp
+        src/Render/RenderTarget.cpp
+        include/tools/SelectionManager.h
+        src/tools/SelectionManager.cpp
 )
 
 

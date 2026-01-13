@@ -28,15 +28,22 @@ namespace Blainn {
                                         const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent*>(event.get());
                                         auto key = keyEvent->GetKey();
 
-                                        Move(key);
-                                        SetCameraProperties(key);
+                                        if (Input::IsMouseButtonHeld(MouseButton::Right))
+                                        {
+                                            Move(key);
+                                            SetCameraProperties(key);
+                                        }
+
                                     }), InputEventType::KeyHeld});
 
             m_inputEvents.push_back({Input::AddEventListener(InputEventType::MouseDelta,
                                     [this](const InputEventPointer& event)
                                     {
                                         const MouseMovedEvent *mouseEvent = static_cast<const MouseMovedEvent *>(event.get());
-                                        AdjustRotation(mouseEvent->GetX(), mouseEvent->GetY());
+                                        if (Input::IsMouseButtonHeld(MouseButton::Right))
+                                        {
+                                            AdjustRotation(mouseEvent->GetX(), mouseEvent->GetY());
+                                        }
                                     }), InputEventType::MouseDelta});
 
             m_bIsCameraActionsBinded = true;

@@ -51,6 +51,14 @@ protected:
 
         Blainn::Input::UpdateButtonState(static_cast<Blainn::MouseButton>(event->button()),
                                          Blainn::ButtonState::Pressed);
+
+        if (event->button() == Qt::MouseButton::LeftButton)
+        {
+            uint32_t xPos = event->x();
+            uint32_t yPos = event->y();
+            Blainn::Engine::GetSelectionManager().SelectAt(xPos, yPos);
+        }
+
         QWidget::mousePressEvent(event);
         setFocus();
     }

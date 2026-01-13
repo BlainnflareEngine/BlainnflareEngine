@@ -60,6 +60,11 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
             {
                 this->viewport()->update();
             });
+
+    Blainn::Engine::GetSelectionManager().CallbackList.append([this](Blainn::uuid id)
+    {
+        ChangeSelection(id);
+    });
 }
 
 scene_hierarchy_widget::~scene_hierarchy_widget()
@@ -247,13 +252,7 @@ void scene_hierarchy_widget::OnSelectionChanged(const QItemSelection &selected, 
 
     auto entity = SceneItemModel::GetNodeFromIndex(selectedIndexes.first());
 
-    InspectorFabric fabric;
-    EntityInspectorData data;
-    data.tag = entity->GetName();
-    data.node = entity;
-
-    auto inspector = fabric.GetEntityInspector(data);
-    Blainn::Editor::GetInstance().GetInspector().SetItem(inspector);
+    Blainn::Engine::GetSelectionManager().SelectUUID(entity->GetUUID());
 }
 
 
@@ -287,6 +286,28 @@ void scene_hierarchy_widget::keyPressEvent(QKeyEvent *event)
     }
 
     QTreeView::keyPressEvent(event);
+}
+
+void scene_hierarchy_widget::ChangeSelection(Blainn::uuid id)
+{
+    auto index = SceneItemModel::FindIndexByEntity(m_sceneModel, id);
+
+    setCurrentIndex(index);
+
+    if (!index.isValid())
+    {
+        Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
+        return;
+    }
+
+    auto entity = SceneItemModel::GetNodeFromIndex(index);
+    InspectorFabric fabric;
+    EntityInspectorData data;
+    data.tag = entity->GetName();
+    data.node = entity;
+
+    auto inspector = fabric.GetEntityInspector(data);
+    Blainn::Editor::GetInstance().GetInspector().SetItem(inspector);
 }
 
 
