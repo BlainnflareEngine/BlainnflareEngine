@@ -121,6 +121,33 @@ sol::state &ScriptingSubsystem::GetLuaState()
     return m_lua;
 }
 
+sol::object ScriptingSubsystem::GetValueFromScript(const uuid &scriptUuid, const eastl::string &valueName)
+{
+    ScriptingComponent *scriptingComponent =
+        m_scriptEntityConnections[scriptUuid].TryGetComponent<ScriptingComponent>();
+    if (!scriptingComponent)
+    {
+        BF_ERROR("entity does not have scripting component on while trying get value from script");
+        return sol::nil;
+    }
+    LuaScript &script = *scriptingComponent->scripts[scriptUuid];
+    return script.GetEnvironment()[valueName.c_str()];
+}
+
+void Blainn::ScriptingSubsystem::SetValueInScript(const uuid &scriptUuid, const eastl::string &valueName,
+                                                  const sol::object &value)
+{
+    ScriptingComponent *scriptingComponent =
+        m_scriptEntityConnections[scriptUuid].TryGetComponent<ScriptingComponent>();
+    if (!scriptingComponent)
+    {
+        BF_ERROR("entity does not have scripting component on while trying get value from script");
+        return;
+    }
+    LuaScript &script = *scriptingComponent->scripts[scriptUuid];
+    script.SetEnvVar(valueName, value);
+}
+
 eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const Path &path, bool callOnStart)
 {
     ScriptingComponent *component = entity.TryGetComponent<ScriptingComponent>();

@@ -89,6 +89,11 @@ const sol::table &Blainn::LuaScript::GetEnvironment() const
     return m_environment;
 }
 
+void Blainn::LuaScript::SetEnvVar(const eastl::string &name, const sol::object &var)
+{
+    m_environment[name.c_str()] = var;
+}
+
 bool Blainn::LuaScript::HasFunction(const eastl::string &functionName) const
 {
     sol::protected_function customFunc = m_environment[functionName.data()];

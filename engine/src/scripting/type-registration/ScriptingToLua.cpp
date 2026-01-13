@@ -47,12 +47,27 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
                                  return tbl;
                              });
 
+    // scriptTable.set_function("GetValueFromScript",
+    //                          [&luaState](const std::string &idStr, const std::string &valueName)
+    //                          {
+    //                              sol::table tbl = ScriptingSubsystem::GetValueFromScript(
+    //                                  uuid::fromStrFactory(idStr), eastl::string(valueName.c_str()));
+    //                              return sol::make_object(luaState, tbl);
+    //                          });
+
+    // scriptTable.set_function("SetValueInScript",
+    //                          [](const std::string &idStr, const std::string &valueName, sol::table value)
+    //                          {
+    //                              ScriptingSubsystem::SetValueInScript(uuid::fromStrFactory(idStr),
+    //                                                                   eastl::string(valueName.c_str()), value);
+    //                          });
+
     luaState["Scripting"] = scriptTable;
 
     // Register LuaScript usertype
     sol::usertype<LuaScript> LuaScriptType = luaState.new_usertype<LuaScript>("LuaScript", sol::default_constructor);
-    LuaScriptType.set_function("Load",
-                               [](LuaScript &s, const std::string &path, Entity owningEntity) { return s.Load(Path(path.c_str()), owningEntity); });
+    LuaScriptType.set_function("Load", [](LuaScript &s, const std::string &path, Entity owningEntity)
+                               { return s.Load(Path(path.c_str()), owningEntity); });
     LuaScriptType.set_function("IsLoaded", &LuaScript::IsLoaded);
     LuaScriptType.set_function("GetScriptPath", [](LuaScript &s) { return s.GetScriptPath().string(); });
     LuaScriptType.set_function("GetId", [](LuaScript &s) { return s.GetId().str(); });

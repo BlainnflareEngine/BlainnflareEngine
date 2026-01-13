@@ -34,6 +34,9 @@ public:
 
     static sol::state &GetLuaState();
 
+    static sol::object GetValueFromScript(const uuid &scriptUuid, const eastl::string &valueName);
+    static void SetValueInScript(const uuid &scriptUuid, const eastl::string &valueName, const sol::object &value);
+
     /// @brief Load Lua Script
     /// @param path - script path relative to content folder
     /// @param callOnStart - call OnStart() script function. true by default
