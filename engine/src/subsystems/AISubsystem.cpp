@@ -26,7 +26,7 @@ void AISubsystem::Destroy()
 void AISubsystem::Update(float dt)
 {
     Scene &scene = *Engine::GetActiveScene();
-    auto view = scene.GetAllEntitiesWith<AIControllerComponent>();
+    const auto& view = scene.GetAllEntitiesWith<AIControllerComponent>();
     for (const auto &[entity, aiControllerComponent] : view.each())
     {
         aiControllerComponent.aiController.Update(dt);
@@ -137,8 +137,6 @@ void AISubsystem::DestroyAIControllerComponent(Entity entity)
     AIControllerComponent *componentPtr = entity.TryGetComponent<AIControllerComponent>();
     if (!componentPtr)
     {
-        BF_ERROR("AI controller destroy error: entity " + entity.GetUUID().str()
-                 + "does not have AI controller component");
         return;
     }
     entity.RemoveComponent<AIControllerComponent>();

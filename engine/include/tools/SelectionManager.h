@@ -20,10 +20,13 @@ public:
     void SelectUUID(uuid id, bool keepSelection = false);
 
     void DeselectAll();
+    uuid GetSelectedUUID() const { return m_selectedUUID; }
 
     eventpp::CallbackList<void(uuid)> CallbackList;
 private:
     // TODO
     eastl::vector<uuid> m_selectedUUIDs{20};
+
+    uuid m_selectedUUID;
 };
 }
