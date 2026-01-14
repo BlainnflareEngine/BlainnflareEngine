@@ -1,7 +1,17 @@
 
+abobus = "ya knopka"
+
 function OnStart()
     local scene = Engine.GetActiveScene()
-    local e = scene:GetEntityWithUUID(OwningEntity)
+    local e = scene:TryGetEntityWithUUID(OwningEntity)
+    if not e:IsValid() then
+        return
+    end
+
+    if e:HasTagComponent() then
+        e:RemoveTagComponent()
+    end
+    e:AddTagComponent("knopka")
 
     -- ensure transform exists
     if not e:HasTransformComponent() then
@@ -29,8 +39,16 @@ function OnCollisionStarted(event)
 
     local e1uuid = event.entity1
     local e2uuid = event.entity2
-    e1 = scene:GetEntityWithUUID(e1uuid)
-    e2 = scene:GetEntityWithUUID(e2uuid)
+    e1 = scene:TryGetEntityWithUUID(e1uuid)
+    if not e1:IsValid() then
+        Log.Error("aaaa e1")
+        return
+    end
+    e2 = scene:TryGetEntityWithUUID(e2uuid)
+    if not e2:IsValid() then
+        Log.Error("aaaa e2")
+        return
+    end
 
     local other = nil
 
@@ -46,7 +64,12 @@ function OnCollisionStarted(event)
             local spawn = scene:CreateEntity("ButtonSpawned", true)
             -- add transform and set to owner position + (0,0,2)
             spawn:AddTransformComponent()
-            local owner = scene:GetEntityWithUUID(OwningEntity)
+            local owner = scene:TryGetEntityWithUUID(OwningEntity)
+            if not owner:IsValid() then
+                Log.Error("owner e1")
+                return
+            end
+
             local ox, oy, oz = 0, 0, 0
             if owner and owner:HasTransformComponent() then
                 local opt = owner:GetTransformComponent():GetTranslation()
@@ -73,12 +96,21 @@ function OnCollisionEnded(event)
     local scene = Engine.GetActiveScene()
     local e1uuid = event.entity1
     local e2uuid = event.entity2
-    local e1 = scene:GetEntityWithUUID(e1uuid)
-    local e2 = scene:GetEntityWithUUID(e2uuid)
+    e1 = scene:TryGetEntityWithUUID(e1uuid)
+    if not e1:IsValid() then
+        Log.Error("aaaa e1")
+        return
+    end
+    e2 = scene:TryGetEntityWithUUID(e2uuid)
+    if not e2:IsValid() then
+        Log.Error("aaaa e2")
+        return
+    end
 
     local other = nil
     if e1uuid == OwningEntity then other = e2
     elseif e2uuid == OwningEntity then other = e1
+    else return
     end
 
     if not other then return end

@@ -12,7 +12,11 @@ local JUMP_IMPULSE = 5000.0
 function OnStart()
 
     local scene = Engine.GetActiveScene()
-    local e = scene:GetEntityWithUUID(OwningEntity)
+    local e = scene:TryGetEntityWithUUID(OwningEntity)
+    if not e:IsValid() then
+        Log.Error("aaa banana invalid")
+        return
+    end
 
     if e:HasTagComponent() then
         e:RemoveTagComponent()
@@ -70,7 +74,11 @@ function OnStart()
             if event.key ~= KEY_SPACE then return end
 
             local scene = Engine.GetActiveScene()
-            local e = scene:GetEntityWithUUID(OwningEntity)
+            local e = scene:TryGetEntityWithUUID(OwningEntity)
+            if not e:IsValid() then
+                Log.Error("aaa banana invalid 2")
+                return
+            end
 
             local updater = Physics.GetBodyUpdater(e)
             updater.AddImpulse(Vec3:new(0.0, JUMP_IMPULSE, 0.0))
@@ -80,6 +88,21 @@ end
 
 function OnUpdate(deltaTime)
     savedDeltaTime = deltaTime
+
+    local scene = Engine.GetActiveScene()
+    local e = scene:TryGetEntityWithTag("knopka")
+    if not e:IsValid() then
+        return
+    end
+
+    local scriptUuid = Scripting.ListScripts(e)[1]
+    local val = Scripting.GetValueFromScript(scriptUuid, "abobus")
+    if val == nil then
+        Log.Warn("abobus is nil for script " .. tostring(scriptUuid))
+    else
+        Log.Warn(tostring(val))
+    end
+    Scripting.SetValueInScript(scriptUuid,"abobus", "sobaka")
 end
 
 function OnDestroy()

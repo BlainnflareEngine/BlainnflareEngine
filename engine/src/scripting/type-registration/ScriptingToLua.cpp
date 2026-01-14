@@ -47,20 +47,19 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
                                  return tbl;
                              });
 
-    // scriptTable.set_function("GetValueFromScript",
-    //                          [&luaState](const std::string &idStr, const std::string &valueName)
-    //                          {
-    //                              sol::table tbl = ScriptingSubsystem::GetValueFromScript(
-    //                                  uuid::fromStrFactory(idStr), eastl::string(valueName.c_str()));
-    //                              return sol::make_object(luaState, tbl);
-    //                          });
+    scriptTable.set_function("GetValueFromScript",
+                             [&luaState](const std::string &idStr, const std::string &valueName)
+                             {
+                                 return ScriptingSubsystem::GetValueFromScript(
+                                     uuid::fromStrFactory(idStr), eastl::string(valueName.c_str()));                                  
+                             });
 
-    // scriptTable.set_function("SetValueInScript",
-    //                          [](const std::string &idStr, const std::string &valueName, sol::table value)
-    //                          {
-    //                              ScriptingSubsystem::SetValueInScript(uuid::fromStrFactory(idStr),
-    //                                                                   eastl::string(valueName.c_str()), value);
-    //                          });
+    scriptTable.set_function("SetValueInScript",
+                             [](const std::string &idStr, const std::string &valueName, sol::object value)
+                             {
+                                 ScriptingSubsystem::SetValueInScript(uuid::fromStrFactory(idStr),
+                                                                      eastl::string(valueName.c_str()), value);
+                             });
 
     luaState["Scripting"] = scriptTable;
 
