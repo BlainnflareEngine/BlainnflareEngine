@@ -11,7 +11,7 @@ void CompositeNode::AddChild(BTNodePtr n)
         return;
     }
 
-    children.emplace_back(std::move(n));
+    children.emplace_back(eastl::move(n));
 }
 
 void CompositeNode::Reset()
@@ -96,7 +96,7 @@ void SelectorNode::Reset()
     CompositeNode::Reset();
 }
 
-ActionNode::ActionNode(sol::function f, sol::function onRes) : fn(std::move(f)), onReset(std::move(onRes))
+ActionNode::ActionNode(sol::function f, sol::function onRes) : fn(eastl::move(f)), onReset(eastl::move(onRes))
 {
     if (!fn.valid())
     {
@@ -122,7 +122,7 @@ BTStatus ActionNode::Update(Blackboard &bb)
 
     if (!r.valid()) {
         sol::error err = r;
-        BF_ERROR(std::string("Lua action error: ") + err.what());
+        BF_ERROR(eastl::string("Lua action error: ") + err.what());
         return BTStatus::Error;
     }
 
@@ -147,8 +147,8 @@ BTStatus ActionNode::Update(Blackboard &bb)
         }
     }
 
-    if (o.is<std::string>()) {
-        const std::string s = o.as<std::string>();
+    if (o.is<eastl::string>()) {
+        const eastl::string s = o.as<eastl::string>();
         if (s == "failure") return BTStatus::Failure;
         if (s == "success") return BTStatus::Success;
         if (s == "running") return BTStatus::Running;
@@ -167,7 +167,7 @@ void Blainn::ActionNode::Reset()
         onReset();
 }
 
-Blainn::DecoratorNode::DecoratorNode(BTNodePtr c) : child(std::move(c))
+Blainn::DecoratorNode::DecoratorNode(BTNodePtr c) : child(eastl::move(c))
 {
     if (!child)
     {
@@ -175,7 +175,7 @@ Blainn::DecoratorNode::DecoratorNode(BTNodePtr c) : child(std::move(c))
     }
 }
 
-Blainn::DecoratorNode::DecoratorNode(BTNodePtr c, sol::function cond) : child(std::move(c)), condition(std::move(cond))
+Blainn::DecoratorNode::DecoratorNode(BTNodePtr c, sol::function cond) : child(eastl::move(c)), condition(eastl::move(cond))
 {
     if (!child)
     {
@@ -205,7 +205,7 @@ bool Blainn::DecoratorNode::CheckCondition(Blackboard &bb, bool& outResult)
     if (!r.valid())
     {
         sol::error err = r;
-        auto errCmb = std::string("Decorator condition error: ") + err.what();
+        auto errCmb = eastl::string("Decorator condition error: ") + err.what();
         BF_ERROR(errCmb);
         return false;
     }

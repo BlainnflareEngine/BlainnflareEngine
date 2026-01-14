@@ -1,7 +1,7 @@
 #pragma once
-#include <string>
-#include <unordered_map>
-#include <memory>
+#include "EASTL/string.h"
+#include "EASTL/unordered_map.h"
+#include "EASTL/shared_ptr.h"
 
 namespace Blainn
 {
@@ -19,13 +19,13 @@ public:
     };
 
     template<typename T>
-    void Set(const std::string& key, const T& value)
+    void Set(const eastl::string& key, const T& value)
     {
-        values[key] = std::make_shared<Value<T>>(value);
+        values[key] = eastl::make_shared<Value<T>>(value);
     }
 
     template<typename T>
-    T Get(const std::string& key) const
+    T Get(const eastl::string& key) const
     {
         auto it = values.find(key);
         if (it == values.end())
@@ -33,13 +33,13 @@ public:
         return static_cast<Value<T>*>(it->second.get())->data;
     }
 
-    bool Has(const std::string& key) const 
+    bool Has(const eastl::string& key) const 
     {
         return values.count(key) > 0;
     }
 
 private:
-    std::unordered_map<std::string, std::shared_ptr<BaseValue>> values;
+    eastl::unordered_map<eastl::string, eastl::shared_ptr<BaseValue>> values;
 
 };
 } // namespace Blainn

@@ -1,6 +1,6 @@
 #include "ai/UtilityBuilder.h"
 
-std::unique_ptr<Blainn::UtilitySelector> Blainn::UtilityBuilder::Build(sol::table luaTable)
+eastl::unique_ptr<Blainn::UtilitySelector> Blainn::UtilityBuilder::Build(sol::table luaTable)
 {
     UtilitySelector::Settings settings;
 
@@ -10,7 +10,7 @@ std::unique_ptr<Blainn::UtilitySelector> Blainn::UtilityBuilder::Build(sol::tabl
     if (luaTable["hysteresis"].valid())
         settings.hysteresis = luaTable["hysteresis"];
 
-    std::vector<UtilityDecision> decisions;
+    eastl::vector<UtilityDecision> decisions;
 
     sol::table luaDecisions = luaTable["decisions"];
     for (auto& kv : luaDecisions)
@@ -18,17 +18,19 @@ std::unique_ptr<Blainn::UtilitySelector> Blainn::UtilityBuilder::Build(sol::tabl
         sol::table d = kv.second;
 
         UtilityDecision decision;
-        decision.name = d["name"];
-        decision.BTName = d["bt"];
+        std::string temp = d["name"]; // TODO: check if this conversion works
+        decision.name = temp.c_str();
+        temp = d["bt"];
+        decision.BTName = temp.c_str();
         decision.scoreFn = d["score"];
 
         if (d["cooldown"].valid())
             decision.cooldown = d["cooldown"];
 
-        decisions.push_back(std::move(decision));
+        decisions.push_back(eastl::move(decision));
     }
 
-    return std::make_unique<UtilitySelector>(std::move(decisions), settings);
+    return eastl::make_unique<UtilitySelector>(eastl::move(decisions), settings);
 }
 
 // Вот так должен выглядеть table в lua для utility

@@ -33,7 +33,7 @@ void AISubsystem::Update(float dt)
     }
 }
 
-void AISubsystem::LoadBlackboard(const sol::table &scriptEnvironment, std::unique_ptr<Blackboard> &blackboard)
+void AISubsystem::LoadBlackboard(const sol::table &scriptEnvironment, eastl::unique_ptr<Blackboard> &blackboard)
 {
     sol::table bbTable = scriptEnvironment["Blackboard"];
     if (!bbTable.valid())
@@ -44,7 +44,7 @@ void AISubsystem::LoadBlackboard(const sol::table &scriptEnvironment, std::uniqu
 
     for (auto &kv : bbTable)
     {
-        std::string key = kv.first.as<std::string>();
+        eastl::string key = kv.first.as<eastl::string>();
         sol::object value = kv.second;
         blackboard->Set(key, value);
     }
@@ -68,14 +68,14 @@ void AISubsystem::LoadBehaviourTrees(const sol::table &scriptEnvironment, BTMap 
 
         if (!tree) continue;
 
-        const std::string &name = tree->GetName();
+        const eastl::string &name = tree->GetName();
         BF_INFO("Loaded BehaviourTree: " + name);
 
-        behaviourTrees.emplace(name, std::move(tree));
+        behaviourTrees.emplace(name, eastl::move(tree));
     }
 }
 
-void AISubsystem::LoadUtility(const sol::table &scriptEnvironment, std::unique_ptr<UtilitySelector> &utility)
+void AISubsystem::LoadUtility(const sol::table &scriptEnvironment, eastl::unique_ptr<UtilitySelector> &utility)
 {
     sol::table utilityTable = scriptEnvironment["Utility"];
 
@@ -125,10 +125,13 @@ bool Blainn::AISubsystem::CreateAIController(Entity entity)
     BTMap trees;
     LoadBehaviourTrees(scriptEnv, trees);
 
-    std::unique_ptr<UtilitySelector> utility;
+    eastl::unique_ptr<UtilitySelector> utility;
     LoadUtility(scriptEnv, utility);
 
-    componentPtr->aiController.Init(std::move(trees), std::move(utility), std::move(bb));
+    componentPtr->aiController.Init(eastl::move(trees), eastl::move(utility), eastl::move(bb));
+    
+    BF_INFO("AI Controller created for entity: " + entity.GetUUID().str());
+    
     return true;
 }
 

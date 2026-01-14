@@ -28,14 +28,14 @@ BTBuilder &BTBuilder::AddAction(sol::function fn, sol::function onReset)
         return *this;
     }
 
-    BTNodePtr node = std::make_unique<ActionNode>(std::move(fn), std::move(onReset));
-    AttachNode(std::move(node));
+    BTNodePtr node = eastl::make_unique<ActionNode>(eastl::move(fn), eastl::move(onReset));
+    AttachNode(eastl::move(node));
     return *this;
 }
 
 BTBuilder &Blainn::BTBuilder::AddNegate()
 {
-    m_pendingDecorators.push_back({BTType::Negate, std::move(sol::function{})});
+    m_pendingDecorators.push_back({BTType::Negate, eastl::move(sol::function{})});
     return *this;
 }
 
@@ -139,7 +139,7 @@ bool BTBuilder::ParseDecorators(sol::table node)
 
     sol::table decorators = d.as<sol::table>();
 
-    for (std::size_t i = 1;; ++i)
+    for (eastl_size_t i = 1;; ++i)
     {
         sol::object o = decorators[i];
         if (!o.valid() || o == sol::nil) break;
@@ -220,7 +220,7 @@ bool BTBuilder::CalculateBT(sol::table node)
 
         if (children.valid())
         {
-            for (std::size_t i = 1;; ++i)
+            for (eastl_size_t i = 1;; ++i)
             {
                 sol::object childObj = children[i];
                 if (!childObj.valid() || childObj.get_type() == sol::type::nil) break;
@@ -313,19 +313,19 @@ BTNodePtr BTBuilder::Build()
         return nullptr;
     }
 
-    return std::move(m_root);
+    return eastl::move(m_root);
 }
 
-std::unique_ptr<BehaviourTree> BTBuilder::BuildFromLua(sol::table rootTable)
+eastl::unique_ptr<BehaviourTree> BTBuilder::BuildFromLua(sol::table rootTable)
 {
     sol::object nameObj = rootTable["name"];
-    if (!nameObj.valid() || !nameObj.is<std::string>())
+    if (!nameObj.valid() || !nameObj.is<eastl::string>())
     {
         BF_ERROR("BT must have string name");
         return nullptr;
     }
 
-    std::string name = nameObj.as<std::string>();
+    eastl::string name = nameObj.as<eastl::string>();
 
     if (!CalculateBT(rootTable))
     {
@@ -335,7 +335,7 @@ std::unique_ptr<BehaviourTree> BTBuilder::BuildFromLua(sol::table rootTable)
 
     BTNodePtr root = Build();
 
-    return std::make_unique<BehaviourTree>(name, std::move(root));
+    return eastl::make_unique<BehaviourTree>(name, eastl::move(root));
 }
 
 void BTBuilder::Reset()
@@ -366,13 +366,13 @@ void BTBuilder::AttachNode(BTNodePtr node)
             m_hasError = true;
             return;
         }
-        m_root = std::move(node);
+        m_root = eastl::move(node);
         return;
     }
 
     // Attach to top composite
     CompositeNode *parent = m_stack.back();
-    parent->AddChild(std::move(node));
+    parent->AddChild(eastl::move(node));
 }
 
 bool Blainn::BTBuilder::WrapDecorators(BTNodePtr &node)
@@ -388,11 +388,11 @@ bool Blainn::BTBuilder::WrapDecorators(BTNodePtr &node)
         switch (it->type)
         {
         case BTType::Negate:
-            node = std::make_unique<NegateNode>(std::move(node), it->condition);
+            node = eastl::make_unique<NegateNode>(eastl::move(node), it->condition);
             break;
 
         case BTType::Condition:
-            node = std::make_unique<ConditionNode>(std::move(node), it->condition);
+            node = eastl::make_unique<ConditionNode>(eastl::move(node), it->condition);
             break;
 
         default:

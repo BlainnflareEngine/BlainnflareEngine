@@ -8,9 +8,9 @@ namespace Blainn
 {
 void AIController::Init(BTMap trees, std::unique_ptr<UtilitySelector> utility, std::unique_ptr<Blackboard> blackboard)
 {
-    m_trees = std::move(trees);
-    m_utility = std::move(utility);
-    m_blackboard = std::move(blackboard);
+    m_trees = eastl::move(trees);
+    m_utility = eastl::move(utility);
+    m_blackboard = eastl::move(blackboard);
 
     m_activeTree = nullptr;
     m_activeTreeName.clear();
@@ -23,7 +23,7 @@ void AIController::Update(float dt)
 
     m_utilityContext.UpdateCooldowns(dt);
 
-    std::string newDecision = m_utility.get()->Evaluate(m_utilityContext, *m_blackboard, dt);
+    eastl::string newDecision = m_utility.get()->Evaluate(m_utilityContext, *m_blackboard, dt);
 
     if (!m_activeTree)
     {
@@ -34,7 +34,7 @@ void AIController::Update(float dt)
         return;
     }
 
-    std::string btName;
+    eastl::string btName;
     if (!m_abortRequested && !newDecision.empty() && newDecision != m_activeDecisionName)
     {
         m_abortRequested = true;
@@ -160,10 +160,10 @@ bool AIController::GetDesiredDirection(Vec3 &outDirection, float stoppingDistanc
 }
 
 
-void AIController::ActivateDecision(const std::string &decision)
+void AIController::ActivateDecision(const eastl::string &decision)
 {
     m_activeDecisionName = decision;
-    std::string btName = m_utility->FindDecisionBTName(decision);
+    eastl::string btName = m_utility->FindDecisionBTName(decision);
     SetActiveBT(btName);
 }
 
@@ -177,7 +177,7 @@ void AIController::CleanupActiveTree()
     m_abortRequested = false;
 }
 
-void AIController::SetActiveBT(const std::string &treeName)
+void AIController::SetActiveBT(const std::string& treeName)
 {
     auto it = m_trees.find(treeName);
     if (it == m_trees.end())
