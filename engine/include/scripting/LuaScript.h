@@ -20,6 +20,7 @@ public:
     const Path &GetScriptPath() const;
     const uuid &GetId() const;
     const sol::table &GetEnvironment() const;
+    void SetEnvVar(const eastl::string &name, const sol::object &var);
 
     bool HasFunction(const eastl::string &functionName) const;
     bool OnStartCall();

@@ -45,11 +45,15 @@ void ContactListenerImpl::OnContactAdded(const JPH::Body &inBody1, const JPH::Bo
         mState[key] = StatePair(inManifold.mBaseOffset, inManifold.mRelativeContactPointsOn1);
     }
 
-    PhysicsEvent event{.eventType = PhysicsEventType::CollisionStarted,
-                       .entity1 = PhysicsSubsystem::m_bodyEntityConnections[bodyID1],
-                       .entity2 = PhysicsSubsystem::m_bodyEntityConnections[bodyID2]};
+    if (PhysicsSubsystem::m_bodyEntityConnections.contains(bodyID1)
+        && PhysicsSubsystem::m_bodyEntityConnections.contains(bodyID2))
+    {
+        PhysicsEvent event{.eventType = PhysicsEventType::CollisionStarted,
+                           .entity1 = PhysicsSubsystem::m_bodyEntityConnections[bodyID1],
+                           .entity2 = PhysicsSubsystem::m_bodyEntityConnections[bodyID2]};
 
-    PhysicsSubsystem::s_physicsEventQueue.enqueue(eastl::make_shared<PhysicsEvent>(eastl::move(event)));
+        PhysicsSubsystem::s_physicsEventQueue.enqueue(eastl::make_shared<PhysicsEvent>(eastl::move(event)));
+    }
 
     if (mNext != nullptr) mNext->OnContactAdded(inBody1, inBody2, inManifold, ioSettings);
 }
@@ -92,11 +96,15 @@ void ContactListenerImpl::OnContactRemoved(const JPH::SubShapeIDPair &inSubShape
         else JPH_BREAKPOINT; // Removed contact that didn't exist
     }
 
-    PhysicsEvent event{.eventType = PhysicsEventType::CollisionEnded,
-                       .entity1 = PhysicsSubsystem::m_bodyEntityConnections[bodyID1],
-                       .entity2 = PhysicsSubsystem::m_bodyEntityConnections[bodyID2]};
+    if (PhysicsSubsystem::m_bodyEntityConnections.contains(bodyID1)
+        && PhysicsSubsystem::m_bodyEntityConnections.contains(bodyID2))
+    {
+        PhysicsEvent event{.eventType = PhysicsEventType::CollisionEnded,
+                           .entity1 = PhysicsSubsystem::m_bodyEntityConnections[bodyID1],
+                           .entity2 = PhysicsSubsystem::m_bodyEntityConnections[bodyID2]};
 
-    PhysicsSubsystem::s_physicsEventQueue.enqueue(eastl::make_shared<PhysicsEvent>(eastl::move(event)));
+        PhysicsSubsystem::s_physicsEventQueue.enqueue(eastl::make_shared<PhysicsEvent>(eastl::move(event)));
+    }
 
     if (mNext != nullptr) mNext->OnContactRemoved(inSubShapePair);
 }
