@@ -339,4 +339,44 @@ inline SkyboxComponent GetSkybox(const YAML::Node &node)
 
     return component;
 }
+
+inline bool HasNavMeshVolume(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["NavmeshVolumeComponent"]) return true;
+
+    return false;
+}
+
+inline NavmeshVolumeComponent GetNavMeshVolume(const YAML::Node &node)
+{
+    NavmeshVolumeComponent component;
+
+    if (!node || node.IsNull() || !node.IsMap())
+    {
+        BF_WARN("Navmesh Volume component not found or invalid in .scene file.");
+        return component;
+    }
+
+    Vec3 extents = {node["Extent"]["X"].as<float>(), node["Extent"]["Y"].as<float>(), node["Extent"]["Z"].as<float>()};
+    component.LocalBounds =
+        JPH::AABox::sFromTwoPoints({-extents.x, -extents.y, -extents.z}, {extents.x, extents.y, extents.z});
+    component.IsEnabled = node["IsEnabled"].as<bool>();
+    component.CellSize = node["CellSize"].as<float>();
+    component.AgentHeight = node["AgentHeight"].as<float>();
+    component.AgentRadius = node["AgentRadius"].as<float>();
+    component.AgentMaxClimb = node["AgentMaxClimb"].as<float>();
+    component.AgentMaxSlope = node["AgentMaxSlope"].as<float>();
+    return component;
+}
+
+inline std::string NavMeshData(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return "";
+
+    if (!node["NavMeshData"] || !node["NavMeshData"]["Path"]) return "";
+    
+    return node["NavMeshData"]["Path"].as<std::string>();
+}
 } // namespace Blainn

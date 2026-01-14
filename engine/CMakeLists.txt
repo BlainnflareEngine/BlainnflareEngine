@@ -142,7 +142,6 @@ set(ENGINE_SOURCES
         include/ai/UtilitySelector.h
         src/ai/UtilitySelector.cpp
         # src/ai/FromLuaToAIController.cpp
-
         include/components/CameraComponent.h
         src/Render/EditorCamera.cpp
         include/Render/EditorCamera.h
@@ -150,8 +149,12 @@ set(ENGINE_SOURCES
         include/Render/RuntimeCamera.h
         include/Render/DebugRenderer.h
         src/Render/DebugRenderer.cpp
-
         include/components/SkyboxComponent.h
+        include/components/NavMeshVolumeComponent.h
+        include/subsystems/Navigation/NavigationSubsystem.h
+        src/subsystems/Navigation/NavigationSubsystem.cpp
+        include/subsystems/Navigation/NavmeshBuilder.h
+        src/subsystems/Navigation/NavmeshBuilder.cpp
         include/Render/RenderTarget.h
         include/Render/GTexture.h
         include/Render/Resource.h
@@ -162,7 +165,9 @@ set(ENGINE_SOURCES
         src/tools/SelectionManager.cpp
 )
 
+
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
+
 
 target_compile_options(ENGINE PRIVATE /bigobj)
 
@@ -180,6 +185,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${LUA_INCLUDE_DIR}"
         "${SOL2_INCLUDE_DIR}"
         "${CMAKE_SOURCE_DIR}/libs/eventpp/include"
+        "${CMAKE_SOURCE_DIR}/libs/recastnavigation/Recast/Include"
+        "${CMAKE_SOURCE_DIR}/libs/recastnavigation/Detour/Include"
 )
 
 
@@ -194,5 +201,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         spdlog
         pch
         lua
+        Recast
+        Detour
         d3d12.lib
         d3dcompiler.lib)

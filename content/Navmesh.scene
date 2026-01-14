@@ -1,0 +1,59 @@
+SceneName: Navmesh.scene
+SceneID: 2c897ebb-cb94-4c0f-ab43-053fcc710256
+Entities:
+  - Name: Floor
+    EntityID: 6961d162-4d86-4d70-8b95-938cf15e7673
+    TagComponent:
+      Tag: Floor
+    TransformComponent:
+      Translation:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        x: 0
+        y: 0
+        z: 0
+      Scale:
+        x: 1
+        y: 1
+        z: 1
+    RelationshipComponent:
+      Parent: 00000000-0000-0000-0000-000000000000
+      Children:
+        []
+    MeshComponent:
+      Path: Navmesh/nav_test.obj
+      Material: Materials\Default.mat
+  - Name: Entity
+    EntityID: 0834e488-d7c9-4959-b551-f04a0e7ede8c
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        x: 0
+        y: 0
+        z: 0
+      Scale:
+        x: 1
+        y: 1
+        z: 1
+    RelationshipComponent:
+      Parent: 00000000-0000-0000-0000-000000000000
+      Children:
+        []
+    NavmeshVolumeComponent:
+      Extent:
+        X: 50
+        Y: 50
+        Z: 50
+      Enabled: true
+      CellSize: 0.3
+      AgentHeight: 2
+      AgentRadius: 0.6
+      AgentMaxClimb: 0.5
+      AgentMaxSlope: 45

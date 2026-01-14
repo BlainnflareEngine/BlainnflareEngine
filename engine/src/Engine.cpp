@@ -10,6 +10,7 @@
 #include "Input/KeyboardEvents.h"
 #include "aliases.h"
 #include "Input/MouseEvents.h"
+#include "Navigation/NavigationSubsystem.h"
 #include "scene/Scene.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
@@ -55,6 +56,8 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
             BF_INFO("the picked id is {}", id.str());
         }
     });
+    NavigationSubsystem::Init();
+    NavigationSubsystem::SetShouldDrawDebug(true);
 }
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
@@ -68,6 +71,7 @@ void Engine::Destroy()
 {
     s_activeScene = nullptr;
 
+    NavigationSubsystem::Destroy();
     AISubsystem::GetInstance().Destroy();
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
@@ -112,6 +116,9 @@ void Engine::Update(float deltaTime)
     }
 
     s_activeScene->Update();
+
+    if (NavigationSubsystem::ShouldDrawDebug())
+        NavigationSubsystem::DrawDebugMesh();
 
     RenderSubsystem::GetInstance().Render(deltaTime);
 

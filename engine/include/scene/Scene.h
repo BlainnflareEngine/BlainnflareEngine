@@ -68,6 +68,7 @@ public:
     Entity CreateChildEntityWithID(Entity parent, const uuid &id, const eastl::string &name = "",
                                    bool shouldSort = true, bool onSceneChanged = false, bool createdByEditor = false);
     void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false, bool createdByEditor = false);
+    void LoadNavMeshData(const YAML::Node& node);
     void SubmitToDestroyEntity(Entity entity);
 
 

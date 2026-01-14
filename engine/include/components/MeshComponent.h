@@ -35,5 +35,8 @@ struct MeshComponent
     eastl::unique_ptr<UploadBuffer<ObjectConstants>> ObjectCB = nullptr;
 
     ObjectConstants PerObjectCBData;
+
+    // TODO: use layers in future 
+    bool IsWalkable = false;
 };
 } // namespace Blainn
