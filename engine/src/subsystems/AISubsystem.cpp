@@ -1,6 +1,7 @@
 #include <pch.h>
 #include "subsystems/AISubsystem.h"
 #include "subsystems/ScriptingSubsystem.h"
+#include "subsystems/PerceptionSubsystem.h"
 
 #include "Engine.h"
 #include "scene/Scene.h"
@@ -100,7 +101,6 @@ void AISubsystem::CreateAttachAIControllerComponent(Entity entity, const Path &a
     component.scriptPath = aiScriptPath.string();
 }
 
-
 bool Blainn::AISubsystem::CreateAIController(Entity entity)
 {
     AIControllerComponent *componentPtr = entity.TryGetComponent<AIControllerComponent>();
@@ -119,8 +119,51 @@ bool Blainn::AISubsystem::CreateAIController(Entity entity)
     }
     const sol::table &scriptEnv = componentPtr->aiScript->GetEnvironment();
 
-    std::unique_ptr<Blackboard> bb;
+    PerceptionComponent* perception = entity.TryGetComponent<PerceptionComponent>();
+    if (!perception)
+    {
+        PerceptionSubsystem::GetInstance().CreateAttachPerceptionComponent(entity);
+        perception = entity.TryGetComponent<PerceptionComponent>();
+    }
+    
+    StimulusComponent* stimulus = entity.TryGetComponent<StimulusComponent>();
+    if (!stimulus)
+    {
+        PerceptionSubsystem::GetInstance().CreateAttachStimulusComponent(entity);
+        stimulus = entity.TryGetComponent<StimulusComponent>();
+    }
+    
+    sol::optional<sol::function> configurePerception = scriptEnv["ConfigurePerception"];
+    if (configurePerception && perception)
+    {
+        auto result = configurePerception.value()(perception);
+        if (!result.valid())
+        {
+            sol::error err = result;
+            BF_ERROR("ConfigurePerception failed: " + eastl::string(err.what()));
+        }
+    }
+    
+    sol::optional<sol::function> configureStimulus = scriptEnv["ConfigureStimulus"];
+    if (configureStimulus && stimulus)
+    {
+        auto result = configureStimulus.value()(stimulus);
+        if (!result.valid())
+        {
+            sol::error err = result;
+            BF_ERROR("ConfigureStimulus failed: " + eastl::string(err.what()));
+        }
+    }
+
+    eastl::unique_ptr<Blackboard> bb = eastl::make_unique<Blackboard>();
     LoadBlackboard(scriptEnv, bb);
+    
+    if (perception)
+    {
+        bb->Set("_perception", perception);
+    }
+    
+    bb->Set("selfEntity", entity.GetUUID());
 
     BTMap trees;
     LoadBehaviourTrees(scriptEnv, trees);

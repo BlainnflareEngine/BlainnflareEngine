@@ -146,6 +146,13 @@ set(ENGINE_SOURCES
         include/ai/UtilitySelector.h
         src/ai/UtilitySelector.cpp
         # src/ai/FromLuaToAIController.cpp
+
+        include/subsystems/PerceptionSubsystem.h
+        src/subsystems/PerceptionSubsystem.cpp
+        include/components/PerceptionComponent.h
+        include/components/StimulusComponent.h
+        include/ai/PerceptionEvents.h
+
         include/components/CameraComponent.h
         src/Render/EditorCamera.cpp
         include/Render/EditorCamera.h
