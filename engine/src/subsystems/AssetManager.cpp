@@ -25,10 +25,11 @@ AssetManager &AssetManager::GetInstance()
 
 void AssetManager::Init()
 {
-    // For DirectXTex
-    ThrowIfFailed(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
-
     BF_INFO("AssetManager Init");
+
+    // For DirectXTex
+    ThrowIfFailed(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED));
+
     m_loader = eastl::make_unique<AssetLoader>();
     m_loader->Init();
 
@@ -37,11 +38,9 @@ void AssetManager::Init()
     m_meshes.reserve(MAX_MESHES);
 
 #pragma region LoadDefaultResource
-    // TODO: create default texture
     m_textures.emplace(m_loader->LoadTexture("Textures\\Default.dds", TextureType::ALBEDO));
     const auto& defaultTextureHandle = GetTexture("Textures\\Default.dds");
 
-    // TODO: create default material
     Material material = Material("Materials\\Default.mat", "");
     material.SetTexture(defaultTextureHandle,  TextureType::ALBEDO);
     m_materials.emplace(eastl::make_shared<Material>(std::move(material)));
