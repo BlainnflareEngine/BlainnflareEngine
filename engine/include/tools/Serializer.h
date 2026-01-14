@@ -231,5 +231,20 @@ public:
         out << YAML::Key << "AgentMaxSlope" << YAML::Value << volume.AgentMaxSlope;
         out << YAML::EndMap;
     }
+
+    static void ExistingNavMeshData(const Path &absolutePath, YAML::Emitter &out)
+    {
+        if (std::filesystem::exists(absolutePath))
+        {
+            auto node = YAML::LoadFile(absolutePath.string());
+
+            if (node && node["NavMeshData"])
+            {
+                const auto &navmeshDataPath = node["NavMeshData"]["Path"].as<std::string>();
+                out << YAML::Key << "NavMeshData" << YAML::Value << YAML::BeginMap;
+                out << YAML::Key << "Path" << YAML::Value << navmeshDataPath;
+            }
+        }
+    }
 };
 } // namespace Blainn

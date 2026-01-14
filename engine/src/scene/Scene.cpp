@@ -7,6 +7,7 @@
 
 #include "Engine.h"
 #include "Serializer.h"
+#include "Navigation/NavigationSubsystem.h"
 #include "assimp/code/AssetLib/OpenGEX/OpenGEXStructs.h"
 #include "components/CameraComponent.h"
 #include "scene/SceneParser.h"
@@ -45,6 +46,8 @@ Scene::Scene(const YAML::Node &config)
     s_sceneEventQueue.enqueue(eastl::make_shared<SceneChangedEvent>(m_Name));
 
     if (config["Entities"] && config["Entities"].IsSequence()) CreateEntities(config["Entities"], true);
+
+    LoadNavMeshData(config);
 }
 
 
@@ -117,7 +120,7 @@ void Scene::SaveScene()
 {
     if (Engine::IsPlayMode()) return;
 
-    BF_DEBUG("Saved scene {}", m_Name.c_str());
+    Path absolutePath = (Engine::GetContentDirectory() / std::string(m_Name.c_str())).string();
 
     YAML::Emitter out;
     out << YAML::BeginMap; // Root
@@ -151,11 +154,15 @@ void Scene::SaveScene()
     }
 
     out << YAML::EndSeq; // Entities
+
+    Serializer::ExistingNavMeshData(absolutePath, out);
+
     out << YAML::EndMap; // Root
 
-    std::string filepath = (Engine::GetContentDirectory() / std::string(m_Name.c_str())).string();
-    std::ofstream fout(filepath);
+    std::ofstream fout(absolutePath);
     fout << out.c_str();
+
+    BF_DEBUG("Saved scene {}", m_Name.c_str());
 }
 
 
@@ -352,6 +359,15 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
             entity.AddComponent<NavmeshVolumeComponent>(navMeshVolume);
         }
     }
+}
+
+
+void Scene::LoadNavMeshData(const YAML::Node &node)
+{
+    auto navMeshRelativePath = NavMeshData(node);
+    if (navMeshRelativePath.empty()) return;
+
+    NavigationSubsystem::LoadNavMesh(navMeshRelativePath);
 }
 
 

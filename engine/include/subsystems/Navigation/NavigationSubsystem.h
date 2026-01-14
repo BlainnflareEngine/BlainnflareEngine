@@ -24,6 +24,7 @@ public:
 
     static bool LoadNavMesh(const Path &relativePath);
     static bool BakeNavMesh(Scene &scene, Entity navVolumeEntity, const Path &outputRelativePath);
+    static void ClearNavMesh();
 
     static bool FindPath(const Vec3 &start, const Vec3 &end, eastl::vector<Vec3> &outPath);
 

@@ -14,6 +14,8 @@
 #include "Render/PrebuiltEngineMeshes.h"
 #include "AssetManager.h"
 
+#include "Navigation/NavigationSubsystem.h"
+
 namespace Blainn
 {
 AssetManager &AssetManager::GetInstance()
@@ -39,12 +41,12 @@ void AssetManager::Init()
 
 #pragma region LoadDefaultResource
     m_textures.emplace(m_loader->LoadTexture("Textures\\Default.dds", TextureType::ALBEDO));
-    const auto& defaultTextureHandle = GetTexture("Textures\\Default.dds");
+    const auto &defaultTextureHandle = GetTexture("Textures\\Default.dds");
 
     Material material = Material("Materials\\Default.mat", "");
-    material.SetTexture(defaultTextureHandle,  TextureType::ALBEDO);
+    material.SetTexture(defaultTextureHandle, TextureType::ALBEDO);
     m_materials.emplace(eastl::make_shared<Material>(std::move(material)));
-    
+
     auto defaultMeshData = PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f);
     Model model;
     model.SetMeshes({defaultMeshData});
@@ -157,7 +159,7 @@ eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &relativeP
             index);
 
     vgjs::schedule([&, relativePath]() { AddTextureWhenLoaded(relativePath, index, type); });
-    //AddTextureWhenLoaded(relativePath, index, type);
+    // AddTextureWhenLoaded(relativePath, index, type);
     return eastl::make_shared<TextureHandle>(index);
 }
 
@@ -243,6 +245,8 @@ bool AssetManager::SceneExists(const Path &relativePath)
 
 void AssetManager::OpenScene(const Path &relativePath)
 {
+    NavigationSubsystem::ClearNavMesh();
+
     YAML::Node scene;
     Path absolute_path(Engine::GetContentDirectory() / relativePath);
 
@@ -293,7 +297,7 @@ Texture &AssetManager::GetTextureByHandle(const TextureHandle &handle)
     return *m_textures[index];
 }
 
-Path AssetManager::GetTexturePath(const TextureHandle& handle)
+Path AssetManager::GetTexturePath(const TextureHandle &handle)
 {
     return m_textures[handle.GetIndex()]->GetPath();
 }
@@ -427,7 +431,7 @@ void AssetManager::DecreaseMeshRefCount(const unsigned int index)
         {
             --value.refCount;
 
-            
+
             if (value.refCount == 1) // 1 because we have shared ptr in free list vector
             {
                 m_meshes.erase(index);

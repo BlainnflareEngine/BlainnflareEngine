@@ -4,6 +4,7 @@
 #include "DetourCommon.h"
 #include "DetourAssert.h"
 #include "Engine.h"
+#include "Serializer.h"
 #include "Render/DebugRenderer.h"
 #include "components/MeshComponent.h"
 #include "components/NavMeshVolumeComponent.h"
@@ -169,8 +170,29 @@ bool NavigationSubsystem::BakeNavMesh(Scene &scene, Entity navVolumeEntity, cons
 
     dtFree(result.navData);
 
+    Path scenePath = Engine::GetContentDirectory() / scene.GetName().c_str();
+    YAML::Node sceneNode = YAML::LoadFile(scenePath.string());
+    sceneNode["NavMeshData"]["Path"] = outputRelativePath.string();
+    std::ofstream fout(scenePath);
+    fout << sceneNode;
+
     BF_INFO("NavMesh baked: {}", absPath.string().c_str());
     return true;
+}
+
+
+void NavigationSubsystem::ClearNavMesh()
+{
+    if (m_navMesh)
+    {
+        dtFreeNavMesh(m_navMesh);
+        m_navMesh = nullptr;
+    }
+
+    if (m_navQuery)
+    {
+        m_navQuery->init(nullptr, 0);
+    }
 }
 
 

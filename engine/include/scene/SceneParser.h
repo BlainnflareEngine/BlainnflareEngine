@@ -360,7 +360,8 @@ inline NavmeshVolumeComponent GetNavMeshVolume(const YAML::Node &node)
     }
 
     Vec3 extents = {node["Extent"]["X"].as<float>(), node["Extent"]["Y"].as<float>(), node["Extent"]["Z"].as<float>()};
-    component.LocalBounds = JPH::AABox::sFromTwoPoints({-extents.x, -extents.y, -extents.z}, {extents.x, extents.y, extents.z});
+    component.LocalBounds =
+        JPH::AABox::sFromTwoPoints({-extents.x, -extents.y, -extents.z}, {extents.x, extents.y, extents.z});
     component.IsEnabled = node["IsEnabled"].as<bool>();
     component.CellSize = node["CellSize"].as<float>();
     component.AgentHeight = node["AgentHeight"].as<float>();
@@ -368,5 +369,14 @@ inline NavmeshVolumeComponent GetNavMeshVolume(const YAML::Node &node)
     component.AgentMaxClimb = node["AgentMaxClimb"].as<float>();
     component.AgentMaxSlope = node["AgentMaxSlope"].as<float>();
     return component;
+}
+
+inline std::string NavMeshData(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return "";
+
+    if (!node["NavMeshData"] || !node["NavMeshData"]["Path"]) return "";
+    
+    return node["NavMeshData"]["Path"].as<std::string>();
 }
 } // namespace Blainn
