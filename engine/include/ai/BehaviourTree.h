@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-#include <memory>
 #include "BTNodes.h"
 
 namespace Blainn
@@ -9,10 +7,10 @@ namespace Blainn
 class BehaviourTree
 {
 public:
-    BehaviourTree(std::string name, BTNodePtr root)
-        : m_name(std::move(name)), m_root(std::move(root)) {}
+    BehaviourTree(eastl::string name, BTNodePtr root)
+        : m_name(eastl::move(name)), m_root(eastl::move(root)) {}
 
-    const std::string& GetName() const { return m_name; }
+    const eastl::string& GetName() const { return m_name; }
 
     BTStatus Update(Blackboard& bb);
     void Reset();
@@ -21,12 +19,12 @@ public:
     bool IsAborting() const;
 
 private:
-    std::string m_name;
+    eastl::string m_name;
     BTNodePtr m_root;
     bool m_abortRequested = false;
     bool m_hasError = false;
 };
 
-using BTMap = std::unordered_map<std::string, std::unique_ptr<BehaviourTree>>;
+using BTMap = eastl::unordered_map<eastl::string, eastl::unique_ptr<BehaviourTree>>;
 
 }

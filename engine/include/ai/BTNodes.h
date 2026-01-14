@@ -1,8 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <utility>
-#include <vector>
+#include "EASTL/utility.h"
+#include "EASTL/vector.h"
+#include "EASTL/unique_ptr.h"
 
 #include <sol/sol.hpp>
 #include "Blackboard.h"
@@ -25,11 +26,11 @@ struct BTNode
     virtual void Reset() = 0; // NOTE: Check if it's really working
 };
 
-using BTNodePtr = std::unique_ptr<BTNode>;
+using BTNodePtr = eastl::unique_ptr<BTNode>;
 
 struct CompositeNode : BTNode
 {
-    std::vector<BTNodePtr> children;
+    eastl::vector<BTNodePtr> children;
     size_t m_currentIndex = 0;
 
     void AddChild(BTNodePtr n);

@@ -1,4 +1,6 @@
 #pragma once
+
+#include "EASTL/vector.h"
 #include "ai/UtilityContext.h"
 #include "ai/Blackboard.h"
 
@@ -13,13 +15,13 @@ public:
         float hysteresis = 0.0f;
     };
 
-    UtilitySelector( std::vector<UtilityDecision> decisions, Settings settings = {} );
+    UtilitySelector( eastl::vector<UtilityDecision> decisions, Settings settings = {} );
 
-    std::string Evaluate( UtilityContext& context, Blackboard& blackboard, float deltaTime );
-    std::string FindDecisionBTName( std::string decisionName );
+    eastl::string Evaluate( UtilityContext& context, Blackboard& blackboard, float deltaTime );
+    eastl::string FindDecisionBTName( eastl::string decisionName );
 
 private:
-    std::vector<UtilityDecision> m_decisions;
+    eastl::vector<UtilityDecision> m_decisions;
     Settings m_settings;
 };
 }

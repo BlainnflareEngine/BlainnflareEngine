@@ -36,7 +36,7 @@ public:
     bool ParseDecorators(sol::table node);
     bool CalculateBT(sol::table node);
     BTNodePtr Build();
-    std::unique_ptr<BehaviourTree> BuildFromLua(sol::table rootTable);
+    eastl::unique_ptr<BehaviourTree> BuildFromLua(sol::table rootTable);
     void Reset();
     bool HasError() const { return m_hasError; }
 
@@ -47,10 +47,10 @@ private:
     template <class TComposite>
     BTBuilder& OpenComposite()
     {
-        auto node = std::make_unique<TComposite>();
+        auto node = eastl::make_unique<TComposite>();
         CompositeNode* raw = node.get();
 
-        AttachNode(std::move(node));
+        AttachNode(eastl::move(node));
         m_stack.push_back(raw);
         return *this;
     }
@@ -59,7 +59,7 @@ private:
     bool m_hasError = false;
 
     BTNodePtr m_root{};
-    std::vector<CompositeNode*> m_stack{}; // non owning pointers into nodes we own via unique_ptr
-    std::vector<PendingDecorator> m_pendingDecorators;
+    eastl::vector<CompositeNode*> m_stack{}; // non owning pointers into nodes we own via unique_ptr
+    eastl::vector<PendingDecorator> m_pendingDecorators;
 };
 } // namespace Blainn

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <unordered_map>
-#include <memory>
 #include "helpers.h"
 #include "aliases.h"
 #include "ai/BehaviourTree.h"
@@ -29,13 +27,13 @@ public:
     bool CreateAIController(Entity entity);
     void DestroyAIControllerComponent(Entity entity);
 
-    BehaviourTree *GetBehaviourTree(const std::string &name);
+    BehaviourTree *GetBehaviourTree(const eastl::string &name);
 
 private:
     AISubsystem() = default;
 
-    void LoadBlackboard(const sol::table &scriptEnvironment, std::unique_ptr<Blackboard> &blackboard);
+    void LoadBlackboard(const sol::table &scriptEnvironment, eastl::unique_ptr<Blackboard> &blackboard);
     void LoadBehaviourTrees(const sol::table &scriptEnvironment, BTMap &behaviourTrees);
-    void LoadUtility(const sol::table &scriptEnvironment, std::unique_ptr<UtilitySelector> &utility);
+    void LoadUtility(const sol::table &scriptEnvironment, eastl::unique_ptr<UtilitySelector> &utility);
 };
 } // namespace Blainn

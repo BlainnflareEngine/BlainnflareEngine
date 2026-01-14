@@ -1,17 +1,17 @@
 #include "ai/UtilitySelector.h"
 
-Blainn::UtilitySelector::UtilitySelector(std::vector<UtilityDecision> decisions, Settings settings) 
-    : m_decisions(std::move(decisions)), m_settings(settings) {}
+Blainn::UtilitySelector::UtilitySelector(eastl::vector<UtilityDecision> decisions, Settings settings) 
+    : m_decisions(eastl::move(decisions)), m_settings(settings) {}
 
 
-std::string Blainn::UtilitySelector::Evaluate(UtilityContext &context, Blackboard &blackboard, float deltaTime)
+eastl::string Blainn::UtilitySelector::Evaluate(UtilityContext &context, Blackboard &blackboard, float deltaTime)
 {
     context.UpdateCooldowns(deltaTime);
 
     float bestScore = -FLT_MAX;
-    std::string bestDecision;
+    eastl::string bestDecision;
 
-    std::unordered_map<std::string, float> scores;
+    eastl::unordered_map<eastl::string, float> scores;
     float scoreSum = 0.0f;
 
     for (const auto& decision : m_decisions)
@@ -74,10 +74,10 @@ std::string Blainn::UtilitySelector::Evaluate(UtilityContext &context, Blackboar
     return bestDecision;
 }
 
-std::string Blainn::UtilitySelector::FindDecisionBTName(std::string decisionName)
+eastl::string Blainn::UtilitySelector::FindDecisionBTName(eastl::string decisionName)
 {
     for (auto decision : m_decisions)
         if (decision.name == decisionName)
             return decision.BTName;
-    return std::string();
+    return eastl::string();
 }

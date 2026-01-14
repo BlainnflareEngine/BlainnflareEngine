@@ -1,13 +1,14 @@
 #pragma once
 
 #include <sol/sol.hpp>
+#include "EASTL/string.h"
 
 namespace Blainn
 {
 struct UtilityDecision
 {
-    std::string name;
-    std::string BTName;
+    eastl::string name;
+    eastl::string BTName;
 
     sol::function scoreFn;
 
