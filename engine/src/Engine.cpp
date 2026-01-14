@@ -44,18 +44,20 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     ScriptingSubsystem::Init();
     AISubsystem::GetInstance().Init();
 
-    Input::AddEventListener(InputEventType::MouseButtonPressed, [&](const InputEventPointer &event)
-    {
-        const MouseButtonPressedEvent *mouseEvent = static_cast<const MouseButtonPressedEvent*>(event.get());
-        auto button = mouseEvent->GetMouseButton();
-
-        if (button == MouseButton::Left)
+    Input::AddEventListener(
+        InputEventType::MouseButtonPressed,
+        [&](const InputEventPointer &event)
         {
-            uuid id = RenderSubsystem::GetInstance().GetUUIDAt(mouseEvent->GetX() - 350, mouseEvent->GetY() - 130);
+            const MouseButtonPressedEvent *mouseEvent = static_cast<const MouseButtonPressedEvent *>(event.get());
+            auto button = mouseEvent->GetMouseButton();
 
-            BF_INFO("the picked id is {}", id.str());
-        }
-    });
+            if (button == MouseButton::Left)
+            {
+                uuid id = RenderSubsystem::GetInstance().GetUUIDAt(mouseEvent->GetX() - 350, mouseEvent->GetY() - 130);
+
+                BF_INFO("the picked id is {}", id.str());
+            }
+        });
     NavigationSubsystem::Init();
     NavigationSubsystem::SetShouldDrawDebug(true);
 }
@@ -113,12 +115,12 @@ void Engine::Update(float deltaTime)
         PhysicsSubsystem::Update();
         ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
         AISubsystem::GetInstance().Update(playModeDelta);
+        NavigationSubsystem::Update(playModeDelta);
     }
 
     s_activeScene->Update();
 
-    if (NavigationSubsystem::ShouldDrawDebug())
-        NavigationSubsystem::DrawDebugMesh();
+    if (NavigationSubsystem::ShouldDrawDebug()) NavigationSubsystem::DrawDebugMesh();
 
     RenderSubsystem::GetInstance().Render(deltaTime);
 
