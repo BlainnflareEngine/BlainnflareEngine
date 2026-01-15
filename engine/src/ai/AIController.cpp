@@ -71,14 +71,12 @@ void AIController::Update(float dt)
     case BTStatus::Success:
     case BTStatus::Failure:
     case BTStatus::Aborted:
-        CleanupActiveTree(); // TODO: Надо ли после этого запускать некст decision?
-        /*
-        if ( !newDecision.empty() ) // если дерево было и закончилось и есть новое решение, то запускаем следующее
-        дерево
+        CleanupActiveTree();
+
+        if (!newDecision.empty())
         {
             ActivateDecision(newDecision);
         }
-        */
         return;
     case BTStatus::Error:
         HandleBTError();
@@ -86,11 +84,6 @@ void AIController::Update(float dt)
     default:
         break;
     }
-
-    // if ( status == BTStatus::Running )
-    //     return;
-
-    // CleanupActiveTree(); // если завершился любым способом
 }
 
 
@@ -179,7 +172,6 @@ bool AIController::GetDesiredDirection(Vec3 &outDirection, float stoppingDistanc
     outDirection = m_moveDirection;
     return true;
 }
-
 
 void AIController::ActivateDecision(const eastl::string &decision)
 {
