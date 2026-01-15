@@ -8,6 +8,7 @@
 #include "physics/PhysicsEvents.h"
 #include "physics/PhysicsTypes.h"
 #include "physics/PhysicsCreationSettings.h"
+#include "physics/RayCastResult.h"
 #include "scene/Scene.h"
 #include "tools/PeriodicTimeline.h"
 
@@ -20,10 +21,8 @@ class TempAllocator;
 
 namespace Blainn
 {
-class BodyBuilder;
 class BPLayerInterfaceImpl;
 class ObjectVsBroadPhaseLayerFilterImpl;
-class RayCastResult;
 
 class PhysicsSubsystem
 {
@@ -56,8 +55,6 @@ public:
 
     static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance);
 
-    using PhysicsEventHandle =
-        eventpp::internal_::CallbackListBase<void(const eastl::shared_ptr<PhysicsEvent> &), PhysicsEventPolicy>::Handle;
     static PhysicsEventHandle AddEventListener(const PhysicsEventType eventType,
                                                eastl::function<void(const eastl::shared_ptr<PhysicsEvent> &)> listener);
     static void RemoveEventListener(const PhysicsEventType eventType, const PhysicsEventHandle &handle);

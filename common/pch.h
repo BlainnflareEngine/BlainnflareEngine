@@ -34,6 +34,29 @@
 
 #include <cstdint>
 
+
+#pragma region render includes
+
+#include <Windows.h>
+#include <wrl.h>
+#include <dxgi.h>
+#include <dxgi1_4.h>
+#include <dxgi1_6.h>
+#include <DirectXMath.h>
+#include <DirectXColors.h>
+
+#include <d3d12.h>
+#include <d3d11_1.h>
+#include <DirectXTK12/Src/d3dx12.h>
+#include <d3dcompiler.h>
+#include <DirectXCollision.h>
+
+#include <intsafe.h>
+#include <D3D12MemAlloc.h>
+
+#pragma endregion
+
+
 #include <uuid_v4.h>
 #include <yaml-cpp/yaml.h>
 
@@ -77,6 +100,11 @@ inline eastl::string ToEASTLString(const std::string &s)
 #include <lua.hpp>
 #include <sol/sol.hpp>
 
+#include <eventpp/callbacklist.h>
+#include <entt/entt.hpp>
+
+#pragma region Jolt common includes
+
 #include <Jolt/Jolt.h>
 #include <Jolt/Core/Mutex.h>
 #include <Jolt/Core/QuickSort.h>
@@ -109,3 +137,14 @@ inline eastl::string ToEASTLString(const std::string &s)
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/StateRecorder.h>
 #include <Jolt/RegisterTypes.h>
+#include <Jolt/Renderer/DebugRendererSimple.h>
+
+#pragma endregion
+
+// disable if you dont want to register lua types
+#define BLAINN_REGISTER_LUA_TYPES
+
+#ifdef BLAINN_REGISTER_LUA_TYPES
+// enable to test lua scripts functionality.
+// #define BLAINN_TEST_LUA_SCRIPTS
+#endif

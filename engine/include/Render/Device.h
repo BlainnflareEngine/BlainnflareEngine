@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Windows.h>
 #include "DXHelpers.h"
 
 struct ID3D12Device2;

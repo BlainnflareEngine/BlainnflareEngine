@@ -3,11 +3,11 @@
 //
 
 #pragma once
-#include "FileSystemObject.h"
-#include "TextureType.h"
-
 #include <d3d12.h>
 #include <wrl/client.h>
+
+#include "FileSystemObject.h"
+#include "TextureType.h"
 
 namespace Blainn
 {

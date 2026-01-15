@@ -5,7 +5,6 @@
 
 #pragma once
 #include "Resource.h"
-#include "EASTL/shared_ptr.h"
 
 namespace Blainn
 {

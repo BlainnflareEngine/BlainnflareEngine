@@ -5,14 +5,6 @@
 #include "components/ScriptingComponent.h"
 #include "scene/Entity.h"
 
-// disable if you dont want to register lua types
-#define BLAINN_REGISTER_LUA_TYPES
-
-#ifdef BLAINN_REGISTER_LUA_TYPES
-// enable to test lua scripts functionality.
-// #define BLAINN_TEST_LUA_SCRIPTS
-#endif
-
 namespace sol
 {
 class state;

@@ -5,9 +5,6 @@
 #pragma once
 #include "aliases.h"
 
-
-#include <filesystem>
-
 namespace Blainn
 {
 class FileSystemObject

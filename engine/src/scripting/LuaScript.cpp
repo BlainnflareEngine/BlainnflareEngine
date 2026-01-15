@@ -3,6 +3,7 @@
 #include "scripting/LuaScript.h"
 
 #include "subsystems/ScriptingSubsystem.h"
+#include "subsystems/PhysicsSubsystem.h"
 
 
 using namespace Blainn;

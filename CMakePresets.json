@@ -51,6 +51,27 @@
             "jobs": 8
         },
         {
+            "name": "Debug build 4 jobs",
+            "displayName": "Build VS 2022 Debug 4 jobs",
+            "configurePreset": "default configure",
+            "configuration": "Debug",
+            "jobs": 4
+        },
+        {
+            "name": "Debug build 2 jobs",
+            "displayName": "Build VS 2022 Debug 2 jobs",
+            "configurePreset": "default configure",
+            "configuration": "Debug",
+            "jobs": 2
+        },
+        {
+            "name": "Debug build 1 job",
+            "displayName": "Build VS 2022 Debug 1 job",
+            "configurePreset": "default configure",
+            "configuration": "Debug",
+            "jobs": 1
+        },
+        {
             "name": "Visual Studio Community 2022 Release - amd64-debug",
             "displayName": "Visual Studio Community 2022 Release - amd64 - Debug",
             "configurePreset": "Visual Studio Community 2022 Release - amd64",

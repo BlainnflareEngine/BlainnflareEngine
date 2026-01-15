@@ -1,7 +1,5 @@
 #pragma once
 
-#include "subsystems/ScriptingSubsystem.h"
-
 namespace sol
 {
 class state;
@@ -21,5 +19,10 @@ void RegisterAssetLoaderTypes(sol::state &luaState);
 void RegisterEngineTypes(sol::state &luaState);
 void RegisterPhysicsTypes(sol::state &luaState);
 void RegisterAITypes(sol::state &luaState);
+
+void RegisterVectorTypes(sol::state &luaState);
+void RegisterUselessSimpleMathTypes(sol::state &luaState);
+void RegisterPhysicsBodyGetter(sol::state &luaState, sol::table &physicsTable);
+void RegisterPhysicsBodyUpdater(sol::state &luaState, sol::table &physicsTable);
 #endif
 } // namespace Blainn

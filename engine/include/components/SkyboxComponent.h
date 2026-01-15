@@ -1,6 +1,5 @@
 #pragma once
 
-#include "EASTL/set.h"
 #include "aliases.h"
 #include "Handles/Handle.h"
 

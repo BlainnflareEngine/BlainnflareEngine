@@ -4,10 +4,8 @@
 
 #pragma once
 
-
-#include "AssetManager.h"
 #include "aliases.h"
-
+#include "AssetManager.h"
 
 namespace Blainn
 {
