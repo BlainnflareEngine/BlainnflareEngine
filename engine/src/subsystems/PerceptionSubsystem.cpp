@@ -20,6 +20,9 @@ PerceptionSubsystem& PerceptionSubsystem::GetInstance()
 
 void PerceptionSubsystem::Init()
 {
+    m_touchListener = TouchListener;
+    PhysicsSubsystem::AddEventListener(PhysicsEventType::CollisionStarted, m_touchListener);
+
     BF_INFO("PerceptionSubsystem Init");
 }
 
@@ -279,6 +282,30 @@ void PerceptionSubsystem::ProcessSoundStimuli(float dt)
 void PerceptionSubsystem::ProcessTouchStimuli()
 {
     // Touch стимулы должны через Jolt callback обрабатываться
+}
+
+void PerceptionSubsystem::TouchListener(const eastl::shared_ptr<PhysicsEvent>& event)
+{
+        Scene& scene = *Engine::GetActiveScene();
+        auto entity1 = scene.GetEntityWithUUID(event->entity1);
+        auto entity2 = scene.GetEntityWithUUID(event->entity2);
+        
+        if (!entity1.IsValid() || !entity2.IsValid())
+            return;
+        
+        Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
+        Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
+        
+        eastl::string tag1 = "Unknown";
+        eastl::string tag2 = "Unknown";
+        
+        if (entity1.HasComponent<StimulusComponent>())
+            tag1 = entity1.GetComponent<StimulusComponent>().tag;
+        if (entity2.HasComponent<StimulusComponent>())
+            tag2 = entity2.GetComponent<StimulusComponent>().tag;
+        
+        GetInstance().RegisterStimulus(entity2.GetUUID(), StimulusType::Touch, pos1, 0.0f, tag2);
+        GetInstance().RegisterStimulus(entity1.GetUUID(), StimulusType::Touch, pos2, 0.0f, tag1);
 }
 
 void PerceptionSubsystem::UpdateStimuliAge(float dt)

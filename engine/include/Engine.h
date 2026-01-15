@@ -47,9 +47,6 @@ public:
     static SelectionManager& GetSelectionManager() {return m_selectionManager;}
 
 private:
-    static void SetupPhysicsPerceptionIntegration();
-
-private:
     static inline SelectionManager m_selectionManager = SelectionManager();
     static inline eastl::function<void(float)> m_renderFunc = nullptr;
     static inline eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr = nullptr;

@@ -70,6 +70,8 @@ public:
         const PerceptionEventHandle& handle
     );
     
+    static void TouchListener(const eastl::shared_ptr<PhysicsEvent>& event);
+
 private:
     PerceptionSubsystem() = default;
     
@@ -118,6 +120,8 @@ private:
     
     inline static eventpp::EventQueue<PerceptionEventType, 
         void(const PerceptionEventPointer&), PerceptionEventPolicy> s_perceptionEventQueue;
+
+    eastl::function<void(const eastl::shared_ptr<PhysicsEvent> &)> m_touchListener;
 };
 
 } // namespace Blainn
