@@ -2,8 +2,11 @@
 // Created by gorev on 30.09.2025.
 //
 
+#include "pch.h"
+
 #include "file-system/Material.h"
 #include "file-system/TextureType.h"
+#include "handles/Handle.h"
 
 
 Blainn::Material::Material(const Path &path, const eastl::string &shader)
@@ -137,6 +140,42 @@ void Blainn::Material::SetMetallicScale(float metallic)
     m_metallicScale = metallic;
 }
 
+
+bool Blainn::Material::AreTexturesLoaded()
+{
+    if (m_bAreTexturesLoaded)
+        return true;
+
+    bool result = true;
+    if (HasTexture(TextureType::ALBEDO))
+    {
+        auto texIndex = m_albedoTexture->GetIndex();
+        result &= AssetManager::GetInstance().GetTextureByIndex(texIndex).IsLoaded();
+    }
+    if (HasTexture(TextureType::AO))
+    {
+        auto texIndex = m_aoTexture->GetIndex();
+        result &= AssetManager::GetInstance().GetTextureByIndex(texIndex).IsLoaded();
+    }
+    if (HasTexture(TextureType::METALLIC))
+    {
+        auto texIndex = m_metallicTexture->GetIndex();
+        result &= AssetManager::GetInstance().GetTextureByIndex(texIndex).IsLoaded();
+    }
+    if (HasTexture(TextureType::NORMAL))
+    {
+        auto texIndex = m_normalTexture->GetIndex();
+        result &= AssetManager::GetInstance().GetTextureByIndex(texIndex).IsLoaded();
+    }
+    if (HasTexture(TextureType::ROUGHNESS))
+    {
+        auto texIndex = m_roughnessTexture->GetIndex();
+        result &= AssetManager::GetInstance().GetTextureByIndex(texIndex).IsLoaded();
+    }
+
+    m_bAreTexturesLoaded = result;
+    return result;
+}
 
 void Blainn::Material::SetShader(const eastl::string &shader)
 {

@@ -6,6 +6,7 @@
 
 #include "AssetManager.h"
 #include "random.h"
+#include "file-system/Material.h"
 
 
 Blainn::Handle::Handle(const unsigned int index, AssetManager &manager)
@@ -42,7 +43,16 @@ Blainn::TextureHandle::~TextureHandle()
 
 Blainn::Texture &Blainn::TextureHandle::GetTexture() const
 {
-    return AssetManager::GetInstance().GetTextureByIndex(m_index);
+    if (AssetManager::GetInstance().GetTextureByIndex(m_index).IsLoaded())
+        return AssetManager::GetInstance().GetTextureByIndex(m_index);
+    return AssetManager::GetInstance().GetTextureByIndex(0);
+}
+
+unsigned int Blainn::TextureHandle::GetIndex() const
+{
+    if (AssetManager::GetInstance().GetTextureByIndex(m_index).IsLoaded())
+        return m_index;
+    return 0;
 }
 
 
@@ -61,7 +71,16 @@ Blainn::MaterialHandle::~MaterialHandle()
 
 Blainn::Material &Blainn::MaterialHandle::GetMaterial() const
 {
-    return AssetManager::GetInstance().GetMaterialByIndex(m_index);
+    if (AssetManager::GetInstance().GetMaterialByIndex(m_index).AreTexturesLoaded())
+        return AssetManager::GetInstance().GetMaterialByIndex(m_index);
+    return AssetManager::GetInstance().GetMaterialByIndex(0);
+}
+
+unsigned int Blainn::MaterialHandle::GetIndex() const
+{
+    if (AssetManager::GetInstance().GetMaterialByIndex(m_index).AreTexturesLoaded())
+        return m_index;
+    return 0;
 }
 
 

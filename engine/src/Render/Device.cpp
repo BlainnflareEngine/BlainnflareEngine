@@ -206,17 +206,27 @@ HRESULT Blainn::Device::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType
     switch (heapType)
     {
     case (D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV):
+    {
         m_cbvSrvUavDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-        return m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(m_srvHeap.GetAddressOf()));
-    
+        auto res = m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(m_srvHeap.GetAddressOf()));
+        m_srvHeap->SetName(L"CBV_SRV_UAV_HEAP");
+        return res;
+    }
     case (D3D12_DESCRIPTOR_HEAP_TYPE_DSV):
+    {
         m_dsvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-        return m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(m_dsvHeap.GetAddressOf()));
-    
+        auto res = m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(m_dsvHeap.GetAddressOf()));
+        m_dsvHeap->SetName(L"DSV_HEAP");
+        return res;
+    }
     case (D3D12_DESCRIPTOR_HEAP_TYPE_RTV):
+    {
         m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        return m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(m_rtvHeap.GetAddressOf()));
-    
+        auto res = m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(m_rtvHeap.GetAddressOf()));
+        m_rtvHeap->SetName(L"RTV_HEAP");
+        return res;
+    }
+
     default:
         assert(false && "Invalid descriptor heap type.");
         return HRESULT(0);

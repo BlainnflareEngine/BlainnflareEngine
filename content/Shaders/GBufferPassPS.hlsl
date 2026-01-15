@@ -50,14 +50,16 @@ GBuffer main(PSInput input)
     
     if (normalTexIndex != INVALID_INDEX)
     {
-        float4 normalMapSample = gTextures[128 + normalTexIndex].Sample(gSamplerAnisotropicWrap, input.iTexC);
+        float4 normalMapSample = gTextures[normalTexIndex].Sample(gSamplerAnisotropicWrap, input.iTexC);
         output.Normal.xyz = NormalSampleToWorldSpace(normalMapSample.rgb, input.iNormalW, input.iTangentW);
         output.Normal.a = normalMapSample.a;
     }
     
     //if (metallicTexIndex != INVALID_INDEX)
     //{
-    //    float4 metallicMapSample = gTextures[256 + metallicTexIndex].Sample(gSamplerAnisotropicWrap, input.iTexC);
+    //    float4 metallicMapSample = gTextures[metallicTexIndex].Sample(gSamplerAnisotropicWrap, input.iTexC);
+    //    if(metallicMapSample.r != 0.0f)
+    //        output.DiffuseAlbedo = float4(0.0f, 1.0f, 0.0f, 0.0f);
     //}
     
     //if (roughnessTexIndex != INVALID_INDEX)

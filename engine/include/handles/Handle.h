@@ -20,7 +20,7 @@ struct Handle
     Handle(const unsigned int index, AssetManager &manager = AssetManager::GetInstance());
     virtual ~Handle();
 
-    unsigned int GetIndex() const;
+    virtual unsigned int GetIndex() const;
 
 protected:
     uuid id;
@@ -34,6 +34,8 @@ struct TextureHandle : Handle
     TextureHandle(const unsigned int index, AssetManager &manager = AssetManager::GetInstance());
     virtual ~TextureHandle() override;
     Texture &GetTexture() const;
+
+    unsigned int GetIndex() const override;
 };
 
 
@@ -42,6 +44,8 @@ struct MaterialHandle : Handle
     MaterialHandle(const unsigned int index, AssetManager &manager = AssetManager::GetInstance());
     virtual ~MaterialHandle() override;
     Material &GetMaterial() const;
+
+    virtual unsigned int GetIndex() const override;
 };
 
 struct MeshHandle : Handle

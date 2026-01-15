@@ -13,26 +13,25 @@
 
 namespace Blainn
 {
-Texture::Texture(const Path &path, TextureType type, uint32_t &textureTableOffset)
+Texture::Texture(const Path &path, TextureType type, uint32_t index)
     : FileSystemObject(path)
     , m_type(type)
     {
-        auto cmdQueue = Device::GetInstance().GetCommandQueue();
-        auto cmdList = cmdQueue->GetDefaultCommandList();
-        auto cmdAlloc = cmdQueue->GetDefaultCommandAllocator();
-        cmdAlloc->Reset();
-        cmdList->Reset(cmdAlloc.Get(), nullptr);
+        const auto& cmdQueue = Device::GetInstance().GetCommandQueue();
+        const auto& cmdAlloc = cmdQueue->GetCommandAllocator();
+        const auto& cmdList = cmdQueue->GetCommandList(cmdAlloc.Get());
 
-        CreateGPUResources(cmdList.Get(), textureTableOffset);
+        CreateGPUResources(cmdList.Get(), index);
 
-        ThrowIfFailed(cmdList->Close());
-        ID3D12CommandList *const ppCommandLists[] = {cmdList.Get()};
-        cmdQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+        cmdQueue->ExecuteCommandList(cmdList);
         cmdQueue->Flush();
+
+        m_bIsLoaded = true;
     }
 
     Texture::~Texture()
     {
+        m_bIsLoaded = false;
     }
 
 
@@ -58,7 +57,7 @@ Texture::Texture(const Path &path, TextureType type, uint32_t &textureTableOffse
         return m_resource.Get();
     }
 
-    void Texture::CreateGPUResources(ID3D12GraphicsCommandList2 *cmdList, uint32_t &textureTableOffset)
+    void Texture::CreateGPUResources(ID3D12GraphicsCommandList2 *cmdList, uint32_t index)
     {
         // Gpu stuff
         auto& device = Device::GetInstance();
@@ -121,6 +120,7 @@ Texture::Texture(const Path &path, TextureType type, uint32_t &textureTableOffse
         CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
             m_resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         cmdList->ResourceBarrier(1u, &barrier);
+        m_resource.Get()->SetName(m_path.c_str());
 
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
         ZeroMemory(&srvDesc, sizeof(srvDesc));
@@ -133,7 +133,7 @@ Texture::Texture(const Path &path, TextureType type, uint32_t &textureTableOffse
         srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
 
-        UINT texturePlacementOffset = /*m_texturesSrvHeapStartIndex*/7u + (static_cast<UINT>(m_type) - 1u) * MAX_TEX_OF_TYPE + textureTableOffset;
+        UINT texturePlacementOffset = /*m_texturesSrvHeapStartIndex*/7u /*+ (static_cast<UINT>(m_type) - 1u) * MAX_TEX_OF_TYPE*/ + index;//textureTableOffset;
         m_descriptorHeapOffset = texturePlacementOffset;
 
         auto srvCpuStart = device.GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
@@ -141,8 +141,6 @@ Texture::Texture(const Path &path, TextureType type, uint32_t &textureTableOffse
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, texturePlacementOffset, cbvSrvUavDescriptorSize);
         device.CreateShaderResourceView(m_resource.Get(), &srvDesc, localHandle);
-
-        ++textureTableOffset;
 
         m_bIsInitialized = true;
     }

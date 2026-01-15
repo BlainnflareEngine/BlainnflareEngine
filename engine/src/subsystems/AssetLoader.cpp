@@ -283,10 +283,10 @@ Vec2 AssetLoader::GetTextCoords(const aiMesh &mesh, const unsigned int meshIndex
 //    m_ResourcePath = path;
 //}
 
-eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const TextureType type)
+eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const TextureType type, uint32_t index)
 {
     assert(path.is_relative());
-    auto texture = eastl::make_shared<Texture>(path, type, m_texturesOffsetsTable[type]);
+    auto texture = eastl::make_shared<Texture>(path, type, index);
     texture->DisposeUploaders();
     return texture;
 }
