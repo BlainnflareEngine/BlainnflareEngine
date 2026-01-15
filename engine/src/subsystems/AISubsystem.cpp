@@ -5,6 +5,8 @@
 
 #include "Engine.h"
 #include "scene/Scene.h"
+#include "scene/TransformComponent.h"
+#include "components/CameraComponent.h"
 
 using namespace Blainn;
 
@@ -27,11 +29,60 @@ void AISubsystem::Destroy()
 void AISubsystem::Update(float dt)
 {
     Scene &scene = *Engine::GetActiveScene();
-    const auto& view = scene.GetAllEntitiesWith<AIControllerComponent>();
-    for (const auto &[entity, aiControllerComponent] : view.each())
+    
+    if (m_settings.enableLOD)
+    {
+        UpdateLOD();
+    }
+    
+    const auto& view = scene.GetAllEntitiesWith<IDComponent, AIControllerComponent>();
+    for (const auto &[entityHandle, idComp, aiControllerComponent] : view.each())
     {
         aiControllerComponent.aiController.Update(dt);
     }
+}
+
+void AISubsystem::UpdateLOD()
+{
+    Scene& scene = *Engine::GetActiveScene();
+    
+    Vec3 cameraPos{0.0f};
+    auto cameras = scene.GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
+    
+    for (const auto& [entityHandle, idComp, transform, camera] : cameras.each())
+    {
+        if (camera.IsActiveCamera)
+        {
+            Entity cameraEntity = scene.GetEntityWithUUID(idComp.ID);
+            cameraPos = scene.GetWorldSpaceTransform(cameraEntity).GetTranslation();
+            break;
+        }
+    }
+    
+    auto view = scene.GetAllEntitiesWith<IDComponent, TransformComponent, AIControllerComponent>();
+    
+    for (const auto& [entityHandle, idComp, transform, aiComp] : view.each())
+    {
+        Entity entity = scene.GetEntityWithUUID(idComp.ID);
+        Vec3 entityPos = scene.GetWorldSpaceTransform(entity).GetTranslation();
+        
+        float distance = (entityPos - cameraPos).Length();
+        
+        float updateInterval = CalculateUpdateInterval(distance);
+        aiComp.aiController.SetUpdateInterval(updateInterval);
+    }
+}
+
+float AISubsystem::CalculateUpdateInterval(float distanceToCamera)
+{
+    if (distanceToCamera < m_settings.lodNearDistance)
+        return m_settings.lodNearUpdateInterval;
+    else if (distanceToCamera < m_settings.lodMidDistance)
+        return m_settings.lodMidUpdateInterval;
+    else if (distanceToCamera < m_settings.lodFarDistance)
+        return m_settings.lodFarUpdateInterval;
+    else
+        return 1.0f; // Если далеко то раз в секунду
 }
 
 void AISubsystem::LoadBlackboard(const sol::table &scriptEnvironment, eastl::unique_ptr<Blackboard> &blackboard)
@@ -94,19 +145,19 @@ void AISubsystem::CreateAttachAIControllerComponent(Entity entity, const Path &a
     AIControllerComponent *componentPtr = entity.TryGetComponent<AIControllerComponent>();
     if (componentPtr)
     {
-        BF_ERROR("AI controller error: entity " + entity.GetUUID().str() + "already has AI controller component");
+        BF_ERROR("AI controller error: entity " + entity.GetUUID().str() + " already has AI controller component");
         return;
     }
     AIControllerComponent &component = entity.AddComponent<AIControllerComponent>();
     component.scriptPath = aiScriptPath.string();
 }
 
-bool Blainn::AISubsystem::CreateAIController(Entity entity)
+bool AISubsystem::CreateAIController(Entity entity)
 {
     AIControllerComponent *componentPtr = entity.TryGetComponent<AIControllerComponent>();
     if (!componentPtr)
     {
-        BF_ERROR("AI controller error: entity " + entity.GetUUID().str() + "does not have AI controller component");
+        BF_ERROR("AI controller error: entity " + entity.GetUUID().str() + " does not have AI controller component");
         return false;
     }
 
@@ -118,7 +169,7 @@ bool Blainn::AISubsystem::CreateAIController(Entity entity)
         return false;
     }
     const sol::table &scriptEnv = componentPtr->aiScript->GetEnvironment();
-
+    
     PerceptionComponent* perception = entity.TryGetComponent<PerceptionComponent>();
     if (!perception)
     {

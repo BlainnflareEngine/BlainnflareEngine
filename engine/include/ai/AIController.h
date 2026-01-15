@@ -20,6 +20,10 @@ public:
     void Update(float dt);
 
     Blackboard& GetBlackboard() { return *m_blackboard; }
+    
+    void SetUpdateInterval(float interval) { m_updateInterval = interval; }
+    float GetUpdateInterval() const { return m_updateInterval; }
+    bool ShouldUpdate(float dt);
 
 private:
     void ActivateDecision(const eastl::string& decisionName);
@@ -39,6 +43,10 @@ private:
     eastl::unique_ptr<Blackboard> m_blackboard;
 
     bool m_abortRequested = false;
+    
+    // LOD
+    float m_updateInterval = 0.0f; // 0 каждый кадр
+    float m_timeSinceLastUpdate = 0.0f;
 };
 
 } // namespace Blainn

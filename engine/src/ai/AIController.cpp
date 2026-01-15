@@ -1,9 +1,9 @@
 #include <pch.h>
 #include "ai/AIController.h"
 
-
 namespace Blainn
 {
+
 void AIController::Init(
     BTMap trees,
     eastl::unique_ptr<UtilitySelector> utility,
@@ -19,9 +19,28 @@ void AIController::Init(
     m_activeDecisionName.clear();
 }
 
+bool AIController::ShouldUpdate(float dt)
+{
+    if (m_updateInterval <= 0.0f)
+        return true;
+    
+    m_timeSinceLastUpdate += dt;
+    
+    if (m_timeSinceLastUpdate >= m_updateInterval)
+    {
+        m_timeSinceLastUpdate = 0.0f;
+        return true;
+    }
+    
+    return false;
+}
+
 void AIController::Update(float dt)
 {
     if (!m_utility)
+        return;
+    
+    if (!ShouldUpdate(dt))
         return;
 
     m_utilityContext.UpdateCooldowns(dt);
@@ -29,7 +48,7 @@ void AIController::Update(float dt)
     eastl::string newDecision =
         m_utility.get()->Evaluate(m_utilityContext, *m_blackboard, dt);
 
-    if ( !m_activeTree )
+    if (!m_activeTree)
     {
         if (!newDecision.empty())
         {
@@ -38,8 +57,7 @@ void AIController::Update(float dt)
         return;
     }
 
-    eastl::string btName;
-    if ( !m_abortRequested && !newDecision.empty() && newDecision != m_activeDecisionName )
+    if (!m_abortRequested && !newDecision.empty() && newDecision != m_activeDecisionName)
     {
         m_abortRequested = true;
         m_activeTree->RequestAbort();
