@@ -43,19 +43,6 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     AssetManager::GetInstance().Init();
     ScriptingSubsystem::Init();
     AISubsystem::GetInstance().Init();
-
-    Input::AddEventListener(InputEventType::MouseButtonPressed, [&](const InputEventPointer &event)
-    {
-        const MouseButtonPressedEvent *mouseEvent = static_cast<const MouseButtonPressedEvent*>(event.get());
-        auto button = mouseEvent->GetMouseButton();
-
-        if (button == MouseButton::Left)
-        {
-            uuid id = RenderSubsystem::GetInstance().GetUUIDAt(mouseEvent->GetX() - 350, mouseEvent->GetY() - 130);
-
-            BF_INFO("the picked id is {}", id.str());
-        }
-    });
     NavigationSubsystem::Init();
     NavigationSubsystem::SetShouldDrawDebug(true);
 }
