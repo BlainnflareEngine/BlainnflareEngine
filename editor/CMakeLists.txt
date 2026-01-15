@@ -149,6 +149,8 @@ set(EDITOR_SOURCES
         include/inspector/entity/camera_widget.h
         include/inspector/entity/skybox_widget.h
         src/inspector/entity/skybox_widget.cpp
+        src/inspector/entity/ai_controller_widget.cpp
+        include/inspector/entity/ai_controller_widget.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES} "include/inspector/entity/navmesh_volume_widget.h" "src/inspector/entity/navmesh_volume_widget.cpp")

@@ -134,9 +134,9 @@ void PhysicsSubsystem::StartSimulation()
     m_physicsTimeline->Start();
 
     eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
-    auto enities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
+    auto entities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
 
-    for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
+    for (const auto &[_, idComp, transformComp, physicsComp] : entities.each())
     {
         Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
         BodyUpdater bodyUpdater = GetBodyUpdater(entity);

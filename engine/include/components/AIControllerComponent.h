@@ -1,13 +1,12 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
 #include <variant>
 #include "ai/AIController.h"
+#include "scripting/LuaScript.h"
 
 namespace Blainn
 {
-class LuaScript;
 
 using BlackboardValue = std::variant<int, float, bool, std::string>;
 
