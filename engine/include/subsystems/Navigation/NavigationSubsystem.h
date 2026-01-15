@@ -21,6 +21,7 @@ public:
 
     static void Init();
     static void Destroy();
+    static void Update(float deltaTime);
 
     static bool LoadNavMesh(const Path &relativePath);
     static bool BakeNavMesh(Scene &scene, Entity navVolumeEntity, const Path &outputRelativePath);

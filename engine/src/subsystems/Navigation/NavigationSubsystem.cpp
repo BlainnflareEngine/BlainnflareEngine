@@ -6,6 +6,7 @@
 #include "Engine.h"
 #include "Serializer.h"
 #include "Render/DebugRenderer.h"
+#include "components/AIControllerComponent.h"
 #include "components/MeshComponent.h"
 #include "components/NavMeshVolumeComponent.h"
 #include "scene/TransformComponent.h"
@@ -16,6 +17,7 @@
 
 namespace Blainn
 {
+class AIController;
 void NavigationSubsystem::Init()
 {
     m_navQuery = dtAllocNavMeshQuery();
@@ -41,6 +43,26 @@ void NavigationSubsystem::Destroy()
 
     delete m_filter;
     m_filter = nullptr;
+}
+
+
+void NavigationSubsystem::Update(float deltaTime)
+{
+    if (auto scene = Engine::GetActiveScene())
+    {
+        for (const auto &[entity, transform, controllerComp] :
+             scene->GetAllEntitiesWith<TransformComponent, AIControllerComponent>().each())
+        {
+            AIController &controller = controllerComp.aiController;
+
+            Vec3 moveDir;
+            if (controller.GetDesiredDirection(moveDir, controllerComp.StoppingDistance))
+            {
+                transform.SetTranslation(transform.GetTranslation()
+                                         + moveDir * deltaTime * controllerComp.MovementSpeed);
+            }
+        }
+    }
 }
 
 

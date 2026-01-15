@@ -16,7 +16,7 @@
 namespace editor
 {
 camera_widget::camera_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "Camera widget", parent)
+    : component_widget_base(entity, "Camera", parent)
 {
     auto *cam = m_entity.TryGetComponent<Blainn::CameraComponent>();
     if (!cam) destroy();

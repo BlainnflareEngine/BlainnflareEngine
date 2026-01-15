@@ -6,6 +6,7 @@
 
 #include "entity/scripting/scripting_widget.h"
 #include "LabelsUtils.h"
+#include "components/AIControllerComponent.h"
 #include "components/CameraComponent.h"
 #include "components/MeshComponent.h"
 #include "components/NavMeshVolumeComponent.h"
@@ -13,6 +14,7 @@
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
 #include "entity/add_component_button.h"
+#include "entity/ai_controller_widget.h"
 #include "entity/camera_widget.h"
 #include "entity/mesh_widget.h"
 #include "entity/navmesh_volume_widget.h"
@@ -64,6 +66,12 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     {
         auto scripting = new scripting_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(scripting);
+    }
+
+    if (entity.HasComponent<Blainn::AIControllerComponent>())
+    {
+        auto aiController = new ai_controller_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(aiController);
     }
 
     if (entity.HasComponent<Blainn::MeshComponent>())

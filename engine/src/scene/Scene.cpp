@@ -149,6 +149,7 @@ void Scene::SaveScene()
         Serializer::Physics(e, out);
         Serializer::Skybox(e, out);
         Serializer::NavMeshVolume(e, out);
+        Serializer::AIController(e, out);
 
         out << YAML::EndMap; // end for every entity
     }
@@ -345,6 +346,11 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
         if (HasPhysics(entityNode))
         {
             GetPhysics(entityNode["PhysicsComponent"], entity);
+        }
+
+        if (HasAIController(entityNode))
+        {
+            GetAIController(entityNode["AIControllerComponent"], entity);
         }
 
         if (HasSkybox(entityNode))

@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "AISubsystem.h"
 #include "aliases.h"
 #include "pch.h"
 
@@ -274,6 +275,33 @@ inline void GetPhysics(const YAML::Node &node, const Entity &entity)
     PhysicsSubsystem::CreateAttachPhysicsComponent(settings);
 }
 
+inline bool HasAIController(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["AIControllerComponent"]) return true;
+
+    return false;
+}
+
+inline void GetAIController(const YAML::Node &node, const Entity &entity)
+{
+    if (!node || node.IsNull() || !node.IsMap())
+    {
+        BF_WARN("AIController component not found or invalid in .scene file.");
+        return;
+    }
+
+    std::string path = node["Path"].as<std::string>("");
+    float movementSpeed = node["MovementSpeed"].as<float>();
+    float stoppingDistance = node["StoppingDistance"].as<float>();
+
+    AISubsystem::GetInstance().CreateAttachAIControllerComponent(entity, path);
+    auto &comp = entity.GetComponent<AIControllerComponent>();
+    comp.MovementSpeed = movementSpeed;
+    comp.StoppingDistance = stoppingDistance;
+}
+
 inline bool HasCamera(const YAML::Node &node)
 {
     if (!node || node.IsNull()) return false;
@@ -376,7 +404,7 @@ inline std::string NavMeshData(const YAML::Node &node)
     if (!node || node.IsNull()) return "";
 
     if (!node["NavMeshData"] || !node["NavMeshData"]["Path"]) return "";
-    
+
     return node["NavMeshData"]["Path"].as<std::string>();
 }
 } // namespace Blainn

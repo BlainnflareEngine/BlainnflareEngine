@@ -6,6 +6,7 @@
 #include "AssetManager.h"
 #include "Log.h"
 #include "PhysicsSubsystem.h"
+#include "components/AIControllerComponent.h"
 #include "components/CameraComponent.h"
 #include "components/MeshComponent.h"
 #include "components/NavMeshVolumeComponent.h"
@@ -104,6 +105,19 @@ public:
 
         out << YAML::EndSeq;
         out << YAML::EndMap;
+    }
+
+    static void AIController(Entity &entity, YAML::Emitter &out)
+    {
+        if (!entity.HasComponent<AIControllerComponent>()) return;
+
+        auto &aiController = entity.GetComponent<AIControllerComponent>();
+
+        out << YAML::Key << "AIControllerComponent" << YAML::Value << YAML::BeginMap;
+
+        out << YAML::Key << "Path" << aiController.scriptPath.c_str();
+        out << YAML::Key << "MovementSpeed" << aiController.MovementSpeed;
+        out << YAML::Key << "StoppingDistance" << aiController.StoppingDistance;
     }
 
     static void Mesh(Entity &entity, YAML::Emitter &out)
@@ -243,6 +257,7 @@ public:
                 const auto &navmeshDataPath = node["NavMeshData"]["Path"].as<std::string>();
                 out << YAML::Key << "NavMeshData" << YAML::Value << YAML::BeginMap;
                 out << YAML::Key << "Path" << YAML::Value << navmeshDataPath;
+                out << YAML::EndMap;
             }
         }
     }
