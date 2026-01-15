@@ -6,7 +6,8 @@
 
 namespace Blainn
 {
-void AIController::Init(BTMap trees, std::unique_ptr<UtilitySelector> utility, std::unique_ptr<Blackboard> blackboard)
+
+void AIController::Init(BTMap trees, eastl::unique_ptr<UtilitySelector> utility, eastl::unique_ptr<Blackboard> blackboard)
 {
     m_trees = eastl::move(trees);
     m_utility = eastl::move(utility);
@@ -17,9 +18,29 @@ void AIController::Init(BTMap trees, std::unique_ptr<UtilitySelector> utility, s
     m_activeDecisionName.clear();
 }
 
+bool AIController::ShouldUpdate(float dt)
+{
+    if (m_updateInterval <= 0.0f)
+        return true;
+    
+    m_timeSinceLastUpdate += dt;
+    
+    if (m_timeSinceLastUpdate >= m_updateInterval)
+    {
+        m_timeSinceLastUpdate = 0.0f;
+        return true;
+    }
+    
+    return false;
+}
+
 void AIController::Update(float dt)
 {
-    if (!m_utility) return;
+    if (!m_utility)
+        return;
+    
+    if (!ShouldUpdate(dt))
+        return;
 
     m_utilityContext.UpdateCooldowns(dt);
 

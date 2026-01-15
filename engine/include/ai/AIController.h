@@ -32,11 +32,15 @@ public:
     {
         return *m_blackboard;
     }
-
+    
     bool MoveTo(const Vec3 &target);
     void StopMoving();
     void StartMoving();
     bool GetDesiredDirection(Vec3 &outDirection, float stoppingDistance);
+
+    void SetUpdateInterval(float interval) { m_updateInterval = interval; }
+    float GetUpdateInterval() const { return m_updateInterval; }
+    bool ShouldUpdate(float dt);
 
 private:
     void ActivateDecision(const eastl::string& decisionName);
@@ -64,6 +68,10 @@ private:
     eastl::vector<Vec3> m_currentPath;
 
     Entity m_controlledEntity;
+    
+    // LOD
+    float m_updateInterval = 0.0f; // 0 каждый кадр
+    float m_timeSinceLastUpdate = 0.0f;
 };
 
 } // namespace Blainn
