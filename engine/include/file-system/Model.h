@@ -8,8 +8,6 @@
 #include "Render/FreyaUtil.h"
 #include "Render/Device.h"
 
-#include <EASTL/vector.h>
-
 namespace Blainn
 {
 class Device;

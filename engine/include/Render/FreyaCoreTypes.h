@@ -1,8 +1,5 @@
 #pragma once
 
-#include <DirectXMath.h>
-#include <DirectXColors.h>
-
 using namespace DirectX;
 
 namespace Blainn

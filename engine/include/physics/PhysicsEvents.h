@@ -1,5 +1,6 @@
 #pragma once
 
+#include <eventpp/callbacklist.h>
 #include "aliases.h"
 
 namespace Blainn
@@ -25,5 +26,8 @@ struct PhysicsEventPolicy
         return physicsEvent->eventType;
     }
 };
+
+using PhysicsEventHandle =
+    eventpp::internal_::CallbackListBase<void(const eastl::shared_ptr<PhysicsEvent> &), PhysicsEventPolicy>::Handle;
 
 }

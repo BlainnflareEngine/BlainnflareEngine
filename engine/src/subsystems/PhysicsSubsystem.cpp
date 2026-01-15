@@ -14,8 +14,6 @@
 #include "scene/BasicComponents.h"
 #include "scene/Scene.h"
 #include "scene/TransformComponent.h"
-#include "PhysicsSubsystem.h"
-
 
 using namespace Blainn;
 
@@ -242,7 +240,7 @@ eastl::optional<Entity> Blainn::PhysicsSubsystem::GetEntityByBodyId(JPH::BodyID 
     return eastl::optional<Entity>(Engine::GetActiveScene()->GetEntityWithUUID(m_bodyEntityConnections[bodyId]));
 }
 
-PhysicsSubsystem::PhysicsEventHandle PhysicsSubsystem::AddEventListener(
+PhysicsEventHandle PhysicsSubsystem::AddEventListener(
     const PhysicsEventType eventType, eastl::function<void(const eastl::shared_ptr<PhysicsEvent> &)> listener)
 {
     return s_physicsEventQueue.appendListener(eventType, listener);

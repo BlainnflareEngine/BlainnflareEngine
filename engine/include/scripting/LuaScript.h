@@ -2,12 +2,13 @@
 
 #include "helpers.h"
 #include "aliases.h"
-#include "scene/Entity.h"
 
-#include "subsystems/PhysicsSubsystem.h"
+#include "physics/PhysicsEvents.h"
 
 namespace Blainn
 {
+class Entity;
+
 class LuaScript
 {
 public:
@@ -73,8 +74,8 @@ private:
     };
     eastl::unordered_set<eastl::string> m_predefinedFunctions;
 
-    PhysicsSubsystem::PhysicsEventHandle m_onCollisionStartedHandle;
-    PhysicsSubsystem::PhysicsEventHandle m_onCollisionEndedHandle;
+    PhysicsEventHandle m_onCollisionStartedHandle;
+    PhysicsEventHandle m_onCollisionEndedHandle;
 
     void RemovePhysicsEventListeners();
 };

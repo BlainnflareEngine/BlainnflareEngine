@@ -4,15 +4,10 @@
 //
 #pragma once
 
-#include "d3d12.h"
-#include <wrl.h>
-
 #include "aliases.h"
 #include "Device.h"
 #include "Shader.h"
 #include "VertexTypes.h"
-
-#include "Jolt/Renderer/DebugRendererSimple.h"
 
 namespace Blainn
 {

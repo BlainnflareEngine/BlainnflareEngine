@@ -1,8 +1,5 @@
 #pragma once
 
-#include <Jolt/Jolt.h>
-#include <Jolt/Physics/Body/BodyID.h>
-
 #include "aliases.h"
 #include "physics/PhysicsTypes.h"
 #include "physics/ShapeFactory.h"

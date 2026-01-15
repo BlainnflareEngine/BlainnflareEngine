@@ -4,13 +4,6 @@
 //
 
 #pragma once
-#include <cstdint>
-#include <DirectXMath.h>
-#include <intsafe.h>
-
-#include "D3D12MemAlloc.h"
-#include "EASTL/shared_ptr.h"
-#include "EASTL/vector.h"
 
 namespace Blainn
 {
