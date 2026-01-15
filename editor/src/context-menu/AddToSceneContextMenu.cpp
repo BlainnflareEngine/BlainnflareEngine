@@ -111,7 +111,8 @@ void AddToSceneContextMenu::AddCamera(const QModelIndex &index)
         {
             auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Camera", false, true);
             entity.AddComponent<Blainn::TransformComponent>();
-            entity.AddComponent<Blainn::CameraComponent>();
+            auto &cam = entity.AddComponent<Blainn::CameraComponent>();
+            cam.camera.Reset(75.0f, 16 / 9, 0.1, 1000);
         }
         else BF_ERROR("Parent entity is invalid.");
     }
@@ -119,7 +120,8 @@ void AddToSceneContextMenu::AddCamera(const QModelIndex &index)
     {
         auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Camera", false, true);
         entity.AddComponent<Blainn::TransformComponent>();
-        entity.AddComponent<Blainn::CameraComponent>();
+        auto &cam = entity.AddComponent<Blainn::CameraComponent>();
+        cam.camera.Reset(75.0f, 16 / 9, 0.1, 1000);
     }
 }
 
