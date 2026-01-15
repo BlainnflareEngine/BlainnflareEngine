@@ -8,7 +8,7 @@ namespace Blainn
 class UtilityContext
 {
 public:
-    eastl::unordered_map<eastl::string, UtilityDecisionState> states; // TODO : понять как создавать стейты и сам контекст
+    eastl::unordered_map<eastl::string, UtilityDecisionState> states;
     eastl::string currentDecision;
 
     void UpdateCooldowns(float dt);

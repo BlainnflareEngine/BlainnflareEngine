@@ -88,7 +88,7 @@ bool BTBuilder::ReadLuaChildrenTable(sol::table node, sol::table &out)
     sol::object c = node["children"];
     if (!c.valid() || c.get_type() == sol::type::nil)
     {
-        out = sol::table(); // empty -> allowed for composites (you can make this an error)
+        out = sol::table(); // empty allowed for composites, you can make this an error
         return true;
     }
     if (!c.is<sol::table>())
@@ -128,7 +128,7 @@ bool BTBuilder::ReadLuaActionFn(sol::table node, sol::function &outFn, sol::func
 
     outFn = f.as<sol::function>();
     outOnReset = onReset.as<sol::function>();
-    return false;
+    return true;
 }
 
 bool BTBuilder::ParseDecorators(sol::table node)
@@ -166,9 +166,12 @@ bool BTBuilder::ParseDecorators(sol::table node)
             }
             AddCondition(fn);
         }
-        else BF_ERROR("ParseDecorators(): Unknown decorator type enum while parsing");
-        Reset();
-        return false;
+        else
+        {
+            BF_ERROR("ParseDecorators(): Unknown decorator type enum while parsing");
+            Reset();
+            return false;
+        }
     }
 
     return true;
@@ -242,7 +245,7 @@ bool BTBuilder::CalculateBT(sol::table node)
         }
 
         End();
-        return false;
+        return true;
     }
     case BTType::Action:
     {
@@ -255,7 +258,7 @@ bool BTBuilder::CalculateBT(sol::table node)
             return false;
         }
         AddAction(fn, onReset);
-        return false;
+        return true;
     }
     case BTType::Negate:
     {
@@ -283,7 +286,7 @@ bool BTBuilder::CalculateBT(sol::table node)
 
         sol::object c = children[1];
         CalculateBT(c.as<sol::table>());
-        return false;
+        return true;
     }
     default:
         BF_ERROR("BTBuilder::CalculateBT(): unknown node type enum while parsing");
@@ -340,7 +343,8 @@ eastl::unique_ptr<BehaviourTree> BTBuilder::BuildFromLua(sol::table rootTable)
 
 void BTBuilder::Reset()
 {
-    m_root->Reset();
+    if (m_root)
+        m_root->Reset();
     m_stack.clear();
     m_pendingDecorators.clear();
     m_hasError = false;
