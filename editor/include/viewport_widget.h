@@ -34,7 +34,6 @@ protected:
 
     void keyPressEvent(QKeyEvent *event) override
     {
-        qDebug() <<"Native " << event->nativeVirtualKey() << " Non native " << event->key();
         Blainn::Input::UpdateKeyState(static_cast<Blainn::KeyCode>(event->nativeVirtualKey()), Blainn::KeyState::Pressed);
         QWidget::keyPressEvent(event);
     }
