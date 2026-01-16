@@ -41,22 +41,7 @@ jobs:
       - name: Build
         run: cmake --build build --config Debug
 
-      - name: Package build
-        shell: powershell
-        run: |
-          $ref = $env:GITHUB_REF
-
-          if ($ref -like 'refs/tags/*') {
-            $name = $ref -replace 'refs/tags/', ''
-          } else {
-            $name = $env:GITHUB_SHA.Substring(0, 7)
-          }
-
-          Compress-Archive `
-          -Path build\* `
-          -DestinationPath "build\BlainnflareEngine-$name.zip"
-          
       - uses: actions/upload-artifact@v4
         with:
-          name: BlainnflareEngine-Windows
-          path: build/BlainnflareEngine-*.zip
+          name: BlainnflareEngine-${{ github.ref_name }}
+          path: build/**
