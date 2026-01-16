@@ -15,26 +15,30 @@ function OnStart()
     listener2Handle = Input.AddEventListener(InputEventType.KeyHeld,
         function(ev)
             Log.Info("script listener lambda OwningEntity: " .. OwningEntity)
-            local scene = Engine.GetActiveScene()
-            local e = scene:GetEntityWithUUID(OwningEntity)
+            local scene = Engine:GetActiveScene()
+            local e = scene:TryGetEntityWithUUID(OwningEntity)
             if not e:HasTransformComponent() then
                 Log.Error(e:GetTagComponent().Tag)
                 Log.Error("The entity doesn't have a transform component")
                 return
             end
-            local t = e:GetTransformComponent()
-            local oldX = t.Translation.x
-            t.Translation.x = oldX + 0.1
+            local direction = 0
+            if ev.key == Key.A then 
+                direction = -1
+            end
+            if ev.key == Key.D then
+                direction = 1
+            end
+            local t = e:GetTransformComponent():GetTranslation()
+            local oldX = t.x
+            t.x = oldX + (0.1 * direction)
+            e:GetTransformComponent():SetTranslation(t)
         end
     )
 
 end
 
 function OnUpdate(deltaTime)
-    value = 0
-    for i = 1, 100 do
-        value = value + i
-    end
 end
 
 function OnDestroy()
