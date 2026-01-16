@@ -55,7 +55,8 @@ add_executable(${PROJECT_NAME} main.cpp
         common/ImportAssetData.h
         common/helpers.h
         engine/include/subsystems/Input/KeyboardEvents.h
- "common/AABBHelpers.h")
+        "common/AABBHelpers.h"
+        icon.rc)
 
 add_subdirectory(libs/EASTL)
 add_subdirectory(libs/JoltPhysics/Build)
