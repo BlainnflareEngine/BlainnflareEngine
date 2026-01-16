@@ -11,6 +11,9 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Clean build directory
+        run: if exist build rmdir /s /q build
+        
       - uses: actions/checkout@v4
 
       - uses: ilammy/msvc-dev-cmd@v1
@@ -24,6 +27,8 @@ jobs:
       - name: Bootstrap dependencies
         shell: cmd
         run: call libs/clone_dependencies.bat
+        working-directory: ${{ github.workspace }}
+
 
       - name: Configure
         run: >
