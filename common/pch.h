@@ -106,6 +106,7 @@ inline eastl::string ToEASTLString(const std::string &s)
 #pragma region Jolt common includes
 
 #include <Jolt/Jolt.h>
+#include <Jolt/Core/Factory.h>
 #include <Jolt/Core/Mutex.h>
 #include <Jolt/Core/QuickSort.h>
 #include <Jolt/Core/UnorderedMap.h>
