@@ -12,10 +12,29 @@ void AIController::Init(BTMap trees, eastl::unique_ptr<UtilitySelector> utility,
     m_trees = eastl::move(trees);
     m_utility = eastl::move(utility);
     m_blackboard = eastl::move(blackboard);
+    m_trees = eastl::move(trees);
+    m_utility = eastl::move(utility);
+    m_blackboard = eastl::move(blackboard);
 
     m_activeTree = nullptr;
     m_activeTreeName.clear();
     m_activeDecisionName.clear();
+}
+
+bool AIController::ShouldUpdate(float dt)
+{
+    if (m_updateInterval <= 0.0f)
+        return true;
+    
+    m_timeSinceLastUpdate += dt;
+    
+    if (m_timeSinceLastUpdate >= m_updateInterval)
+    {
+        m_timeSinceLastUpdate = 0.0f;
+        return true;
+    }
+    
+    return false;
 }
 
 bool AIController::ShouldUpdate(float dt)
@@ -41,11 +60,15 @@ void AIController::Update(float dt)
     
     if (!ShouldUpdate(dt))
         return;
+    
+    if (!ShouldUpdate(dt))
+        return;
 
     m_utilityContext.UpdateCooldowns(dt);
 
     eastl::string newDecision = m_utility.get()->Evaluate(m_utilityContext, *m_blackboard, dt);
 
+    if (!m_activeTree)
     if (!m_activeTree)
     {
         if (!newDecision.empty())
@@ -190,7 +213,7 @@ void AIController::CleanupActiveTree()
     m_abortRequested = false;
 }
 
-void AIController::SetActiveBT(const std::string& treeName)
+void AIController::SetActiveBT(const eastl::string& treeName)
 {
     auto it = m_trees.find(treeName);
     if (it == m_trees.end())

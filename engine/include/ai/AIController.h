@@ -2,10 +2,6 @@
 
 #include "aliases.h"
 
-
-#include <unordered_map>
-#include <string>
-
 #include "ai/BehaviourTree.h"
 #include "ai/UtilitySelector.h"
 #include "scene/Entity.h"

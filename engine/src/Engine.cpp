@@ -68,16 +68,6 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     aiSettings.lodFarUpdateInterval = 0.5f;
     AISubsystem::GetInstance().SetSettings(aiSettings);
 
-    AISubsystem::Settings aiSettings;
-    aiSettings.enableLOD = true;
-    aiSettings.lodNearDistance = 1000.0f;
-    aiSettings.lodMidDistance = 3000.0f;
-    aiSettings.lodFarDistance = 5000.0f;
-    aiSettings.lodNearUpdateInterval = 0.0f;
-    aiSettings.lodMidUpdateInterval = 0.1f;
-    aiSettings.lodFarUpdateInterval = 0.5f;
-    AISubsystem::GetInstance().SetSettings(aiSettings);
-
     Input::AddEventListener(
         InputEventType::MouseButtonPressed,
         [&](const InputEventPointer &event)
@@ -151,7 +141,6 @@ void Engine::Update(float deltaTime)
         PerceptionSubsystem::GetInstance().Update(playModeDelta);
         AISubsystem::GetInstance().Update(playModeDelta);
         ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
-        AISubsystem::GetInstance().Update(playModeDelta);
         NavigationSubsystem::Update(playModeDelta);
     }
 
