@@ -7,6 +7,7 @@
 using namespace Blainn;
 
 #ifdef BLAINN_REGISTER_LUA_TYPES
+/*
 void Blainn::RegisterUselessSimpleMathTypes(sol::state &luaState)
 {
     // Register Plane
@@ -75,4 +76,5 @@ void Blainn::RegisterUselessSimpleMathTypes(sol::state &luaState)
     ColorType["ToVector4"] = static_cast<Vec4 (Color::*)() const>(&Color::ToVector4);
     ColorType[sol::meta_function::call] = [](float r, float g, float b, float a) { return Color(r, g, b, a); };
 }
+*/
 #endif
