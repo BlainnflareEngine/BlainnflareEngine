@@ -46,8 +46,3 @@ function OnDestroy()
     Input.RemoveEventListener(InputEventType.KeyHeld, listener1Handle)
     Input.RemoveEventListener(InputEventType.KeyHeld, listener2Handle)
 end
-
-function OnCustomCall(b)
-    Log.Info("Test2 onCustomCall called")
-    b = b + 3
-end

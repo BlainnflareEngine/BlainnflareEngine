@@ -21,5 +21,5 @@ function OnUpdate(deltaTime)
 end
 
 function OnDestroy()
-    
-en
+    --
+end
