@@ -7,7 +7,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-windows:
+  build-debug:
+    permissions: write-all
+    
     runs-on: windows-latest
 
     steps:
