@@ -8,7 +8,7 @@
 
 #define BLAINN_DEFAULT_LOGGER_NAME "BLAINN"
 
-#ifdef _DEBUG
+#ifdef _DEBUG || BLAINN_HAS_CONSOLE
 #define BF_TRACE(...)   if (spdlog::get(BLAINN_DEFAULT_LOGGER_NAME) != nullptr) { spdlog::get(BLAINN_DEFAULT_LOGGER_NAME)->trace(__VA_ARGS__); }
 #define BF_DEBUG(...)   if (spdlog::get(BLAINN_DEFAULT_LOGGER_NAME) != nullptr) { spdlog::get(BLAINN_DEFAULT_LOGGER_NAME)->debug(__VA_ARGS__); }
 #define BF_INFO(...)    if (spdlog::get(BLAINN_DEFAULT_LOGGER_NAME) != nullptr) { spdlog::get(BLAINN_DEFAULT_LOGGER_NAME)->info(__VA_ARGS__); }
@@ -16,12 +16,12 @@
 #define BF_ERROR(...)   if (spdlog::get(BLAINN_DEFAULT_LOGGER_NAME) != nullptr) { spdlog::get(BLAINN_DEFAULT_LOGGER_NAME)->error(__VA_ARGS__); }
 #define BF_FATAL(...)   if (spdlog::get(BLAINN_DEFAULT_LOGGER_NAME) != nullptr) { spdlog::get(BLAINN_DEFAULT_LOGGER_NAME)->critical(__VA_ARGS__); }
 #elif
-#define BF_TRACE(...)   (void)0
-#define BF_DEBUG(...)   (void)0
-#define BF_INFO(...)    (void)0
-#define BF_WARN(...)    (void)0
-#define BF_ERROR(...)   (void)0
-#define BF_FATAL(...)   (void)0
+#define BF_TRACE(...)
+#define BF_DEBUG(...)
+#define BF_INFO(...)
+#define BF_WARN(...)
+#define BF_ERROR(...)
+#define BF_FATAL(...)
 #endif
 
 namespace Blainn
