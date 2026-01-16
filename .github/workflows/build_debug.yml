@@ -12,7 +12,8 @@ jobs:
 
     steps:
       - name: Clean build directory
-        run: if exist build rmdir /s /q build
+        run: | 
+          if (Test-Path build) { Remove-Item -Recurse -Force build }
         
       - uses: actions/checkout@v4
 
