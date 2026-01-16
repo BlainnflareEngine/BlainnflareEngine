@@ -1,0 +1,42 @@
+name: Build_debug
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - uses: jurplel/install-qt-action@v3
+        with:
+          version: 6.9.2
+          arch: win64_msvc2022_64
+          cache: true
+
+      - name: Bootstrap dependencies
+        shell: cmd
+        run: call libs/clone_dependencies.bat
+
+      - name: Configure
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+
+      - name: Build
+        run: cmake --build build --config Debug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BlainnflareEngine-Windows
+          path: build/**
