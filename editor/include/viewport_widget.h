@@ -34,13 +34,14 @@ protected:
 
     void keyPressEvent(QKeyEvent *event) override
     {
-        Blainn::Input::UpdateKeyState(static_cast<Blainn::KeyCode>(event->key()), Blainn::KeyState::Pressed);
+        qDebug() <<"Native " << event->nativeVirtualKey() << " Non native " << event->key();
+        Blainn::Input::UpdateKeyState(static_cast<Blainn::KeyCode>(event->nativeVirtualKey()), Blainn::KeyState::Pressed);
         QWidget::keyPressEvent(event);
     }
 
     void keyReleaseEvent(QKeyEvent *event) override
     {
-        Blainn::Input::UpdateKeyState(static_cast<Blainn::KeyCode>(event->key()), Blainn::KeyState::Released);
+        Blainn::Input::UpdateKeyState(static_cast<Blainn::KeyCode>(event->nativeVirtualKey()), Blainn::KeyState::Released);
         QWidget::keyReleaseEvent(event);
     }
 
