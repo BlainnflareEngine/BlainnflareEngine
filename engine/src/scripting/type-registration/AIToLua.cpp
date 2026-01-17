@@ -52,63 +52,146 @@ namespace
 
 void Blainn::RegisterAITypes(sol::state &luaState)
 {
+    auto BlackboardType = luaState.new_usertype<Blackboard>("Blackboard", sol::no_constructor);
+
+    BlackboardType.set_function("Set", 
+        [](Blackboard* bb, const eastl::string& key, sol::object value)
+        {
+            if (!bb) return;
+            bb->Set(key, value);
+        }
+    );
+    
+    BlackboardType.set_function("GetInt", 
+        [](Blackboard* bb, const eastl::string& key) -> int
+        {
+            if (!bb) return 0;
+            return bb->Get<int>(key);
+        }
+    );
+    
+    BlackboardType.set_function("GetFloat", 
+        [](Blackboard* bb, const eastl::string& key) -> float
+        {
+            if (!bb) return 0.0f;
+            return bb->Get<float>(key);
+        }
+    );
+    
+    BlackboardType.set_function("GetDouble", 
+        [](Blackboard* bb, const eastl::string& key) -> double
+        {
+            if (!bb) return 0.0;
+            return bb->Get<double>(key);
+        }
+    );
+    
+    BlackboardType.set_function("GetBool", 
+        [](Blackboard* bb, const eastl::string& key) -> bool
+        {
+            if (!bb) return false;
+            return bb->Get<bool>(key);
+        }
+    );
+    
+    BlackboardType.set_function("GetString", 
+        [](Blackboard* bb, const eastl::string& key) -> std::string
+        {
+            if (!bb) return "";
+            return bb->Get<eastl::string>(key).c_str();
+        }
+    );
+    
+    BlackboardType.set_function("Has", 
+        [](Blackboard* bb, const eastl::string& key) -> bool
+        {
+            if (!bb) return false;
+            return bb->Has(key);
+        }
+    );
+
     // Expose BTType to Lua
-    luaState.new_enum<true>("BTType", 
-        "Sequence", BTType::Sequence, 
-        "Selector", BTType::Selector, 
-        "Action", BTType::Action, 
-        "Negate", BTType::Negate, 
-        "Condition", BTType::Condition, 
-        "Error", BTType::Error
+    luaState.new_enum<BTType, true>(
+    "BTType", 
+    {
+        {"Sequence", BTType::Sequence},
+        {"Selector", BTType::Selector},
+        {"Action", BTType::Action},
+        {"Negate", BTType::Negate},
+        {"Condition", BTType::Condition},
+        {"Error", BTType::Error}
+    }
+    );
+
+    luaState.new_enum<BTStatus, true>(
+    "BTStatus",
+    {
+        {"Success", BTStatus::Success},
+        {"Failure", BTStatus::Failure},
+        {"Running", BTStatus::Running},
+        {"Aborted", BTStatus::Aborted},
+        {"Error", BTStatus::Error}
+    }
     );
     
     // Expose StimulusType enum
-    luaState.new_enum<true>("StimulusType",
-        "Sight", StimulusType::Sight,
-        "Sound", StimulusType::Sound,
-        "Touch", StimulusType::Touch,
-        "Damage", StimulusType::Damage,
-        "Custom", StimulusType::Custom
+    luaState.new_enum<StimulusType, true>(
+    "StimulusType",
+    {
+        {"Sight", StimulusType::Sight}, 
+        {"Sound", StimulusType::Sound}, 
+        {"Touch", StimulusType::Touch},
+        {"Damage", StimulusType::Damage}, 
+        {"Custom", StimulusType::Custom}
+    }
     );
     
     // Expose PerceivedStimulus
     auto PerceivedStimulusType = luaState.new_usertype<PerceivedStimulus>("PerceivedStimulus",sol::no_constructor);
 
-    PerceivedStimulusType.set_function("SourceEntity", &PerceivedStimulus::sourceEntity);
-    PerceivedStimulusType.set_function("Type", &PerceivedStimulus::type);
-    PerceivedStimulusType.set_function("Location", &PerceivedStimulus::location);
-    PerceivedStimulusType.set_function("Age", &PerceivedStimulus::age);
-    PerceivedStimulusType.set_function("Strength", &PerceivedStimulus::strength);
-    PerceivedStimulusType.set_function("SuccessfullySensed", &PerceivedStimulus::successfullySensed);
-    PerceivedStimulusType.set_function("StimulusTag", [](PerceivedStimulus &perceived) { return perceived.tag.c_str(); });
+    PerceivedStimulusType.set_function("GetSourceEntity", [](PerceivedStimulus &perceived) { return perceived.sourceEntity; });
+    PerceivedStimulusType.set_function("GetType", [](PerceivedStimulus &perceived) { return perceived.type; });
+    PerceivedStimulusType.set_function("GetLocation", [](PerceivedStimulus &perceived) { return perceived.location; });
+    PerceivedStimulusType.set_function("GetAge", [](PerceivedStimulus &perceived) { return perceived.age; });
+    PerceivedStimulusType.set_function("GetStrength", [](PerceivedStimulus &perceived) { return perceived.strength; });
+    PerceivedStimulusType.set_function("GetSuccessfullySensed",[](PerceivedStimulus &perceived) { return perceived.successfullySensed; });
+    PerceivedStimulusType.set_function("GetStimulusTag", [](PerceivedStimulus &perceived) { return perceived.tag.c_str(); });
+    
+    PerceivedStimulusType.set_function("SetSourceEntity", [](PerceivedStimulus &perceived, uuid ID) { perceived.sourceEntity = ID; });
+    PerceivedStimulusType.set_function("SetType", [](PerceivedStimulus &perceived, StimulusType type) { perceived.type = type; });
+    PerceivedStimulusType.set_function("SetLocation", [](PerceivedStimulus &perceived, Vec3 newLoc) { perceived.location = newLoc; });
+    PerceivedStimulusType.set_function("SetAge", [](PerceivedStimulus &perceived, float newAge) { perceived.age = newAge; });
+    PerceivedStimulusType.set_function("SetStrength", [](PerceivedStimulus &perceived, float newStrength) { perceived.strength = newStrength; });
+    PerceivedStimulusType.set_function("SetSuccessfullySensed",[](PerceivedStimulus &perceived, bool res) { perceived.successfullySensed = res; });
+    PerceivedStimulusType.set_function("SetStimulusTag", [](PerceivedStimulus &perceived, const std::string &tag) { perceived.tag = tag.c_str(); });
     
     // Expose PerceptionComponent
     auto PerceptionComponentType = luaState.new_usertype<PerceptionComponent>("PerceptionComponent", sol::no_constructor);
 
-    PerceptionComponentType.set_function("EnableSight", &PerceptionComponent::enableSight);
-    PerceptionComponentType.set_function("SightRange", &PerceptionComponent::sightRange);
-    PerceptionComponentType.set_function("SightFOV", &PerceptionComponent::sightFOV);
-    PerceptionComponentType.set_function("SightForgetTime", &PerceptionComponent::sightForgetTime);
-    PerceptionComponentType.set_function("SightRequireLOS", &PerceptionComponent::sightRequireLOS);
-    PerceptionComponentType.set_function("SightLOSCheckInterval", &PerceptionComponent::sightLOSCheckInterval);
+    PerceptionComponentType.set_function("GetEnableSight", [](PerceptionComponent &perceived) { return perceived.enableSight; });
+    PerceptionComponentType.set_function("GetSightRange", [](PerceptionComponent &perceived) { return perceived.sightRange; });
+    PerceptionComponentType.set_function("GetSightFOV", [](PerceptionComponent &perceived) { return perceived.sightFOV; });
+    PerceptionComponentType.set_function("GetSightForgetTime", [](PerceptionComponent &perceived) { return perceived.sightForgetTime; });
+    PerceptionComponentType.set_function("GetSightRequireLOS", [](PerceptionComponent &perceived) { return perceived.sightRequireLOS; });
+    PerceptionComponentType.set_function("GetSightLOSCheckInterval", [](PerceptionComponent &perceived) { return perceived.sightLOSCheckInterval; });
 
-    PerceptionComponentType.set_function("EnableSound", &PerceptionComponent::enableSound);
-    PerceptionComponentType.set_function("SoundRange", &PerceptionComponent::soundRange);
-    PerceptionComponentType.set_function("SoundForgetTime", &PerceptionComponent::soundForgetTime);
-    PerceptionComponentType.set_function("SoundMinStrength", &PerceptionComponent::soundMinStrength);
+    PerceptionComponentType.set_function("GetEnableSound", [](PerceptionComponent &perceived) { return perceived.enableSound; });
+    PerceptionComponentType.set_function("GetSoundRange", [](PerceptionComponent &perceived) { return perceived.soundRange; });
+    PerceptionComponentType.set_function("GetSoundForgetTime", [](PerceptionComponent &perceived) { return perceived.soundForgetTime; });
+    PerceptionComponentType.set_function("GetSoundMinStrength", [](PerceptionComponent &perceived) { return perceived.soundMinStrength; });
 
-    PerceptionComponentType.set_function("EnableTouch", &PerceptionComponent::enableTouch);
-    PerceptionComponentType.set_function("TouchForgetTime", &PerceptionComponent::touchForgetTime);
+    PerceptionComponentType.set_function("GetEnableTouch", [](PerceptionComponent &perceived) { return perceived.enableTouch; });
+    PerceptionComponentType.set_function("GetTouchForgetTime", [](PerceptionComponent &perceived) { return perceived.touchForgetTime; });
 
-    PerceptionComponentType.set_function("EnableDamage", &PerceptionComponent::enableDamage);
-    PerceptionComponentType.set_function("DamageForgetTime", &PerceptionComponent::damageForgetTime);
+    PerceptionComponentType.set_function("GetEnableDamage", [](PerceptionComponent &perceived) { return perceived.enableDamage; });
+    PerceptionComponentType.set_function("GetDamageForgetTime", [](PerceptionComponent &perceived) { return perceived.damageForgetTime; });
 
-    PerceptionComponentType.set_function("UpdateInterval", &PerceptionComponent::updateInterval);
-    PerceptionComponentType.set_function("MaxUpdateDistance", &PerceptionComponent::maxUpdateDistance);
+    PerceptionComponentType.set_function("GetUpdateInterval", [](PerceptionComponent &perceived) { return perceived.updateInterval; });
+    PerceptionComponentType.set_function("GetMaxUpdateDistance", [](PerceptionComponent &perceived) { return perceived.maxUpdateDistance; });
 
-    PerceptionComponentType.set_function("Enabled", &PerceptionComponent::enabled);
+    PerceptionComponentType.set_function("GetEnabled", [](PerceptionComponent &perceived) { return perceived.enabled; });
 
-    PerceptionComponentType.set_function("IgnoreTags", 
+    PerceptionComponentType.set_function("GetIgnoreTags", 
                                         [&luaState](PerceptionComponent &perception) 
                                         { 
                                             sol::table tbl = luaState.create_table();
@@ -118,7 +201,7 @@ void Blainn::RegisterAITypes(sol::state &luaState)
                                             return tbl;
                                         });
     
-    PerceptionComponentType.set_function("PriorityTags", 
+    PerceptionComponentType.set_function("GetPriorityTags", 
                                     [&luaState](PerceptionComponent &perception) 
                                     { 
                                         sol::table tbl = luaState.create_table();
@@ -128,19 +211,80 @@ void Blainn::RegisterAITypes(sol::state &luaState)
                                         return tbl;
                                     });
     
+    PerceptionComponentType.set_function("SetEnableSight", [](PerceptionComponent &perception, bool enable) { perception.enableSight = enable; });
+    PerceptionComponentType.set_function("SetSightRange", [](PerceptionComponent &perception, float range){ perception.sightRange = range; });
+    PerceptionComponentType.set_function("SetSightFOV",[](PerceptionComponent &perception, float fov) { perception.sightFOV = fov; });
+    PerceptionComponentType.set_function("SetSightForgetTime", [](PerceptionComponent &perception, float time) { perception.sightForgetTime = time; });
+    PerceptionComponentType.set_function("SetSightRequireLOS", [](PerceptionComponent &perception, bool require) { perception.sightRequireLOS = require; });
+    PerceptionComponentType.set_function("SetSightLOSCheckInterval", [](PerceptionComponent &perception, float interval) { perception.sightLOSCheckInterval = interval; });
+
+    PerceptionComponentType.set_function("SetEnableSound", [](PerceptionComponent &perception, bool enable) { perception.enableSound = enable; });
+    PerceptionComponentType.set_function("SetSoundRange", [](PerceptionComponent &perception, float range) { perception.soundRange = range; });
+    PerceptionComponentType.set_function("SetSoundForgetTime", [](PerceptionComponent &perception, float time) { perception.soundForgetTime = time; });
+    PerceptionComponentType.set_function("SetSoundMinStrength", [](PerceptionComponent &perception, float strength) { perception.soundMinStrength = strength; });
+
+    PerceptionComponentType.set_function("SetEnableTouch", [](PerceptionComponent &perception, bool enable) { perception.enableTouch = enable; });
+    PerceptionComponentType.set_function("SetTouchForgetTime", [](PerceptionComponent &perception, float time) { perception.touchForgetTime = time; });
+
+    PerceptionComponentType.set_function("SetEnableDamage", [](PerceptionComponent &perception, bool enable) { perception.enableDamage = enable; });
+    PerceptionComponentType.set_function("SetDamageForgetTime", [](PerceptionComponent &perception, float time) { perception.damageForgetTime = time; });
+
+    PerceptionComponentType.set_function("SetUpdateInterval", [](PerceptionComponent &perception, float interval) { perception.updateInterval = interval; });
+    PerceptionComponentType.set_function("SetMaxUpdateDistance", [](PerceptionComponent &perception, float distance) { perception.maxUpdateDistance = distance; });
+
+    PerceptionComponentType.set_function("SetEnabled", [](PerceptionComponent &perception, bool enabled) { perception.enabled = enabled; });
+
+    PerceptionComponentType.set_function("SetIgnoreTags",
+                                         [](PerceptionComponent &perception, sol::table tags)
+                                         {
+                                             perception.ignoreTags.clear();
+                                             for (const auto &pair : tags)
+                                             {
+                                                 if (pair.second.is<std::string>())
+                                                     perception.ignoreTags.push_back(
+                                                         pair.second.as<std::string>().c_str());
+                                             }
+                                         });
+
+    PerceptionComponentType.set_function("SetPriorityTags",
+                                         [](PerceptionComponent &perception, sol::table tags)
+                                         {
+                                             perception.priorityTags.clear();
+                                             for (const auto &pair : tags)
+                                             {
+                                                 if (pair.second.is<std::string>())
+                                                     perception.priorityTags.push_back(
+                                                         pair.second.as<std::string>().c_str());
+                                             }
+                                         });
+
+    PerceptionComponentType.set_function("AddIgnoreTag", [](PerceptionComponent &perception, const std::string &tag) { perception.ignoreTags.push_back(tag.c_str()); });
+    PerceptionComponentType.set_function("AddPriorityTag", [](PerceptionComponent &perception, const std::string &tag) { perception.priorityTags.push_back(tag.c_str()); });
+    PerceptionComponentType.set_function("ClearIgnoreTags", [](PerceptionComponent &perception) { perception.ignoreTags.clear(); });
+    PerceptionComponentType.set_function("ClearPriorityTags", [](PerceptionComponent &perception) { perception.priorityTags.clear(); });
+
+
     // Expose StimulusComponent
     auto StimulusComponentType = luaState.new_usertype<StimulusComponent>("StimulusComponent", sol::no_constructor);
-
-    StimulusComponentType.set_function("EnableSight", &PerceptionComponent::enableSight);
-    StimulusComponentType.set_function("EnableSound", &StimulusComponent::enableSound);
-    StimulusComponentType.set_function("EnableTouch", &StimulusComponent::enableTouch);
-    StimulusComponentType.set_function("EnableDamage", &StimulusComponent::enableDamage);
-    StimulusComponentType.set_function("SightRadius", &StimulusComponent::sightRadius);
-    StimulusComponentType.set_function("SoundRadius", &StimulusComponent::soundRadius);
-    StimulusComponentType.set_function("Enabled", &StimulusComponent::enabled);
-
-    StimulusComponentType.set_function("StimulusTag", [](StimulusComponent &stimulusComponent) { return stimulusComponent.tag.c_str(); });
     
+    StimulusComponentType.set_function("GetEnableSight", [](StimulusComponent &stimulus) { return stimulus.enableSight; });
+    StimulusComponentType.set_function("GetEnableSound", [](StimulusComponent &stimulus) { return stimulus.enableSound; });
+    StimulusComponentType.set_function("GetEnableTouch", [](StimulusComponent &stimulus) { return stimulus.enableTouch; });
+    StimulusComponentType.set_function("GetEnableDamage", [](StimulusComponent &stimulus) { return stimulus.enableDamage; });
+    StimulusComponentType.set_function("GetSightRadius", [](StimulusComponent &stimulus) { return stimulus.sightRadius; });
+    StimulusComponentType.set_function("GetSoundRadius", [](StimulusComponent &stimulus) { return stimulus.soundRadius; });
+    StimulusComponentType.set_function("GetEnabled", [](StimulusComponent &stimulus) { return stimulus.enabled; });
+    StimulusComponentType.set_function("GetStimulusTag", [](StimulusComponent &stimulusComponent) { return stimulusComponent.tag.c_str(); });
+    
+    StimulusComponentType.set_function("SetEnableSight", [](StimulusComponent &stimulus, bool enable) { stimulus.enableSight = enable; });
+    StimulusComponentType.set_function("SetEnableSound", [](StimulusComponent &stimulus, bool enable) { stimulus.enableSound = enable; });
+    StimulusComponentType.set_function("SetEnableTouch", [](StimulusComponent &stimulus, bool enable) { stimulus.enableTouch = enable; });
+    StimulusComponentType.set_function("SetEnableDamage", [](StimulusComponent &stimulus, bool enable) { stimulus.enableDamage = enable; });
+    StimulusComponentType.set_function("SetSightRadius", [](StimulusComponent &stimulus, float radius) { stimulus.sightRadius = radius; });
+    StimulusComponentType.set_function("SetSoundRadius", [](StimulusComponent &stimulus, float radius) { stimulus.soundRadius = radius; });
+    StimulusComponentType.set_function("SetEnabled", [](StimulusComponent &stimulus, bool enabled) { stimulus.enabled = enabled; });
+    StimulusComponentType.set_function("SetStimulusTag", [](StimulusComponent &stimulus, const std::string& tag) { stimulus.tag = tag.c_str(); });
+
     luaState.set_function("HasEnemyInSight", 
         [](Blackboard* bb) -> bool
         {
