@@ -14,17 +14,44 @@ eastl::string Blainn::UtilitySelector::Evaluate(UtilityContext &context, Blackbo
     eastl::unordered_map<eastl::string, float> scores;
     float scoreSum = 0.0f;
 
-    for (const auto& decision : m_decisions)
+    for (const auto &decision : m_decisions)
     {
-        auto& state = context.states[decision.name];
+        auto &state = context.states[decision.name];
 
-        if (state.cooldownRemaining > 0.0f)
+        if (state.cooldownRemaining > 0.0f) continue;
+
+        float score = 0.0f;
+        try
+        {
+            sol::protected_function_result result = decision.scoreFn(&blackboard);
+
+            if (!result.valid())
+            {
+                sol::error err = result;
+                BF_ERROR("UtilitySelector: Error in score function for decision '" + decision.name
+                            + "': " + eastl::string(err.what()));
+                continue;
+            }
+
+            if (result.get_type() == sol::type::number)
+            {
+                score = result.get<float>();
+            }
+            else
+            {
+                BF_ERROR("UtilitySelector: Score function for decision '" + decision.name
+                            + "' did not return a number");
+                continue;
+            }
+        }
+        catch (const std::exception &e)
+        {
+            BF_ERROR("UtilitySelector: Exception in score function for decision '" + decision.name
+                        + "': " + eastl::string(e.what()));
             continue;
+        }
 
-        float score = decision.scoreFn(blackboard);
-
-        if (score <= 0.0f)
-            continue;
+        if (score <= 0.0f) continue;
 
         scores[decision.name] = score;
         scoreSum += score;

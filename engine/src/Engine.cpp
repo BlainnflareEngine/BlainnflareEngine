@@ -84,6 +84,30 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
         });
     NavigationSubsystem::Init();
     NavigationSubsystem::SetShouldDrawDebug(true);
+
+    PhysicsSubsystem::AddEventListener(
+        PhysicsEventType::CollisionStarted,
+        [](const eastl::shared_ptr<PhysicsEvent>& event)
+        {
+            Scene &scene = *Engine::GetActiveScene();
+            auto entity1 = scene.GetEntityWithUUID(event->entity1);
+            auto entity2 = scene.GetEntityWithUUID(event->entity2);
+
+            if (!entity1.IsValid() || !entity2.IsValid()) return;
+
+            Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
+            Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
+
+            eastl::string tag1 = "Unknown";
+            eastl::string tag2 = "Unknown";
+
+            if (entity1.HasComponent<StimulusComponent>()) tag1 = entity1.GetComponent<StimulusComponent>().tag;
+            if (entity2.HasComponent<StimulusComponent>()) tag2 = entity2.GetComponent<StimulusComponent>().tag;
+
+            PerceptionSubsystem::GetInstance().RegisterStimulus(entity2.GetUUID(), StimulusType::Touch, pos1, 0.0f, tag2);
+            PerceptionSubsystem::GetInstance().RegisterStimulus(entity1.GetUUID(), StimulusType::Touch, pos2, 0.0f, tag1);
+        }
+    );
 }
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
@@ -174,6 +198,12 @@ void Engine::StartPlayMode()
         for (auto [path, info] : scriptComp.scriptPaths)
             ScriptingSubsystem::LoadScript(s_activeScene->GetEntityWithUUID(id.ID), Path(path.c_str()),
                                            info.shouldTriggerStart);
+    }
+
+    for (auto [entity, id, aiComp] : s_activeScene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
+    {
+        Entity ent = s_activeScene->GetEntityWithUUID(id.ID);
+        AISubsystem::GetInstance().CreateAIController(ent);
     }
 }
 

@@ -96,9 +96,9 @@ void AISubsystem::LoadBlackboard(const sol::table &scriptEnvironment, eastl::uni
 
     for (auto &kv : bbTable)
     {
-        eastl::string key = kv.first.as<eastl::string>();
+        std::string key = kv.first.as<std::string>();
         sol::object value = kv.second;
-        blackboard->Set(key, value);
+        blackboard->Set(key.c_str(), value);
     }
 }
 
@@ -121,7 +121,6 @@ void AISubsystem::LoadBehaviourTrees(const sol::table &scriptEnvironment, BTMap 
         if (!tree) continue;
 
         const eastl::string &name = tree->GetName();
-        BF_INFO("Loaded BehaviourTree: " + name);
 
         behaviourTrees.emplace(name, eastl::move(tree));
     }
@@ -236,5 +235,6 @@ void AISubsystem::DestroyAIControllerComponent(Entity entity)
     {
         return;
     }
+    componentPtr->aiController.HardReset();
     entity.RemoveComponent<AIControllerComponent>();
 }

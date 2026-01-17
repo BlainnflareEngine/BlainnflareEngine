@@ -38,6 +38,9 @@ public:
     float GetUpdateInterval() const { return m_updateInterval; }
     bool ShouldUpdate(float dt);
 
+    void HardReset();
+    void ClearState();
+
 private:
     void ActivateDecision(const eastl::string& decisionName);
     void SetActiveBT(const eastl::string& treeName);

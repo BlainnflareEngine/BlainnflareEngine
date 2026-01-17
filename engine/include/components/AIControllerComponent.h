@@ -9,8 +9,6 @@
 namespace Blainn
 {
 
-using BlackboardValue = eastl::variant<int, float, bool, eastl::string>;
-
 struct AIControllerComponent
 {
     std::string scriptPath;

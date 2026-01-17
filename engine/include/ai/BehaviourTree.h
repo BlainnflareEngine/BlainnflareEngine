@@ -13,7 +13,8 @@ public:
     const eastl::string& GetName() const { return m_name; }
 
     BTStatus Update(Blackboard& bb);
-    void Reset();
+    void HardReset();
+    void ClearState();
 
     void RequestAbort();
     bool IsAborting() const;

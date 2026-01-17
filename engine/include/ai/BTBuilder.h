@@ -17,24 +17,20 @@ enum class BTType : int
 
 class BTBuilder
 {
-    struct PendingDecorator
-    {
-        BTType type;
-        sol::function condition;
-    };
-
 public:
     BTBuilder& AddSequence();
     BTBuilder& AddSelector();
     BTBuilder& AddAction(sol::function fn, sol::function onRes);
-    BTBuilder& AddNegate();
-    BTBuilder& AddCondition(sol::function cond);
+    BTBuilder &AddNegate(BTNodePtr child);
+    BTBuilder &AddCondition(sol::function cond, BTNodePtr child);
     BTBuilder& End();
+
     bool ReadLuaBTType(sol::table node, BTType& outType);
     bool ReadLuaChildrenTable(sol::table node, sol::table& out);
     bool ReadLuaActionFn(sol::table node, sol::function& outFn, sol::function& outOnReset);
-    bool ParseDecorators(sol::table node);
-    bool CalculateBT(sol::table node);
+    bool ReadLuaConditionFn(sol::table node, sol::function &outFn);
+
+    bool CalculateBT(sol::table node, BTNodePtr &outNode);
     BTNodePtr Build();
     eastl::unique_ptr<BehaviourTree> BuildFromLua(sol::table rootTable);
     void Reset();
@@ -42,7 +38,6 @@ public:
 
 private:
     void AttachNode(BTNodePtr node);
-    bool WrapDecorators(BTNodePtr& node);
 
     template <class TComposite>
     BTBuilder& OpenComposite()
@@ -60,6 +55,5 @@ private:
 
     BTNodePtr m_root{};
     eastl::vector<CompositeNode*> m_stack{}; // non owning pointers into nodes we own via unique_ptr
-    eastl::vector<PendingDecorator> m_pendingDecorators;
 };
 } // namespace Blainn

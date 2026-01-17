@@ -12,9 +12,6 @@ void AIController::Init(BTMap trees, eastl::unique_ptr<UtilitySelector> utility,
     m_trees = eastl::move(trees);
     m_utility = eastl::move(utility);
     m_blackboard = eastl::move(blackboard);
-    m_trees = eastl::move(trees);
-    m_utility = eastl::move(utility);
-    m_blackboard = eastl::move(blackboard);
 
     m_activeTree = nullptr;
     m_activeTreeName.clear();
@@ -37,20 +34,23 @@ bool AIController::ShouldUpdate(float dt)
     return false;
 }
 
-bool AIController::ShouldUpdate(float dt)
+void AIController::ClearState()
 {
-    if (m_updateInterval <= 0.0f)
-        return true;
-    
-    m_timeSinceLastUpdate += dt;
-    
-    if (m_timeSinceLastUpdate >= m_updateInterval)
-    {
-        m_timeSinceLastUpdate = 0.0f;
-        return true;
-    }
-    
-    return false;
+    m_activeTree->ClearState();
+}
+
+void AIController::HardReset()
+{
+    if (m_activeTree) m_activeTree->HardReset();
+
+    m_activeTree = nullptr;
+    m_activeTreeName.clear();
+    m_activeDecisionName.clear();
+    m_abortRequested = false;
+
+    m_trees.clear();
+    m_utility.release();
+    m_blackboard.release();
 }
 
 void AIController::Update(float dt)
@@ -60,15 +60,11 @@ void AIController::Update(float dt)
     
     if (!ShouldUpdate(dt))
         return;
-    
-    if (!ShouldUpdate(dt))
-        return;
 
     m_utilityContext.UpdateCooldowns(dt);
 
     eastl::string newDecision = m_utility.get()->Evaluate(m_utilityContext, *m_blackboard, dt);
 
-    if (!m_activeTree)
     if (!m_activeTree)
     {
         if (!newDecision.empty())
@@ -85,7 +81,7 @@ void AIController::Update(float dt)
         m_activeTree->RequestAbort();
     }
 
-    BTStatus status = m_activeTree->Update(*m_blackboard);
+    BTStatus status = m_activeTree->Update(*m_blackboard); // должен заново обходить дерево после завершения, а у него в sequence уже индекс 1 и он все время ливает в саксес
 
     switch (status)
     {
@@ -93,6 +89,16 @@ void AIController::Update(float dt)
         return;
     case BTStatus::Success:
     case BTStatus::Failure:
+        if (!newDecision.empty() && newDecision != m_activeDecisionName)
+        {
+            CleanupActiveTree();
+            ActivateDecision(newDecision);
+        }
+        else
+        {
+            ClearState();
+        }
+        return;
     case BTStatus::Aborted:
         CleanupActiveTree();
 
@@ -105,6 +111,7 @@ void AIController::Update(float dt)
         HandleBTError();
         return;
     default:
+        BF_ERROR("AIController::Update: Unknown BTStatus");
         break;
     }
 }
@@ -201,11 +208,18 @@ void AIController::ActivateDecision(const eastl::string &decision)
     m_activeDecisionName = decision;
     eastl::string btName = m_utility->FindDecisionBTName(decision);
     SetActiveBT(btName);
+
+    m_abortRequested = false;
+
+    if (m_activeTree)
+    {
+        m_activeTree->ClearState();
+    }
 }
 
 void AIController::CleanupActiveTree()
 {
-    if (m_activeTree) m_activeTree->Reset();
+    if (m_activeTree) m_activeTree->HardReset();
 
     m_activeTree = nullptr;
     m_activeTreeName.clear();
@@ -230,7 +244,7 @@ void AIController::HandleBTError()
 {
     BF_ERROR("AIController: BehaviourTree " + m_activeTreeName + " failed with ERROR");
 
-    if (m_activeTree) m_activeTree->Reset();
+    if (m_activeTree) m_activeTree->HardReset();
 
     m_activeTree = nullptr;
     m_activeTreeName.clear();

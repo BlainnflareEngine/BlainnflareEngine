@@ -11,10 +11,10 @@ Blainn::BTStatus Blainn::BehaviourTree::Update(Blackboard &bb)
         return BTStatus::Error;
     }
 
-    if (m_abortRequested)
-    {
-        return BTStatus::Aborted;
-    }
+    //if (m_abortRequested)
+    //{
+    //    return BTStatus::Aborted;
+    //}
 
     BTStatus s = m_root->Update(bb);
 
@@ -24,7 +24,7 @@ Blainn::BTStatus Blainn::BehaviourTree::Update(Blackboard &bb)
     return s;
 }
 
-void Blainn::BehaviourTree::Reset()
+void Blainn::BehaviourTree::HardReset()
 {
     m_abortRequested = false;
     m_hasError = false;
@@ -32,6 +32,15 @@ void Blainn::BehaviourTree::Reset()
     if (m_root)
         m_root->Reset();
 }
+
+void Blainn::BehaviourTree::ClearState()
+{
+    m_abortRequested = false;
+    m_hasError = false;
+
+    if (m_root) m_root->ClearState();
+}
+
 void Blainn::BehaviourTree::RequestAbort()
 {
     m_abortRequested = true;

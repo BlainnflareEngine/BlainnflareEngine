@@ -16,8 +16,16 @@ void CompositeNode::AddChild(BTNodePtr n)
 
 void CompositeNode::Reset()
 {
+    m_currentIndex = 0;
     for (auto& c : children)
         c->Reset();
+}
+
+void CompositeNode::ClearState()
+{
+    m_currentIndex = 0;
+    for (auto &c : children)
+        c->ClearState();
 }
 
 BTStatus SequenceNode::Update(Blackboard &bb)
@@ -55,6 +63,12 @@ void SequenceNode::Reset()
 {
     m_currentIndex = 0;
     CompositeNode::Reset();
+}
+
+void SequenceNode::ClearState()
+{
+    m_currentIndex = 0;
+    CompositeNode::ClearState();
 }
 
 BTStatus SelectorNode::Update(Blackboard &bb)
@@ -96,6 +110,12 @@ void SelectorNode::Reset()
     CompositeNode::Reset();
 }
 
+void SelectorNode::ClearState()
+{
+    m_currentIndex = 0;
+    CompositeNode::ClearState();
+}
+
 ActionNode::ActionNode(sol::function f, sol::function onRes) : fn(eastl::move(f)), onReset(eastl::move(onRes))
 {
     if (!fn.valid())
@@ -103,7 +123,7 @@ ActionNode::ActionNode(sol::function f, sol::function onRes) : fn(eastl::move(f)
         BF_ERROR("ActionNode got invalid Lua function");
         return;
     }
-    if (!fn.valid())
+    if (!onReset.valid())
     {
         BF_ERROR("ActionNode got invalid Lua onReset function");
         return;
@@ -134,9 +154,12 @@ BTStatus ActionNode::Update(Blackboard &bb)
     }
 
     sol::object o = r.get<sol::object>();
-    if (o.is<int>()) {
+
+    if (o.is<int>())
+    {
         int v = o.as<int>();
-        switch (v) {
+        switch (v) 
+        {
             case 0: return BTStatus::Failure;
             case 1: return BTStatus::Success;
             case 2: return BTStatus::Running;
@@ -147,8 +170,9 @@ BTStatus ActionNode::Update(Blackboard &bb)
         }
     }
 
-    if (o.is<eastl::string>()) {
-        const eastl::string s = o.as<eastl::string>();
+    if (o.is<std::string>()) 
+    {
+        const eastl::string s = o.as<std::string>().c_str();
         if (s == "failure") return BTStatus::Failure;
         if (s == "success") return BTStatus::Success;
         if (s == "running") return BTStatus::Running;
@@ -165,6 +189,11 @@ void Blainn::ActionNode::Reset()
 {
     if (onReset.valid())
         onReset();
+}
+
+void ActionNode::ClearState()
+{
+    // У ActionNode нет внутреннего состояния для сброса
 }
 
 Blainn::DecoratorNode::DecoratorNode(BTNodePtr c) : child(eastl::move(c))
@@ -195,7 +224,7 @@ bool Blainn::DecoratorNode::CheckCondition(Blackboard &bb, bool& outResult)
 
     if (!condition.valid())
     {
-        outResult = true; // нет условия - всегда true
+        outResult = true; // нет условия то всегда true
         return true; // Путаница конечно, но я хз как сделать лучше. Тут возвращается результат выполнения, а в outRes результат сравнения.
     }
 
@@ -229,18 +258,24 @@ bool Blainn::DecoratorNode::CheckCondition(Blackboard &bb, bool& outResult)
 
 void DecoratorNode::Reset()
 {
-    if (child)
-        child->Reset();
+    if (child) child->Reset();
+}
+
+void DecoratorNode::ClearState()
+{
+    if (child) child->ClearState();
 }
 
 BTStatus Blainn::NegateNode::Update(Blackboard &bb)
 {
-    bool condResult = false;
-    if (!CheckCondition(bb, condResult))
+    if (!child)
+    {
+        BF_ERROR("NegateNode: child is null");
         return BTStatus::Error;
-
-    if (!condResult)
-        return BTStatus::Failure;
+    }
+    
+    if (bb.btAbortRequested)
+        return BTStatus::Aborted;
 
     BTStatus s = child->Update(bb);
 
@@ -249,6 +284,7 @@ BTStatus Blainn::NegateNode::Update(Blackboard &bb)
         case BTStatus::Failure: return BTStatus::Success;
         case BTStatus::Running: return BTStatus::Running;
         case BTStatus::Aborted: return BTStatus::Aborted;
+        case BTStatus::Error:return BTStatus::Error;
     }
 
     BF_ERROR("NegateNode: invalid BTStatus");
@@ -257,8 +293,12 @@ BTStatus Blainn::NegateNode::Update(Blackboard &bb)
 
 void Blainn::NegateNode::Reset()
 {
-    if (child)
-        child->Reset();
+    if (child) child->Reset();
+}
+
+void Blainn::NegateNode::ClearState()
+{
+    if (child) child->ClearState();
 }
 
 BTStatus Blainn::ConditionNode::Update(Blackboard &bb)
@@ -280,6 +320,10 @@ BTStatus Blainn::ConditionNode::Update(Blackboard &bb)
 
 void Blainn::ConditionNode::Reset()
 {
-    if (child)
-        child->Reset();
+    if (child) child->Reset();
+}
+
+void Blainn::ConditionNode::ClearState()
+{
+    if (child) child->ClearState();
 }
