@@ -14,6 +14,7 @@
 #include "Navigation/NavigationSubsystem.h"
 #include "components/NavMeshVolumeComponent.h"
 
+#include <QDesktopServices>
 #include <QListView>
 
 extern bool g_IsRunning;
@@ -68,6 +69,13 @@ editor_main::editor_main(QWidget *parent)
     connect(ui->actionEditor_settings, &QAction::triggered, this, &editor_main::OnOpenSettings);
     connect(ui->actionSave, &QAction::triggered, this, &editor_main::OnSaveScene);
     connect(ui->actionBuildNavmesh, &QAction::triggered, this, &editor_main::OnBuildNavMesh);
+
+    auto docAction = ui->menuHelp->addAction("Documentation");
+    auto supportAction = ui->menuHelp->addAction("Support");
+
+    connect(docAction, &QAction::triggered, []() { QDesktopServices::openUrl(QUrl("https://github.com/BlainnflareEngine/BlainnflareEngine/wiki")); });
+    connect(supportAction, &QAction::triggered, []() { QDesktopServices::openUrl(QUrl("https://youtu.be/xvFZjo5PgG0?list=RDxvFZjo5PgG0")); });
+
 }
 
 
@@ -142,7 +150,8 @@ void editor_main::OnBuildNavMesh()
 
     for (const auto &[entity, volume] : scene->GetAllEntitiesWith<Blainn::NavmeshVolumeComponent>().each())
     {
-        Blainn::Path relativePath = Blainn::Path(scene->GetName().c_str()).replace_extension("") / (scene->GetName() + ".navmesh").c_str();
+        Blainn::Path relativePath =
+            Blainn::Path(scene->GetName().c_str()).replace_extension("") / (scene->GetName() + ".navmesh").c_str();
 
         Blainn::NavigationSubsystem::BakeNavMesh(*scene, Blainn::Entity(entity, scene.get()), relativePath);
         Blainn::NavigationSubsystem::LoadNavMesh(relativePath);

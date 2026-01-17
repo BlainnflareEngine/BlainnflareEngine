@@ -40,7 +40,7 @@ void Editor::Init(int argc, char **argv)
     QApplication::setStyle(style);
 
     m_editorMain = new editor::editor_main();
-
+    m_editorMain->setWindowIcon(QIcon(":/icons/logo.png"));
     BF_DEBUG("Current working directory - " + current_path().string());
     m_editorConfigFolder = current_path() / "Config";
 

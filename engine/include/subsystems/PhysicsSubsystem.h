@@ -17,6 +17,7 @@ namespace JPH
 {
 class JobSystem;
 class TempAllocator;
+class Factory;
 } // namespace JPH
 
 namespace Blainn

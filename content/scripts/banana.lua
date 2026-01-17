@@ -1,4 +1,5 @@
-
+-- создайте камеру в движке и повесьте на нее скрипт
+-- готово, вы банан, умеете прыгать и бегать
 
 local savedDeltaTime = 0.0167
 
@@ -27,13 +28,7 @@ function OnStart()
         Physics.CreateAttachPhysicsComponent(e, ComponentShapeType.Box)
         Log.Info("Physics component created and attached to entity: " .. e:GetTagComponent().Tag)
     end
-    
-    local KEY_W = 87
-    local KEY_A = 65
-    local KEY_S = 83
-    local KEY_D = 68
-    local KEY_SPACE = 32
-
+ 
     listenerHeldHandle = Input.AddEventListener(InputEventType.KeyHeld,
         function(event)
 
@@ -53,16 +48,16 @@ function OnStart()
             local y = pos.y
             local z = pos.z
 
-            if event.key == KEY_W then
-                z = z - speed
-            end
-            if event.key == KEY_S then
+            if event.key == Key.W then
                 z = z + speed
             end
-            if event.key == KEY_A then
+            if event.key == Key.S then
+                z = z - speed
+            end
+            if event.key == Key.A then
                 x = x - speed
             end
-            if event.key == KEY_D then
+            if event.key == Key.D then
                 x = x + speed
             end
             tc:SetTranslation(Vec3:new(x, y, z))
@@ -71,7 +66,7 @@ function OnStart()
 
     listenerPressedHandle = Input.AddEventListener(InputEventType.KeyPressed,
         function(event)
-            if event.key ~= KEY_SPACE then return end
+            if event.key ~= Key.Space then return end
 
             local scene = Engine.GetActiveScene()
             local e = scene:TryGetEntityWithUUID(OwningEntity)
