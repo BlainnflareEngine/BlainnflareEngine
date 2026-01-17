@@ -116,10 +116,10 @@ public:
         auto &aiController = entity.GetComponent<AIControllerComponent>();
 
         out << YAML::Key << "AIControllerComponent" << YAML::Value << YAML::BeginMap;
-
         out << YAML::Key << "Path" << aiController.scriptPath.c_str();
         out << YAML::Key << "MovementSpeed" << aiController.MovementSpeed;
         out << YAML::Key << "StoppingDistance" << aiController.StoppingDistance;
+        out << YAML::EndMap;
     }
 
     static void Mesh(Entity &entity, YAML::Emitter &out)
