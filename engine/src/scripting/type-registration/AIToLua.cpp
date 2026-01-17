@@ -2,12 +2,15 @@
 
 #include "aliases.h"
 #include "scripting/TypeRegistration.h"
+#include "Engine.h"
 #include "ai/BTBuilder.h"
+#include "ai/Blackboard.h"
 
+#include "components/AIControllerComponent.h"
 #include "components/PerceptionComponent.h"
 #include "components/StimulusComponent.h"
 #include "subsystems/PerceptionSubsystem.h"
-#include "ai/Blackboard.h"
+
 
 using namespace Blainn;
 
@@ -145,6 +148,15 @@ void Blainn::RegisterAITypes(sol::state &luaState)
         {"Custom", StimulusType::Custom}
     }
     );
+
+    // Expose AIControllerComponent
+
+    auto AIControllerComponentType = luaState.new_usertype<AIControllerComponent>("AIControllerComponent", sol::no_constructor);
+
+    AIControllerComponentType.set_function("GetMovementSpeed", [](AIControllerComponent &comp) { return comp.MovementSpeed; });
+    AIControllerComponentType.set_function("GetStoppingDistance", [](AIControllerComponent &comp) { return comp.StoppingDistance; });
+        AIControllerComponentType.set_function("SetMovementSpeed", [](AIControllerComponent &comp, float newMovementSpeed) { comp.MovementSpeed = newMovementSpeed; });
+    AIControllerComponentType.set_function("SetStoppingDistance", [](AIControllerComponent &comp, float newStopDist) { comp.StoppingDistance = newStopDist; });
     
     // Expose PerceivedStimulus
     auto PerceivedStimulusType = luaState.new_usertype<PerceivedStimulus>("PerceivedStimulus",sol::no_constructor);
@@ -262,7 +274,6 @@ void Blainn::RegisterAITypes(sol::state &luaState)
     PerceptionComponentType.set_function("AddPriorityTag", [](PerceptionComponent &perception, const std::string &tag) { perception.priorityTags.push_back(tag.c_str()); });
     PerceptionComponentType.set_function("ClearIgnoreTags", [](PerceptionComponent &perception) { perception.ignoreTags.clear(); });
     PerceptionComponentType.set_function("ClearPriorityTags", [](PerceptionComponent &perception) { perception.priorityTags.clear(); });
-
 
     // Expose StimulusComponent
     auto StimulusComponentType = luaState.new_usertype<StimulusComponent>("StimulusComponent", sol::no_constructor);
@@ -462,5 +473,100 @@ void Blainn::RegisterAITypes(sol::state &luaState)
             );
         }
     );
+
+    luaState.set_function("GetClosestStimulus",
+                          [&luaState](Blackboard *bb, StimulusType type) -> sol::object
+                          {
+                              auto *perception = GetPerception(bb);
+                              if (!perception) return sol::nil;
+
+                              uuid selfEntity = bb->Get<uuid>("selfEntity");
+                              Scene *scene = Engine::GetActiveScene().get();
+                              if (!scene) return sol::nil;
+
+                              Entity self = scene->GetEntityWithUUID(selfEntity);
+                              if (!self.IsValid()) return sol::nil;
+
+                              Vec3 selfPos = scene->GetWorldSpaceTransform(self).GetTranslation();
+
+                              PerceivedStimulus *closest = nullptr;
+                              float minDistance = FLT_MAX;
+
+                              auto stimuli = GetStimuliByType(bb, type);
+                              for (auto *stimulus : stimuli)
+                              {
+                                  float distance = (stimulus->location - selfPos).Length();
+                                  if (distance < minDistance)
+                                  {
+                                      minDistance = distance;
+                                      closest = stimulus;
+                                  }
+                              }
+
+                              if (closest)
+                              {
+                                  sol::state_view lua(luaState);
+                                  return sol::make_object(lua, *closest);
+                              }
+                              return sol::nil;
+                          });
+    
+    luaState.set_function("GetStimulusInRadius",
+                          [&luaState](Blackboard *bb, StimulusType type, float radius) -> sol::table
+                          {
+                              sol::state_view lua(luaState);
+                              sol::table result = lua.create_table();
+
+                              auto *perception = GetPerception(bb);
+                              if (!perception) return result;
+
+                              uuid selfEntity = bb->Get<uuid>("selfEntity");
+                              Scene *scene = Engine::GetActiveScene().get();
+                              if (!scene) return result;
+
+                              Entity self = scene->GetEntityWithUUID(selfEntity);
+                              if (!self.IsValid()) return result;
+
+                              Vec3 selfPos = scene->GetWorldSpaceTransform(self).GetTranslation();
+
+                              auto stimuli = GetStimuliByType(bb, type);
+                              int idx = 1;
+                              for (auto *stimulus : stimuli)
+                              {
+                                  float distance = (stimulus->location - selfPos).Length();
+                                  if (distance <= radius)
+                                  {
+                                      result[idx++] = *stimulus;
+                                  }
+                              }
+
+                              return result;
+                          });
+
+    luaState.set_function("HasStimulusOfType",
+                          [](Blackboard *bb, StimulusType type) -> bool
+                          {
+                              auto *perception = GetPerception(bb);
+                              if (!perception) return false;
+
+                              for (auto &stimulus : perception->perceivedStimuli)
+                              {
+                                  if (stimulus.type == type && stimulus.successfullySensed) return true;
+                              }
+                              return false;
+                          });
+
+    luaState.set_function("ClearStimuliByType",
+                          [](Blackboard *bb, StimulusType type)
+                          {
+                              auto *perception = GetPerception(bb);
+                              if (!perception) return;
+
+                              perception->perceivedStimuli.erase(eastl::remove_if(perception->perceivedStimuli.begin(),
+                                                                                  perception->perceivedStimuli.end(),
+                                                                                  [type](const PerceivedStimulus &s)
+                                                                                  { return s.type == type; }),
+                                                                 perception->perceivedStimuli.end());
+                          });
 }
 #endif
