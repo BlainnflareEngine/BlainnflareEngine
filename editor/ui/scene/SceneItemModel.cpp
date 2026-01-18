@@ -6,7 +6,7 @@
 
 #include "EASTL/sort.h"
 #include "Engine.h"
-#include "EntityNodeComparator .h"
+#include "EntityNodeComparator.h"
 #include "FileSystemUtils.h"
 
 #include <QMessageBox>

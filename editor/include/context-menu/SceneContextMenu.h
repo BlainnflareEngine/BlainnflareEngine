@@ -21,12 +21,12 @@ class scene_hierarchy_widget;
 namespace editor
 {
 
-class AddToSceneContextMenu : public QObject
+class SceneContextMenu : public QObject
 {
     Q_OBJECT
 
 public:
-    AddToSceneContextMenu(scene_hierarchy_widget &treeView, QObject *parent = nullptr);
+    SceneContextMenu(scene_hierarchy_widget &treeView, QObject *parent = nullptr);
 
     void OpenMenu(const QPoint &pos, const QModelIndex &index = QModelIndex());
 
@@ -35,6 +35,7 @@ public:
     void AddSkybox(const QModelIndex &index);
     void RenameEntity(const QModelIndex &index) const;
     void DeleteEntity(const QModelIndex &index);
+    void CopyUUIDToClipboard(const QModelIndex &index);
 
     QKeySequence &GetRenameKey();
     QKeySequence &GetDeleteKey();
