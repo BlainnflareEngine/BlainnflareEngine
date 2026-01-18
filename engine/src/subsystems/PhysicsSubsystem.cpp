@@ -74,7 +74,7 @@ void PhysicsSubsystem::Update()
     for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
     {
         if (!transformComp.IsDirty()) continue;
-        UpdateBodyInJolt(activeScene, idComp.ID);
+        UpdateBodyInJolt(*activeScene, idComp.ID);
     }
 
     m_joltPhysicsSystem->Update(deltaTime, physicsUpdateSubsteps, m_joltTempAllocator.get(), m_joltJobSystem.get());
@@ -83,11 +83,13 @@ void PhysicsSubsystem::Update()
     {
         Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
 
-        BodyGetter bodyGetter = GetBodyGetter(entity);
-        if (bodyGetter.isTrigger()) continue;
+        {
+            BodyGetter bodyGetter = GetBodyGetter(entity);
+            if (bodyGetter.isTrigger()) continue;
 
-        transformComp.SetTranslation(bodyGetter.GetPosition());
-        transformComp.SetRotation(bodyGetter.GetRotation());
+            transformComp.SetTranslation(bodyGetter.GetPosition());
+            transformComp.SetRotation(bodyGetter.GetRotation());
+        }
         activeScene->SetFromWorldSpaceTransformMatrix(entity, transformComp.GetTransform());
     }
 
@@ -103,7 +105,7 @@ void PhysicsSubsystem::StartSimulation()
 
     for (const auto &[_, idComp, transformComp, physicsComp] : entities.each())
     {
-        PhysicsSubsystem::UpdateBodyInJolt(activeScene, idComp.ID);
+        PhysicsSubsystem::UpdateBodyInJolt(*activeScene, idComp.ID);
         Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
         BodyUpdater bodyUpdater = GetBodyUpdater(entity);
         bodyUpdater.ActivateBody();
@@ -111,14 +113,13 @@ void PhysicsSubsystem::StartSimulation()
 }
 
 
-void Blainn::PhysicsSubsystem::UpdateBodyInJolt(const eastl::shared_ptr<Blainn::Scene> &activeScene,
-                                                const uuid &entityUuid)
+void Blainn::PhysicsSubsystem::UpdateBodyInJolt(Blainn::Scene &activeScene, const uuid &entityUuid)
 {
-    Entity entity = activeScene->GetEntityWithUUID(entityUuid);
+    Entity entity = activeScene.GetEntityWithUUID(entityUuid);
 
     Vec3 translation, scale;
     Quat rotation;
-    activeScene->GetWorldSpaceTransformMatrix(entity).Decompose(scale, rotation, translation);
+    activeScene.GetWorldSpaceTransformMatrix(entity).Decompose(scale, rotation, translation);
 
     BodyUpdater bodyUpdater = GetBodyUpdater(entity);
     bodyUpdater.SetPosition(translation).SetRotation(rotation);
