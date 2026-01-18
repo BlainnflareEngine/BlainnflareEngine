@@ -31,12 +31,6 @@ void Blainn::RegisterPhysicsBodyUpdater(sol::state &luaState, sol::table &physic
                                                        auto u = PhysicsSubsystem::GetBodyUpdater(e);
                                                        u.SetRotation(r, static_cast<EActivation>(activationInt));
                                                    });
-                                  tbl.set_function("SetScale",
-                                                   [e](const Vec3 &s, const Vec3 &prev)
-                                                   {
-                                                       auto u = PhysicsSubsystem::GetBodyUpdater(e);
-                                                       u.SetScale(s, prev);
-                                                   });
                                   tbl.set_function("SetVelocity",
                                                    [e](const Vec3 &v)
                                                    {

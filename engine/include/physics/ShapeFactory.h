@@ -14,14 +14,14 @@ public:
 private:
     ShapeFactory() = delete;
 
-    static JPH::Ref<JPH::Shape> CreateSphereShape(float radius);
-    static JPH::Ref<JPH::Shape> CreateBoxShape(Vec3 halfExtents);
-    static JPH::Ref<JPH::Shape> CreateCapsuleShape(float halfHeight, float radius);
-    static JPH::Ref<JPH::Shape> CreateCylinderShape(float halfHeight, float radius);
+    static eastl::optional<JPH::Ref<JPH::Shape>> CreateSphereShape(float radius);
+    static eastl::optional<JPH::Ref<JPH::Shape>> CreateBoxShape(Vec3 halfExtents);
+    static eastl::optional<JPH::Ref<JPH::Shape>> CreateCapsuleShape(float halfHeight, float radius);
+    static eastl::optional<JPH::Ref<JPH::Shape>> CreateCylinderShape(float halfHeight, float radius);
 
     // all shapes are scaled shapes
     template <typename ShapeSettingsType, typename... Args>
-    static JPH::Ref<JPH::Shape> CreateShapeInternal(Args... args)
+    static eastl::optional<JPH::Ref<JPH::Shape>> CreateShapeInternal(Args... args)
     {
         ShapeSettingsType childSettings(args...);
         JPH::ShapeSettings::ShapeResult resChild = childSettings.Create();
@@ -32,6 +32,7 @@ private:
             return eastl::nullopt;
         }
 
+        // TODO: remove useless scaled shape creation
         JPH::ScaledShapeSettings scaledShapeSettings(resChild.Get().GetPtr(), JPH::Vec3::sReplicate(1.0f));
         JPH::ShapeSettings::ShapeResult resScaled = scaledShapeSettings.Create();
 

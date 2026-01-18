@@ -65,27 +65,8 @@ void PhysicsSubsystem::Update()
     assert(m_isInitialized && "PhysicsSubsystem not initialized. Call PhysicsSubsystem::Init() before using it.");
 
     float deltaTime = m_physicsTimeline->Tick();
-
-    // TODO: remove test
-    static float testAccumulator;
-    testAccumulator += deltaTime;
-    // ---
-
     if (deltaTime == 0.0f) return;
     deltaTime /= 1000.0f;
-
-    // TODO: remove test
-    static int fpsCounterPrevValue;
-    static int fpsCounter;
-    fpsCounter++;
-
-    if (testAccumulator >= 1000.0f)
-    {
-        // BF_WARN("Physics FPS: {} ; deltaTime {}", fpsCounter - fpsCounterPrevValue, deltaTime);
-        fpsCounterPrevValue = fpsCounter;
-
-        testAccumulator -= 1000.0f;
-    }
 
     eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
     auto enities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
@@ -93,21 +74,7 @@ void PhysicsSubsystem::Update()
     for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
     {
         if (!transformComp.IsDirty()) continue;
-
-        Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
-
-        Vec3 translation, scale;
-        Quat rotation;
-        activeScene->GetWorldSpaceTransformMatrix(entity).Decompose(scale, rotation, translation);
-
-        BodyUpdater bodyUpdater = GetBodyUpdater(entity);
-        bodyUpdater.SetPosition(translation).SetRotation(rotation);
-
-        if (transformComp.IsScaleDirty())
-        {
-            bodyUpdater.SetScale(scale, physicsComp.prevFrameScale);
-            physicsComp.prevFrameScale = scale;
-        }
+        UpdateBodyInJolt(activeScene, idComp.ID);
     }
 
     m_joltPhysicsSystem->Update(deltaTime, physicsUpdateSubsteps, m_joltTempAllocator.get(), m_joltJobSystem.get());
@@ -136,10 +103,25 @@ void PhysicsSubsystem::StartSimulation()
 
     for (const auto &[_, idComp, transformComp, physicsComp] : entities.each())
     {
+        PhysicsSubsystem::UpdateBodyInJolt(activeScene, idComp.ID);
         Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
         BodyUpdater bodyUpdater = GetBodyUpdater(entity);
         bodyUpdater.ActivateBody();
     }
+}
+
+
+void Blainn::PhysicsSubsystem::UpdateBodyInJolt(const eastl::shared_ptr<Blainn::Scene> &activeScene,
+                                                const uuid &entityUuid)
+{
+    Entity entity = activeScene->GetEntityWithUUID(entityUuid);
+
+    Vec3 translation, scale;
+    Quat rotation;
+    activeScene->GetWorldSpaceTransformMatrix(entity).Decompose(scale, rotation, translation);
+
+    BodyUpdater bodyUpdater = GetBodyUpdater(entity);
+    bodyUpdater.SetPosition(translation).SetRotation(rotation);
 }
 
 void PhysicsSubsystem::StopSimulation()
@@ -180,7 +162,7 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
     component.parentId = parentId;
     component.prevFrameScale = transformComponentPtr->GetScale();
 
-    eastl::optional<ShapeHierarchy> createdShapeHierarchy = ShapeFactory::CreateShape(settings.shapeSettings);
+    eastl::optional<JPH::Ref<JPH::Shape>> createdShapeHierarchy = ShapeFactory::CreateShape(settings.shapeSettings);
 
     if (!createdShapeHierarchy.has_value())
     {
@@ -194,7 +176,7 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
     builder.SetMotionType(settings.motionType)
         .SetPosition(transformComponentPtr->GetTranslation())
         .SetRotation(transformComponentPtr->GetRotation())
-        .SetShape(component.GetShape().shapePtr.GetPtr())
+        .SetShape(component.GetShape().GetPtr())
         .SetIsTrigger(settings.isTrigger)
         .SetGravityFactor(settings.gravityFactor)
         .SetLayer(settings.layer);
