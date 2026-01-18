@@ -6,12 +6,8 @@
 
 using namespace Blainn;
 
-ShapeHierarchy ShapeFactory::CreateSphereShape(float radius)
-{
-    return CreateShapeInternal<JPH::SphereShapeSettings>(radius);
-}
 
-eastl::optional<ShapeHierarchy> ShapeFactory::CreateShape(ShapeCreationSettings &settings)
+eastl::optional<JPH::Ref<JPH::Shape>> ShapeFactory::CreateShape(ShapeCreationSettings &settings)
 {
     switch (settings.shapeType)
     {
@@ -29,17 +25,22 @@ eastl::optional<ShapeHierarchy> ShapeFactory::CreateShape(ShapeCreationSettings 
     }
 }
 
-ShapeHierarchy ShapeFactory::CreateBoxShape(Vec3 halfExtents)
+eastl::optional<JPH::Ref<JPH::Shape>> ShapeFactory::CreateSphereShape(float radius)
+{
+    return CreateShapeInternal<JPH::SphereShapeSettings>(radius);
+}
+
+eastl::optional<JPH::Ref<JPH::Shape>> ShapeFactory::CreateBoxShape(Vec3 halfExtents)
 {
     return CreateShapeInternal<JPH::BoxShapeSettings>(ToJoltVec3(halfExtents));
 }
 
-ShapeHierarchy ShapeFactory::CreateCapsuleShape(float halfHeight, float radius)
+eastl::optional<JPH::Ref<JPH::Shape>> ShapeFactory::CreateCapsuleShape(float halfHeight, float radius)
 {
     return CreateShapeInternal<JPH::CapsuleShapeSettings>(halfHeight, radius);
 }
 
-ShapeHierarchy ShapeFactory::CreateCylinderShape(float halfHeight, float radius)
+eastl::optional<JPH::Ref<JPH::Shape>> ShapeFactory::CreateCylinderShape(float halfHeight, float radius)
 {
     return CreateShapeInternal<JPH::CylinderShapeSettings>(halfHeight, radius);
 }
