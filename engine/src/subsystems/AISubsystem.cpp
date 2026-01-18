@@ -51,7 +51,7 @@ void AISubsystem::UpdateLOD()
     
     for (const auto& [entityHandle, idComp, transform, camera] : cameras.each())
     {
-        if (camera.IsActiveCamera)
+        if (camera.CameraPriority == 0)
         {
             Entity cameraEntity = scene.GetEntityWithUUID(idComp.ID);
             cameraPos = scene.GetWorldSpaceTransform(cameraEntity).GetTranslation();
