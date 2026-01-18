@@ -28,7 +28,9 @@ void RegisterVector4Type(sol::state &luaState);
 void RegisterQuatType(sol::state &luaState);
 void RegisterMat4Type(sol::state &luaState);
 
-//void RegisterUselessSimpleMathTypes(sol::state &luaState);
+void RegisterUUIDType(sol::state &luaState);
+
+// void RegisterUselessSimpleMathTypes(sol::state &luaState);
 void RegisterPhysicsBodyGetter(sol::state &luaState, sol::table &physicsTable);
 void RegisterPhysicsBodyUpdater(sol::state &luaState, sol::table &physicsTable);
 #endif

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "context-menu/AddToSceneContextMenu.h"
+#include "context-menu/SceneContextMenu.h"
 #include "inspector_widget.h"
 
 
