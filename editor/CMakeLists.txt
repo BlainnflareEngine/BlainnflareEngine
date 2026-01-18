@@ -95,8 +95,8 @@ set(EDITOR_SOURCES
         ui/inspector/mesh_inspector_content.ui
         src/content-browser/folder-content/ContentFilterProxyModel.cpp
         include/content-browser/folder-content/ContentFilterProxyModel.h
-        src/context-menu/AddToSceneContextMenu.cpp
-        include/context-menu/AddToSceneContextMenu.h
+        src/context-menu/SceneContextMenu.cpp
+        include/context-menu/SceneContextMenu.h
         src/scene/scene_hierarchy_widget.cpp
         include/scene/scene_hierarchy_widget.h
         ui/scene/scene_hierarchy_widget.ui
@@ -128,7 +128,7 @@ set(EDITOR_SOURCES
         include/inspector/input-widgets/NumericInputWidget.h
         src/scene/SceneMeta.cpp
         include/scene/SceneMeta.h
-        "include/scene/EntityNodeComparator .h"
+        include/scene/EntityNodeComparator.h
         src/inspector/input-widgets/bool_input_field.cpp
         include/inspector/input-widgets/bool_input_field.h
         src/inspector/entity/scripting/scripting_widget.cpp
@@ -151,9 +151,11 @@ set(EDITOR_SOURCES
         src/inspector/entity/skybox_widget.cpp
         src/inspector/entity/ai_controller_widget.cpp
         include/inspector/entity/ai_controller_widget.h
+        include/inspector/entity/navmesh_volume_widget.h
+        src/inspector/entity/navmesh_volume_widget.cpp
 )
 
-add_library(EDITOR STATIC ${EDITOR_SOURCES} "include/inspector/entity/navmesh_volume_widget.h" "src/inspector/entity/navmesh_volume_widget.cpp")
+add_library(EDITOR STATIC ${EDITOR_SOURCES})
 
 source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${EDITOR_SOURCES})
 
