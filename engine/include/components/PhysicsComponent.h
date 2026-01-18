@@ -1,8 +1,5 @@
 #pragma once
 
-#include <Jolt/Jolt.h>
-#include <Jolt/Physics/Body/BodyID.h>
-
 #include "aliases.h"
 #include "physics/PhysicsTypes.h"
 #include "physics/ShapeFactory.h"
@@ -22,15 +19,15 @@ namespace Blainn
 {
 struct PhysicsComponent
 {
-    void UpdateShape(ComponentShapeType newType, ShapeHierarchy newHierarchy)
+    void UpdateShape(ComponentShapeType newType, JPH::Ref<JPH::Shape> shape)
     {
         shapeType = newType;
-        shapeHierarchy = newHierarchy;
+        shapePtr = shape;
     };
 
-    const ShapeHierarchy &GetHierarchy()
+    JPH::Ref<JPH::Shape> GetShape()
     {
-        return shapeHierarchy;
+        return shapePtr;
     };
 
     ComponentShapeType GetShapeType()
@@ -45,6 +42,6 @@ struct PhysicsComponent
 
 private:
     ComponentShapeType shapeType = ComponentShapeType::Empty;
-    ShapeHierarchy shapeHierarchy = {}; // we may not store this
+    JPH::Ref<JPH::Shape> shapePtr = nullptr;
 };
 } // namespace Blainn

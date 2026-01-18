@@ -1,7 +1,5 @@
 #pragma once
 
-// TODO: change for our needs
-
 namespace Blainn
 {
 /// Layer that objects can be in, determines which other objects it can collide with

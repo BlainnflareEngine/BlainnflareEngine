@@ -1,77 +1,30 @@
 #pragma once
 
-#include <Windows.h>
-#include "Render/DXHelpers.h"
-#include "Render/SwapChain.h"
 #include "Render/Device.h"
+#include "Render/SwapChain.h"
 
 #include "handles/Handle.h"
 #include "scene/Entity.h"
 #include "Render/Camera.h"
 #include "Render/GBuffer.h"
 #include "Render/CascadeShadowMap.h"
+#include "Render/RootSignature.h"
+#include "Render/Shader.h"
+#include "Render/PipelineStateObject.h"
+#include "Render/RenderTarget.h"
 
 namespace Blainn
 {
 const int gNumFrameResources = 3;
 
+class DebugRenderer;
 class Device;
-class Renderer;
 class RootSignature;
 struct FrameResource;
+class SelectionManager;
 
 class RenderSubsystem
 {
-public:
-    enum ERootParameter : UINT
-    {
-        PerObjectDataCB = 0,
-        PerPassDataCB,
-        MaterialDataSB,
-        PointLightsDataSB,
-        SpotLightsDataSB,
-        CascadedShadowMaps,
-        Textures,
-        GBufferTextures,
-
-        NumRootParameters = 8u
-    };
-
-    enum EPsoType : UINT
-    {
-        CascadedShadowsOpaque = 0,
-
-        DeferredGeometry,
-        Wireframe,
-
-        DeferredDirectional,
-        DeferredPointWithinFrustum,
-        DeferredPointIntersectsFarPlane,
-        DeferredPointFullQuad,
-        DeferredSpot,
-
-        Transparency,
-
-        NumPipelineStates = 9u
-    };
-
-    enum EShaderType : UINT
-    {
-        CascadedShadowsVS = 0u,
-        CascadedShadowsGS,
-
-        DeferredGeometryVS,
-        DeferredGeometryPS,
-
-        DeferredDirVS,
-        DeferredDirPS,
-        DeferredLightVolumesVS,
-        DeferredPointPS,
-        DeferredSpotPS,
-
-        NumShaders = 9U
-    };
-
 private:
     RenderSubsystem() = default;
     RenderSubsystem(const RenderSubsystem &) = delete;
@@ -82,25 +35,53 @@ private:
 public:
     static RenderSubsystem &GetInstance();
 
+    void PreInit();
     void Init(HWND window);
     void SetWindowParams(HWND window);
     void Render(float deltaTime);
     void OnResize(UINT newWidth, UINT newHeight);
     void Destroy();
 
-    // Record all the commands we need to render the scene into the command list.
-    void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
+public:
+    void ToggleVSync()
+    {
+        if (!m_swapChain) return;
+        m_swapChain->ToggleVSync();
+    }
+
+    void ToggleFullscreen()
+    {
+        if (!m_swapChain) return;
+        m_swapChain->ToggleFullscreen();
+    }
+
+    void SetEnableDebug(bool newValue)
+    {
+        m_enableDebugLayer = newValue;
+    }
+
+    const DebugRenderer &GetDebugRenderer() const { return *m_debugRenderer; }
+    DebugRenderer &GetDebugRenderer() { return *m_debugRenderer; }
+
+    void SetCamera(Camera* camera) { m_camera = camera; }
+    Camera* GetCamera() { return m_camera; }
+    eastl::shared_ptr<Camera>& GetEditorCamera() { return m_editorCamera; }
+
+    float GetAspectRatio() const { return m_aspectRatio; }
+
+    uuid GetUUIDAt(uint32_t x, uint32_t y);
 
 private:
-    void InitializeD3D();
+    // Record all the commands we need to render the scene into the command list.
+    void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
+    void InitializeWindow();
 
 #pragma region BoilerplateD3D12
-    VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter,
-                            bool requestHighPerformanceAdapter = false);
+    VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter = false);
     VOID SetCustomWindowText(LPCWSTR text) const;
 
     VOID CreateSwapChain();
-    VOID CreateRtvAndDsvDescriptorHeaps();
+    VOID CreateDescriptorHeaps();
 
     VOID Reset();
     VOID ResetGraphicsFeatures();
@@ -110,10 +91,9 @@ private:
 
     void LoadPipeline();
     void LoadGraphicsFeatures();
-
     void CreateFrameResources();
-
-    void CreateDescriptorHeaps();
+    void LoadInitTimeTextures(ID3D12GraphicsCommandList2* pCommandList);
+    void LoadSrvAndSamplerDescriptorHeaps();
     void CreateRootSignature();
     void CreateShaders();
     void CreatePipelineStateObjects();
@@ -121,39 +101,39 @@ private:
 private:
     void UpdateObjectsCB(float deltaTime);
     void UpdateMaterialBuffer(float deltaTime);
-    void UpdateLightsBuffer(float deltaTime);
     void UpdateShadowTransform(float deltaTime);
     void UpdateShadowPassCB(float deltaTime);
     void UpdateGeometryPassCB(float deltaTime);
     void UpdateMainPassCB(float deltaTime);
 
 private:
-    void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
-
 #pragma region Shadows
     void RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pCommandList);
 #pragma endregion Shadows
+
 #pragma region DeferredShading
     void RenderGeometryPass(ID3D12GraphicsCommandList2 *pCommandList);
-    void RenderLightingPass(ID3D12GraphicsCommandList2 *pCommandList);
-    void RenderTransparencyPass(ID3D12GraphicsCommandList2 *pCommandList);
 
+    void RenderLightingPass(ID3D12GraphicsCommandList2 *pCommandList);
     void DeferredDirectionalLightPass(ID3D12GraphicsCommandList2 *pCommandList);
     void DeferredPointLightPass(ID3D12GraphicsCommandList2 *pCommandList);
     void DeferredSpotLightPass(ID3D12GraphicsCommandList2 *pCommandList);
+
+    void RenderForwardPasses(ID3D12GraphicsCommandList2 *pCommandList);
+    void RenderTransparencyPass(ID3D12GraphicsCommandList2 *pCommandList);
 #pragma endregion DeferredShading
+    void RenderSkyBoxPass(ID3D12GraphicsCommandList2 *pCommandList);
 
-    void DrawMeshes(ID3D12GraphicsCommandList2 *cmdList);
+    void RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList);
 
-    void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *cmdList,
-                             const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
+    void RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList);
 
-#pragma region CommandListIntrinsic
-    void Draw(UINT vertexCount, UINT instanceCount = 1u, UINT startVertex = 0u, UINT startInstance = 0u);
-    void DrawIndexed(UINT indexCount, UINT instanceCount = 1u, UINT startIndex = 0u, UINT baseVertex = 0u,
-                     UINT startInstance = 0u);
+    void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
 
-#pragma region CommandListIntrinsic
+    // For drawing specific meshes
+    void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList, eastl::unique_ptr<struct MeshComponent>& mesh); 
+    void DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList);
+    void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
 
     void DrawQuad(ID3D12GraphicsCommandList2 *pCommandList);
 
@@ -189,6 +169,8 @@ private:
     bool m_isWireframe = false;     // Fill mode
     bool m_is4xMsaaState = false;
 
+    bool m_enableDebugLayer = true;
+
     UINT m_4xMsaaQuality = 0u;
 
 private:
@@ -196,15 +178,16 @@ private:
     eastl::shared_ptr<SwapChain> m_swapChain;
     Device &m_device = Device::GetInstance();
 
-    eastl::unique_ptr<Renderer> m_renderer = nullptr;
-
     ComPtr<ID3D12Resource> m_depthStencilBuffer;
 
     eastl::shared_ptr<RootSignature> m_rootSignature;
-    eastl::unordered_map<EShaderType, ComPtr<ID3DBlob>> m_shaders;
-    eastl::unordered_map<EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
+    eastl::shared_ptr<RootSignature> m_UUIDRootSignature;
+    eastl::unordered_map<Shader::EShaderType, ComPtr<ID3DBlob>> m_shaders;
+    eastl::unordered_map<PipelineStateObject::EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
 
-    // ObjectConstants m_perObjectCBData;
+    eastl::unique_ptr<Blainn::DebugRenderer> m_debugRenderer;
+
+    RenderTarget m_uuidRenderTarget;
 
     float m_sunPhi = XM_PIDIV4;
     float m_sunTheta = 1.25f * XM_PI;
@@ -231,23 +214,35 @@ private:
     eastl::vector<eastl::unique_ptr<FrameResource>> m_frameResources;
     FrameResource *m_currFrameResource = nullptr;
 
-    eastl::unique_ptr<Camera> m_camera;
+    Camera* m_camera;
+    eastl::shared_ptr<Camera> m_editorCamera;
 
 #pragma region DeferredShading
     eastl::unique_ptr<GBuffer> m_GBuffer;
-    CD3DX12_GPU_DESCRIPTOR_HANDLE m_GBufferTexturesSrv;
+    UINT m_GBufferTexturesSrvHeapStartIndex = 0u;
 #pragma endregion DeferredShading
 
 #pragma region CascadedShadows
     eastl::unique_ptr<ShadowMap> m_cascadeShadowMap;
-    CD3DX12_GPU_DESCRIPTOR_HANDLE m_cascadeShadowSrv;
+    UINT m_cascadesShadowSrvHeapStartIndex = 0u;
 #pragma endregion CascadedShadows
+
+#pragma region Textures
+    UINT m_skyCubeSrvHeapStartIndex = 0u;
+    UINT m_texturesSrvHeapStartIndex = 0u;
+#pragma endregion Textures
+    
+    // TODO
+    eastl::unique_ptr<struct MeshComponent> skyBox = nullptr;
+    Microsoft::WRL::ComPtr<ID3D12Resource> skyBoxResource = nullptr;
+    Microsoft::WRL::ComPtr<ID3D12Resource> skyBoxUploadHeap = nullptr;
+
+    eastl::unique_ptr<SelectionManager> m_selectionManager = nullptr;
 
 private:
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTV()
     {
-        return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
-                                             m_swapChain->GetBackBufferIndex(), m_rtvDescriptorSize);
+        return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_swapChain->GetBackBufferIndex(), m_rtvDescriptorSize);
     }
 
     D3D12_CPU_DESCRIPTOR_HANDLE GetDSV()

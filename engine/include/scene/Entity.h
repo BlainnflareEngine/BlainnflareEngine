@@ -5,9 +5,7 @@
 
 #include "BasicComponents.h"
 #include "TransformComponent.h"
-#include "EASTL/string.h"
 #include "aliases.h"
-#include "entt/entt.hpp"
 
 namespace Blainn
 {

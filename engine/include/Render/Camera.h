@@ -9,10 +9,11 @@ namespace Blainn
     {
     public:
         Camera();
-        /*virtual */~Camera() = default;
+        virtual ~Camera() = default;
         
-        void Update(float deltaTime);
-        void Reset(float fovAngleY, float aspectRatio, float nearZ, float farZ);
+        virtual void Update(float deltaTime);
+        virtual void Reset(float fovAngleY, float aspectRatio, float nearZ, float farZ);
+        void SetAspectRatio(float aspectRatio);
         
         XMMATRIX GetViewMatrix() const;
         XMMATRIX GetPerspectiveProjectionMatrix() const;
@@ -21,9 +22,13 @@ namespace Blainn
         
         FORCEINLINE float GetNearZ() const { return m_nearZ; }
         FORCEINLINE float GetFarZ() const { return m_farZ; }
-        
+        void SetNearZ(float value);
+        void SetFarZ(float value);
+
         float GetFovYRad() const;
         float GetFovXRad() const;
+        float GetFovDegrees() const;
+        void SetFovDegrees(float value);
         
         FORCEINLINE float GetNearWindowHeight() const { return m_nearWindowHeight; }
         FORCEINLINE float GetNearWindowWidth() const{ return m_nearWindowHeight * m_aspectRatio; }
@@ -34,22 +39,9 @@ namespace Blainn
         XMVECTOR GetPosition() const;
         void SetPosition(float x, float y, float z);
         void SetPosition(const XMFLOAT3& v);
-        
-        // Translation
-        void Move(const KeyCode key);
-        void AdjustRotation(float x, float y);
-        void SetCameraProperties(const KeyCode key);
-    private:
-        void SetAcceleration(bool useAcceleration) { m_bUseAcceleration = useAcceleration; }
-        void MoveRight(float d);
-        void MoveForward(float d);
-        void MoveUp(float d);
-        
-        // Rotation
-        void AdjustYaw(float adjustYawValue);
-        void AdjustPitch(float adjustPitchValue);
-        
-        private:
+
+
+    protected:
         XMFLOAT3 m_position = { 0.0f, 0.0f, 0.0f };
         XMFLOAT3 m_right	= { 1.0f, 0.0f, 0.0f };
         XMFLOAT3 m_up		= { 0.0f, 1.0f, 0.0f };
@@ -62,11 +54,11 @@ namespace Blainn
         float m_nearWindowHeight;
         float m_farWindowHeight;
         
-        float m_cameraSpeed = 0.1f;
+        float m_cameraSpeed = 0.01f;
         float m_cameraAcceleration = 10.0f;
         
-        // TO DO: Should be tracked
-        XMFLOAT2 m_lastMousePos = {0.0f, 0.0f};
+        float m_deltaTime = 0.0f;
+        bool m_bIsCameraActionsBinded = false;
         bool m_isDirty = false;
         bool m_bUseAcceleration = false;
 

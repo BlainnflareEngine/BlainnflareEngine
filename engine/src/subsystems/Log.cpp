@@ -51,5 +51,13 @@ namespace Blainn
         s_Logger->sinks().push_back(sink);
         s_Logger->sinks().back()->set_pattern(pattern);
     }
+
+    void Log::RemoveSink(const std::shared_ptr<spdlog::sinks::base_sink<std::mutex>> &sink)
+    {
+        auto& sinks = s_Logger->sinks();
+        const auto& sinkit = std::find(sinks.begin(), sinks.end(), sink);
+        if (sinkit != sinks.end())
+            s_Logger->sinks().erase(sinkit);
     }
+}
 

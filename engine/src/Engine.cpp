@@ -9,12 +9,15 @@
 #include "Input/InputSubsystem.h"
 #include "Input/KeyboardEvents.h"
 #include "aliases.h"
+#include "Input/MouseEvents.h"
+#include "Navigation/NavigationSubsystem.h"
 #include "scene/Scene.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
 #include "subsystems/PhysicsSubsystem.h"
 #include "subsystems/RenderSubsystem.h"
 #include "subsystems/ScriptingSubsystem.h"
+#include "subsystems/AISubsystem.h"
 #include "tools/Profiler.h"
 
 using namespace Blainn;
@@ -35,27 +38,28 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     SetDefaultContentDirectory();
 
     Log::Init();
+    RenderSubsystem::GetInstance().PreInit();
     PhysicsSubsystem::Init(globalTimeline);
     AssetManager::GetInstance().Init();
     ScriptingSubsystem::Init();
+    AISubsystem::GetInstance().Init();
 
-    // TODO: -- remove --  test asset manager
-    // auto a = AssetManager::GetInstance().LoadTexture(std::filesystem::current_path(), TextureType::ALBEDO);
+    Input::AddEventListener(
+        InputEventType::MouseButtonPressed,
+        [&](const InputEventPointer &event)
+        {
+            const MouseButtonPressedEvent *mouseEvent = static_cast<const MouseButtonPressedEvent *>(event.get());
+            auto button = mouseEvent->GetMouseButton();
 
-    // TODO: -- remove -- test input
-    Input::AddEventListener(InputEventType::KeyPressed,
-                            [](const InputEventPointer &event)
-                            {
-                                const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent *>(event.get());
-                                BF_INFO("Key {} was pressed", static_cast<int>(keyEvent->GetKey()));
-                            });
+            if (button == MouseButton::Left)
+            {
+                uuid id = RenderSubsystem::GetInstance().GetUUIDAt(mouseEvent->GetX() - 350, mouseEvent->GetY() - 130);
 
-    Input::AddEventListener(InputEventType::KeyReleased,
-                            [](const InputEventPointer &event)
-                            {
-                                const KeyReleasedEvent *keyEvent = static_cast<const KeyReleasedEvent *>(event.get());
-                                BF_INFO("Key {} was released", static_cast<int>(keyEvent->GetKey()));
-                            });
+                BF_INFO("the picked id is {}", id.str());
+            }
+        });
+    NavigationSubsystem::Init();
+    NavigationSubsystem::SetShouldDrawDebug(true);
 }
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
@@ -67,8 +71,10 @@ void Engine::InitRenderSubsystem(HWND windowHandle)
 
 void Engine::Destroy()
 {
-    vgjs::wait_for_termination();
+    s_activeScene = nullptr;
 
+    NavigationSubsystem::Destroy();
+    AISubsystem::GetInstance().Destroy();
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
 
@@ -103,54 +109,18 @@ void Engine::Update(float deltaTime)
         testAccumulator -= 1000.0f;
     }
 
-    // TODO: remove physics test
-    // static std::atomic<bool> one;
-    // if (!one)
-    // {
-    //     Entity e1 = s_activeScene->CreateEntity("PhysicsTestEntity1");
-    //     TransformComponent t;
-    //     t.SetTranslation(Vec3(0.0f, 3.0f, 3.0f));
-    //     e1.AddComponent<TransformComponent>(t);
-    //     s_activeScene->CreateAttachMeshComponent(e1, "Models/Cube.fbx", ImportMeshData{});
-    //     PhysicsComponentSettings physicsSettings1(e1, ComponentShapeType::Box);
-    //     physicsSettings1.activate = JPH::EActivation::Activate;
-    //     PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings1);
-
-    //     Entity e2 = s_activeScene->CreateEntity("PhysicsTestEntity2");
-    //     t.SetTranslation(Vec3(0.f, -2.f, 3.f));
-    //     t.SetScale(Vec3(10.0f, 1.0f, 10.0f));
-    //     e2.AddComponent<TransformComponent>(t);
-    //     s_activeScene->CreateAttachMeshComponent(e2, "Models/Cube.fbx", ImportMeshData{});
-    //     PhysicsComponentSettings physicsSettings2(e2, ComponentShapeType::Box);
-    //     physicsSettings2.activate = JPH::EActivation::Activate;
-    //     physicsSettings2.motionType = PhysicsComponentMotionType::Static;
-    //     physicsSettings2.shapeSettings.halfExtents = Vec3(5.0f, 1.0f, 5.0f);
-    //     physicsSettings2.layer = Layers::NON_MOVING;
-    //     PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings2);
-
-    //     Entity e3 = s_activeScene->CreateEntity("PhysicsTestEntity1");
-    //     t.SetTranslation(Vec3(0.2f, -1.f, 3.f));
-    //     t.SetScale(Vec3(1.0f, 1.0f, 1.0f));
-    //     e3.AddComponent<TransformComponent>(t);
-    //     s_activeScene->CreateAttachMeshComponent(e3, "Models/Cube.fbx", ImportMeshData{});
-    //     PhysicsComponentSettings physicsSettings3(e3, ComponentShapeType::Box);
-    //     physicsSettings3.activate = JPH::EActivation::Activate;
-    //     physicsSettings3.gravityFactor = -1.0f;
-    //     PhysicsSubsystem::CreateAttachPhysicsComponent(physicsSettings3);
-
-    //     one = true;
-    // }
-
     if (s_isPlayMode)
     {
-        float playModeDelta = s_playModeTimeline.Tick();
+        float playModeDelta = s_playModeTimeline.Tick() / 1000.0f;
         PhysicsSubsystem::Update();
         ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
+        AISubsystem::GetInstance().Update(playModeDelta);
+        NavigationSubsystem::Update(playModeDelta);
     }
 
     s_activeScene->Update();
 
-    ScriptingSubsystem::Update(*s_activeScene, deltaTime);
+    if (NavigationSubsystem::ShouldDrawDebug()) NavigationSubsystem::DrawDebugMesh();
 
     RenderSubsystem::GetInstance().Render(deltaTime);
 
@@ -162,13 +132,16 @@ void Engine::Update(float deltaTime)
 void Engine::StartPlayMode()
 {
     if (s_isPlayMode) return;
+    if (!s_activeScene) return;
 
-    if (s_activeScene) s_activeScene->SaveScene();
-    else return;
+    s_activeScene->StartPlayMode();
+    s_activeScene->SaveScene();
 
     s_playModeTimeline.Reset();
     s_playModeTimeline.Start();
     s_isPlayMode = true;
+
+    PhysicsSubsystem::StartSimulation();
 
     for (auto [entity, id, scriptComp] : s_activeScene->GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
     {
@@ -182,21 +155,31 @@ void Engine::StartPlayMode()
 void Engine::StopPlayMode()
 {
     s_playModeTimeline.Pause();
+    PhysicsSubsystem::StopSimulation();
 }
 
 
 void Engine::EscapePlayMode()
 {
     if (!s_isPlayMode) return;
-    if (s_activeScene) AssetManager::GetInstance().OpenScene(s_activeScene->GetName().c_str());
+    if (s_activeScene)
+    {
+        s_activeScene->EndPlayMode();
+        AssetManager::GetInstance().OpenScene(s_activeScene->GetName().c_str());
+    }
+
 
     s_isPlayMode = false;
 
+    PhysicsSubsystem::StopSimulation();
+
     for (auto [entity, id, scriptComp] : s_activeScene->GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
     {
-        for (auto [id, script] : scriptComp.scripts)
+        for (auto &[id, _] : scriptComp.scripts)
             ScriptingSubsystem::UnloadScript(id);
     }
+
+    AssetManager::GetInstance().ResetTextures();
 }
 
 

@@ -5,16 +5,13 @@
 #pragma once
 #include "aliases.h"
 
-
-#include <filesystem>
-
 namespace Blainn
 {
 class FileSystemObject
 {
 public:
     FileSystemObject() = default;
-    FileSystemObject(const Path &absolutPath);
+    FileSystemObject(const Path &relativePath);
     virtual ~FileSystemObject();
 
     virtual void Move();

@@ -28,20 +28,19 @@ protected:
     void resizeEvent(QResizeEvent *event) override
     {
         QWidget::resizeEvent(event);
-        BF_DEBUG("Resized!");
 
-        // Blainn::RenderSubsystem::GetInstance().OnResize(event->size().width(), event->size().height());
+        Blainn::RenderSubsystem::GetInstance().OnResize(event->size().width(), event->size().height());
     }
 
     void keyPressEvent(QKeyEvent *event) override
     {
-        Blainn::Input::UpdateKeyState(static_cast<Blainn::KeyCode>(event->key()), Blainn::KeyState::Pressed);
+        Blainn::Input::UpdateKeyState(static_cast<Blainn::KeyCode>(event->nativeVirtualKey()), Blainn::KeyState::Pressed);
         QWidget::keyPressEvent(event);
     }
 
     void keyReleaseEvent(QKeyEvent *event) override
     {
-        Blainn::Input::UpdateKeyState(static_cast<Blainn::KeyCode>(event->key()), Blainn::KeyState::Released);
+        Blainn::Input::UpdateKeyState(static_cast<Blainn::KeyCode>(event->nativeVirtualKey()), Blainn::KeyState::Released);
         QWidget::keyReleaseEvent(event);
     }
 
@@ -52,6 +51,14 @@ protected:
 
         Blainn::Input::UpdateButtonState(static_cast<Blainn::MouseButton>(event->button()),
                                          Blainn::ButtonState::Pressed);
+
+        if (event->button() == Qt::MouseButton::LeftButton)
+        {
+            uint32_t xPos = event->x();
+            uint32_t yPos = event->y();
+            Blainn::Engine::GetSelectionManager().SelectAt(xPos, yPos);
+        }
+
         QWidget::mousePressEvent(event);
         setFocus();
     }

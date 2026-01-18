@@ -8,6 +8,7 @@
 #include "physics/PhysicsEvents.h"
 #include "physics/PhysicsTypes.h"
 #include "physics/PhysicsCreationSettings.h"
+#include "physics/RayCastResult.h"
 #include "scene/Scene.h"
 #include "tools/PeriodicTimeline.h"
 
@@ -16,14 +17,13 @@ namespace JPH
 {
 class JobSystem;
 class TempAllocator;
+class Factory;
 } // namespace JPH
 
 namespace Blainn
 {
-class BodyBuilder;
 class BPLayerInterfaceImpl;
 class ObjectVsBroadPhaseLayerFilterImpl;
-class RayCastResult;
 
 class PhysicsSubsystem
 {
@@ -35,9 +35,9 @@ public:
     static void Update();
 
     static void StartSimulation();
+    /// @brief copies transform component values to jolt
+    static void UpdateBodyInJolt(const eastl::shared_ptr<Blainn::Scene> &activeScene, const uuid &entityUuid);
     static void StopSimulation();
-
-    // TODO: QueuePhysicsComponentCreation()?;
 
     static void CreateAttachPhysicsComponent(PhysicsComponentSettings &settings);
     static bool HasPhysicsComponent(Entity entity);
@@ -49,7 +49,7 @@ public:
     /// @brief does not check entity or component exist! You are warned.
     static PhysicsComponent &GetPhysicsComponentByBodyId(JPH::BodyID bodyId);
 
-    bool IsBodyActive(Entity entity);
+    static bool IsBodyActive(Entity entity);
     static void ActivateBody(Entity entity);
     static void DeactivateBody(Entity entity);
 
@@ -58,8 +58,6 @@ public:
 
     static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance);
 
-    using PhysicsEventHandle =
-        eventpp::internal_::CallbackListBase<void(const eastl::shared_ptr<PhysicsEvent> &), PhysicsEventPolicy>::Handle;
     static PhysicsEventHandle AddEventListener(const PhysicsEventType eventType,
                                                eastl::function<void(const eastl::shared_ptr<PhysicsEvent> &)> listener);
     static void RemoveEventListener(const PhysicsEventType eventType, const PhysicsEventHandle &handle);

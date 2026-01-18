@@ -13,9 +13,11 @@ namespace Blainn
 {
     struct VertexPositionNormalTangentBitangentUV;
     struct VertexPosition;
+    struct VertexPositionColor;
     
     using BlainnVertex = VertexPositionNormalTangentBitangentUV;
     using SimpleVertex = VertexPosition;
+    using DebugVertex = VertexPositionColor;
 
     struct VertexPositionNormalTangentBitangentUV
     {
@@ -91,6 +93,41 @@ namespace Blainn
         static constexpr inline const D3D12_INPUT_ELEMENT_DESC InputElements[InputElementCount] =
         {
             { "POSITION", 0u, DXGI_FORMAT_R32G32B32_FLOAT, 0u, 0u, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0u },
+        };
+
+    public:
+        static constexpr inline D3D12_INPUT_LAYOUT_DESC InputLayout =
+        {
+            InputElements,
+            InputElementCount
+        };
+    };
+
+    struct VertexPositionColor
+    {
+        VertexPositionColor(){}
+
+        VertexPositionColor(
+            float px, float py, float pz,
+            float r, float g, float b, float a)
+            : position(px, py, pz)
+            , color(r, g, b, a)
+        {}
+
+        VertexPositionColor(const Vec3 &position, const Vec4& color)
+            : position(position)
+            , color(color)
+        {}
+
+        Vec3 position = Vec3(0.0f, 0.0f, 0.0f);
+        Vec4 color = Vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    private:
+        static constexpr inline UINT InputElementCount = 2u;
+        static constexpr inline const D3D12_INPUT_ELEMENT_DESC InputElements[InputElementCount] =
+        {
+            { "POSITION", 0u, DXGI_FORMAT_R32G32B32_FLOAT, 0u, 0u, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0u },
+            { "COLOR", 0u, DXGI_FORMAT_R32G32B32A32_FLOAT, 0u, 12u, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0u },
         };
 
     public:

@@ -30,7 +30,7 @@ void Blainn::Device::Init(bool useWarpDevice)
     }
 
     CreateCommandQueues();
-
+    
     m_isInitialized = true;
 }
 
@@ -48,6 +48,22 @@ void Blainn::Device::CreateCommandQueues()
 void Blainn::Device::Destroy()
 {
     Flush();
+}
+
+ComPtr<ID3D12DescriptorHeap> Blainn::Device::GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type /*= D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV*/) const
+{
+    switch (type)
+    {
+    case (D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV):
+        return m_srvHeap;
+    case (D3D12_DESCRIPTOR_HEAP_TYPE_DSV):
+        return m_dsvHeap;
+    case (D3D12_DESCRIPTOR_HEAP_TYPE_RTV):
+        return m_rtvHeap;
+    default:
+        assert(false && "Invalid descriptor heap type.");
+        return nullptr;
+    }
 }
 
 VOID Blainn::Device::CreateDebugLayer()
@@ -165,24 +181,76 @@ HRESULT Blainn::Device::CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE commandLi
     return m_device->CreateCommandAllocator(commandListType, IID_PPV_ARGS(commandAllocator.GetAddressOf()));
 }
 
-HRESULT Blainn::Device::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT numDescriptors,
+HRESULT Blainn::Device::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors,
                                              ComPtr<ID3D12DescriptorHeap> &descriptorHeap,
                                              D3D12_DESCRIPTOR_HEAP_FLAGS flags/* = D3D12_DESCRIPTOR_HEAP_FLAG_NONE*/, UINT nodeMask/*= 0u*/)
 {
     D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-    heapDesc.Type = type;
+    heapDesc.Type = heapType;
     heapDesc.NumDescriptors = numDescriptors;
-    heapDesc.Flags = (type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : flags;
-    heapDesc.NodeMask = nodeMask;
+    heapDesc.Flags = (heapType == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : flags;
+    heapDesc.NodeMask = nodeMask; // multi adapter stuff
     return m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(descriptorHeap.GetAddressOf()));
 }
 
-UINT Blainn::Device::GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType)
+HRESULT Blainn::Device::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors,
+                                             D3D12_DESCRIPTOR_HEAP_FLAGS flags /* = D3D12_DESCRIPTOR_HEAP_FLAG_NONE*/, UINT nodeMask /*= 0u*/)
 {
-    return m_device->GetDescriptorHandleIncrementSize(heapType);
+    D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+    heapDesc.Type = heapType;
+    heapDesc.NumDescriptors = numDescriptors;
+    heapDesc.Flags =
+        (heapType == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : flags;
+    heapDesc.NodeMask = nodeMask; // multi adapter stuff
+
+    switch (heapType)
+    {
+    case (D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV):
+    {
+        m_cbvSrvUavDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        auto res = m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(m_srvHeap.GetAddressOf()));
+        m_srvHeap->SetName(L"CBV_SRV_UAV_HEAP");
+        return res;
+    }
+    case (D3D12_DESCRIPTOR_HEAP_TYPE_DSV):
+    {
+        m_dsvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+        auto res = m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(m_dsvHeap.GetAddressOf()));
+        m_dsvHeap->SetName(L"DSV_HEAP");
+        return res;
+    }
+    case (D3D12_DESCRIPTOR_HEAP_TYPE_RTV):
+    {
+        m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        auto res = m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(m_rtvHeap.GetAddressOf()));
+        m_rtvHeap->SetName(L"RTV_HEAP");
+        return res;
+    }
+
+    default:
+        assert(false && "Invalid descriptor heap type.");
+        return HRESULT(0);
+    }
 }
 
-HRESULT Blainn::Device::CreateGraphicsPipelineState(const D3D12_GRAPHICS_PIPELINE_STATE_DESC &psoDesc, ComPtr<ID3D12PipelineState> &pipelineState)
+UINT Blainn::Device::GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType) const
+{
+    switch (heapType)
+    {
+    case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV:
+        return m_cbvSrvUavDescriptorSize;
+    case D3D12_DESCRIPTOR_HEAP_TYPE_RTV:
+        return m_rtvDescriptorSize;
+    case D3D12_DESCRIPTOR_HEAP_TYPE_DSV:
+        return m_dsvDescriptorSize;
+    default:
+        assert(false && "Invalid descriptor heap type.");
+        return 0u;
+    }
+}
+
+HRESULT Blainn::Device::CreateGraphicsPipelineState(const D3D12_GRAPHICS_PIPELINE_STATE_DESC &psoDesc,
+                                                    ComPtr<ID3D12PipelineState> &pipelineState)
 {
     return m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState));
 }

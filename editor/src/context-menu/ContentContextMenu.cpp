@@ -62,8 +62,6 @@ void ContentContextMenu::CreateFolder(const QString &dirPath) const
 
 void ContentContextMenu::CreateScript(const QString &dirPath) const
 {
-    BF_WARN("TODO: should notify engine that new script was added!");
-
     QInputDialog *inputDialog = new QInputDialog(&m_parent);
     inputDialog->setWindowTitle("Create script");
     inputDialog->setLabelText("Script name:");
@@ -80,14 +78,82 @@ void ContentContextMenu::CreateScript(const QString &dirPath) const
                     QString scriptName = inputDialog->textValue().trimmed();
                     if (!scriptName.isEmpty())
                     {
-                        if (!scriptName.endsWith(".lua", Qt::CaseInsensitive)) scriptName += ".lua";
+                        if (!scriptName.endsWith("." + formats::scriptFormat, Qt::CaseInsensitive))
+                            scriptName += "." + formats::scriptFormat;
 
                         QString filePath = dirPath + QDir::separator() + scriptName;
                         QFile script(filePath);
 
                         if (!script.open(QIODevice::ReadWrite))
+                        {
                             QMessageBox::warning(&m_parent, "Error", "Failed to create script");
-                        else script.close();
+                            BF_WARN("Failed to create script");
+                        }
+                        else
+                        {
+                            QFile templateFile(":/templates/ScriptTemplate.lua");
+                            if (!templateFile.open(QIODevice::ReadOnly | QIODevice::Text))
+                            {
+                                BF_ERROR("Failed to load Lua template!");
+                                return;
+                            }
+
+                            QString templateContent = templateFile.readAll();
+                            script.write(templateContent.toUtf8());
+                            script.close();
+                        }
+                    }
+                }
+
+                inputDialog->deleteLater();
+            });
+
+    inputDialog->open();
+}
+
+
+void ContentContextMenu::CreateBehaviorScript(const QString &dirPath) const
+{
+    QInputDialog *inputDialog = new QInputDialog(&m_parent);
+    inputDialog->setWindowTitle("Create Behavior script");
+    inputDialog->setLabelText("Behavior script name:");
+    inputDialog->setTextValue("");
+    inputDialog->setOkButtonText("Create");
+    inputDialog->setCancelButtonText("Cancel");
+    inputDialog->setMinimumSize(200, 100);
+
+    connect(inputDialog, &QInputDialog::finished, inputDialog,
+            [inputDialog, dirPath, this](int result)
+            {
+                if (result == QDialog::Accepted)
+                {
+                    QString scriptName = inputDialog->textValue().trimmed();
+                    if (!scriptName.isEmpty())
+                    {
+                        if (!scriptName.endsWith("." + formats::behaviorFormat, Qt::CaseInsensitive))
+                            scriptName += "." + formats::behaviorFormat;
+
+                        QString filePath = dirPath + QDir::separator() + scriptName;
+                        QFile script(filePath);
+
+                        if (!script.open(QIODevice::ReadWrite))
+                        {
+                            QMessageBox::warning(&m_parent, "Error", "Failed to create behavior script");
+                            BF_WARN("Failed to create behavior script");
+                        }
+                        else
+                        {
+                            QFile templateFile(":/templates/BehaviorScriptTemplate.lua");
+                            if (!templateFile.open(QIODevice::ReadOnly | QIODevice::Text))
+                            {
+                                BF_ERROR("Failed to load Lua template!");
+                                return;
+                            }
+
+                            QString templateContent = templateFile.readAll();
+                            script.write(templateContent.toUtf8());
+                            script.close();
+                        }
                     }
                 }
 
@@ -210,6 +276,7 @@ void ContentContextMenu::OnContextMenu(const QPoint &pos) const
 
     QAction *createFolderAction = createSubMenu->addAction("Folder");
     QAction *createScriptAction = createSubMenu->addAction("Script");
+    QAction *createBehaviorAction = createSubMenu->addAction("Behavior script");
     QAction *createMaterialAction = createSubMenu->addAction("Material");
     QAction *createSceneAction = createSubMenu->addAction("Scene");
 
@@ -219,14 +286,14 @@ void ContentContextMenu::OnContextMenu(const QPoint &pos) const
 
     connect(menu, &QMenu::triggered, this,
             [this, menu, dirPath, index, createFolderAction, createScriptAction, createMaterialAction,
-             showExplorerAction, createSceneAction](const QAction *selectedAction)
+             showExplorerAction, createSceneAction, createBehaviorAction](const QAction *selectedAction)
             {
                 if (selectedAction == createFolderAction) CreateFolder(dirPath);
                 else if (selectedAction == createScriptAction) CreateScript(dirPath);
                 else if (selectedAction == createMaterialAction) CreateMaterial(dirPath);
                 else if (selectedAction == showExplorerAction) OpenFolderExplorer(dirPath);
                 else if (selectedAction == createSceneAction) CreateScene(dirPath);
-
+                else if (selectedAction == createBehaviorAction) CreateBehaviorScript(dirPath);
                 menu->deleteLater();
             });
 

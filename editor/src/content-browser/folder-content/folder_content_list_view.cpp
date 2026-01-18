@@ -17,6 +17,7 @@
 #include <QSortFilterProxyModel>
 #include <qdir.h>
 #include <qevent.h>
+#include <QDrag>
 
 
 class QFileSystemModel;

@@ -51,6 +51,8 @@ private slots:
     void OnOpenSettings();
     void OnSaveScene();
 
+    void OnBuildNavMesh();
+
     void OnStartPlayMode();
     void OnStopPlayMode();
 };

@@ -40,7 +40,7 @@ void Editor::Init(int argc, char **argv)
     QApplication::setStyle(style);
 
     m_editorMain = new editor::editor_main();
-
+    m_editorMain->setWindowIcon(QIcon(":/icons/logo.png"));
     BF_DEBUG("Current working directory - " + current_path().string());
     m_editorConfigFolder = current_path() / "Config";
 
@@ -70,6 +70,7 @@ void Editor::Destroy()
     m_app->quit();
     delete m_editorMain;
     delete m_app;
+    Log::RemoveSink(m_editorSink);
 }
 
 
@@ -107,9 +108,11 @@ void Editor::SetContentDirectory(const Path &path)
 }
 
 
-std::shared_ptr<editor::EditorSink<std::mutex>> Editor::GetEditorSink() const
+std::shared_ptr<editor::EditorSink<std::mutex>> Editor::GetEditorSink()
 {
-    return std::make_shared<editor::EditorSink<std::mutex>>(m_editorMain->GetConsoleWidget());
+    if (!m_editorSink)
+        m_editorSink = std::make_shared<editor::EditorSink<std::mutex>>(m_editorMain->GetConsoleWidget());
+    return m_editorSink;
 }
 
 

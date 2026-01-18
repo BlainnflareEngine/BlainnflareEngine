@@ -26,6 +26,10 @@ public slots:
     void OnMeshAction();
     void OnPhysicsAction();
     void OnScriptingAction();
+    void OnAIControllerAction();
+    void OnCameraAction();
+    void OnSkyboxAction();
+    void OnNavmeshVolumeAction();
 
 private:
     Blainn::Entity m_entity;
@@ -35,6 +39,10 @@ private:
     QAction *m_meshAction = nullptr;
     QAction *m_physicsAction = nullptr;
     QAction *m_scriptingAction = nullptr;
+    QAction *m_aiControllerAction = nullptr;
+    QAction *m_cameraAction = nullptr;
+    QAction *m_skyboxAction = nullptr;
+    QAction *m_navmeshVolumeAction = nullptr;
 };
 
 } // namespace editor

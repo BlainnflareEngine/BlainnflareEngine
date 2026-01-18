@@ -29,7 +29,7 @@ JPH::ValidateResult ContactListenerImpl::OnContactValidate(const JPH::Body &inBo
 void ContactListenerImpl::OnContactAdded(const JPH::Body &inBody1, const JPH::Body &inBody2,
                                          const JPH::ContactManifold &inManifold, JPH::ContactSettings &ioSettings)
 {
-    BF_INFO("PHYSICS ON CONTACT ADDED");
+    // BF_INFO("PHYSICS ON CONTACT ADDED");
 
     JPH::BodyID bodyID1 = inBody1.GetID();
     JPH::BodyID bodyID2 = inBody2.GetID();
@@ -45,11 +45,19 @@ void ContactListenerImpl::OnContactAdded(const JPH::Body &inBody1, const JPH::Bo
         mState[key] = StatePair(inManifold.mBaseOffset, inManifold.mRelativeContactPointsOn1);
     }
 
-    PhysicsEvent event{.eventType = PhysicsEventType::CollisionEnded,
-                       .entity1 = PhysicsSubsystem::m_bodyEntityConnections[bodyID1],
-                       .entity2 = PhysicsSubsystem::m_bodyEntityConnections[bodyID2]};
+    if (PhysicsSubsystem::m_bodyEntityConnections.contains(bodyID1)
+        && PhysicsSubsystem::m_bodyEntityConnections.contains(bodyID2))
+    {
+        PhysicsEvent event{.eventType = PhysicsEventType::CollisionStarted,
+                           .entity1 = PhysicsSubsystem::m_bodyEntityConnections[bodyID1],
+                           .entity2 = PhysicsSubsystem::m_bodyEntityConnections[bodyID2]};
 
-    PhysicsSubsystem::s_physicsEventQueue.enqueue(eastl::make_shared<PhysicsEvent>(eastl::move(event)));
+        PhysicsSubsystem::s_physicsEventQueue.enqueue(eastl::make_shared<PhysicsEvent>(eastl::move(event)));
+    }
+    else
+    {
+        BF_ERROR("INTERNAL ERROR collision added invalid entity id");
+    }
 
     if (mNext != nullptr) mNext->OnContactAdded(inBody1, inBody2, inManifold, ioSettings);
 }
@@ -76,7 +84,7 @@ void ContactListenerImpl::OnContactPersisted(const JPH::Body &inBody1, const JPH
 
 void ContactListenerImpl::OnContactRemoved(const JPH::SubShapeIDPair &inSubShapePair)
 {
-    BF_INFO("PHYSICS ON CONTACT REMOVED");
+    // BF_INFO("PHYSICS ON CONTACT REMOVED");
 
     JPH::BodyID bodyID1 = inSubShapePair.GetBody1ID();
     JPH::BodyID bodyID2 = inSubShapePair.GetBody2ID();
@@ -92,11 +100,19 @@ void ContactListenerImpl::OnContactRemoved(const JPH::SubShapeIDPair &inSubShape
         else JPH_BREAKPOINT; // Removed contact that didn't exist
     }
 
-    PhysicsEvent event{.eventType = PhysicsEventType::CollisionEnded,
-                       .entity1 = PhysicsSubsystem::m_bodyEntityConnections[bodyID1],
-                       .entity2 = PhysicsSubsystem::m_bodyEntityConnections[bodyID2]};
+    if (PhysicsSubsystem::m_bodyEntityConnections.contains(bodyID1)
+        && PhysicsSubsystem::m_bodyEntityConnections.contains(bodyID2))
+    {
+        PhysicsEvent event{.eventType = PhysicsEventType::CollisionEnded,
+                           .entity1 = PhysicsSubsystem::m_bodyEntityConnections[bodyID1],
+                           .entity2 = PhysicsSubsystem::m_bodyEntityConnections[bodyID2]};
 
-    PhysicsSubsystem::s_physicsEventQueue.enqueue(eastl::make_shared<PhysicsEvent>(eastl::move(event)));
+        PhysicsSubsystem::s_physicsEventQueue.enqueue(eastl::make_shared<PhysicsEvent>(eastl::move(event)));
+    }
+    else
+    {
+        BF_ERROR("INTERNAL ERROR collision ended invalid entity id");
+    }
 
     if (mNext != nullptr) mNext->OnContactRemoved(inSubShapePair);
 }

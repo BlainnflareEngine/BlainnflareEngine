@@ -144,9 +144,16 @@ set(EDITOR_SOURCES
         include/inspector/input-widgets/vector3_input_widget.h
         src/inspector/input-widgets/color_input_field.cpp
         include/inspector/input-widgets/color_input_field.h
+        ../engine/include/components/CameraComponent.h
+        src/inspector/entity/camera_widget.cpp
+        include/inspector/entity/camera_widget.h
+        include/inspector/entity/skybox_widget.h
+        src/inspector/entity/skybox_widget.cpp
+        src/inspector/entity/ai_controller_widget.cpp
+        include/inspector/entity/ai_controller_widget.h
 )
 
-add_library(EDITOR STATIC ${EDITOR_SOURCES})
+add_library(EDITOR STATIC ${EDITOR_SOURCES} "include/inspector/entity/navmesh_volume_widget.h" "src/inspector/entity/navmesh_volume_widget.cpp")
 
 source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${EDITOR_SOURCES})
 
@@ -179,6 +186,7 @@ target_link_libraries(EDITOR
         pch
         ENGINE
         qlementine
+        Jolt
 )
 
 

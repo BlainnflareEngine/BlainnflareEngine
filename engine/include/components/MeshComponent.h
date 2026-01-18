@@ -14,26 +14,29 @@ struct MeshComponent
                   const eastl::shared_ptr<MaterialHandle> &material = nullptr)
         : MeshComponent()
     {
-        m_meshHandle = meshHandle;
+        MeshHandle = meshHandle;
 
-        if (material) m_materialHandle = material;
-        else m_materialHandle = AssetManager::GetInstance().GetDefaultMaterialHandle();
+        if (material) MaterialHandle = material;
+        else MaterialHandle = AssetManager::GetInstance().GetDefaultMaterialHandle();
     }
 
     MeshComponent(eastl::shared_ptr<MeshHandle> &&meshHandle, eastl::shared_ptr<MaterialHandle> &&material)
         : MeshComponent()
     {
-        m_meshHandle = eastl::move(meshHandle);
-        m_materialHandle = eastl::move(material);
+        MeshHandle = eastl::move(meshHandle);
+        MaterialHandle = eastl::move(material);
     }
 
     void UpdateMeshCB(ObjectConstants &objectCBData);
 
-    eastl::shared_ptr<MeshHandle> m_meshHandle;
-    eastl::shared_ptr<MaterialHandle> m_materialHandle;
+    eastl::shared_ptr<MeshHandle> MeshHandle;
+    eastl::shared_ptr<MaterialHandle> MaterialHandle;
 
     eastl::unique_ptr<UploadBuffer<ObjectConstants>> ObjectCB = nullptr;
 
-    ObjectConstants m_perObjectCBData;
+    ObjectConstants PerObjectCBData;
+
+    // TODO: use layers in future 
+    bool IsWalkable = false;
 };
 } // namespace Blainn

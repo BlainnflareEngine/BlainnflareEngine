@@ -2,7 +2,6 @@
 // Created by gorev on 21.09.2025.
 //
 
-
 #include "editor_main.h"
 
 #include "Editor.h"
@@ -12,8 +11,13 @@
 #include "editor_settings.h"
 #include "folder_content_widget.h"
 #include "ui_editor_main.h"
+#include "Navigation/NavigationSubsystem.h"
+#include "components/NavMeshVolumeComponent.h"
 
+#include <QDesktopServices>
 #include <QListView>
+
+extern bool g_IsRunning;
 
 namespace editor
 {
@@ -64,6 +68,14 @@ editor_main::editor_main(QWidget *parent)
 
     connect(ui->actionEditor_settings, &QAction::triggered, this, &editor_main::OnOpenSettings);
     connect(ui->actionSave, &QAction::triggered, this, &editor_main::OnSaveScene);
+    connect(ui->actionBuildNavmesh, &QAction::triggered, this, &editor_main::OnBuildNavMesh);
+
+    auto docAction = ui->menuHelp->addAction("Documentation");
+    auto supportAction = ui->menuHelp->addAction("Support");
+
+    connect(docAction, &QAction::triggered, []() { QDesktopServices::openUrl(QUrl("https://github.com/BlainnflareEngine/BlainnflareEngine/wiki")); });
+    connect(supportAction, &QAction::triggered, []() { QDesktopServices::openUrl(QUrl("https://youtu.be/xvFZjo5PgG0?list=RDxvFZjo5PgG0")); });
+
 }
 
 
@@ -93,6 +105,7 @@ void editor_main::closeEvent(QCloseEvent *event)
     // TODO: serialize something before exit
     QMainWindow::closeEvent(event);
     QCoreApplication::quit();
+    g_IsRunning = false;
 }
 
 
@@ -127,6 +140,22 @@ void editor_main::OnSaveScene()
 {
     Blainn::Engine::GetActiveScene()->SaveScene();
     ui->Entities->SaveCurrentMeta();
+}
+
+
+void editor_main::OnBuildNavMesh()
+{
+    auto scene = Blainn::Engine::GetActiveScene();
+    if (!scene) return;
+
+    for (const auto &[entity, volume] : scene->GetAllEntitiesWith<Blainn::NavmeshVolumeComponent>().each())
+    {
+        Blainn::Path relativePath =
+            Blainn::Path(scene->GetName().c_str()).replace_extension("") / (scene->GetName() + ".navmesh").c_str();
+
+        Blainn::NavigationSubsystem::BakeNavMesh(*scene, Blainn::Entity(entity, scene.get()), relativePath);
+        Blainn::NavigationSubsystem::LoadNavMesh(relativePath);
+    }
 }
 
 

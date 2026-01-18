@@ -34,13 +34,13 @@ public:
     QString GetScriptPath() const;
 
 signals:
-    void ShouldTriggerStartChanged(bool value);
-    void ScriptPathChanged(const QString &path);
+    void ShouldTriggerStartChanged(const QString &path, const bool value);
+    void ScriptPathChanged(const QString &oldPath, const QString &newPath);
     void Removed();
 
 private slots:
     void OnTriggerStartChanged(bool value);
-    void OnScriptPathChanged(const QString &path);
+    void OnScriptPathChanged(const QString& oldPath, const QString &newPath);
     void OnRemoveClicked();
 
 private:

@@ -10,6 +10,11 @@ add_compile_options(/EHsc)
 
 option(BLAINN_EXCLUDE_EDITOR "Build the engine without the editor" OFF)
 
+set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "Disable RecastDemo (we don't need SDL2)" FORCE)
+set(RECASTNAVIGATION_EXAMPLES OFF CACHE BOOL "Disable examples" FORCE)
+set(RECASTNAVIGATION_TESTS OFF CACHE BOOL "Disable tests" FORCE)
+set(RECASTNAVIGATION_STATIC ON CACHE BOOL "Build as static lib" FORCE)
+
 # Allow VS to have the filters
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -50,7 +55,8 @@ add_executable(${PROJECT_NAME} main.cpp
         common/ImportAssetData.h
         common/helpers.h
         engine/include/subsystems/Input/KeyboardEvents.h
-)
+        "common/AABBHelpers.h"
+        icon.rc)
 
 add_subdirectory(libs/EASTL)
 add_subdirectory(libs/JoltPhysics/Build)
@@ -59,6 +65,7 @@ add_subdirectory(libs/tracy)
 add_subdirectory(libs/yaml-cpp)
 add_subdirectory(libs/sol2)
 add_subdirectory(libs/D3D12MemoryAllocator)
+add_subdirectory(libs/recastnavigation)
 
 if(NOT BLAINN_EXCLUDE_EDITOR)
     add_subdirectory(libs/qlementine)
@@ -66,6 +73,7 @@ endif()
 
 set (BUILD_TESTING OFF)
 add_subdirectory(libs/DIRECTXTK12)
+add_subdirectory(libs/DIRECTXTEX)
 
 set (ozz_build_tools OFF)
 set (ozz_build_howtos OFF)
@@ -103,6 +111,7 @@ target_link_libraries(pch INTERFACE
         TracyClient
         yaml-cpp
         DirectXTK12
+        DirectXTex
         D3D12MemoryAllocator
         Jolt
 )

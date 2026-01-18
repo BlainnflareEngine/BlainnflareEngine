@@ -13,6 +13,8 @@
 #include "TransformComponent.h"
 
 #include "random.h"
+#include "RenderSubsystem.h"
+#include "Render/EditorCamera.h"
 
 namespace Blainn
 {
@@ -26,6 +28,9 @@ public:
           bool isEditorScene = false) noexcept;
     Scene(const YAML::Node &config);
     ~Scene();
+
+    void StartPlayMode() { m_bPlayMode = true; }
+    void EndPlayMode() { m_bPlayMode = false; }
 
     // I'm not sure we need to copy or move scenes so if needed add these functions
     Scene(Scene &other) = delete;
@@ -63,6 +68,7 @@ public:
     Entity CreateChildEntityWithID(Entity parent, const uuid &id, const eastl::string &name = "",
                                    bool shouldSort = true, bool onSceneChanged = false, bool createdByEditor = false);
     void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false, bool createdByEditor = false);
+    void LoadNavMeshData(const YAML::Node& node);
     void SubmitToDestroyEntity(Entity entity);
 
 
@@ -125,12 +131,8 @@ private:
     inline static eventpp::EventQueue<SceneEventType, void(const SceneEventPointer &), SceneEventPolicy>
         s_sceneEventQueue;
 
-
-    /*
-     *      we would hold the lights here
-     *      Cherno does it with LightEnvironment struct where all the lights are stored.
-     *      He also separately stores the main dir light which casts the shadows.
-     */
+    bool m_bPlayMode{false};
+    eastl::shared_ptr<Camera> m_editorCam;
 
     friend class Entity;
 };

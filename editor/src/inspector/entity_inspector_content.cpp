@@ -4,15 +4,23 @@
 
 #include "entity_inspector_content.h"
 
-#include "../../include/inspector/entity/scripting/scripting_widget.h"
+#include "entity/scripting/scripting_widget.h"
 #include "LabelsUtils.h"
+#include "components/AIControllerComponent.h"
+#include "components/CameraComponent.h"
 #include "components/MeshComponent.h"
+#include "components/NavMeshVolumeComponent.h"
+#include "components/SkyboxComponent.h"
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
 #include "entity/add_component_button.h"
+#include "entity/ai_controller_widget.h"
+#include "entity/camera_widget.h"
 #include "entity/mesh_widget.h"
+#include "entity/navmesh_volume_widget.h"
 #include "entity/physics_widget.h"
 #include "entity/transform_widget.h"
+#include "entity/skybox_widget.h"
 
 namespace editor
 {
@@ -60,13 +68,37 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
         layout()->addWidget(scripting);
     }
 
+    if (entity.HasComponent<Blainn::AIControllerComponent>())
+    {
+        auto aiController = new ai_controller_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(aiController);
+    }
+
     if (entity.HasComponent<Blainn::MeshComponent>())
     {
         auto mesh = new mesh_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(mesh);
     }
 
-    auto *addButton = new add_component_button(data.node->GetEntity(),  boxLayout, this);
+    if (entity.HasComponent<Blainn::SkyboxComponent>())
+    {
+        auto skybox = new skybox_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(skybox);
+    }
+
+    if (entity.HasComponent<Blainn::CameraComponent>())
+    {
+        auto camera = new camera_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(camera);
+    }
+
+    if (entity.HasComponent<Blainn::NavmeshVolumeComponent>())
+    {
+        auto navmeshVolume = new navmesh_volume_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(navmeshVolume);
+    }
+
+    auto *addButton = new add_component_button(data.node->GetEntity(), boxLayout, this);
     layout()->addWidget(addButton);
 }
 

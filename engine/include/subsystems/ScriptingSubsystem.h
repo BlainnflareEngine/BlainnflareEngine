@@ -5,14 +5,6 @@
 #include "components/ScriptingComponent.h"
 #include "scene/Entity.h"
 
-// disable if you dont want to register lua types
-// #define BLAINN_REGISTER_LUA_TYPES
-
-#ifdef BLAINN_REGISTER_LUA_TYPES
-// enable to test lua scripts functionality.
-#define BLAINN_TEST_LUA_SCRIPTS
-#endif
-
 namespace sol
 {
 class state;
@@ -34,13 +26,21 @@ public:
 
     static sol::state &GetLuaState();
 
-    /// @param path - script path in scripts content folder
+    static sol::object GetValueFromScript(const uuid &scriptUuid, const eastl::string &valueName);
+    static void SetValueInScript(const uuid &scriptUuid, const eastl::string &valueName, const sol::object &value);
+
+    /// @brief Load Lua Script
+    /// @param path - script path relative to content folder
     /// @param callOnStart - call OnStart() script function. true by default
     /// @return returns loaded script uuid
     static eastl::optional<uuid> LoadScript(Entity entity, const Path &path, bool callOnStart = true);
 
-    /// @brief OnDestroy() script function called automatically
+    /// @brief Unload Lua Script. OnDestroy() script function called automatically
     static void UnloadScript(const uuid &scriptUuid);
+
+    /// @brief Load AI script with specific structure
+    /// @param path - ai script path relative to content folder
+    static eastl::unique_ptr<LuaScript> LoadAiScript(Entity entity, const Path &path);
 
     template <typename... Args>
     static bool CallScriptFunction(const uuid &scriptUuid, const eastl::string &functionName, Args... args)

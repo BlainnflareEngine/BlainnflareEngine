@@ -1,23 +1,8 @@
 #pragma once
 
-#include <wrl.h>
-#include <dxgi.h>
-#include <dxgi1_4.h>
-#include <dxgi1_6.h>
-#include <DirectXColors.h>
-
-#include "DirectXTK12/Src/d3dx12.h"
-#include "d3dcompiler.h"
-#include "DirectXCollision.h"
-
+#include "FreyaCoreDefines.h"
 #include "FreyaCoreTypes.h"
 #include "aliases.h"
-
-#include <EASTL/shared_ptr.h>
-#include <EASTL/unique_ptr.h>
-#include <EASTL/unordered_map.h>
-#include <EASTL/queue.h>
-#include <EASTL/string.h>
 
 using Microsoft::WRL::ComPtr;
 
@@ -45,7 +30,7 @@ private:
     const HRESULT m_hr;
 };
 
-#define SAFE_RELEASE(p)                                                                                                \
+#define SAFE_RELEASE(p) \
     if (p) (p)->Release()
 
 inline void ThrowIfFailed(HRESULT hr)

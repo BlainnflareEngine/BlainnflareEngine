@@ -59,8 +59,12 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
             [this](...)
             {
                 this->viewport()->update();
-                BF_DEBUG("Update view!!!");
             });
+
+    Blainn::Engine::GetSelectionManager().CallbackList.append([this](Blainn::uuid id)
+    {
+        ChangeSelection(id);
+    });
 }
 
 scene_hierarchy_widget::~scene_hierarchy_widget()
@@ -237,6 +241,7 @@ void scene_hierarchy_widget::OnItemDataChanged(const QModelIndex &topLeft, const
 
 void scene_hierarchy_widget::OnSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
+
     QModelIndexList selectedIndexes = selected.indexes();
 
     if (selectedIndexes.isEmpty())
@@ -247,13 +252,7 @@ void scene_hierarchy_widget::OnSelectionChanged(const QItemSelection &selected, 
 
     auto entity = SceneItemModel::GetNodeFromIndex(selectedIndexes.first());
 
-    InspectorFabric fabric;
-    EntityInspectorData data;
-    data.tag = entity->GetName();
-    data.node = entity;
-
-    auto inspector = fabric.GetEntityInspector(data);
-    Blainn::Editor::GetInstance().GetInspector().SetItem(inspector);
+    Blainn::Engine::GetSelectionManager().SelectUUID(entity->GetUUID());
 }
 
 
@@ -287,6 +286,28 @@ void scene_hierarchy_widget::keyPressEvent(QKeyEvent *event)
     }
 
     QTreeView::keyPressEvent(event);
+}
+
+void scene_hierarchy_widget::ChangeSelection(Blainn::uuid id)
+{
+    auto index = SceneItemModel::FindIndexByEntity(m_sceneModel, id);
+
+    setCurrentIndex(index);
+
+    if (!index.isValid())
+    {
+        Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
+        return;
+    }
+
+    auto entity = SceneItemModel::GetNodeFromIndex(index);
+    InspectorFabric fabric;
+    EntityInspectorData data;
+    data.tag = entity->GetName();
+    data.node = entity;
+
+    auto inspector = fabric.GetEntityInspector(data);
+    Blainn::Editor::GetInstance().GetInspector().SetItem(inspector);
 }
 
 

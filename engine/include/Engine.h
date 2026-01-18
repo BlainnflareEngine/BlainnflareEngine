@@ -6,6 +6,8 @@
 #include "tools/Timeline.h"
 #include <functional>
 
+#include "SelectionManager.h"
+
 namespace vgjs
 {
 class JobSystem;
@@ -42,7 +44,9 @@ public:
                                    const std::string &winClassTitle, HINSTANCE hInst);
     static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
+    static SelectionManager& GetSelectionManager() {return m_selectionManager;}
 private:
+    static inline SelectionManager m_selectionManager = SelectionManager();
     static inline eastl::function<void(float)> m_renderFunc = nullptr;
     static inline eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr = nullptr;
     static inline eastl::shared_ptr<Scene> s_activeScene{};
