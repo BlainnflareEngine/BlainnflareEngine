@@ -10,6 +10,6 @@
 namespace Blainn {
     struct CameraComponent {
         RuntimeCamera camera;
-        bool IsActiveCamera = false;
+        int32_t CameraPriority = 0;
     };
 }

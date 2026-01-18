@@ -20,13 +20,13 @@ public:
     void DeleteComponent() override;
 
 protected slots:
-    void OnIsActiveChanged(bool value);
+    void OnPriorityChanged();
     void OnFOVChanged();
     void OnNearZChanged();
     void OnFarZChanged();
 
 private:
-    bool_input_field *m_isActiveCamera = nullptr;
+    float_input_field *m_cameraPriority = nullptr;
     float_input_field *m_FOV = nullptr;
     float_input_field *m_nearZ = nullptr;
     float_input_field *m_farZ = nullptr;

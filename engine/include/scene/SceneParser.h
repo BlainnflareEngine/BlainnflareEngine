@@ -319,12 +319,11 @@ inline CameraComponent GetCamera(const YAML::Node &node)
         BF_WARN("Camera component not found or invalid in .scene file.");
         return camera;
     }
-    if (node["IsActiveCamera"]) camera.IsActiveCamera = node["IsActiveCamera"].as<bool>();
+    if (node["Priority"]) camera.CameraPriority = node["Priority"].as<int32_t>(0);
     camera.camera.Reset(75.f, 16.f / 9.f, 0.01, 1000);
 
     if (auto &settings = node["CameraSettings"])
     {
-        // TODO: other settigns
         camera.camera.SetFovDegrees(settings["FOV"].as<float>());
         camera.camera.SetNearZ(settings["NearZ"].as<float>());
         camera.camera.SetFarZ(settings["FarZ"].as<float>());
