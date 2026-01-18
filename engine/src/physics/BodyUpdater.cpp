@@ -20,17 +20,6 @@ BodyUpdater &BodyUpdater::SetRotation(Quat rotation, JPH::EActivation activation
     return *this;
 }
 
-// some cringe
-BodyUpdater &BodyUpdater::SetScale(Vec3 scale, Vec3 prevScale)
-{
-    JPH::Vec3 newShapeScale(ToJoltVec3(scale / prevScale));
-
-    JPH::BodyLockWrite bodyLock(m_bodyLockInterface, m_bodyId);
-    JPH::Body &body = bodyLock.GetBody();
-    JPH::Shape::ShapeResult res = body.GetShape()->ScaleShape(newShapeScale);
-    return *this;
-}
-
 BodyUpdater &BodyUpdater::SetVelocity(Vec3 velocity)
 {
     m_bodyInterface.SetLinearVelocity(m_bodyId, ToJoltVec3(velocity));
@@ -99,16 +88,16 @@ BodyUpdater &BodyUpdater::AddForce(Vec3 force)
 
 BodyUpdater &BodyUpdater::ReplaceBodyShape(ShapeCreationSettings &settings, EActivation activation)
 {
-    eastl::optional<ShapeHierarchy> hierarchy = ShapeFactory::CreateShape(settings);
-    if (!hierarchy.has_value())
+    eastl::optional<JPH::Ref<JPH::Shape>> newShapeRef = ShapeFactory::CreateShape(settings);
+    if (!newShapeRef.has_value())
     {
         BF_ERROR("Error in replacing physics body shape - shape not created");
         return *this;
     }
 
-    m_bodyInterface.SetShape(m_bodyId, hierarchy.value().shapePtr.GetPtr(), true, activation);
+    m_bodyInterface.SetShape(m_bodyId, newShapeRef.value().GetPtr(), true, activation);
     PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
-    component.UpdateShape(settings.shapeType, hierarchy.value());
+    component.UpdateShape(settings.shapeType, newShapeRef.value());
 
     return *this;
 }

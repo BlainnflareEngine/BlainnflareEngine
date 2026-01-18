@@ -21,7 +21,9 @@ camera_widget::camera_widget(const Blainn::Entity &entity, QWidget *parent)
     auto *cam = m_entity.TryGetComponent<Blainn::CameraComponent>();
     if (!cam) destroy();
 
-    m_isActiveCamera = new bool_input_field("Main Camera", cam->IsActiveCamera, this);
+    m_cameraPriority = new float_input_field("Priority", cam->CameraPriority, this);
+    m_cameraPriority->SetDecimals(0);
+    m_cameraPriority->SetSingleStep(1);
 
     m_FOV = new float_input_field("FOV", cam->camera.GetFovDegrees(), this);
 
@@ -33,23 +35,22 @@ camera_widget::camera_widget(const Blainn::Entity &entity, QWidget *parent)
     m_farZ->SetDecimals(2);
     m_farZ->SetMinValue(10);
 
-    layout()->addWidget(m_isActiveCamera);
+    layout()->addWidget(m_cameraPriority);
     layout()->addWidget(m_FOV);
     layout()->addWidget(m_nearZ);
     layout()->addWidget(m_farZ);
 
-    connect(m_isActiveCamera, &bool_input_field::toggled, this, &camera_widget::OnIsActiveChanged);
+    connect(m_cameraPriority, &float_input_field::EditingFinished, this, &camera_widget::OnPriorityChanged);
     connect(m_FOV, &float_input_field::EditingFinished, this, &camera_widget::OnFOVChanged);
     connect(m_nearZ, &float_input_field::EditingFinished, this, &camera_widget::OnNearZChanged);
     connect(m_farZ, &float_input_field::EditingFinished, this, &camera_widget::OnFarZChanged);
 }
 
-void camera_widget::OnIsActiveChanged(bool value)
+void camera_widget::OnPriorityChanged()
 {
-    auto *cam = m_entity.TryGetComponent<Blainn::CameraComponent>();
-    if (cam)
+    if (auto *cam = m_entity.TryGetComponent<Blainn::CameraComponent>())
     {
-        cam->IsActiveCamera = value;
+        cam->CameraPriority = m_cameraPriority->GetValue();
     }
 }
 

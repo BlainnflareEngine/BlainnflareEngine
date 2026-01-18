@@ -73,36 +73,37 @@ Scene::~Scene()
 void Blainn::Scene::Update()
 {
     if (!m_bPlayMode) RenderSubsystem::GetInstance().SetCamera(&*RenderSubsystem::GetInstance().GetEditorCamera());
-    else do
+    else
+    {
+        auto view = GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
+        RuntimeCamera *cam = nullptr;
+        Entity *camEntity = nullptr;
+        TransformComponent *camTransform = nullptr;
+        int32_t maxPriority = INT_MAX;
+        for (const auto &[enttity, id, transform, camera] : view.each())
         {
-            auto view = GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
-            RuntimeCamera *cam = nullptr;
-            Entity *camEntity = nullptr;
-            TransformComponent *camTransform = nullptr;
-            for (const auto &[enttity, id, transform, camera] : view.each())
+            if (camera.CameraPriority < maxPriority)
             {
-                if (camera.IsActiveCamera)
-                {
-                    camEntity = &m_EntityIdMap.at(id.ID);
-                    cam = &camera.camera;
-                    camTransform = &transform;
-                    break;
-                }
+                maxPriority = camera.CameraPriority;
+                camEntity = &m_EntityIdMap.at(id.ID);
+                cam = &camera.camera;
+                camTransform = &transform;
             }
-            if (!camEntity || !cam)
-            {
-                m_editorCam = RenderSubsystem::GetInstance().GetEditorCamera();
-                RenderSubsystem::GetInstance().SetCamera(&*m_editorCam);
-                BF_ERROR("Could not find main camera, please, select an active camera");
-                break;
-            }
-
+        }
+        if (!camEntity || !cam)
+        {
+            m_editorCam = RenderSubsystem::GetInstance().GetEditorCamera();
+            RenderSubsystem::GetInstance().SetCamera(&*m_editorCam);
+            BF_ERROR("Could not find main camera, please, select an active camera");
+        }
+        else
+        {
             Mat4 camViewMat = GetWorldSpaceTransformMatrix(*camEntity).Invert();
             cam->SetViewMatrix(camViewMat);
             cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
             RenderSubsystem::GetInstance().SetCamera(cam);
-
-        } while (false); // Чтобы не писать goto))) хотя по факту это просто goto)))
+        }
+    }
 
     {
         auto view = GetAllEntitiesWith<TransformComponent>();
@@ -632,6 +633,11 @@ void Blainn::Scene::SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTr
     else
     {
         entityTransform.SetTransform(worldTransform);
+    }
+
+    if (entity.HasComponent<PhysicsComponent>())
+    {
+        PhysicsSubsystem::UpdateBodyInJolt(*this, entity.GetUUID());
     }
 }
 

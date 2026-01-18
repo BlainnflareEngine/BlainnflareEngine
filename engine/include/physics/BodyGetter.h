@@ -25,7 +25,6 @@ public:
 
     Vec3 GetPosition();
     Quat GetRotation();
-    Vec3 GetScale();
 
     JPH::RefConst<JPH::Shape> GetShape();
     ComponentShapeType GetShapeType();

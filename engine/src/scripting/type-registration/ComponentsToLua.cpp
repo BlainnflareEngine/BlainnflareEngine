@@ -46,14 +46,17 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
     // TransformComponent
     sol::usertype<TransformComponent> TransformComponentType =
         luaState.new_usertype<TransformComponent>("TransformComponent", sol::constructors<TransformComponent()>());
-    TransformComponentType.set_function("GetTranslation", &TransformComponent::GetTranslation);
-    TransformComponentType.set_function("SetTranslation", &TransformComponent::SetTranslation);
-    TransformComponentType.set_function("GetScale", &TransformComponent::GetScale);
-    TransformComponentType.set_function("SetScale", &TransformComponent::SetScale);
-    TransformComponentType.set_function("GetTransform", &TransformComponent::GetTransform);
-    TransformComponentType.set_function("SetTransform", &TransformComponent::SetTransform);
+    TransformComponentType.set_function("GetTranslation",   &TransformComponent::GetTranslation);
+    TransformComponentType.set_function("SetTranslation",   &TransformComponent::SetTranslation);
+    TransformComponentType.set_function("GetScale",         &TransformComponent::GetScale);
+    TransformComponentType.set_function("SetScale",         &TransformComponent::SetScale);
+    TransformComponentType.set_function("GetTransform",     &TransformComponent::GetTransform);
+    TransformComponentType.set_function("SetTransform",     &TransformComponent::SetTransform);
     TransformComponentType.set_function("GetRotationEuler", &TransformComponent::GetRotationEuler);
     TransformComponentType.set_function("SetRotationEuler", &TransformComponent::SetRotationEuler);
+    TransformComponentType.set_function("GetForwardVector", &TransformComponent::GetForwardVector);
+    TransformComponentType.set_function("GetUpVector",      &TransformComponent::GetUpVector);
+    TransformComponentType.set_function("GetRightVector",   &TransformComponent::GetRightVector);
 
     // MeshComponent
     sol::usertype<MeshComponent> MeshComponentType = luaState.new_usertype<MeshComponent>(

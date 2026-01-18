@@ -24,7 +24,6 @@ public:
 
     BodyUpdater &SetPosition(Vec3 position, EActivation activation = EActivation::DontActivate);
     BodyUpdater &SetRotation(Quat rotation, EActivation activation = EActivation::DontActivate);
-    BodyUpdater &SetScale(Vec3 scale, Vec3 prevScale);
 
     BodyUpdater &SetVelocity(Vec3 velocity);
     BodyUpdater &SetMaxLinearVelocity(float maxVelocity);

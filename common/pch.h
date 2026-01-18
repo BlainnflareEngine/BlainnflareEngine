@@ -34,7 +34,6 @@
 
 #include <cstdint>
 
-
 #pragma region render includes
 
 #include <Windows.h>

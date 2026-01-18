@@ -2,7 +2,7 @@
 // Created by gorev on 25.10.2025.
 //
 
-#include "context-menu/AddToSceneContextMenu.h"
+#include "context-menu/SceneContextMenu.h"
 
 #include "Engine.h"
 #include "components/CameraComponent.h"
@@ -12,20 +12,21 @@
 #include "oclero/qlementine/widgets/Menu.hpp"
 #include "scene_hierarchy_widget.h"
 
+#include <QClipboard>
 #include <QKeyEvent>
 #include <QPushButton>
 
 namespace editor
 {
 
-AddToSceneContextMenu::AddToSceneContextMenu(scene_hierarchy_widget &treeView, QObject *parent)
+SceneContextMenu::SceneContextMenu(scene_hierarchy_widget &treeView, QObject *parent)
     : QObject(parent)
     , m_treeView(treeView)
 {
 }
 
 
-void AddToSceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
+void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
 {
     QMenu *menu = new QMenu(nullptr);
 
@@ -34,12 +35,16 @@ void AddToSceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index
     QAction *createSkyboxAction = menu->addAction("Create skybox");
 
     QAction *editAction = nullptr;
+    QAction *clipboardAction = nullptr;
     QAction *deleteAction = nullptr;
 
 
     if (index.isValid())
     {
+        menu->addSeparator();
+
         editAction = menu->addAction("Edit");
+        clipboardAction = menu->addAction("Copy ID");
         deleteAction = menu->addAction("Delete");
 
         editAction->setShortcut(m_renameKey);
@@ -61,6 +66,8 @@ void AddToSceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index
 
     if (deleteAction) connect(deleteAction, &QAction::triggered, this, [this, index]() { DeleteEntity(index); });
 
+    if (clipboardAction)
+        connect(clipboardAction, &QAction::triggered, this, [this, index]() { CopyUUIDToClipboard(index); });
 
     connect(menu, &QMenu::aboutToHide, menu, &QMenu::deleteLater);
 
@@ -68,7 +75,7 @@ void AddToSceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index
 }
 
 
-void AddToSceneContextMenu::OnContextMenu(const QPoint &pos)
+void SceneContextMenu::OnContextMenu(const QPoint &pos)
 {
     QModelIndex index = m_treeView.indexAt(pos);
 
@@ -85,7 +92,7 @@ void AddToSceneContextMenu::OnContextMenu(const QPoint &pos)
 }
 
 
-void AddToSceneContextMenu::AddEntity(const QModelIndex &index)
+void SceneContextMenu::AddEntity(const QModelIndex &index)
 {
     if (index.isValid())
     {
@@ -101,7 +108,7 @@ void AddToSceneContextMenu::AddEntity(const QModelIndex &index)
 }
 
 
-void AddToSceneContextMenu::AddCamera(const QModelIndex &index)
+void SceneContextMenu::AddCamera(const QModelIndex &index)
 {
     if (index.isValid())
     {
@@ -126,7 +133,7 @@ void AddToSceneContextMenu::AddCamera(const QModelIndex &index)
 }
 
 
-void AddToSceneContextMenu::AddSkybox(const QModelIndex &index)
+void SceneContextMenu::AddSkybox(const QModelIndex &index)
 {
     if (index.isValid())
     {
@@ -147,13 +154,13 @@ void AddToSceneContextMenu::AddSkybox(const QModelIndex &index)
 }
 
 
-void AddToSceneContextMenu::RenameEntity(const QModelIndex &index) const
+void SceneContextMenu::RenameEntity(const QModelIndex &index) const
 {
     m_treeView.edit(index);
 }
 
 
-void AddToSceneContextMenu::DeleteEntity(const QModelIndex &index)
+void SceneContextMenu::DeleteEntity(const QModelIndex &index)
 {
     auto sceneModel = SceneItemModel::GetNodeFromIndex(index);
 
@@ -163,13 +170,22 @@ void AddToSceneContextMenu::DeleteEntity(const QModelIndex &index)
 }
 
 
-QKeySequence &AddToSceneContextMenu::GetRenameKey()
+void SceneContextMenu::CopyUUIDToClipboard(const QModelIndex &index)
+{
+    auto sceneModel = SceneItemModel::GetNodeFromIndex(index);
+    if (!sceneModel) return;
+
+    QGuiApplication::clipboard()->setText(sceneModel->GetUUID().str().c_str());
+}
+
+
+QKeySequence &SceneContextMenu::GetRenameKey()
 {
     return m_renameKey;
 }
 
 
-QKeySequence &AddToSceneContextMenu::GetDeleteKey()
+QKeySequence &SceneContextMenu::GetDeleteKey()
 {
     return m_deleteKey;
 }

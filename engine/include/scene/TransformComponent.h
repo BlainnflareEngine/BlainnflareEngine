@@ -15,8 +15,6 @@ private:
 
     // dirty flag available between frames
     int NumFramesDirty = kNumFramesMarkDirty; // NumFrameResources
-    // one frame dirty flag
-    bool isScaleDirty = true;
 
     Vec3 Translation{0.f, 0.f, 0.f};
     Vec3 Scale{1.f, 1.f, 1.f};
@@ -29,10 +27,6 @@ private:
     void MarkFramesDirty()
     {
         NumFramesDirty = kNumFramesMarkDirty;
-    };
-    void MarkScaleDirty()
-    {
-        isScaleDirty = true;
     };
 
 
@@ -55,15 +49,9 @@ public:
         return NumFramesDirty > 0;
     }
 
-    bool IsScaleDirty() const
-    {
-        return isScaleDirty;
-    }
-
     void FrameResetDirtyFlags()
     {
         NumFramesDirty > 0 ? --NumFramesDirty : NumFramesDirty;
-        isScaleDirty = false;
     }
 
     Mat4 GetTransform() const
@@ -80,7 +68,6 @@ public:
         EulerRotation = Rotation.ToEuler();
 
         MarkFramesDirty();
-        MarkScaleDirty();
     }
 
     Vec3 GetTranslation() const
@@ -103,7 +90,6 @@ public:
     {
         Scale = scale;
         MarkFramesDirty();
-        MarkScaleDirty();
     }
 
     Vec3 GetRotationEuler() const
@@ -167,6 +153,31 @@ public:
 
         EulerRotation = warpToPi(EulerRotation);
         MarkFramesDirty();
+    }
+
+
+    Vec3 GetForwardVector() const
+    {
+        using namespace DirectX;
+        Vec3 forward{Vec3::UnitZ};
+        forward = Vec3::Transform(forward, Rotation);
+        return forward;
+    }
+
+    Vec3 GetRightVector() const
+    {
+        using namespace DirectX;
+        Vec3 right{Vec3::UnitX};
+        right = Vec3::Transform(right, Rotation);
+        return right;
+    }
+
+    Vec3 GetUpVector() const
+    {
+        using namespace DirectX;
+        Vec3 up{Vec3::UnitY};
+        up = Vec3::Transform(up, Rotation);
+        return up;
     }
 };
 } // namespace Blainn

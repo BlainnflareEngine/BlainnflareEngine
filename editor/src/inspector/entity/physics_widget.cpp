@@ -233,6 +233,7 @@ void physics_widget::OnTriggerChanged()
 
     BF_DEBUG("Change is trigger in physics widget");
     Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
+    bodyUpdater.SetIsTrigger(m_isTrigger->isChecked());
 }
 
 

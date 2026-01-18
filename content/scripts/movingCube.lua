@@ -1,9 +1,16 @@
 
 local listener1Handle = nil
 local listener2Handle = nil
+local customId = "5e1bb2cd-3ea3-46aa-97f8-340c8f95b52f"
 
 function OnStart()
      Log.Info("script start OwningEntity: " .. OwningEntity)
+
+     Log.Info("script start CustomEntity: " .. customId)
+    local scene = Engine:GetActiveScene()
+     local customEntt = scene:TryGetEntityWithUUID(customId)
+     Log.Info("Trying to find entity with uuid " .. customId .. " found " .. customEntt:GetTagComponent().Tag)
+
 
     Log.Info("Test2 onStart called")
     listener1Handle = Input.AddEventListener(InputEventType.KeyHeld,

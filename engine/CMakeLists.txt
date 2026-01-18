@@ -179,6 +179,7 @@ set(ENGINE_SOURCES
         src/Render/RenderTarget.cpp
         include/tools/SelectionManager.h
         src/tools/SelectionManager.cpp
+        src/scripting/type-registration/UUIDToLua.cpp
 )
 
 
