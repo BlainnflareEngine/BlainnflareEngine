@@ -633,6 +633,11 @@ void Blainn::Scene::SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTr
     {
         entityTransform.SetTransform(worldTransform);
     }
+
+    if (entity.HasComponent<PhysicsComponent>())
+    {
+        PhysicsSubsystem::UpdateBodyInJolt(*this, entity.GetUUID());
+    }
 }
 
 TransformComponent Scene::GetWorldSpaceTransform(Entity entity)

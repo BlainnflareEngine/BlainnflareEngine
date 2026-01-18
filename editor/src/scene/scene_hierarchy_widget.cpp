@@ -11,7 +11,7 @@
 #include "FileSystemUtils.h"
 #include "InspectorFabric.h"
 #include "SceneItemModel.h"
-#include "context-menu/AddToSceneContextMenu.h"
+#include "context-menu/SceneContextMenu.h"
 #include "ui_scene_hierarchy_widget.h"
 
 #include <QMimeData>
@@ -37,9 +37,9 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
     setDropIndicatorShown(true);
     setDragDropMode(InternalMove);
 
-    m_addToSceneMenu = new AddToSceneContextMenu(*this, this);
+    m_addToSceneMenu = new SceneContextMenu(*this, this);
 
-    connect(this, &QTreeView::customContextMenuRequested, m_addToSceneMenu, &AddToSceneContextMenu::OnContextMenu);
+    connect(this, &QTreeView::customContextMenuRequested, m_addToSceneMenu, &SceneContextMenu::OnContextMenu);
 
     connect(m_sceneModel, &QAbstractItemModel::dataChanged, this, &scene_hierarchy_widget::OnItemDataChanged);
 

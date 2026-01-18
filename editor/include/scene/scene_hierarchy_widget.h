@@ -6,7 +6,7 @@
 
 
 #include "SceneMeta.h"
-#include "context-menu/AddToSceneContextMenu.h"
+#include "context-menu/SceneContextMenu.h"
 #include "scene/SceneEvent.h"
 
 
@@ -57,7 +57,7 @@ protected:
 private:
     Ui::scene_hierarchy_widget *ui;
     SceneItemModel *m_sceneModel;
-    AddToSceneContextMenu *m_addToSceneMenu;
+    SceneContextMenu *m_addToSceneMenu;
     eastl::shared_ptr<SceneMeta> m_sceneMeta;
 
     void CreateEntityInHierarchy(Blainn::Entity& entity, bool bSceneChanged = false, bool bCreatedInEditor = false);

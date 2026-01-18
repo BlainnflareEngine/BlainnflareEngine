@@ -36,7 +36,7 @@ public:
 
     static void StartSimulation();
     /// @brief copies transform component values to jolt
-    static void UpdateBodyInJolt(const eastl::shared_ptr<Blainn::Scene> &activeScene, const uuid &entityUuid);
+    static void UpdateBodyInJolt(Blainn::Scene &activeScene, const uuid &entityUuid);
     static void StopSimulation();
 
     static void CreateAttachPhysicsComponent(PhysicsComponentSettings &settings);

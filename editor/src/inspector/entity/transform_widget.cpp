@@ -15,6 +15,7 @@
 #include <QVBoxLayout>
 
 #include "Engine.h"
+#include "subsystems/PhysicsSubsystem.h"
 #include "input-widgets/vector3_input_widget.h"
 
 namespace editor
@@ -33,7 +34,6 @@ void transform_widget::OnPositionChanged()
     if (!m_entity.HasComponent<Blainn::TransformComponent>()) return;
 
     const auto &scene = Blainn::Engine::GetActiveScene();
-
     if (!scene)
     {
         return;
@@ -42,7 +42,12 @@ void transform_widget::OnPositionChanged()
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
     transform.SetTranslation(m_position->GetValue());
-    //scene->ConvertToWorldSpace(m_entity);
+    // scene->ConvertToWorldSpace(m_entity);
+
+    if (m_entity.HasComponent<Blainn::PhysicsComponent>())
+    {
+        Blainn::PhysicsSubsystem::UpdateBodyInJolt(*scene, m_entity.GetUUID());
+    }
 }
 
 
@@ -53,6 +58,17 @@ void transform_widget::OnRotationChanged()
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
 
     transform.SetRotationEuler(m_rotation->GetValue() * XM_PI / 180.f);
+
+    const auto &scene = Blainn::Engine::GetActiveScene();
+    if (!scene)
+    {
+        return;
+    }
+
+    if (m_entity.HasComponent<Blainn::PhysicsComponent>())
+    {
+        Blainn::PhysicsSubsystem::UpdateBodyInJolt(*scene, m_entity.GetUUID());
+    }
 }
 
 
@@ -107,7 +123,7 @@ void transform_widget::LoadTransformValues()
     const auto &scene = Blainn::Engine::GetActiveScene();
     if (!scene) return;
 
-    //scene->ConvertToLocalSpace(m_entity);
+    // scene->ConvertToLocalSpace(m_entity);
 
     BlockSignals(true);
     if (!m_position->HasFocus()) m_position->SetValue(transform.GetTranslation());
@@ -117,7 +133,7 @@ void transform_widget::LoadTransformValues()
     if (!m_scale->HasFocus()) m_scale->SetValue(transform.GetScale());
     BlockSignals(false);
 
-    //scene->ConvertToWorldSpace(m_entity);
+    // scene->ConvertToWorldSpace(m_entity);
 }
 
 
