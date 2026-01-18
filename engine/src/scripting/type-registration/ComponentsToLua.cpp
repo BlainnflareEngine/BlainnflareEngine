@@ -5,6 +5,7 @@
 #include "scripting/TypeRegistration.h"
 #include "subsystems/ScriptingSubsystem.h"
 
+#include "components/CameraComponent.h"
 #include "components/MeshComponent.h"
 #include "components/ScriptingComponent.h"
 #include "handles/Handle.h"
@@ -77,5 +78,27 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
                                                 tbl[idx++] = kv.first.str();
                                             return tbl;
                                         });
+
+    sol::usertype<CameraComponent> cameraComponentType = luaState.new_usertype<CameraComponent>(
+        "CameraComponent", sol::constructors<CameraComponent()>());
+
+    cameraComponentType.set_function("CreateAttachCameraComponent",
+        [](CameraComponent& cam, float fov, float nearZ, float farZ, int32_t priority) {
+            CameraComponent c;
+            c.camera.SetFovDegrees(fov);
+            c.camera.SetNearZ(nearZ);
+            c.camera.SetFarZ(farZ);
+            c.CameraPriority = priority;
+
+    });
+
+    cameraComponentType.set_function("SetFOV", []()
+    {
+
+    });
+    cameraComponentType.set_function("SetPriority", [](int32_t newPriority)
+    {
+
+    });
 }
 #endif
