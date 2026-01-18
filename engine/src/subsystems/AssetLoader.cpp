@@ -91,6 +91,7 @@ void AssetLoader::CreateModelGPUResources(Model &model)
     ID3D12CommandList *const ppCommandLists[] = {cmdList.Get()};
     cmdQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
     cmdQueue->Flush();
+    cmdQueue->Flush();
 
     model.m_bisLoaded = true;
 }
@@ -287,6 +288,7 @@ eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const Text
 {
     assert(path.is_relative());
     auto texture = eastl::make_shared<Texture>(path, type, index);
+    Device::GetInstance().Flush();
     texture->DisposeUploaders();
     return texture;
 }

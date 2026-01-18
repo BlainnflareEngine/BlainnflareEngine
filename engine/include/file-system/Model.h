@@ -77,6 +77,11 @@ private:
             VertexBufferGPU = FreyaUtil::CreateDefaultBuffer(device.GetDevice2().Get(), pCommandList, vertices.data(),
                                                              vbByteSize, VertexBufferUploader); // Create GPU resource
             // For vertex buffer view.
+            std::wstring name = m_path.wstring() + L" vertex buffer";
+            VertexBufferGPU->SetName(name.c_str());
+            name = name + L" uploader";
+            VertexBufferUploader->SetName(name.c_str());
+
             VertexBufferByteSize = (uint32_t)vbByteSize;
             VertexByteStride = sizeof(TVertex);
         }
@@ -86,6 +91,11 @@ private:
             IndexBufferGPU = FreyaUtil::CreateDefaultBuffer(device.GetDevice2().Get(), pCommandList, indices.data(),
                                                             ibByteSize, IndexBufferUploader); // Create GPU resource
             // For index buffer view.
+            std::wstring name = m_path.wstring() + L" index buffer";
+            VertexBufferGPU->SetName(name.c_str());
+            name = name + L" uploader";
+            IndexBufferUploader->SetName(name.c_str());
+
             IndexBufferByteSize = ibByteSize;
             IndexFormat = (eastl::is_same<TIndex, unsigned short>()) ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
         }

@@ -411,15 +411,6 @@ void Blainn::RenderSubsystem::LoadGraphicsFeatures()
     uuidTexture->SetName(L"UUID Render Target");
     m_uuidRenderTarget.AttachTexture(AttachmentPoint::Color0, std::move(uuidTexture));
 
-    /*
-    optClearValue.Format = m_GBuffer->GetBufferTextureFormat(GBuffer::EGBufferLayer::DEPTH);
-    optClearValue.DepthStencil.Depth = 1.f;
-    optClearValue.DepthStencil.Stencil = 0;
-    auto gBufferDepthTexture = eastl::make_shared<GTexture>(m_device,
-    m_GBuffer->GetBufferTexture(GBuffer::EGBufferLayer::DEPTH)->m_resource, &optClearValue);
-    m_uuidRenderTarget.AttachTexture(AttachmentPoint::DepthStencil, gBufferDepthTexture);
-    */
-
     // Explicitly reset all window params dependent features
     // ResetGraphicsFeatures();
     m_camera->Reset(75.0f, m_aspectRatio, 0.1f, 250.0f);

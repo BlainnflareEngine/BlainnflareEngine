@@ -91,6 +91,8 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index)
         ThrowIfFailed(comDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &texDesc,
                                                       D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
                                                       IID_PPV_ARGS(&m_resource)));
+        std::wstring name = m_path.wstring() + L" texture";
+        m_resource->SetName(name.c_str());
 
         // collect subresource data
         eastl::vector<D3D12_SUBRESOURCE_DATA> subresources((int)mipChain.GetImageCount());
@@ -112,6 +114,8 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index)
         ThrowIfFailed(comDevice->CreateCommittedResource(&heapProps2, D3D12_HEAP_FLAG_NONE, &resourceDesc,
                                                       D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
                                                       IID_PPV_ARGS(&m_uploadResource)));
+        name = m_path.wstring() + L" upload buffer";
+        m_uploadResource->SetName(name.c_str());
 
         // write commands to copy data to upload texture (copying each subresource)
         UpdateSubresources(cmdList, m_resource.Get(), m_uploadResource.Get(), (UINT64)0u, 0u,
@@ -120,7 +124,6 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index)
         CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
             m_resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         cmdList->ResourceBarrier(1u, &barrier);
-        m_resource.Get()->SetName(m_path.c_str());
 
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
         ZeroMemory(&srvDesc, sizeof(srvDesc));

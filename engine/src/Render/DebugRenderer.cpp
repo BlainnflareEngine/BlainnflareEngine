@@ -36,14 +36,15 @@ void DebugRenderer::BeginDebugRenderPass(ID3D12GraphicsCommandList2 *commandList
     m_commandList->OMSetRenderTargets(1, &rtvDescriptor, TRUE, &dsvDescriptor);
     m_commandList->SetGraphicsRootSignature(m_rootSignature->Get());
     m_commandList->SetPipelineState(m_debugPipelineState.Get());
+
+    m_currentFrame++;
 }
 
 void DebugRenderer::EndDebugRenderPass()
 {
     BLAINN_PROFILE_SCOPE(EndDebugRenderPass);
-    auto nextFence = m_device.GetCommandQueue()->Signal() + 1;
 
-    while (!m_debugRequests.empty() && m_device.GetCommandQueue()->IsFenceComplete(m_debugRequests.front().first))
+    while (!m_debugRequests.empty() && m_currentFrame > m_debugRequests.front().first)
         m_debugRequests.pop_front();
 
     if (m_lineListVertices.empty())
@@ -62,7 +63,8 @@ void DebugRenderer::EndDebugRenderPass()
         nullptr,
         IID_PPV_ARGS(lineVertexBuffer.GetAddressOf())
         ));
-    m_debugRequests.push_back({nextFence, lineVertexBuffer});
+    m_debugRequests.push_back({m_currentFrame + 3, lineVertexBuffer});
+    lineVertexBuffer->SetName(L"Debug Vertex Buffer");
 
     UINT8* pVertexDataBegin;
     CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.

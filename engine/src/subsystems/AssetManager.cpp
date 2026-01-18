@@ -445,6 +445,7 @@ void AssetManager::DecreaseMeshRefCount(const unsigned int index)
 
             if (value.refCount == 1) // 1 because we have shared ptr in free list vector
             {
+                Device::GetInstance().Flush();
                 m_meshes.erase(index);
                 m_meshPaths.erase(key);
                 return;

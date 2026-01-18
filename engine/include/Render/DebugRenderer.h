@@ -68,6 +68,7 @@ namespace Blainn
 
         eastl::vector<VertexPositionColor> m_lineListVertices;
 
+        uint64_t m_currentFrame = 0;
         eastl::deque<eastl::pair<uint64_t, ComPtr<ID3D12Resource>>> m_debugRequests;
     };
 }
