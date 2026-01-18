@@ -154,5 +154,30 @@ public:
         EulerRotation = warpToPi(EulerRotation);
         MarkFramesDirty();
     }
+
+
+    Vec3 GetForwardVector() const
+    {
+        using namespace DirectX;
+        Vec3 forward{Vec3::UnitZ};
+        forward = Vec3::Transform(forward, Rotation);
+        return forward;
+    }
+
+    Vec3 GetRightVector() const
+    {
+        using namespace DirectX;
+        Vec3 right{Vec3::UnitX};
+        right = Vec3::Transform(right, Rotation);
+        return right;
+    }
+
+    Vec3 GetUpVector() const
+    {
+        using namespace DirectX;
+        Vec3 up{Vec3::UnitY};
+        up = Vec3::Transform(up, Rotation);
+        return up;
+    }
 };
 } // namespace Blainn

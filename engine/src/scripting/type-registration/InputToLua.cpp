@@ -366,6 +366,21 @@ void Blainn::RegisterInputTypes(sol::state &luaState)
                                 it->second();
                                 s_inputListenerRemovers.erase(it);
                             });
+
+
+    inputTable.set_function("IsKeyPressed",     &Input::IsKeyPressed);
+    inputTable.set_function("IsKeyHeld",        &Input::IsKeyHeld);
+    inputTable.set_function("IsKeyDown",        &Input::IsKeyDown);
+    inputTable.set_function("IsKeyReleased",    &Input::IsKeyReleased);
+
+    inputTable.set_function("IsMouseButtonPressed",     &Input::IsMouseButtonPressed);
+    inputTable.set_function("IsMouseButtonHeld",        &Input::IsMouseButtonHeld);
+    inputTable.set_function("IsMouseButtonDown",        &Input::IsMouseButtonDown);
+    inputTable.set_function("IsMouseButtonReleased",    &Input::IsMouseButtonReleased);
+
+    inputTable.set_function("GetMousePositionX",      &Input::GetMousePositionX);
+    inputTable.set_function("GetMousePositionY",      &Input::GetMousePositionY);
+
     luaState["Input"] = inputTable;
 }
 

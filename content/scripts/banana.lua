@@ -11,8 +11,7 @@ local MOVE_SPEED = 5.0
 local JUMP_IMPULSE = 5000.0
 
 function OnStart()
-
-    local scene = Engine.GetActiveScene()
+   local scene = Engine.GetActiveScene()
     local e = scene:TryGetEntityWithUUID(OwningEntity)
     if not e:IsValid() then
         Log.Error("aaa banana invalid")
@@ -28,7 +27,7 @@ function OnStart()
         Physics.CreateAttachPhysicsComponent(e, ComponentShapeType.Box)
         Log.Info("Physics component created and attached to entity: " .. e:GetTagComponent().Tag)
     end
- 
+
     listenerHeldHandle = Input.AddEventListener(InputEventType.KeyHeld,
         function(event)
 
@@ -44,29 +43,31 @@ function OnStart()
             local dt = savedDeltaTime or 0.0167
             local speed = MOVE_SPEED * dt
 
-            local x = pos.x
-            local y = pos.y
-            local z = pos.z
+            local forward = tc:GetForwardVector()
+            local right = tc:GetRightVector()
+
+            local deltaPos = Vec3:new(0,0,0)
 
             if event.key == Key.W then
-                z = z + speed
+                deltaPos = deltaPos + forward * speed
             end
             if event.key == Key.S then
-                z = z - speed
+                deltaPos = deltaPos - forward * speed
             end
             if event.key == Key.A then
-                x = x - speed
+                deltaPos = deltaPos - right * speed
             end
             if event.key == Key.D then
-                x = x + speed
+                deltaPos = deltaPos + right * speed
             end
-            tc:SetTranslation(Vec3:new(x, y, z))
+
+            pos = pos + deltaPos
+            tc:SetTranslation(pos)
         end
     )
 
     listenerPressedHandle = Input.AddEventListener(InputEventType.KeyPressed,
         function(event)
-            if event.key ~= Key.Space then return end
 
             local scene = Engine.GetActiveScene()
             local e = scene:TryGetEntityWithUUID(OwningEntity)
@@ -75,8 +76,10 @@ function OnStart()
                 return
             end
 
-            local updater = Physics.GetBodyUpdater(e)
-            updater.AddImpulse(Vec3:new(0.0, JUMP_IMPULSE, 0.0))
+            if event.key == Key.Space then
+                local updater = Physics.GetBodyUpdater(e)
+                updater.AddImpulse(Vec3:new(0.0, JUMP_IMPULSE, 0.0))
+            end
         end
     )
 end
