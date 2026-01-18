@@ -18,6 +18,7 @@
 #include "subsystems/RenderSubsystem.h"
 #include "subsystems/ScriptingSubsystem.h"
 #include "subsystems/AISubsystem.h"
+#include "subsystems/PerceptionSubsystem.h"
 #include "tools/Profiler.h"
 
 using namespace Blainn;
@@ -40,12 +41,73 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     Log::Init();
     RenderSubsystem::GetInstance().PreInit();
     PhysicsSubsystem::Init(globalTimeline);
+
+    PerceptionSubsystem::GetInstance().Init();
+    
+    PerceptionSubsystem::Settings perceptionSettings;
+    perceptionSettings.enableLOD = true;
+    perceptionSettings.lodNearDistance = 1000.0f;
+    perceptionSettings.lodMidDistance = 3000.0f;
+    perceptionSettings.lodFarDistance = 5000.0f;
+    perceptionSettings.lodNearUpdateInterval = 0.0f;
+    perceptionSettings.lodMidUpdateInterval = 0.1f;
+    perceptionSettings.lodFarUpdateInterval = 0.5f;
+    PerceptionSubsystem::GetInstance().SetSettings(perceptionSettings);
+
     AssetManager::GetInstance().Init();
     ScriptingSubsystem::Init();
     AISubsystem::GetInstance().Init();
 
+    AISubsystem::Settings aiSettings;
+    aiSettings.enableLOD = true;
+    aiSettings.lodNearDistance = 1000.0f;
+    aiSettings.lodMidDistance = 3000.0f;
+    aiSettings.lodFarDistance = 5000.0f;
+    aiSettings.lodNearUpdateInterval = 0.0f;
+    aiSettings.lodMidUpdateInterval = 0.1f;
+    aiSettings.lodFarUpdateInterval = 0.5f;
+    AISubsystem::GetInstance().SetSettings(aiSettings);
+
+    Input::AddEventListener(
+        InputEventType::MouseButtonPressed,
+        [&](const InputEventPointer &event)
+        {
+            const MouseButtonPressedEvent *mouseEvent = static_cast<const MouseButtonPressedEvent *>(event.get());
+            auto button = mouseEvent->GetMouseButton();
+
+            if (button == MouseButton::Left)
+            {
+                uuid id = RenderSubsystem::GetInstance().GetUUIDAt(mouseEvent->GetX() - 350, mouseEvent->GetY() - 130);
+
+                BF_INFO("the picked id is {}", id.str());
+            }
+        });
     NavigationSubsystem::Init();
     NavigationSubsystem::SetShouldDrawDebug(true);
+
+    PhysicsSubsystem::AddEventListener(
+        PhysicsEventType::CollisionStarted,
+        [](const eastl::shared_ptr<PhysicsEvent>& event)
+        {
+            Scene &scene = *Engine::GetActiveScene();
+            auto entity1 = scene.GetEntityWithUUID(event->entity1);
+            auto entity2 = scene.GetEntityWithUUID(event->entity2);
+
+            if (!entity1.IsValid() || !entity2.IsValid()) return;
+
+            Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
+            Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
+
+            eastl::string tag1 = "Unknown";
+            eastl::string tag2 = "Unknown";
+
+            if (entity1.HasComponent<StimulusComponent>()) tag1 = entity1.GetComponent<StimulusComponent>().tag;
+            if (entity2.HasComponent<StimulusComponent>()) tag2 = entity2.GetComponent<StimulusComponent>().tag;
+
+            PerceptionSubsystem::GetInstance().RegisterStimulus(entity2.GetUUID(), StimulusType::Touch, pos1, 0.0f, tag2);
+            PerceptionSubsystem::GetInstance().RegisterStimulus(entity1.GetUUID(), StimulusType::Touch, pos2, 0.0f, tag1);
+        }
+    );
 }
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
@@ -61,6 +123,7 @@ void Engine::Destroy()
 
     NavigationSubsystem::Destroy();
     AISubsystem::GetInstance().Destroy();
+    PerceptionSubsystem::GetInstance().Destroy();
     ScriptingSubsystem::Destroy();
     AssetManager::GetInstance().Destroy();
 
@@ -99,8 +162,9 @@ void Engine::Update(float deltaTime)
     {
         float playModeDelta = s_playModeTimeline.Tick() / 1000.0f;
         PhysicsSubsystem::Update();
-        ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
+        PerceptionSubsystem::GetInstance().Update(playModeDelta);
         AISubsystem::GetInstance().Update(playModeDelta);
+        ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
         NavigationSubsystem::Update(playModeDelta);
     }
 
@@ -135,8 +199,13 @@ void Engine::StartPlayMode()
             ScriptingSubsystem::LoadScript(s_activeScene->GetEntityWithUUID(id.ID), Path(path.c_str()),
                                            info.shouldTriggerStart);
     }
-}
 
+    for (auto [entity, id, aiComp] : s_activeScene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
+    {
+        Entity ent = s_activeScene->GetEntityWithUUID(id.ID);
+        AISubsystem::GetInstance().CreateAIController(ent);
+    }
+}
 
 void Engine::StopPlayMode()
 {

@@ -1,9 +1,12 @@
 #include <pch.h>
 #include "subsystems/AISubsystem.h"
 #include "subsystems/ScriptingSubsystem.h"
+#include "subsystems/PerceptionSubsystem.h"
 
 #include "Engine.h"
 #include "scene/Scene.h"
+#include "scene/TransformComponent.h"
+#include "components/CameraComponent.h"
 
 using namespace Blainn;
 
@@ -26,14 +29,63 @@ void AISubsystem::Destroy()
 void AISubsystem::Update(float dt)
 {
     Scene &scene = *Engine::GetActiveScene();
-    const auto& view = scene.GetAllEntitiesWith<AIControllerComponent>();
-    for (const auto &[entity, aiControllerComponent] : view.each())
+    
+    if (m_settings.enableLOD)
+    {
+        UpdateLOD();
+    }
+    
+    const auto& view = scene.GetAllEntitiesWith<IDComponent, AIControllerComponent>();
+    for (const auto &[entityHandle, idComp, aiControllerComponent] : view.each())
     {
         aiControllerComponent.aiController.Update(dt);
     }
 }
 
-void AISubsystem::LoadBlackboard(const sol::table &scriptEnvironment, std::unique_ptr<Blackboard> &blackboard)
+void AISubsystem::UpdateLOD()
+{
+    Scene& scene = *Engine::GetActiveScene();
+    
+    Vec3 cameraPos{0.0f};
+    auto cameras = scene.GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
+    
+    for (const auto& [entityHandle, idComp, transform, camera] : cameras.each())
+    {
+        if (camera.IsActiveCamera)
+        {
+            Entity cameraEntity = scene.GetEntityWithUUID(idComp.ID);
+            cameraPos = scene.GetWorldSpaceTransform(cameraEntity).GetTranslation();
+            break;
+        }
+    }
+    
+    auto view = scene.GetAllEntitiesWith<IDComponent, TransformComponent, AIControllerComponent>();
+    
+    for (const auto& [entityHandle, idComp, transform, aiComp] : view.each())
+    {
+        Entity entity = scene.GetEntityWithUUID(idComp.ID);
+        Vec3 entityPos = scene.GetWorldSpaceTransform(entity).GetTranslation();
+        
+        float distance = (entityPos - cameraPos).Length();
+        
+        float updateInterval = CalculateUpdateInterval(distance);
+        aiComp.aiController.SetUpdateInterval(updateInterval);
+    }
+}
+
+float AISubsystem::CalculateUpdateInterval(float distanceToCamera)
+{
+    if (distanceToCamera < m_settings.lodNearDistance)
+        return m_settings.lodNearUpdateInterval;
+    else if (distanceToCamera < m_settings.lodMidDistance)
+        return m_settings.lodMidUpdateInterval;
+    else if (distanceToCamera < m_settings.lodFarDistance)
+        return m_settings.lodFarUpdateInterval;
+    else
+        return 1.0f; // Если далеко то раз в секунду
+}
+
+void AISubsystem::LoadBlackboard(const sol::table &scriptEnvironment, eastl::unique_ptr<Blackboard> &blackboard)
 {
     sol::table bbTable = scriptEnvironment["Blackboard"];
     if (!bbTable.valid())
@@ -46,7 +98,7 @@ void AISubsystem::LoadBlackboard(const sol::table &scriptEnvironment, std::uniqu
     {
         std::string key = kv.first.as<std::string>();
         sol::object value = kv.second;
-        blackboard->Set(key, value);
+        blackboard->Set(key.c_str(), value);
     }
 }
 
@@ -68,14 +120,13 @@ void AISubsystem::LoadBehaviourTrees(const sol::table &scriptEnvironment, BTMap 
 
         if (!tree) continue;
 
-        const std::string &name = tree->GetName();
-        BF_INFO("Loaded BehaviourTree: " + name);
+        const eastl::string &name = tree->GetName();
 
-        behaviourTrees.emplace(name, std::move(tree));
+        behaviourTrees.emplace(name, eastl::move(tree));
     }
 }
 
-void AISubsystem::LoadUtility(const sol::table &scriptEnvironment, std::unique_ptr<UtilitySelector> &utility)
+void AISubsystem::LoadUtility(const sol::table &scriptEnvironment, eastl::unique_ptr<UtilitySelector> &utility)
 {
     sol::table utilityTable = scriptEnvironment["Utility"];
 
@@ -93,20 +144,19 @@ void AISubsystem::CreateAttachAIControllerComponent(Entity entity, const Path &a
     AIControllerComponent *componentPtr = entity.TryGetComponent<AIControllerComponent>();
     if (componentPtr)
     {
-        BF_ERROR("AI controller error: entity " + entity.GetUUID().str() + "already has AI controller component");
+        BF_ERROR("AI controller error: entity " + entity.GetUUID().str() + " already has AI controller component");
         return;
     }
     AIControllerComponent &component = entity.AddComponent<AIControllerComponent>();
     component.scriptPath = aiScriptPath.string();
 }
 
-
-bool Blainn::AISubsystem::CreateAIController(Entity entity)
+bool AISubsystem::CreateAIController(Entity entity)
 {
     AIControllerComponent *componentPtr = entity.TryGetComponent<AIControllerComponent>();
     if (!componentPtr)
     {
-        BF_ERROR("AI controller error: entity " + entity.GetUUID().str() + "does not have AI controller component");
+        BF_ERROR("AI controller error: entity " + entity.GetUUID().str() + " does not have AI controller component");
         return false;
     }
 
@@ -118,17 +168,63 @@ bool Blainn::AISubsystem::CreateAIController(Entity entity)
         return false;
     }
     const sol::table &scriptEnv = componentPtr->aiScript->GetEnvironment();
+    
+    PerceptionComponent* perception = entity.TryGetComponent<PerceptionComponent>();
+    if (!perception)
+    {
+        PerceptionSubsystem::GetInstance().CreateAttachPerceptionComponent(entity);
+        perception = entity.TryGetComponent<PerceptionComponent>();
+    }
+    
+    StimulusComponent* stimulus = entity.TryGetComponent<StimulusComponent>();
+    if (!stimulus)
+    {
+        PerceptionSubsystem::GetInstance().CreateAttachStimulusComponent(entity);
+        stimulus = entity.TryGetComponent<StimulusComponent>();
+    }
+    
+    sol::optional<sol::function> configurePerception = scriptEnv["ConfigurePerception"];
+    if (configurePerception && perception)
+    {
+        auto result = configurePerception.value()(perception);
+        if (!result.valid())
+        {
+            sol::error err = result;
+            BF_ERROR("ConfigurePerception failed: " + eastl::string(err.what()));
+        }
+    }
+    
+    sol::optional<sol::function> configureStimulus = scriptEnv["ConfigureStimulus"];
+    if (configureStimulus && stimulus)
+    {
+        auto result = configureStimulus.value()(stimulus);
+        if (!result.valid())
+        {
+            sol::error err = result;
+            BF_ERROR("ConfigureStimulus failed: " + eastl::string(err.what()));
+        }
+    }
 
-    std::unique_ptr<Blackboard> bb;
+    eastl::unique_ptr<Blackboard> bb = eastl::make_unique<Blackboard>();
     LoadBlackboard(scriptEnv, bb);
+    
+    if (perception)
+    {
+        bb->Set("_perception", perception);
+    }
+    
+    bb->Set("selfEntity", entity.GetUUID());
 
     BTMap trees;
     LoadBehaviourTrees(scriptEnv, trees);
 
-    std::unique_ptr<UtilitySelector> utility;
+    eastl::unique_ptr<UtilitySelector> utility;
     LoadUtility(scriptEnv, utility);
 
-    componentPtr->aiController.Init(std::move(trees), std::move(utility), std::move(bb));
+    componentPtr->aiController.Init(eastl::move(trees), eastl::move(utility), eastl::move(bb));
+    
+    BF_INFO("AI Controller created for entity: " + entity.GetUUID().str());
+    
     return true;
 }
 
@@ -139,5 +235,6 @@ void AISubsystem::DestroyAIControllerComponent(Entity entity)
     {
         return;
     }
+    componentPtr->aiController.HardReset();
     entity.RemoveComponent<AIControllerComponent>();
 }

@@ -6,24 +6,64 @@
 
 namespace Blainn
 {
-void AIController::Init(BTMap trees, std::unique_ptr<UtilitySelector> utility, std::unique_ptr<Blackboard> blackboard)
+
+void AIController::Init(BTMap trees, eastl::unique_ptr<UtilitySelector> utility, eastl::unique_ptr<Blackboard> blackboard)
 {
-    m_trees = std::move(trees);
-    m_utility = std::move(utility);
-    m_blackboard = std::move(blackboard);
+    m_trees = eastl::move(trees);
+    m_utility = eastl::move(utility);
+    m_blackboard = eastl::move(blackboard);
 
     m_activeTree = nullptr;
     m_activeTreeName.clear();
     m_activeDecisionName.clear();
 }
 
+bool AIController::ShouldUpdate(float dt)
+{
+    if (m_updateInterval <= 0.0f)
+        return true;
+    
+    m_timeSinceLastUpdate += dt;
+    
+    if (m_timeSinceLastUpdate >= m_updateInterval)
+    {
+        m_timeSinceLastUpdate = 0.0f;
+        return true;
+    }
+    
+    return false;
+}
+
+void AIController::ClearState()
+{
+    m_activeTree->ClearState();
+}
+
+void AIController::HardReset()
+{
+    if (m_activeTree) m_activeTree->HardReset();
+
+    m_activeTree = nullptr;
+    m_activeTreeName.clear();
+    m_activeDecisionName.clear();
+    m_abortRequested = false;
+
+    m_trees.clear();
+    m_utility.release();
+    m_blackboard.release();
+}
+
 void AIController::Update(float dt)
 {
-    if (!m_utility) return;
+    if (!m_utility)
+        return;
+    
+    if (!ShouldUpdate(dt))
+        return;
 
     m_utilityContext.UpdateCooldowns(dt);
 
-    std::string newDecision = m_utility.get()->Evaluate(m_utilityContext, *m_blackboard, dt);
+    eastl::string newDecision = m_utility.get()->Evaluate(m_utilityContext, *m_blackboard, dt);
 
     if (!m_activeTree)
     {
@@ -34,14 +74,14 @@ void AIController::Update(float dt)
         return;
     }
 
-    std::string btName;
+    eastl::string btName;
     if (!m_abortRequested && !newDecision.empty() && newDecision != m_activeDecisionName)
     {
         m_abortRequested = true;
         m_activeTree->RequestAbort();
     }
 
-    BTStatus status = m_activeTree->Update(*m_blackboard);
+    BTStatus status = m_activeTree->Update(*m_blackboard); // äîëæåí çàíîâî îáõîäèòü äåðåâî ïîñëå çàâåðøåíèÿ, à ó íåãî â sequence óæå èíäåêñ 1 è îí âñå âðåìÿ ëèâàåò â ñàêñåñ
 
     switch (status)
     {
@@ -49,27 +89,31 @@ void AIController::Update(float dt)
         return;
     case BTStatus::Success:
     case BTStatus::Failure:
+        if (!newDecision.empty() && newDecision != m_activeDecisionName)
+        {
+            CleanupActiveTree();
+            ActivateDecision(newDecision);
+        }
+        else
+        {
+            ClearState();
+        }
+        return;
     case BTStatus::Aborted:
-        CleanupActiveTree(); // TODO: ÐÐ°Ð´Ð¾ Ð»Ð¸ Ð¿Ð¾ÑÐ»Ðµ ÑÑ‚Ð¾Ð³Ð¾ Ð·Ð°Ð¿ÑƒÑÐºÐ°Ñ‚ÑŒ Ð½ÐµÐºÑÑ‚ decision?
-        /*
-        if ( !newDecision.empty() ) // ÐµÑÐ»Ð¸ Ð´ÐµÑ€ÐµÐ²Ð¾ Ð±Ñ‹Ð»Ð¾ Ð¸ Ð·Ð°ÐºÐ¾Ð½Ñ‡Ð¸Ð»Ð¾ÑÑŒ Ð¸ ÐµÑÑ‚ÑŒ Ð½Ð¾Ð²Ð¾Ðµ Ñ€ÐµÑˆÐµÐ½Ð¸Ðµ, Ñ‚Ð¾ Ð·Ð°Ð¿ÑƒÑÐºÐ°ÐµÐ¼ ÑÐ»ÐµÐ´ÑƒÑŽÑ‰ÐµÐµ
-        Ð´ÐµÑ€ÐµÐ²Ð¾
+        CleanupActiveTree();
+
+        if (!newDecision.empty())
         {
             ActivateDecision(newDecision);
         }
-        */
         return;
     case BTStatus::Error:
         HandleBTError();
         return;
     default:
+        BF_ERROR("AIController::Update: Unknown BTStatus");
         break;
     }
-
-    // if ( status == BTStatus::Running )
-    //     return;
-
-    // CleanupActiveTree(); // ÐµÑÐ»Ð¸ Ð·Ð°Ð²ÐµÑ€ÑˆÐ¸Ð»ÑÑ Ð»ÑŽÐ±Ñ‹Ð¼ ÑÐ¿Ð¾ÑÐ¾Ð±Ð¾Ð¼
 }
 
 
@@ -159,17 +203,23 @@ bool AIController::GetDesiredDirection(Vec3 &outDirection, float stoppingDistanc
     return true;
 }
 
-
-void AIController::ActivateDecision(const std::string &decision)
+void AIController::ActivateDecision(const eastl::string &decision)
 {
     m_activeDecisionName = decision;
-    std::string btName = m_utility->FindDecisionBTName(decision);
+    eastl::string btName = m_utility->FindDecisionBTName(decision);
     SetActiveBT(btName);
+
+    m_abortRequested = false;
+
+    if (m_activeTree)
+    {
+        m_activeTree->ClearState();
+    }
 }
 
 void AIController::CleanupActiveTree()
 {
-    if (m_activeTree) m_activeTree->Reset();
+    if (m_activeTree) m_activeTree->HardReset();
 
     m_activeTree = nullptr;
     m_activeTreeName.clear();
@@ -177,7 +227,7 @@ void AIController::CleanupActiveTree()
     m_abortRequested = false;
 }
 
-void AIController::SetActiveBT(const std::string &treeName)
+void AIController::SetActiveBT(const eastl::string& treeName)
 {
     auto it = m_trees.find(treeName);
     if (it == m_trees.end())
@@ -194,7 +244,7 @@ void AIController::HandleBTError()
 {
     BF_ERROR("AIController: BehaviourTree " + m_activeTreeName + " failed with ERROR");
 
-    if (m_activeTree) m_activeTree->Reset();
+    if (m_activeTree) m_activeTree->HardReset();
 
     m_activeTree = nullptr;
     m_activeTreeName.clear();

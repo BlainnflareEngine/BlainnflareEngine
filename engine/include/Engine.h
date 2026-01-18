@@ -45,6 +45,7 @@ public:
     static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
     static SelectionManager& GetSelectionManager() {return m_selectionManager;}
+
 private:
     static inline SelectionManager m_selectionManager = SelectionManager();
     static inline eastl::function<void(float)> m_renderFunc = nullptr;

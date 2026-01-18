@@ -14,7 +14,7 @@ using namespace Blainn;
 
 //     sol::table decorators = d.as<sol::table>();
 
-//     for (std::size_t i = 1;; ++i)
+//     for (eastl::size_t i = 1;; ++i)
 //     {
 //         sol::object o = decorators[i];
 //         if (!o.valid() || o == sol::nil) 
@@ -99,7 +99,7 @@ using namespace Blainn;
 
 //             if (children.valid())
 //             {
-//                 for (std::size_t i = 1;; ++i)
+//                 for (eastl::size_t i = 1;; ++i)
 //                 {
 //                     sol::object childObj = children[i];
 //                     if (!childObj.valid() || childObj.get_type() == sol::type::nil)
@@ -180,13 +180,13 @@ using namespace Blainn;
 //         BF_ERROR("BuildBTFromLua(): didn't find name for Behaviour Tree");
 //         return false;
 //     }
-//     if (!btName.is<std::string>())
+//     if (!btName.is<eastl::string>())
 //     {
 //         BF_ERROR("BuildBTFromLua(): name for BT is not string");
 //         return false;
 //     }
     
-//     builder.SetBTName(btName.as<std::string>());
+//     builder.SetBTName(btName.as<eastl::string>());
 
 //     if (!CalculateBT(rootTable, builder))
 //     {
@@ -216,7 +216,7 @@ BTMap LoadBTs(sol::state& lua) // как примерно я предполаг�
         if (!tree)
             continue;
         
-        trees.emplace(tree->GetName(), std::move(tree));
+        trees.emplace(tree->GetName(), eastl::move(tree));
     }
 
     return trees; // Должно возвращаться в AIController

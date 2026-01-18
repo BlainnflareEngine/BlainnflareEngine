@@ -28,27 +28,42 @@ BTBuilder &BTBuilder::AddAction(sol::function fn, sol::function onReset)
         return *this;
     }
 
-    BTNodePtr node = std::make_unique<ActionNode>(std::move(fn), std::move(onReset));
-    AttachNode(std::move(node));
+    BTNodePtr node = eastl::make_unique<ActionNode>(eastl::move(fn), eastl::move(onReset));
+    AttachNode(eastl::move(node));
     return *this;
 }
 
-BTBuilder &Blainn::BTBuilder::AddNegate()
+BTBuilder &Blainn::BTBuilder::AddNegate(BTNodePtr child)
 {
-    m_pendingDecorators.push_back({BTType::Negate, std::move(sol::function{})});
-    return *this;
-}
-
-BTBuilder &Blainn::BTBuilder::AddCondition(sol::function cond)
-{
-    if (!cond.valid())
+    if (!child)
     {
-        BF_ERROR("Condition decorator: invalid Lua function")
+        BF_ERROR("AddNegate: child is null");
         m_hasError = true;
         return *this;
     }
 
-    m_pendingDecorators.push_back({BTType::Condition, cond});
+    BTNodePtr node = eastl::make_unique<NegateNode>(eastl::move(child), eastl::move(sol::function{}));
+    AttachNode(eastl::move(node));
+    return *this;
+}
+
+BTBuilder &Blainn::BTBuilder::AddCondition(sol::function cond, BTNodePtr child)
+{
+    if (!cond.valid())
+    {
+        BF_ERROR("AddCondition: invalid Lua function");
+        m_hasError = true;
+        return *this;
+    }
+    if (!child)
+    {
+        BF_ERROR("AddCondition: child is null");
+        m_hasError = true;
+        return *this;
+    }
+
+    BTNodePtr node = eastl::make_unique<ConditionNode>(eastl::move(child), eastl::move(cond));
+    AttachNode(eastl::move(node));
     return *this;
 }
 
@@ -79,7 +94,7 @@ bool BTBuilder::ReadLuaBTType(sol::table node, BTType &outType)
         return false;
     }
 
-    outType = static_cast<BTType>(t.as<int>());
+    outType = t.as<BTType>();
     return true;
 }
 
@@ -88,7 +103,7 @@ bool BTBuilder::ReadLuaChildrenTable(sol::table node, sol::table &out)
     sol::object c = node["children"];
     if (!c.valid() || c.get_type() == sol::type::nil)
     {
-        out = sol::table(); // empty -> allowed for composites (you can make this an error)
+        out = sol::table(); // empty allowed for composites, you can make this an error
         return true;
     }
     if (!c.is<sol::table>())
@@ -104,6 +119,7 @@ bool BTBuilder::ReadLuaActionFn(sol::table node, sol::function &outFn, sol::func
 {
     sol::object f = node["fn"];
     sol::object onReset = node["onReset"];
+
     if (!f.valid() || f.get_type() == sol::type::nil)
     {
         BF_ERROR("ReadLuaActionFn(): Action node missing 'fn'");
@@ -128,53 +144,29 @@ bool BTBuilder::ReadLuaActionFn(sol::table node, sol::function &outFn, sol::func
 
     outFn = f.as<sol::function>();
     outOnReset = onReset.as<sol::function>();
-    return false;
-}
-
-bool BTBuilder::ParseDecorators(sol::table node)
-{
-    sol::object d = node["decorators"];
-
-    if (!d.valid() || d == sol::nil) return false;
-
-    sol::table decorators = d.as<sol::table>();
-
-    for (std::size_t i = 1;; ++i)
-    {
-        sol::object o = decorators[i];
-        if (!o.valid() || o == sol::nil) break;
-
-        sol::table dec = o;
-        BTType type;
-        if (!ReadLuaBTType(dec, type))
-        {
-            BF_ERROR("ParseDecorators(): ReadLuaBTType didn't return type")
-            Reset();
-            return false;
-        }
-
-        sol::function fn = dec["fn"];
-
-        if (type == BTType::Negate) AddNegate();
-        else if (type == BTType::Condition)
-        {
-            if (!fn.valid())
-            {
-                BF_ERROR("ParseDecorators(): Condition node doesn't have condition function");
-                Reset();
-                return false;
-            }
-            AddCondition(fn);
-        }
-        else BF_ERROR("ParseDecorators(): Unknown decorator type enum while parsing");
-        Reset();
-        return false;
-    }
-
     return true;
 }
 
-bool BTBuilder::CalculateBT(sol::table node)
+bool BTBuilder::ReadLuaConditionFn(sol::table node, sol::function &outFn)
+{
+    sol::object f = node["fn"];
+
+    if (!f.valid() || f.get_type() == sol::type::nil)
+    {
+        BF_ERROR("ReadLuaConditionFn(): Condition node missing 'fn'");
+        return false;
+    }
+    if (!f.is<sol::function>())
+    {
+        BF_ERROR("ReadLuaConditionFn(): Condition node 'fn' must be a function");
+        return false;
+    }
+
+    outFn = f.as<sol::function>();
+    return true;
+}
+
+bool BTBuilder::CalculateBT(sol::table node, BTNodePtr &outNode)
 {
     if (HasError())
     {
@@ -185,12 +177,6 @@ bool BTBuilder::CalculateBT(sol::table node)
     if (!node.valid())
     {
         BF_ERROR("BTBuilder::CalculateBT(): invalid node table");
-        return false;
-    }
-
-    if (!ParseDecorators(node))
-    {
-        BF_ERROR("BTBuilder::CalculateBT(): ParseDecorators has errors");
         return false;
     }
 
@@ -207,8 +193,16 @@ bool BTBuilder::CalculateBT(sol::table node)
     case BTType::Sequence:
     case BTType::Selector:
     {
-        if (type == BTType::Selector) AddSelector();
-        else if (type == BTType::Sequence) AddSequence();
+        eastl::unique_ptr<CompositeNode> composite;
+
+        if (type == BTType::Sequence)
+        {
+            composite = eastl::make_unique<SequenceNode>();
+        }
+        else // BTType::Selector
+        {
+            composite = eastl::make_unique<SelectorNode>();
+        }
 
         sol::table children;
         if (!ReadLuaChildrenTable(node, children))
@@ -220,7 +214,7 @@ bool BTBuilder::CalculateBT(sol::table node)
 
         if (children.valid())
         {
-            for (std::size_t i = 1;; ++i)
+            for (eastl_size_t i = 1;; ++i)
             {
                 sol::object childObj = children[i];
                 if (!childObj.valid() || childObj.get_type() == sol::type::nil) break;
@@ -232,17 +226,22 @@ bool BTBuilder::CalculateBT(sol::table node)
                     return false;
                 }
 
-                CalculateBT(childObj.as<sol::table>());
-                if (HasError())
+                BTNodePtr childNode;
+                if (!CalculateBT(childObj.as<sol::table>(), childNode))
                 {
-                    BF_ERROR("BTBuilder::CalculateBT(): CalculateBT has errors");
+                    BF_ERROR("BTBuilder::CalculateBT(): failed to build child");
                     return false;
+                }
+
+                if (childNode)
+                {
+                    composite->AddChild(eastl::move(childNode));
                 }
             }
         }
 
-        End();
-        return false;
+        outNode = eastl::move(composite);
+        return true;
     }
     case BTType::Action:
     {
@@ -254,37 +253,89 @@ bool BTBuilder::CalculateBT(sol::table node)
             Reset();
             return false;
         }
-        AddAction(fn, onReset);
-        return false;
+        outNode = eastl::make_unique<ActionNode>(eastl::move(fn), eastl::move(onReset));
+        return true;
     }
     case BTType::Negate:
     {
-        AddNegate();
+        sol::table children;
+        if (!ReadLuaChildrenTable(node, children))
+        {
+            BF_ERROR("BTBuilder::CalculateBT(): Negate - ReadLuaChildrenTable failed");
+            Reset();
+            return false;
+        }
+
+        if (!children.valid() || children[1] == sol::nil)
+        {
+            BF_ERROR("BTBuilder::CalculateBT(): Negate must have exactly one child");
+            Reset();
+            return false;
+        }
+
+        if (children[2] != sol::nil)
+        {
+            BF_ERROR("BTBuilder::CalculateBT(): Negate must have only one child");
+            Reset();
+            return false;
+        }
+
+        sol::object childObj = children[1];
+        BTNodePtr childNode;
+        if (!CalculateBT(childObj.as<sol::table>(), childNode))
+        {
+            BF_ERROR("BTBuilder::CalculateBT(): Negate - failed to build child");
+            return false;
+        }
+
+        outNode = eastl::make_unique<NegateNode>(eastl::move(childNode), sol::function{});
+        return true;
+    }
+
+    case BTType::Condition:
+    {
+        sol::function fn;
+        if (!ReadLuaConditionFn(node, fn))
+        {
+            BF_ERROR("BTBuilder::CalculateBT(): ReadLuaConditionFn failed");
+            Reset();
+            return false;
+        }
 
         sol::table children;
         if (!ReadLuaChildrenTable(node, children))
         {
-            BF_ERROR("BTBuilder::CalculateBT(): ReadLuaChildrenTable didn't return table")
-            Reset();
-            return false;
-        }
-        if (!children.valid() || children[1] == sol::nil)
-        {
-            BF_ERROR("BTBuilder::CalculateBT(): Negate must have exactly one child")
-            Reset();
-            return false;
-        }
-        if (children[2] != sol::nil)
-        {
-            BF_ERROR("BTBuilder::CalculateBT(): Negate must have only one child")
+            BF_ERROR("BTBuilder::CalculateBT(): Condition - ReadLuaChildrenTable failed");
             Reset();
             return false;
         }
 
-        sol::object c = children[1];
-        CalculateBT(c.as<sol::table>());
-        return false;
+        if (!children.valid() || children[1] == sol::nil)
+        {
+            BF_ERROR("BTBuilder::CalculateBT(): Condition must have exactly one child");
+            Reset();
+            return false;
+        }
+
+        if (children[2] != sol::nil)
+        {
+            BF_ERROR("BTBuilder::CalculateBT(): Condition must have only one child");
+            Reset();
+            return false;
+        }
+
+        sol::object childObj = children[1];
+        BTNodePtr childNode;
+        if (!CalculateBT(childObj.as<sol::table>(), childNode))
+        {
+            BF_ERROR("BTBuilder::CalculateBT(): Condition - failed to build child");
+            return false;
+        }
+
+        outNode = eastl::make_unique<ConditionNode>(eastl::move(childNode), eastl::move(fn));
+        return true;
     }
+
     default:
         BF_ERROR("BTBuilder::CalculateBT(): unknown node type enum while parsing");
         Reset();
@@ -300,12 +351,7 @@ BTNodePtr BTBuilder::Build()
         Reset();
         return nullptr;
     }
-    if (!m_stack.empty())
-    {
-        BF_ERROR("BTBuilder::Build(): unclosed composites remain (missing End())");
-        m_hasError = true;
-        return nullptr;
-    }
+
     if (!m_root)
     {
         BF_ERROR("BTBuilder::Build(): no root node");
@@ -313,10 +359,10 @@ BTNodePtr BTBuilder::Build()
         return nullptr;
     }
 
-    return std::move(m_root);
+    return eastl::move(m_root);
 }
 
-std::unique_ptr<BehaviourTree> BTBuilder::BuildFromLua(sol::table rootTable)
+eastl::unique_ptr<BehaviourTree> BTBuilder::BuildFromLua(sol::table rootTable)
 {
     sol::object nameObj = rootTable["name"];
     if (!nameObj.valid() || !nameObj.is<std::string>())
@@ -325,24 +371,29 @@ std::unique_ptr<BehaviourTree> BTBuilder::BuildFromLua(sol::table rootTable)
         return nullptr;
     }
 
-    std::string name = nameObj.as<std::string>();
+    eastl::string name = nameObj.as<std::string>().c_str();
 
-    if (!CalculateBT(rootTable))
+    BTNodePtr root;
+    if (!CalculateBT(rootTable, root))
     {
         BF_ERROR("Failed to build BT: " + name);
         return nullptr;
     }
 
-    BTNodePtr root = Build();
+    if (!root)
+    {
+        BF_ERROR("BuildFromLua: root is null for BT: " + name);
+        return nullptr;
+    }
 
-    return std::make_unique<BehaviourTree>(name, std::move(root));
+    return eastl::make_unique<BehaviourTree>(name, eastl::move(root));
 }
 
 void BTBuilder::Reset()
 {
-    m_root->Reset();
+    if (m_root)
+        m_root->Reset();
     m_stack.clear();
-    m_pendingDecorators.clear();
     m_hasError = false;
 }
 
@@ -355,8 +406,6 @@ void BTBuilder::AttachNode(BTNodePtr node)
         return;
     }
 
-    if (!WrapDecorators(node)) return;
-
     if (m_stack.empty())
     {
         // This node becomes root. Root can only be set once.
@@ -366,41 +415,11 @@ void BTBuilder::AttachNode(BTNodePtr node)
             m_hasError = true;
             return;
         }
-        m_root = std::move(node);
+        m_root = eastl::move(node);
         return;
     }
 
     // Attach to top composite
     CompositeNode *parent = m_stack.back();
-    parent->AddChild(std::move(node));
-}
-
-bool Blainn::BTBuilder::WrapDecorators(BTNodePtr &node)
-{
-    for (auto it = m_pendingDecorators.rbegin(); it != m_pendingDecorators.rend(); ++it)
-    {
-        if (!node)
-        {
-            BF_ERROR("WrapDecorators: node is null");
-            return false;
-        }
-
-        switch (it->type)
-        {
-        case BTType::Negate:
-            node = std::make_unique<NegateNode>(std::move(node), it->condition);
-            break;
-
-        case BTType::Condition:
-            node = std::make_unique<ConditionNode>(std::move(node), it->condition);
-            break;
-
-        default:
-            BF_ERROR("Unknown decorator type");
-            return false;
-        }
-    }
-
-    m_pendingDecorators.clear();
-    return true;
+    parent->AddChild(eastl::move(node));
 }

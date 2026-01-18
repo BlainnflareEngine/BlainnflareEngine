@@ -17,40 +17,35 @@ enum class BTType : int
 
 class BTBuilder
 {
-    struct PendingDecorator
-    {
-        BTType type;
-        sol::function condition;
-    };
-
 public:
     BTBuilder& AddSequence();
     BTBuilder& AddSelector();
     BTBuilder& AddAction(sol::function fn, sol::function onRes);
-    BTBuilder& AddNegate();
-    BTBuilder& AddCondition(sol::function cond);
+    BTBuilder &AddNegate(BTNodePtr child);
+    BTBuilder &AddCondition(sol::function cond, BTNodePtr child);
     BTBuilder& End();
+
     bool ReadLuaBTType(sol::table node, BTType& outType);
     bool ReadLuaChildrenTable(sol::table node, sol::table& out);
     bool ReadLuaActionFn(sol::table node, sol::function& outFn, sol::function& outOnReset);
-    bool ParseDecorators(sol::table node);
-    bool CalculateBT(sol::table node);
+    bool ReadLuaConditionFn(sol::table node, sol::function &outFn);
+
+    bool CalculateBT(sol::table node, BTNodePtr &outNode);
     BTNodePtr Build();
-    std::unique_ptr<BehaviourTree> BuildFromLua(sol::table rootTable);
+    eastl::unique_ptr<BehaviourTree> BuildFromLua(sol::table rootTable);
     void Reset();
     bool HasError() const { return m_hasError; }
 
 private:
     void AttachNode(BTNodePtr node);
-    bool WrapDecorators(BTNodePtr& node);
 
     template <class TComposite>
     BTBuilder& OpenComposite()
     {
-        auto node = std::make_unique<TComposite>();
+        auto node = eastl::make_unique<TComposite>();
         CompositeNode* raw = node.get();
 
-        AttachNode(std::move(node));
+        AttachNode(eastl::move(node));
         m_stack.push_back(raw);
         return *this;
     }
@@ -59,7 +54,6 @@ private:
     bool m_hasError = false;
 
     BTNodePtr m_root{};
-    std::vector<CompositeNode*> m_stack{}; // non owning pointers into nodes we own via unique_ptr
-    std::vector<PendingDecorator> m_pendingDecorators;
+    eastl::vector<CompositeNode*> m_stack{}; // non owning pointers into nodes we own via unique_ptr
 };
 } // namespace Blainn

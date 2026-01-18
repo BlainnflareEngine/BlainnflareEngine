@@ -1,5 +1,6 @@
 #pragma once
 
+#include "EASTL/unordered_map.h"
 #include "ai/UtilityDecision.h"
 
 namespace Blainn
@@ -7,8 +8,8 @@ namespace Blainn
 class UtilityContext
 {
 public:
-    std::unordered_map<std::string, UtilityDecisionState> states; // TODO : понять как создавать стейты и сам контекст
-    std::string currentDecision;
+    eastl::unordered_map<eastl::string, UtilityDecisionState> states;
+    eastl::string currentDecision;
 
     void UpdateCooldowns(float dt);
 };

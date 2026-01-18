@@ -13,6 +13,8 @@
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
 #include "components/SkyboxComponent.h"
+#include "components/PerceptionComponent.h"
+#include "components/StimulusComponent.h"
 #include "physics/BodyGetter.h"
 #include "scene/Entity.h"
 #include "yaml-cpp/emitter.h"
@@ -114,10 +116,10 @@ public:
         auto &aiController = entity.GetComponent<AIControllerComponent>();
 
         out << YAML::Key << "AIControllerComponent" << YAML::Value << YAML::BeginMap;
-
         out << YAML::Key << "Path" << aiController.scriptPath.c_str();
         out << YAML::Key << "MovementSpeed" << aiController.MovementSpeed;
         out << YAML::Key << "StoppingDistance" << aiController.StoppingDistance;
+        out << YAML::EndMap;
     }
 
     static void Mesh(Entity &entity, YAML::Emitter &out)
@@ -260,6 +262,70 @@ public:
                 out << YAML::EndMap;
             }
         }
+    }
+
+    static void Perception(Entity &entity, YAML::Emitter &out)
+    {
+        if (!entity.HasComponent<PerceptionComponent>()) return;
+
+        auto &perception = entity.GetComponent<PerceptionComponent>();
+        out << YAML::Key << "PerceptionComponent" << YAML::Value << YAML::BeginMap;
+
+        out << YAML::Key << "EnableSight" << YAML::Value << perception.enableSight;
+        out << YAML::Key << "SightRange" << YAML::Value << perception.sightRange;
+        out << YAML::Key << "SightFOV" << YAML::Value << perception.sightFOV;
+        out << YAML::Key << "SightForgetTime" << YAML::Value << perception.sightForgetTime;
+        out << YAML::Key << "SightLOSCheckInterval" << YAML::Value << perception.sightLOSCheckInterval;
+        out << YAML::Key << "SightRequireLOS" << YAML::Value << perception.sightRequireLOS;
+
+        out << YAML::Key << "EnableSound" << YAML::Value << perception.enableSound;
+        out << YAML::Key << "SoundRange" << YAML::Value << perception.soundRange;
+        out << YAML::Key << "SoundForgetTime" << YAML::Value << perception.soundForgetTime;
+        out << YAML::Key << "SoundMinStrength" << YAML::Value << perception.soundMinStrength;
+
+        out << YAML::Key << "EnableTouch" << YAML::Value << perception.enableTouch;
+        out << YAML::Key << "TouchForgetTime" << YAML::Value << perception.touchForgetTime;
+
+        out << YAML::Key << "EnableDamage" << YAML::Value << perception.enableDamage;
+        out << YAML::Key << "DamageForgetTime" << YAML::Value << perception.damageForgetTime;
+
+        out << YAML::Key << "UpdateInterval" << YAML::Value << perception.updateInterval;
+        out << YAML::Key << "MaxUpdateDistance" << YAML::Value << perception.maxUpdateDistance;
+
+        out << YAML::Key << "IgnoreTags" << YAML::Value << YAML::BeginSeq;
+        for (const auto &tag : perception.ignoreTags)
+            out << tag.c_str();
+        out << YAML::EndSeq;
+
+        out << YAML::Key << "PriorityTags" << YAML::Value << YAML::BeginSeq;
+        for (const auto &tag : perception.priorityTags)
+            out << tag.c_str();
+        out << YAML::EndSeq;
+
+        out << YAML::Key << "Enabled" << YAML::Value << perception.enabled;
+
+        out << YAML::EndMap;
+    }
+
+    static void Stimulus(Entity &entity, YAML::Emitter &out)
+    {
+        if (!entity.HasComponent<StimulusComponent>()) return;
+
+        auto &stimulus = entity.GetComponent<StimulusComponent>();
+        out << YAML::Key << "StimulusComponent" << YAML::Value << YAML::BeginMap;
+
+        out << YAML::Key << "EnableSight" << YAML::Value << stimulus.enableSight;
+        out << YAML::Key << "EnableSound" << YAML::Value << stimulus.enableSound;
+        out << YAML::Key << "EnableTouch" << YAML::Value << stimulus.enableTouch;
+        out << YAML::Key << "EnableDamage" << YAML::Value << stimulus.enableDamage;
+
+        out << YAML::Key << "SightRadius" << YAML::Value << stimulus.sightRadius;
+        out << YAML::Key << "SoundRadius" << YAML::Value << stimulus.soundRadius;
+
+        out << YAML::Key << "Tag" << YAML::Value << stimulus.tag.c_str();
+        out << YAML::Key << "Enabled" << YAML::Value << stimulus.enabled;
+
+        out << YAML::EndMap;
     }
 };
 } // namespace Blainn

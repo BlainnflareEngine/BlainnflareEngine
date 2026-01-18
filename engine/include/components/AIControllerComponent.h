@@ -1,14 +1,13 @@
 #pragma once
 
-#include <string>
-#include <variant>
+#include "EASTL/string.h"
+#include "EASTL/unordered_map.h"
+#include "EASTL/variant.h"
 #include "ai/AIController.h"
 #include "scripting/LuaScript.h"
 
 namespace Blainn
 {
-
-using BlackboardValue = std::variant<int, float, bool, std::string>;
 
 struct AIControllerComponent
 {

@@ -1,15 +1,16 @@
 #pragma once
 
 #include <cstdint>
-#include <utility>
-#include <vector>
+#include "EASTL/utility.h"
+#include "EASTL/vector.h"
+#include "EASTL/unique_ptr.h"
 
 #include <sol/sol.hpp>
 #include "Blackboard.h"
 
 namespace Blainn
 {
-enum class BTStatus : uint8_t 
+enum class BTStatus : int 
 { 
     Success = 0, 
     Failure = 1, 
@@ -23,17 +24,19 @@ struct BTNode
     virtual ~BTNode() = default;
     virtual BTStatus Update(Blackboard &bb) = 0;
     virtual void Reset() = 0; // NOTE: Check if it's really working
+    virtual void ClearState() = 0;
 };
 
-using BTNodePtr = std::unique_ptr<BTNode>;
+using BTNodePtr = eastl::unique_ptr<BTNode>;
 
 struct CompositeNode : BTNode
 {
-    std::vector<BTNodePtr> children;
+    eastl::vector<BTNodePtr> children;
     size_t m_currentIndex = 0;
 
     void AddChild(BTNodePtr n);
     void Reset() override;
+    void ClearState() override;
 };
 
 struct SequenceNode final : CompositeNode 
@@ -42,6 +45,7 @@ struct SequenceNode final : CompositeNode
 
     BTStatus Update(Blackboard& bb) override;
     void Reset() override;
+    void ClearState() override;
 };
 
 struct SelectorNode final : CompositeNode
@@ -50,6 +54,7 @@ struct SelectorNode final : CompositeNode
 
     BTStatus Update(Blackboard& bb) override;
     void Reset() override;
+    void ClearState() override;
 };
 
 struct ActionNode final : BTNode
@@ -62,6 +67,7 @@ struct ActionNode final : BTNode
 
     BTStatus Update(Blackboard& bb) override;
     void Reset() override;
+    void ClearState() override;
 };
 
 struct DecoratorNode : BTNode
@@ -72,6 +78,7 @@ struct DecoratorNode : BTNode
     explicit DecoratorNode(BTNodePtr c);
     explicit DecoratorNode(BTNodePtr c, sol::function cond = sol::function{});
     void Reset() override;
+    void ClearState() override;
 
 protected:
     bool CheckCondition(Blackboard& bb, bool& outResult);
@@ -82,6 +89,7 @@ struct NegateNode final : DecoratorNode
     using DecoratorNode::DecoratorNode;
     BTStatus Update(Blackboard& bb) override;
     void Reset() override;
+    void ClearState() override;
 };
 
 struct ConditionNode final : DecoratorNode
@@ -89,5 +97,6 @@ struct ConditionNode final : DecoratorNode
     using DecoratorNode::DecoratorNode;
     BTStatus Update(Blackboard &bb) override;
     void Reset() override;
+    void ClearState() override;
 };
 } // namespace Blainn
