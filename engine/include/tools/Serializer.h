@@ -203,7 +203,7 @@ public:
 
         auto camera = entity.GetComponent<CameraComponent>();
         out << YAML::Key << "CameraComponent" << YAML::Value << YAML::BeginMap;
-        out << YAML::Key << "IsActiveCamera" << YAML::Value << camera.IsActiveCamera;
+        out << YAML::Key << "Priority" << YAML::Value << camera.CameraPriority;
         out << YAML::Key << "CameraSettings" << YAML::Value << YAML::BeginMap;
         out << YAML::Key << "FOV" << YAML::Value << camera.camera.GetFovDegrees();
         out << YAML::Key << "NearZ" << YAML::Value << camera.camera.GetNearZ();

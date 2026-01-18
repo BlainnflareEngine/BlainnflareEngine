@@ -81,13 +81,13 @@ void Blainn::Scene::Update()
             TransformComponent *camTransform = nullptr;
             for (const auto &[enttity, id, transform, camera] : view.each())
             {
-                if (camera.IsActiveCamera)
+                /*if (camera.IsActiveCamera)
                 {
                     camEntity = &m_EntityIdMap.at(id.ID);
                     cam = &camera.camera;
                     camTransform = &transform;
                     break;
-                }
+                }*/
             }
             if (!camEntity || !cam)
             {
