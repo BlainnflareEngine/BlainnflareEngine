@@ -111,7 +111,7 @@ eastl::optional<float> Blainn::BodyGetter::GetSphereShapeRadius()
         return eastl::nullopt;
     }
 
-    return static_cast<JPH::SphereShape *>(component.GetHierarchy().childPtr.GetPtr())->GetRadius();
+    return static_cast<JPH::SphereShape *>(component.GetShape().childPtr.GetPtr())->GetRadius();
 }
 
 eastl::optional<Vec3> Blainn::BodyGetter::GetBoxShapeHalfExtents()
@@ -123,7 +123,7 @@ eastl::optional<Vec3> Blainn::BodyGetter::GetBoxShapeHalfExtents()
         return eastl::nullopt;
     }
 
-    return ToBlainnVec3(static_cast<JPH::BoxShape *>(component.GetHierarchy().childPtr.GetPtr())->GetHalfExtent());
+    return ToBlainnVec3(static_cast<JPH::BoxShape *>(component.GetShape().childPtr.GetPtr())->GetHalfExtent());
 }
 
 
@@ -136,7 +136,7 @@ eastl::optional<eastl::pair<float, float>> Blainn::BodyGetter::GetCylinderShapeH
         return eastl::nullopt;
     }
 
-    JPH::CylinderShape *shapePtr = static_cast<JPH::CylinderShape *>(component.GetHierarchy().childPtr.GetPtr());
+    JPH::CylinderShape *shapePtr = static_cast<JPH::CylinderShape *>(component.GetShape().childPtr.GetPtr());
     return eastl::optional<eastl::pair<float, float>>{{shapePtr->GetHalfHeight(), shapePtr->GetRadius()}};
 }
 
@@ -149,6 +149,6 @@ eastl::optional<eastl::pair<float, float>> Blainn::BodyGetter::GetCapsuleShapeHa
         return eastl::nullopt;
     }
 
-    JPH::CapsuleShape *shapePtr = static_cast<JPH::CapsuleShape *>(component.GetHierarchy().childPtr.GetPtr());
+    JPH::CapsuleShape *shapePtr = static_cast<JPH::CapsuleShape *>(component.GetShape().childPtr.GetPtr());
     return eastl::optional<eastl::pair<float, float>>{{shapePtr->GetHalfHeightOfCylinder(), shapePtr->GetRadius()}};
 }

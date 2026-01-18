@@ -194,7 +194,7 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
     builder.SetMotionType(settings.motionType)
         .SetPosition(transformComponentPtr->GetTranslation())
         .SetRotation(transformComponentPtr->GetRotation())
-        .SetShape(component.GetHierarchy().shapePtr.GetPtr())
+        .SetShape(component.GetShape().shapePtr.GetPtr())
         .SetIsTrigger(settings.isTrigger)
         .SetGravityFactor(settings.gravityFactor)
         .SetLayer(settings.layer);
