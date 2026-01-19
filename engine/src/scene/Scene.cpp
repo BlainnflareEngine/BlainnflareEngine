@@ -583,8 +583,53 @@ void Scene::UnparentEntity(Entity entity, bool convertToWorldSpace)
 
 Entity Scene::DuplicateEntity(Entity entity)
 {
-    // this one is tough, and I'm not sure we need it   :-)
-    return Entity{};
+    // This is bad solution for duplication problem, we will need to solve it other way, with reflection maybe
+    // TODO: deep copy of entity with its child entities
+
+    Entity newEntity = CreateEntity(entity.Name() + " copy");
+
+    if (auto comp = entity.TryGetComponent<TransformComponent>())
+    {
+        newEntity.AddComponent<TransformComponent>(*comp);
+    }
+    if (auto comp = entity.TryGetComponent<ScriptingComponent>())
+    {
+        ScriptingSubsystem::CreateAttachScriptingComponent(newEntity);
+        newEntity.GetComponent<ScriptingComponent>().scriptPaths = comp->scriptPaths;
+    }
+    if (auto comp = entity.TryGetComponent<MeshComponent>())
+    {
+        newEntity.AddComponent<MeshComponent>(*comp);
+    }
+    if (auto comp = entity.TryGetComponent<CameraComponent>())
+    {
+        newEntity.AddComponent<CameraComponent>(*comp);
+    }
+    if (auto comp = entity.TryGetComponent<PhysicsComponent>())
+    {
+        ComponentShapeType shapeType;
+
+        {
+            shapeType = PhysicsSubsystem::GetBodyGetter(entity).GetShapeType();
+        }
+
+        PhysicsComponentSettings settings = {newEntity, shapeType};
+        PhysicsSubsystem::CreateAttachPhysicsComponent(settings);
+    }
+    if (auto comp = entity.TryGetComponent<AIControllerComponent>())
+    {
+        AISubsystem::GetInstance().CreateAttachAIControllerComponent(newEntity, comp->scriptPath);
+    }
+    if (auto comp = entity.TryGetComponent<SkyboxComponent>())
+    {
+        newEntity.AddComponent<SkyboxComponent>(*comp);
+    }
+    if (auto comp = entity.TryGetComponent<NavmeshVolumeComponent>())
+    {
+        newEntity.AddComponent<NavmeshVolumeComponent>(*comp);
+    }
+
+    return newEntity;
 }
 
 void Scene::ConvertToLocalSpace(Entity entity)

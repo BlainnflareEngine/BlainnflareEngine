@@ -35,6 +35,7 @@ void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
     QAction *createSkyboxAction = menu->addAction("Create skybox");
 
     QAction *editAction = nullptr;
+    QAction *duplicateAction = nullptr;
     QAction *clipboardAction = nullptr;
     QAction *deleteAction = nullptr;
 
@@ -44,10 +45,12 @@ void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
         menu->addSeparator();
 
         editAction = menu->addAction("Edit");
+        duplicateAction = menu->addAction("Duplicate");
         clipboardAction = menu->addAction("Copy ID");
         deleteAction = menu->addAction("Delete");
 
         editAction->setShortcut(m_renameKey);
+        duplicateAction->setShortcut(m_duplicateKey);
         deleteAction->setShortcut(m_deleteKey);
     }
 
@@ -68,6 +71,9 @@ void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
 
     if (clipboardAction)
         connect(clipboardAction, &QAction::triggered, this, [this, index]() { CopyUUIDToClipboard(index); });
+
+    if (duplicateAction)
+        connect(duplicateAction, &QAction::triggered, this, [this, index]() { DuplicateEntity(index); });
 
     connect(menu, &QMenu::aboutToHide, menu, &QMenu::deleteLater);
 
@@ -157,6 +163,16 @@ void SceneContextMenu::AddSkybox(const QModelIndex &index)
 void SceneContextMenu::RenameEntity(const QModelIndex &index) const
 {
     m_treeView.edit(index);
+}
+
+
+void SceneContextMenu::DuplicateEntity(const QModelIndex &index) const
+{
+    auto sceneModel = SceneItemModel::GetNodeFromIndex(index);
+
+    if (!sceneModel) return;
+
+    Blainn::Engine::GetActiveScene()->DuplicateEntity(sceneModel->GetEntity());
 }
 
 
