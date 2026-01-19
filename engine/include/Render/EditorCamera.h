@@ -10,27 +10,36 @@
 
 namespace Blainn
 {
-    class EditorCamera : public Camera
+class EditorCamera : public Camera
+{
+public:
+    virtual ~EditorCamera();
+    virtual void Reset(float fovAngleY, float aspectRatio, float nearZ, float farZ) override;
+
+    void Move(const KeyCode key);
+    void AdjustRotation(float x, float y);
+    void IncreaseSpeed();
+    void DecreaseSpeed();
+    void SetCameraProperties(const KeyCode key, InputEventType eventType);
+
+private:
+    void SetAcceleration(bool useAcceleration)
     {
-    public:
-        virtual ~EditorCamera();
-        virtual void Reset(float fovAngleY, float aspectRatio, float nearZ, float farZ) override;
+        m_bUseAcceleration = useAcceleration;
+    }
+    void MoveRight(float d);
+    void MoveForward(float d);
+    void MoveUp(float d);
 
-        void Move(const KeyCode key);
-        void AdjustRotation(float x, float y);
-        void SetCameraProperties(const KeyCode key);
+    // Rotation
+    void AdjustYaw(float adjustYawValue);
+    void AdjustPitch(float adjustPitchValue);
 
-    private:
-        void SetAcceleration(bool useAcceleration) { m_bUseAcceleration = useAcceleration; }
-        void MoveRight(float d);
-        void MoveForward(float d);
-        void MoveUp(float d);
+private:
+    eastl::vector<eastl::pair<Input::EventHandle, InputEventType>> m_inputEvents;
 
-        // Rotation
-        void AdjustYaw(float adjustYawValue);
-        void AdjustPitch(float adjustPitchValue);
-
-    private:
-        eastl::vector<eastl::pair<Input::EventHandle, InputEventType>> m_inputEvents;
-    };
-} // Blainn
+    float m_editorSpeed = 1.0f;
+    float m_maxEditorSpeed = 100.0f;
+    float m_speedStep = 1.0f;
+};
+} // namespace Blainn

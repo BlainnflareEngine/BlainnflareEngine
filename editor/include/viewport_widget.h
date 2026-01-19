@@ -24,7 +24,6 @@ public:
     }
 
 protected:
-
     void resizeEvent(QResizeEvent *event) override
     {
         QWidget::resizeEvent(event);
@@ -34,13 +33,15 @@ protected:
 
     void keyPressEvent(QKeyEvent *event) override
     {
-        Blainn::Input::UpdateKeyState(static_cast<Blainn::KeyCode>(event->nativeVirtualKey()), Blainn::KeyState::Pressed);
+        Blainn::Input::UpdateKeyState(static_cast<Blainn::KeyCode>(event->nativeVirtualKey()),
+                                      Blainn::KeyState::Pressed);
         QWidget::keyPressEvent(event);
     }
 
     void keyReleaseEvent(QKeyEvent *event) override
     {
-        Blainn::Input::UpdateKeyState(static_cast<Blainn::KeyCode>(event->nativeVirtualKey()), Blainn::KeyState::Released);
+        Blainn::Input::UpdateKeyState(static_cast<Blainn::KeyCode>(event->nativeVirtualKey()),
+                                      Blainn::KeyState::Released);
         QWidget::keyReleaseEvent(event);
     }
 
@@ -78,5 +79,11 @@ protected:
         Blainn::Input::UpdateButtonState(static_cast<Blainn::MouseButton>(event->button()),
                                          Blainn::ButtonState::Released);
         QWidget::mouseReleaseEvent(event);
+    }
+
+    void wheelEvent(QWheelEvent *event) override
+    {
+        Blainn::Input::UpdateScrollState(event->angleDelta().x(), event->angleDelta().y());
+        QWidget::wheelEvent(event);
     }
 };
