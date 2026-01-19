@@ -54,12 +54,24 @@ jobs:
             $name = $env:GITHUB_SHA.Substring(0, 7)
           }
 
-          Compress-Archive `
-          -Path build\* `
-          -DestinationPath "build\BlainnflareEngine-$name.zip"
+          $filesToZip = @(
+            "build\content\*"
+            "build\editor\*"
+            "build\engine\*"
+            "build\lib\*"
+            "build\libs\*"
+            "build\plugins\*"
+            "build\BlainnflareEngine.exe"
+            "build\BlainnflareEngine.lib"
+            "build\Qt6Cored.dll"
+            "build\Qt6Guid.dll"
+            "build\Qt6Svgd.dll"
+            "build\Qt6Widgetsd.dll"
+          )
+          Compress-Archive -Path $filesToZip -DestinationPath "build\BF_$name.zip"
 
       - name: Release
         uses: softprops/action-gh-release@v2
         if: github.ref_type == 'tag'
         with:
-          files: "build/BlainnflareEngine-*.zip"
+          files: "build/BF_*.zip"
