@@ -79,10 +79,10 @@ void Blainn::Scene::Update()
         RuntimeCamera *cam = nullptr;
         Entity *camEntity = nullptr;
         TransformComponent *camTransform = nullptr;
-        int32_t maxPriority = INT_MAX;
+        int32_t maxPriority = INT_MIN;
         for (const auto &[enttity, id, transform, camera] : view.each())
         {
-            if (camera.CameraPriority < maxPriority)
+            if (camera.CameraPriority > maxPriority)
             {
                 maxPriority = camera.CameraPriority;
                 camEntity = &m_EntityIdMap.at(id.ID);
