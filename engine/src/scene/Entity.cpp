@@ -10,9 +10,7 @@ using namespace Blainn;
 
 bool Entity::IsValid() const
 {
-    return m_EntityHandle != entt::null
-        && m_Scene
-        && m_Scene->m_Registry.valid(m_EntityHandle);
+    return m_EntityHandle != entt::null && m_Scene && m_Scene->m_Registry.valid(m_EntityHandle);
 }
 
 
@@ -37,29 +35,31 @@ Entity Entity::GetParent() const
 void Entity::SetParent(Entity parent)
 {
     Entity currentParent = GetParent();
-    if (currentParent == parent)
-        return;
+    if (currentParent == parent) return;
 
-    if (currentParent)
-        currentParent.RemoveChild(*this);
-
-    SetParentUUID(parent.GetUUID());
-    m_Scene->ReportEntityReparent(*this);
+    if (currentParent) currentParent.RemoveChild(*this);
 
     if (parent)
     {
-        auto& parentChildren = parent.Children();
+        SetParentUUID(parent.GetUUID());
+        auto &parentChildren = parent.Children();
         uuid _uuid = GetUUID();
         if (eastl::find(parentChildren.begin(), parentChildren.end(), _uuid) == parentChildren.end())
             parentChildren.emplace_back(GetUUID());
     }
+    else
+    {
+        SetParentUUID(uuid());
+    }
+
+    m_Scene->ReportEntityReparent(*this);
 }
 
 
 bool Entity::RemoveChild(Entity child)
 {
     uuid childId = child.GetUUID();
-    auto& children = Children();
+    auto &children = Children();
     auto it = eastl::find(children.begin(), children.end(), childId);
     if (it)
     {
@@ -73,20 +73,16 @@ bool Entity::RemoveChild(Entity child)
 
 bool Entity::IsAncestorOf(Entity entity)
 {
-    const auto& children = Children();
+    const auto &children = Children();
     uuid childId = entity.GetUUID();
 
-    if (children.empty())
-        return false;
+    if (children.empty()) return false;
 
     for (uuid child : children)
-        if (child == childId)
-            return true;
+        if (child == childId) return true;
 
     for (uuid child : children)
-        if (m_Scene->GetEntityWithUUID(child).IsAncestorOf(entity))
-            return true;
+        if (m_Scene->GetEntityWithUUID(child).IsAncestorOf(entity)) return true;
 
     return false;
 }
-

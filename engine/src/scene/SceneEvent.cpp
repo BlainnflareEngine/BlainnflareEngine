@@ -108,7 +108,7 @@ Blainn::EntityReparentedEvent::EntityReparentedEvent(const Entity &entity, const
 
 Blainn::SceneEventType Blainn::EntityReparentedEvent::GetEventType()
 {
-    return SceneEventType::EntityChanged;
+    return SceneEventType::EntityReparented;
 }
 
 

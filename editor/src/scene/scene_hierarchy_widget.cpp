@@ -50,21 +50,10 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
                                     [this](const Blainn::SceneEventPointer &event) { this->OnEntityCreated(event); });
     Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityDestroyed,
                                     [this](const Blainn::SceneEventPointer &event) { this->OnEntityDestroyed(event); });
-    Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityChanged,
-                                    [this](const Blainn::SceneEventPointer &event) { this->OnEntityDestroyed(event); });
     Blainn::Scene::AddEventListener(Blainn::SceneEventType::SceneChanged,
                                     [this](const Blainn::SceneEventPointer &event) { this->OnSceneChanged(event); });
 
-    connect(m_sceneModel, &SceneItemModel::rowsMoved, this,
-            [this](...)
-            {
-                this->viewport()->update();
-            });
-
-    Blainn::Engine::GetSelectionManager().CallbackList.append([this](Blainn::uuid id)
-    {
-        ChangeSelection(id);
-    });
+    Blainn::Engine::GetSelectionManager().CallbackList.append([this](Blainn::uuid id) { ChangeSelection(id); });
 }
 
 scene_hierarchy_widget::~scene_hierarchy_widget()
@@ -206,7 +195,6 @@ void scene_hierarchy_widget::OnSceneChanged(const Blainn::SceneEventPointer &eve
     using namespace Blainn;
 
     auto sceneEvent = static_cast<SceneChangedEvent *>(event.get());
-    BF_DEBUG("OnSceneChanged");
     m_sceneMeta = eastl::make_shared<SceneMeta>(QString::fromStdString(sceneEvent->GetName().c_str()));
 
     eastl::vector<Entity> entities = {};
@@ -216,11 +204,6 @@ void scene_hierarchy_widget::OnSceneChanged(const Blainn::SceneEventPointer &eve
     {
         CreateEntityInHierarchy(entity, true);
     }
-}
-
-
-void scene_hierarchy_widget::OnEntityReparented(const Blainn::SceneEventPointer &event)
-{
 }
 
 

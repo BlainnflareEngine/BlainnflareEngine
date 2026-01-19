@@ -15,6 +15,7 @@ enum class SceneEventType
     EntityCreated,
     EntityDestroyed,
     EntityChanged,
+    EntityReparented,
     SceneChanged,
 };
 

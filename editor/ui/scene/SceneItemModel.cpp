@@ -12,6 +12,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 
+constexpr char MIME_ENTITY_UUID[] = "application/x-blainn-entity-uuid";
 
 editor::SceneItemModel::SceneItemModel(QObject *parent)
     : QAbstractItemModel(parent)
@@ -276,6 +277,67 @@ void editor::SceneItemModel::SortAccordingToMeta(eastl::shared_ptr<SceneMeta> &m
 }
 
 
+bool editor::SceneItemModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column,
+                                          const QModelIndex &parent)
+{
+    if (action != Qt::MoveAction || !data || !data->hasFormat(MIME_ENTITY_UUID))
+        return false;
+
+    QByteArray encoded = data->data(MIME_ENTITY_UUID);
+    if (encoded.size() != sizeof(Blainn::uuid)) return false;
+
+    Blainn::uuid uuid;
+    memcpy(&uuid, encoded.constData(), sizeof(uuid));
+
+    auto scene = Blainn::Engine::GetActiveScene();
+    if (scene)
+    {
+        Blainn::Entity entity = scene->TryGetEntityWithUUID(uuid);
+        if (entity.IsValid())
+        {
+            Blainn::Entity newParent;
+            if (parent.isValid())
+            {
+                EntityNode* parentNode = static_cast<EntityNode*>(parent.internalPointer());
+                newParent = scene->TryGetEntityWithUUID(parentNode->GetUUID());
+            }
+            if (newParent)
+                entity.SetParent(newParent);
+            else
+                scene->UnparentEntity(entity);
+        }
+    }
+
+    beginResetModel();
+    qDeleteAll(m_rootNodes);
+    m_rootNodes.clear();
+    endResetModel();
+
+    FullRebuildModel();
+
+    return true;
+}
+
+
+QMimeData *editor::SceneItemModel::mimeData(const QModelIndexList &indexes) const
+{
+    if (indexes.isEmpty()) return nullptr;
+
+    QMimeData *mimeData = new QMimeData();
+    QModelIndex index = indexes.first();
+
+    EntityNode *node = static_cast<EntityNode *>(index.internalPointer());
+    if (!node) return nullptr;
+
+    QByteArray data;
+    data.resize(sizeof(Blainn::uuid));
+    memcpy(data.data(), &node->GetUUID(), sizeof(Blainn::uuid));
+    mimeData->setData(MIME_ENTITY_UUID, data);
+
+    return mimeData;
+}
+
+
 QStringList editor::SceneItemModel::mimeTypes() const
 {
     return {MIME_ENTITY_UUID};
@@ -414,7 +476,7 @@ bool editor::SceneItemModel::FullRebuildModel()
 
 
 QModelIndex editor::SceneItemModel::FindIndexByIDRecursive(SceneItemModel *model, const QModelIndex &parent,
-                                                               const Blainn::uuid &id)
+                                                           const Blainn::uuid &id)
 {
     for (int row = 0; row < model->rowCount(parent); ++row)
     {

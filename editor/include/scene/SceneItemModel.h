@@ -46,6 +46,10 @@ public:
 
     void SortAccordingToMeta(eastl::shared_ptr<SceneMeta> &meta);
 
+    bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
+
+    QMimeData *mimeData(const QModelIndexList &indexes) const override;
+
     QStringList mimeTypes() const override;
 
     Qt::DropActions supportedDropActions() const override;

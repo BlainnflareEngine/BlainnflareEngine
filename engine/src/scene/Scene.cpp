@@ -577,7 +577,7 @@ void Scene::UnparentEntity(Entity entity, bool convertToWorldSpace)
 
     if (convertToWorldSpace) ConvertToWorldSpace(entity);
 
-    entity.SetParentUUID(0);
+    entity.SetParentUUID(uuid());
     ReportEntityReparent(entity);
 }
 
@@ -662,10 +662,11 @@ void Scene::ConvertToWorldSpace(Entity entity)
     Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
 
     if (!parent) return;
-
-    Mat4 transform = GetWorldSpaceTransformMatrix(entity);
-    auto &entityTransform = entity.Transform();
-    entityTransform.SetTransform(transform);
+    if (auto transformComponent = entity.TryGetComponent<TransformComponent>())
+    {
+        Mat4 transform = GetWorldSpaceTransformMatrix(entity);
+        transformComponent->SetTransform(transform);
+    }
 }
 
 Mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
