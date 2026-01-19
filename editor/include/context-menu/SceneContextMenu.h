@@ -34,6 +34,7 @@ public:
     void AddCamera(const QModelIndex &index);
     void AddSkybox(const QModelIndex &index);
     void RenameEntity(const QModelIndex &index) const;
+    void DuplicateEntity(const QModelIndex &index) const;
     void DeleteEntity(const QModelIndex &index);
     void CopyUUIDToClipboard(const QModelIndex &index);
 
@@ -48,6 +49,7 @@ private:
 
     QKeySequence m_renameKey = QKeySequence(Qt::Key_F2);
     QKeySequence m_deleteKey = QKeySequence(Qt::Key_Delete);
+    QKeySequence m_duplicateKey = QKeySequence(Qt::CTRL + Qt::Key_D);
 };
 
 } // namespace editor
