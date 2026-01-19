@@ -23,6 +23,37 @@ SceneContextMenu::SceneContextMenu(scene_hierarchy_widget &treeView, QObject *pa
     : QObject(parent)
     , m_treeView(treeView)
 {
+    m_duplicateAction = new QAction("Duplicate", this);
+    m_duplicateAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
+
+    m_deleteAction = new QAction("Delete", this);
+    m_deleteAction->setShortcut(QKeySequence::Delete);
+
+    m_renameAction = new QAction("Rename", this);
+    m_renameAction->setShortcut(QKeySequence(Qt::Key_F2));
+
+    m_treeView.addAction(m_duplicateAction);
+    m_treeView.addAction(m_deleteAction);
+    m_treeView.addAction(m_renameAction);
+
+    connect(m_duplicateAction, &QAction::triggered, this,
+            [this]()
+            {
+                if (m_treeView.selectionModel()->selectedRows().isEmpty()) return;
+                DuplicateEntity(m_treeView.selectionModel()->selectedRows().first());
+            });
+    connect(m_deleteAction, &QAction::triggered, this,
+            [this]()
+            {
+                if (m_treeView.selectionModel()->selectedRows().isEmpty()) return;
+                DeleteEntity(m_treeView.selectionModel()->selectedRows().first());
+            });
+    connect(m_renameAction, &QAction::triggered, this,
+            [this]()
+            {
+                if (m_treeView.selectionModel()->selectedRows().isEmpty()) return;
+                RenameEntity(m_treeView.selectionModel()->selectedRows().first());
+            });
 }
 
 
@@ -30,30 +61,18 @@ void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
 {
     QMenu *menu = new QMenu(nullptr);
 
-    QAction *createEntityAction = menu->addAction("Create entity");
+    QAction *createEntityAction = menu->addAction(index.isValid() ? "Create child entity" : "Create entity");
     QAction *createCameraAction = menu->addAction("Create camera");
     QAction *createSkyboxAction = menu->addAction("Create skybox");
-
-    QAction *editAction = nullptr;
-    QAction *duplicateAction = nullptr;
-    QAction *clipboardAction = nullptr;
-    QAction *deleteAction = nullptr;
-
 
     if (index.isValid())
     {
         menu->addSeparator();
-
-        editAction = menu->addAction("Edit");
-        duplicateAction = menu->addAction("Duplicate");
-        clipboardAction = menu->addAction("Copy ID");
-        deleteAction = menu->addAction("Delete");
-
-        editAction->setShortcut(m_renameKey);
-        duplicateAction->setShortcut(m_duplicateKey);
-        deleteAction->setShortcut(m_deleteKey);
+        menu->addAction(m_renameAction);
+        menu->addAction(m_duplicateAction);
+        menu->addAction("Copy ID");
+        menu->addAction(m_deleteAction);
     }
-
 
     if (createEntityAction)
         connect(createEntityAction, &QAction::triggered, this, [this, index]() { AddEntity(index); });
@@ -64,19 +83,13 @@ void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
     if (createSkyboxAction)
         connect(createSkyboxAction, &QAction::triggered, this, [this, index]() { AddSkybox(index); });
 
-    if (editAction) connect(editAction, &QAction::triggered, this, [this, index]() { RenameEntity(index); });
-
-
-    if (deleteAction) connect(deleteAction, &QAction::triggered, this, [this, index]() { DeleteEntity(index); });
-
-    if (clipboardAction)
+    if (index.isValid())
+    {
+        auto clipboardAction = menu->actions().at(menu->actions().size() - 2);
         connect(clipboardAction, &QAction::triggered, this, [this, index]() { CopyUUIDToClipboard(index); });
-
-    if (duplicateAction)
-        connect(duplicateAction, &QAction::triggered, this, [this, index]() { DuplicateEntity(index); });
+    }
 
     connect(menu, &QMenu::aboutToHide, menu, &QMenu::deleteLater);
-
     menu->popup(pos);
 }
 

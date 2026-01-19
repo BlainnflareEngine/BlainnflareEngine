@@ -10,6 +10,7 @@
 #include <QObject>
 
 
+class QMenu;
 namespace editor
 {
 class SceneItemModel;
@@ -50,6 +51,12 @@ private:
     QKeySequence m_renameKey = QKeySequence(Qt::Key_F2);
     QKeySequence m_deleteKey = QKeySequence(Qt::Key_Delete);
     QKeySequence m_duplicateKey = QKeySequence(Qt::CTRL + Qt::Key_D);
+
+    QMenu *m_menu = nullptr;
+
+    QAction *m_duplicateAction = nullptr;
+    QAction *m_deleteAction = nullptr;
+    QAction *m_renameAction = nullptr;
 };
 
 } // namespace editor
