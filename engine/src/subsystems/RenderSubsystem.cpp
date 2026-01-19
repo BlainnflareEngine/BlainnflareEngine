@@ -140,7 +140,7 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
 uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
 {
     BLAINN_PROFILE_FUNC();
-    if (x > m_width && y > m_height)
+    if (x > m_width || y > m_height)
         return uuid{0, 0};
 
     auto device = m_device.GetDevice2();
