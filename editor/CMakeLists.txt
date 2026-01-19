@@ -153,6 +153,9 @@ set(EDITOR_SOURCES
         include/inspector/entity/ai_controller_widget.h
         include/inspector/entity/navmesh_volume_widget.h
         src/inspector/entity/navmesh_volume_widget.cpp
+        include/inspector/entity/stimulus_widget.h
+        src/inspector/entity/stimulus_widget.cpp
+        include/inspector/input-widgets/string_input_field.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

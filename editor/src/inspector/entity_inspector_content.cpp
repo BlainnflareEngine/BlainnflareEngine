@@ -13,6 +13,7 @@
 #include "components/SkyboxComponent.h"
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
+#include "components/StimulusComponent.h"
 #include "entity/add_component_button.h"
 #include "entity/ai_controller_widget.h"
 #include "entity/camera_widget.h"
@@ -21,6 +22,7 @@
 #include "entity/physics_widget.h"
 #include "entity/transform_widget.h"
 #include "entity/skybox_widget.h"
+#include "entity/stimulus_widget.h"
 
 namespace editor
 {
@@ -72,6 +74,12 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     {
         auto aiController = new ai_controller_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(aiController);
+    }
+
+    if (entity.HasComponent<Blainn::StimulusComponent>())
+    {
+        auto stimulus = new stimulus_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(stimulus);
     }
 
     if (entity.HasComponent<Blainn::MeshComponent>())

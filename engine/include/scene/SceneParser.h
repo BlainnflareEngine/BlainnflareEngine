@@ -406,4 +406,36 @@ inline std::string NavMeshData(const YAML::Node &node)
 
     return node["NavMeshData"]["Path"].as<std::string>();
 }
+
+inline bool HasStimulus(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["StimulusComponent"]) return true;
+
+    return false;
+}
+
+inline StimulusComponent GetStimulus(const YAML::Node &node)
+{
+    StimulusComponent component;
+
+    if (!node || node.IsNull() || !node.IsMap())
+    {
+        BF_WARN("Stimulus component not found or invalid in .scene file.");
+        return component;
+    }
+
+    component.enableSight = node["EnableSight"].as<bool>();
+    component.enableSound = node["EnableSound"].as<bool>();
+    component.enableTouch = node["EnableTouch"].as<bool>();
+    component.enableDamage = node["EnableDamage"].as<bool>();
+
+    component.sightRadius = node["SightRadius"].as<float>();
+    component.soundRadius = node["SoundRadius"].as<float>();
+    component.tag = node["Tag"].as<std::string>("").c_str();
+    component.enabled = node["Enabled"].as<bool>();
+
+    return component;
+}
 } // namespace Blainn
