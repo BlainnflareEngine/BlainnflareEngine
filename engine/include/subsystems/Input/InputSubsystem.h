@@ -69,7 +69,7 @@ public:
 
     static void UpdateKeyState(KeyCode key, KeyState state);
     static void UpdateButtonState(MouseButton button, ButtonState state);
-
+    static void UpdateScrollState(float x, float y);
     // I recommend getting the type by using auto since the type is quite deep in the hierarchy
     // also it sucks ass, might need to make it a template function to get the type...
     using EventHandle = eventpp::internal_::CallbackListBase<void(const eastl::shared_ptr<InputEvent>&), InputEventPolicy>::Handle;

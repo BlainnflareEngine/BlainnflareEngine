@@ -141,19 +141,28 @@ void Blainn::Input::UpdateButtonState(MouseButton button, ButtonState state)
     case ButtonState::Pressed:
         if (s_mouseButtonStates[button] == ButtonState::Held) return;
         s_mouseButtonStates[button] = state;
-        s_inputEventQueue.enqueue(eastl::make_shared<MouseButtonPressedEvent>(button, s_mousePosition.X, s_mousePosition.Y));
+        s_inputEventQueue.enqueue(
+            eastl::make_shared<MouseButtonPressedEvent>(button, s_mousePosition.X, s_mousePosition.Y));
         return;
     case ButtonState::Released:
         s_mouseButtonStates[button] = state;
-        s_inputEventQueue.enqueue(eastl::make_shared<MouseButtonReleasedEvent>(button, s_mousePosition.X, s_mousePosition.Y));
+        s_inputEventQueue.enqueue(
+            eastl::make_shared<MouseButtonReleasedEvent>(button, s_mousePosition.X, s_mousePosition.Y));
         return;
     case ButtonState::Held:
         s_mouseButtonStates[button] = state;
-        s_inputEventQueue.enqueue(eastl::make_shared<MouseButtonHeldEvent>(button, s_mousePosition.X, s_mousePosition.Y));
+        s_inputEventQueue.enqueue(
+            eastl::make_shared<MouseButtonHeldEvent>(button, s_mousePosition.X, s_mousePosition.Y));
         return;
     default:
         return;
     }
+}
+
+
+void Blainn::Input::UpdateScrollState(float x, float y)
+{
+    s_inputEventQueue.enqueue(eastl::make_shared<MouseScrolledEvent>(x, y));
 }
 
 auto Blainn::Input::AddEventListener(InputEventType eventType,
