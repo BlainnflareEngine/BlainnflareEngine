@@ -55,14 +55,18 @@ void DebugRenderer::EndDebugRenderPass()
 
     const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
     const auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-    ThrowIfFailed(m_device.GetDevice2()->CreateCommittedResource(
+    if(auto hr = m_device.GetDevice2()->CreateCommittedResource(
         &heapProps,
         D3D12_HEAP_FLAG_NONE,
         &resDesc,
-        D3D12_RESOURCE_STATE_COMMON,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr,
         IID_PPV_ARGS(lineVertexBuffer.GetAddressOf())
-        ));
+        ); FAILED(hr))
+    {
+        BF_ERROR("Could not create vertex buffer for debug rendering!");
+        return;
+    }
     m_debugRequests.push_back({m_currentFrame + 3, lineVertexBuffer});
     lineVertexBuffer->SetName(L"Debug Vertex Buffer");
 
