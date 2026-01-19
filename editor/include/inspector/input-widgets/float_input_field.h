@@ -45,7 +45,7 @@ private:
 
     float m_minValue = -100000.0f;
     float m_maxValue = 100000.0f;
-    int m_decimals = 1;
+    int m_decimals = 3;
 
     // TODO: make drag
     float m_dragSensitivity = 0.1f;

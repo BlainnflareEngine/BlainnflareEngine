@@ -36,6 +36,7 @@ protected slots:
     void OnHalfHeightChanged();
     void OnExtentsChanged();
 
+
 private:
     bool_input_field *m_isTrigger = nullptr;
 

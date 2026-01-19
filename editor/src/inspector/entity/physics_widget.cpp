@@ -94,24 +94,19 @@ void physics_widget::OnShapeChanged(int)
     ShapeCreationSettings settings(m_shape->GetValue());
     bodyUpdater.ReplaceBodyShape(settings);
 
-
     switch (m_shape->GetValue())
     {
     case ComponentShapeType::Sphere:
         ShowSphereSettings(radius);
-        bodyUpdater.SetSphereShapeSettings(m_radius->GetValue());
         break;
     case ComponentShapeType::Box:
         ShowBoxSettings(extents);
-        bodyUpdater.SetBoxShapeSettings(m_extents->GetValue());
         break;
     case ComponentShapeType::Cylinder:
         ShowCylinderSettings(radius, halfHeight);
-        bodyUpdater.SetCylinderShapeSettings(m_halfHeight->GetValue(), m_radius->GetValue());
         break;
     case ComponentShapeType::Capsule:
         ShowCapsuleSettings(radius, halfHeight);
-        bodyUpdater.SetCapsuleShapeSettings(m_halfHeight->GetValue(), m_radius->GetValue());
         break;
     case ComponentShapeType::Empty:
         break;
@@ -195,8 +190,6 @@ void physics_widget::OnObjectLayerChanged(int)
 
     Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
     bodyUpdater.SetObjectLayer(layer);
-    BF_DEBUG("New layer is {}", static_cast<int>(layer));
-    // TODO: check later
 }
 
 
@@ -211,9 +204,6 @@ void physics_widget::OnObjectTypeChanged(int)
     Blainn::PhysicsComponentMotionType type = m_objectType->GetValue();
     Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
     bodyUpdater.SetMotionType(type);
-    BF_DEBUG("New object type is {}", static_cast<int>(type));
-
-    // TODO: check later
 }
 
 
@@ -255,7 +245,7 @@ void physics_widget::OnHalfHeightChanged()
 
     BF_DEBUG("Change halfheight in physics widget");
 
-    Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
+    BodyUpdater bodyUpdater = PhysicsSubsystem::GetBodyUpdater(m_entity);
 
     if (m_shape->GetValue() == ComponentShapeType::Cylinder)
         bodyUpdater.SetCylinderShapeSettings(m_halfHeight->GetValue(), m_radius->GetValue());
@@ -268,7 +258,6 @@ void physics_widget::OnExtentsChanged()
 {
     if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>()) return;
 
-    BF_DEBUG("Change extents in physics widget");
     Blainn::BodyUpdater bodyUpdater = Blainn::PhysicsSubsystem::GetBodyUpdater(m_entity);
     bodyUpdater.SetBoxShapeSettings(m_extents->GetValue());
 }
@@ -282,7 +271,6 @@ void physics_widget::ShowSphereSettings(float radius)
     m_radius->SetDecimals(2);
     layout()->addWidget(m_radius);
 
-    OnRadiusChanged();
     connect(m_radius, &float_input_field::EditingFinished, this, &physics_widget::OnRadiusChanged);
 }
 
@@ -295,7 +283,6 @@ void physics_widget::ShowBoxSettings(const Blainn::Vec3 &extents)
 
     layout()->addWidget(m_extents);
 
-    OnExtentsChanged();
     connect(m_extents, &vector3_input_widget::EditingFinished, this, &physics_widget::OnExtentsChanged);
 }
 
@@ -314,8 +301,6 @@ void physics_widget::ShowCylinderSettings(float radius, float halfHeight)
     layout()->addWidget(m_radius);
     layout()->addWidget(m_halfHeight);
 
-    OnRadiusChanged();
-    OnHalfHeightChanged();
     connect(m_radius, &float_input_field::EditingFinished, this, &physics_widget::OnRadiusChanged);
     connect(m_halfHeight, &float_input_field::EditingFinished, this, &physics_widget::OnHalfHeightChanged);
 }
@@ -335,8 +320,6 @@ void physics_widget::ShowCapsuleSettings(float radius, float halfHeight)
     layout()->addWidget(m_radius);
     layout()->addWidget(m_halfHeight);
 
-    OnRadiusChanged();
-    OnHalfHeightChanged();
     connect(m_radius, &float_input_field::EditingFinished, this, &physics_widget::OnRadiusChanged);
     connect(m_halfHeight, &float_input_field::EditingFinished, this, &physics_widget::OnHalfHeightChanged);
 }
@@ -393,11 +376,10 @@ void physics_widget::LoadValues()
     }
 
     m_isTrigger->setChecked(isTrigger);
-    m_gravityFactor->SetValue(gravityFactor);
+    m_gravityFactor->SetValue(std::ceil(gravityFactor * 100.0f / 100.0f));
     m_objectLayer->SetValue(objectLayer);
     m_shape->SetValue(shapeType);
     m_objectType->SetValue(motionType);
-    auto a = m_shape->GetValue();
     LoadShape();
 }
 
