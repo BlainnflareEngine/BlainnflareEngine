@@ -28,6 +28,7 @@ public:
     static void ClearNavMesh();
 
     static bool FindPath(const Vec3 &start, const Vec3 &end, eastl::vector<Vec3> &outPath);
+    static bool FindRandomPointOnNavMesh(Vec3& outPoint, const Vec3& center, float radius);
 
     static bool IsNavMeshLoaded()
     {
@@ -57,5 +58,10 @@ private:
     static bool FindPolysAlongPath(const Vec3 &start, const Vec3 &end, dtPolyRef *polys, int &npolys, int maxPolys);
 
     inline static bool s_drawDebug = true;
+
+    inline static std::mt19937 m_randomGenerator;
+    inline static std::uniform_real_distribution<float> m_uniformDist{0.0f, 1.0f};
+
+    static float RandomFloatCallback();
 };
 } // namespace Blainn

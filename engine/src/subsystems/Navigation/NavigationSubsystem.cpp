@@ -20,6 +20,9 @@ namespace Blainn
 class AIController;
 void NavigationSubsystem::Init()
 {
+    std::random_device rd;
+    m_randomGenerator.seed(rd());
+
     m_navQuery = dtAllocNavMeshQuery();
     m_filter = new dtQueryFilter();
     m_filter->setIncludeFlags(0xFFFF);
@@ -251,6 +254,31 @@ bool NavigationSubsystem::FindPath(const Vec3 &start, const Vec3 &end, eastl::ve
 }
 
 
+bool NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint, const Vec3 &center, float radius)
+{
+    if (!m_navMesh || !m_navQuery) return false;
+
+    float centerPos[3] = {center.x, center.y, center.z};
+    dtPolyRef startRef;
+    float startPos[3];
+    float extents[3] = {radius, radius * 2.0f, radius};
+
+    m_navQuery->findNearestPoly(centerPos, extents, m_filter, &startRef, startPos);
+    if (!startRef) return false;
+
+    dtPolyRef randomRef;
+    float randomPt[3];
+
+    dtStatus status = m_navQuery->findRandomPointAroundCircle(
+        startRef, startPos, radius, m_filter, &NavigationSubsystem::RandomFloatCallback, &randomRef, randomPt);
+
+    if (dtStatusFailed(status) || !randomRef) return false;
+
+    outPoint = Vec3(randomPt[0], randomPt[1], randomPt[2]);
+    return true;
+}
+
+
 void NavigationSubsystem::DrawDebugMesh()
 {
     if (!m_navMesh) return;
@@ -369,5 +397,11 @@ bool NavigationSubsystem::FindPolysAlongPath(const Vec3 &start, const Vec3 &end,
 
     m_navQuery->findPath(startRef, endRef, spos, epos, m_filter, polys, &npolys, maxPolys);
     return npolys > 0;
+}
+
+
+float NavigationSubsystem::RandomFloatCallback()
+{
+    return m_uniformDist(m_randomGenerator);
 }
 } // namespace Blainn

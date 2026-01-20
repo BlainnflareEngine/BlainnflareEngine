@@ -35,7 +35,8 @@ struct MeshComponent
         , IsWalkable(other.IsWalkable)
     {
         auto &device = Device::GetInstance();
-        ObjectCB = eastl::make_unique<UploadBuffer<ObjectConstants>>(device.GetDevice2().Get(), 1u /*amount of meshes in model*/, TRUE);
+        ObjectCB = eastl::make_unique<UploadBuffer<ObjectConstants>>(device.GetDevice2().Get(),
+                                                                     1u /*amount of meshes in model*/, TRUE);
     }
 
     void UpdateMeshCB(ObjectConstants &objectCBData);
@@ -47,6 +48,7 @@ struct MeshComponent
 
     ObjectConstants PerObjectCBData;
 
+    bool Enabled = true;
     // TODO: use layers in future
     bool IsWalkable = false;
 };
