@@ -129,6 +129,8 @@ void Engine::Update(float deltaTime)
     // this trace doesn't make sense, it exactly matches the frame
     BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop");
 
+    s_deltaTime = deltaTime;
+
     Input::ProcessEvents();
 
     if (s_isPlayMode)
@@ -150,6 +152,12 @@ void Engine::Update(float deltaTime)
 
     // Marks end of frame for tracy profiler
     BLAINN_PROFILE_MARK_FRAME;
+}
+
+
+float Engine::GetDeltaTime()
+{
+    return s_deltaTime;
 }
 
 

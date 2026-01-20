@@ -620,9 +620,86 @@ Entity Scene::DuplicateEntity(Entity entity)
 
         if (auto comp = src.TryGetComponent<PhysicsComponent>())
         {
-            ComponentShapeType shapeType = PhysicsSubsystem::GetBodyGetter(src).GetShapeType();
+            bool isTrigger;
+            float gravityFactor;
+            PhysicsComponentMotionType motionType;
+            ObjectLayer objectLayer;
+            ComponentShapeType shapeType;
+            Vec3 halfExtents;
+            float radius;
+            float halfHeight;
+
+            {
+                auto getter = PhysicsSubsystem::GetBodyGetter(src);
+                shapeType = getter.GetShapeType();
+                isTrigger = getter.isTrigger();
+                gravityFactor = getter.GetGravityFactor();
+                motionType = getter.GetMotionType();
+                objectLayer = getter.GetObjectLayer();
+
+                switch (shapeType)
+                {
+                case ComponentShapeType::Box:
+                {
+                    halfExtents = getter.GetBoxShapeHalfExtents().value();
+                    break;
+                }
+                case ComponentShapeType::Sphere:
+                {
+                    radius = getter.GetSphereShapeRadius().value();
+                    break;
+                }
+                case ComponentShapeType::Cylinder:
+                {
+                    auto cylinderParams = getter.GetCylinderShapeHalfHeightAndRadius().value();
+                    halfHeight = cylinderParams.first;
+                    radius = cylinderParams.second;
+                    break;
+                }
+                case ComponentShapeType::Capsule:
+                {
+                    auto capsuleParams = getter.GetCapsuleShapeHalfHeightAndRadius().value();
+                    halfHeight = capsuleParams.first;
+                    radius = capsuleParams.second;
+                    break;
+                }
+                }
+            }
             PhysicsComponentSettings settings{newEntity, shapeType};
+
+
             PhysicsSubsystem::CreateAttachPhysicsComponent(settings);
+            {
+                auto updater = PhysicsSubsystem::GetBodyUpdater(newEntity);
+                updater.SetIsTrigger(isTrigger);
+                updater.SetGravityFactor(gravityFactor);
+                updater.SetMotionType(motionType);
+                updater.SetObjectLayer(objectLayer);
+
+                switch (shapeType)
+                {
+                case ComponentShapeType::Box:
+                {
+                    updater.SetBoxShapeSettings(halfExtents);
+                    break;
+                }
+                case ComponentShapeType::Sphere:
+                {
+                    updater.SetSphereShapeSettings(radius);
+                    break;
+                }
+                case ComponentShapeType::Capsule:
+                {
+                    updater.SetCapsuleShapeSettings(halfHeight, radius);
+                    break;
+                }
+                case ComponentShapeType::Cylinder:
+                {
+                    updater.SetCylinderShapeSettings(halfHeight, radius);
+                    break;
+                }
+                }
+            }
         }
 
         if (auto comp = src.TryGetComponent<AIControllerComponent>())

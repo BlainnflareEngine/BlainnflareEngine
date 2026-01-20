@@ -31,16 +31,12 @@ void Editor::Init(int argc, char **argv)
     m_app = new QApplication(argc, argv);
 
     QList<QByteArray> formats = QImageReader::supportedImageFormats();
-    qDebug() << "Supported formats:" << formats;
-
     qRegisterMetaType<editor::LogMessage>("LogMessage");
 
     auto *style = new oclero::qlementine::QlementineStyle(m_app);
     style->setThemeJsonPath(":/themes/dark.json");
     QApplication::setStyle(style);
 
-    m_editorMain = new editor::editor_main();
-    m_editorMain->setWindowIcon(QIcon(":/icons/logo.png"));
     BF_DEBUG("Current working directory - " + current_path().string());
     m_editorConfigFolder = current_path() / "Config";
 
@@ -53,15 +49,20 @@ void Editor::Init(int argc, char **argv)
     Engine::SetContentDirectory(config["ContentDirectory"].as<std::string>());
 
     BF_DEBUG("Content directory - " + Engine::GetContentDirectory().string());
-    m_editorMain->SetContentDirectory(QString::fromStdString(Engine::GetContentDirectory().string()));
 
-    Log::AddSink(GetEditorSink());
+    if (config["DebugLines"]) RenderSubsystem::GetInstance().SetEnableDebug(config["DebugLines"].as<bool>());
+    if (config["VSync"]) RenderSubsystem::GetInstance().SetVSyncEnabled(config["VSync"].as<bool>());
 
     std::string defaultScene = config["DefaultScenePath"].as<std::string>();
-    if (!AssetManager::SceneExists(defaultScene))
-        AssetManager::CreateScene(defaultScene);
+    if (!AssetManager::SceneExists(defaultScene)) AssetManager::CreateScene(defaultScene);
 
     AssetManager::OpenScene(defaultScene);
+
+    m_editorMain = new editor::editor_main();
+    m_editorMain->setWindowIcon(QIcon(":/icons/logo.png"));
+    m_editorMain->SetContentDirectory(editor::ToQString(Engine::GetContentDirectory().string().c_str()));
+
+    Log::AddSink(GetEditorSink());
 }
 
 
@@ -116,6 +117,12 @@ std::shared_ptr<editor::EditorSink<std::mutex>> Editor::GetEditorSink()
 }
 
 
+YAML::Node Editor::GetEditorConfig()
+{
+    return YAML::LoadFile((m_editorConfigFolder / "EditorConfig.yaml").string());
+}
+
+
 void Editor::CreateDefaultEditorConfig()
 {
     using namespace std::filesystem;
@@ -128,6 +135,8 @@ void Editor::CreateDefaultEditorConfig()
 
     config["ContentDirectory"] = (current_path() / "Content").string();
     config["DefaultScenePath"] = "Scene." + ToString(formats::sceneFormat);
+    config["DebugLines"] = true;
+    config["VSync"] = true;
 
     if (AssetManager::GetInstance().SceneExists(config["DefaultScenePath"].as<std::string>()))
     {
@@ -141,6 +150,12 @@ void Editor::CreateDefaultEditorConfig()
     const path configFilePath = m_editorConfigFolder / "EditorConfig.yaml";
     std::ofstream fout(configFilePath.string());
     fout << config;
+}
+
+
+Path Editor::GetEditorConfigPath()
+{
+    return m_editorConfigFolder / "EditorConfig.yaml";
 }
 
 } // namespace Blainn

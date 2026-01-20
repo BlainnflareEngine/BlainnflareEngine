@@ -15,7 +15,7 @@ namespace Blainn
 
     private:
         void ResetRenderTargets();
-     
+
     public:
         static const UINT SwapChainFrameCount = 2u;
 
@@ -26,6 +26,7 @@ namespace Blainn
         void SetVSync(bool vSync) { m_bIsVSync = vSync; }
         bool GetVSync() const { return m_bIsVSync; }
         void ToggleVSync() { SetVSync(!m_bIsVSync); }
+        void SetVSyncEnabled(bool value) {SetVSync(value);}
 
         bool IsTearingSupported() const { return m_bIsTearingSupported; }
 

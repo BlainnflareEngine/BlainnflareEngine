@@ -16,6 +16,7 @@
 
 #include <QDesktopServices>
 #include <QListView>
+#include <fstream>
 
 extern bool g_IsRunning;
 
@@ -73,9 +74,14 @@ editor_main::editor_main(QWidget *parent)
     auto docAction = ui->menuHelp->addAction("Documentation");
     auto supportAction = ui->menuHelp->addAction("Support");
 
-    connect(docAction, &QAction::triggered, []() { QDesktopServices::openUrl(QUrl("https://github.com/BlainnflareEngine/BlainnflareEngine/wiki")); });
-    connect(supportAction, &QAction::triggered, []() { QDesktopServices::openUrl(QUrl("https://youtu.be/xvFZjo5PgG0?list=RDxvFZjo5PgG0")); });
+    connect(docAction, &QAction::triggered,
+            []() { QDesktopServices::openUrl(QUrl("https://github.com/BlainnflareEngine/BlainnflareEngine/wiki")); });
 
+    // rickroll just for fun
+    connect(supportAction, &QAction::triggered,
+            []() { QDesktopServices::openUrl(QUrl("https://youtu.be/xvFZjo5PgG0?list=RDxvFZjo5PgG0")); });
+
+    connect(ui->m_viewportSettings, &QToolButton::clicked, this, &editor_main::OnViewportSettingsClicked);
 }
 
 
@@ -180,6 +186,53 @@ void editor_main::OnStopPlayMode()
     {
         Blainn::Engine::StopPlayMode();
     }
+}
+
+void editor_main::OnViewportSettingsClicked()
+{
+    if (!m_viewportSettingsMenu)
+    {
+        m_viewportSettingsMenu = new QMenu(this);
+
+        QAction *debugPhysicsAction = m_viewportSettingsMenu->addAction("Debug lines");
+        debugPhysicsAction->setCheckable(true);
+        debugPhysicsAction->setChecked(Blainn::RenderSubsystem::GetInstance().DebugEnabled());
+
+        QAction *vsyncAction = m_viewportSettingsMenu->addAction("VSync");
+        vsyncAction->setCheckable(true);
+        vsyncAction->setChecked(Blainn::RenderSubsystem::GetInstance().GetVSyncEnabled());
+
+        connect(debugPhysicsAction, &QAction::toggled, this,
+                [this](bool checked)
+                {
+                    Blainn::RenderSubsystem::GetInstance().SetEnableDebug(checked);
+
+                    if (auto config = Blainn::Editor::GetInstance().GetEditorConfig())
+                    {
+                        config["DebugLines"] = checked;
+                        std::ofstream fout(Blainn::Editor::GetInstance().GetEditorConfigPath().string());
+                        fout << config;
+                    }
+                });
+
+        connect(vsyncAction, &QAction::toggled, this,
+                [this](bool checked)
+                {
+                    Blainn::RenderSubsystem::GetInstance().SetVSyncEnabled(checked);
+
+                    if (auto config = Blainn::Editor::GetInstance().GetEditorConfig())
+                    {
+                        config["VSync"] = checked;
+                        std::ofstream fout(Blainn::Editor::GetInstance().GetEditorConfigPath().string());
+                        fout << config;
+                    }
+                });
+
+        connect(m_viewportSettingsMenu, &QMenu::aboutToHide, m_viewportSettingsMenu, &QMenu::hide);
+    }
+
+    QPoint pos = ui->m_viewportSettings->mapToGlobal(ui->m_viewportSettings->rect().bottomLeft());
+    m_viewportSettingsMenu->popup(pos);
 }
 
 } // namespace editor

@@ -33,6 +33,9 @@ public:
 
     std::shared_ptr<editor::EditorSink<std::mutex>> GetEditorSink();
 
+    YAML::Node GetEditorConfig();
+    Path GetEditorConfigPath();
+
 private:
     QApplication *m_app = nullptr;
     editor::editor_main *m_editorMain = nullptr;

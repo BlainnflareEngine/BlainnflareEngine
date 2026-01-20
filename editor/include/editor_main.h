@@ -47,6 +47,8 @@ private:
 
     void OpenAddToScene() const;
 
+    QMenu* m_viewportSettingsMenu = nullptr;
+
 private slots:
     void OnOpenSettings();
     void OnSaveScene();
@@ -55,6 +57,8 @@ private slots:
 
     void OnStartPlayMode();
     void OnStopPlayMode();
+
+    void OnViewportSettingsClicked();
 };
 
 } // namespace editor
