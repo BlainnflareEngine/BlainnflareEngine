@@ -135,6 +135,8 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     m_currFrameResource->Fence =
         commandQueue->Signal(); // Advance the fence value to mark commands up to this fence point.
 #pragma endregion RenderStage
+
+    commandQueue->Flush();
 }
 
 uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
