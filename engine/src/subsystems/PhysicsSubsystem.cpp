@@ -85,6 +85,7 @@ void PhysicsSubsystem::Update()
 
         {
             BodyGetter bodyGetter = GetBodyGetter(entity);
+            if (bodyGetter.GetMotionType() != PhysicsComponentMotionType::Dynamic) continue;
             if (bodyGetter.isTrigger()) continue;
 
             transformComp.SetTranslation(bodyGetter.GetPosition());
