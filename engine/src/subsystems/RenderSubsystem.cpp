@@ -844,7 +844,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     uuidDepthDesc.StencilEnable = FALSE;
     uuidDrawPSO.DepthStencilState = uuidDepthDesc;
 
-    uuidDrawPSO.InputLayout = BlainnVertex::InputLayout;
+    uuidDrawPSO.InputLayout = SimpleVertex::InputLayout;
     uuidDrawPSO.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     uuidDrawPSO.NumRenderTargets = 1u;
     uuidDrawPSO.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_UINT;
