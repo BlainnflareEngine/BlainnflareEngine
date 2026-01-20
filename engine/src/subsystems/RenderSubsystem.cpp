@@ -1414,6 +1414,8 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
         Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
     for (const auto &[entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
     {
+        if (!entityMesh.Enabled) continue;
+
         auto currObjectCB = entityMesh.ObjectCB->Get();
 
         auto &model = entityMesh.MeshHandle->GetMesh();
