@@ -1,5 +1,7 @@
 #include <pch.h>
 #include "Render/Camera.h"
+
+#include "Engine.h"
 #include "Render/FreyaMath.h"
 #include "Subsystems/Input/InputSubsystem.h"
 #include "Subsystems/Input/InputEvent.h"
@@ -24,9 +26,7 @@ Blainn::Camera::Camera()
 
 void Blainn::Camera::Update(float deltaTime)
 {
-    // Tempopary, there will be function Engine::GetDeltaTime()
-    m_deltaTime = deltaTime;
-
+    m_deltaTime = Engine::GetDeltaTime();
     if (!m_isDirty) return;
 
     // View matrix

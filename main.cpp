@@ -74,7 +74,6 @@ int main(int argc, char **argv)
         {
             // fps stats could be added
             float mainTimelineDeltaTime = globalTimeline.Tick();
-
             Blainn::Engine::Update(mainTimelineDeltaTime);
 #if defined(BLAINN_INCLUDE_EDITOR)
             Blainn::Editor::GetInstance().Update();

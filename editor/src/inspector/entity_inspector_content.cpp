@@ -52,6 +52,9 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     separator->setFrameShape(QFrame::HLine);
     mainLayout->addWidget(separator);
 
+    auto addButton = new add_component_button(entity, mainLayout, this);
+    mainLayout->addWidget(addButton);
+
     connect(m_data.node, &EntityNode::OnTagChanged, this, &entity_inspector_content::SetTag);
 
     if (entity.HasComponent<Blainn::TransformComponent>())
@@ -113,9 +116,6 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
         auto navmeshVolume = new navmesh_volume_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(navmeshVolume);
     }
-
-    auto addButton = new add_component_button(entity, mainLayout, this);
-    mainLayout->addWidget(addButton);
 
     mainLayout->addStretch(1);
 }

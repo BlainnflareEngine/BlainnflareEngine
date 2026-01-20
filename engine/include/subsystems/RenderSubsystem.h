@@ -49,6 +49,19 @@ public:
         m_swapChain->ToggleVSync();
     }
 
+    void SetVSyncEnabled(bool value)
+    {
+        if (!m_swapChain) return;
+        m_swapChain->SetVSyncEnabled(value);
+    }
+
+    bool GetVSyncEnabled() const
+    {
+        if (!m_swapChain) return false;
+
+        return m_swapChain->GetVSync();
+    }
+
     void ToggleFullscreen()
     {
         if (!m_swapChain) return;
@@ -60,14 +73,37 @@ public:
         m_enableDebugLayer = newValue;
     }
 
-    const DebugRenderer &GetDebugRenderer() const { return *m_debugRenderer; }
-    DebugRenderer &GetDebugRenderer() { return *m_debugRenderer; }
+    bool DebugEnabled() const
+    {
+        return m_enableDebugLayer;
+    }
 
-    void SetCamera(Camera* camera) { m_camera = camera; }
-    Camera* GetCamera() { return m_camera; }
-    eastl::shared_ptr<Camera>& GetEditorCamera() { return m_editorCamera; }
+    const DebugRenderer &GetDebugRenderer() const
+    {
+        return *m_debugRenderer;
+    }
+    DebugRenderer &GetDebugRenderer()
+    {
+        return *m_debugRenderer;
+    }
 
-    float GetAspectRatio() const { return m_aspectRatio; }
+    void SetCamera(Camera *camera)
+    {
+        m_camera = camera;
+    }
+    Camera *GetCamera()
+    {
+        return m_camera;
+    }
+    eastl::shared_ptr<Camera> &GetEditorCamera()
+    {
+        return m_editorCamera;
+    }
+
+    float GetAspectRatio() const
+    {
+        return m_aspectRatio;
+    }
 
     uuid GetUUIDAt(uint32_t x, uint32_t y);
 
@@ -77,7 +113,8 @@ private:
     void InitializeWindow();
 
 #pragma region BoilerplateD3D12
-    VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter = false);
+    VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter,
+                            bool requestHighPerformanceAdapter = false);
     VOID SetCustomWindowText(LPCWSTR text) const;
 
     VOID CreateSwapChain();
@@ -92,7 +129,7 @@ private:
     void LoadPipeline();
     void LoadGraphicsFeatures();
     void CreateFrameResources();
-    void LoadInitTimeTextures(ID3D12GraphicsCommandList2* pCommandList);
+    void LoadInitTimeTextures(ID3D12GraphicsCommandList2 *pCommandList);
     void LoadSrvAndSamplerDescriptorHeaps();
     void CreateRootSignature();
     void CreateShaders();
@@ -128,12 +165,14 @@ private:
 
     void RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList);
 
-    void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource* pResource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
+    void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource *pResource,
+                         D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
 
     // For drawing specific meshes
-    void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList, eastl::unique_ptr<struct MeshComponent>& mesh); 
+    void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList, eastl::unique_ptr<struct MeshComponent> &mesh);
     void DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList);
-    void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
+    void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *pCommandList,
+                             const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
 
     void DrawQuad(ID3D12GraphicsCommandList2 *pCommandList);
 
@@ -214,7 +253,7 @@ private:
     eastl::vector<eastl::unique_ptr<FrameResource>> m_frameResources;
     FrameResource *m_currFrameResource = nullptr;
 
-    Camera* m_camera;
+    Camera *m_camera;
     eastl::shared_ptr<Camera> m_editorCamera;
 
 #pragma region DeferredShading
@@ -231,7 +270,7 @@ private:
     UINT m_skyCubeSrvHeapStartIndex = 0u;
     UINT m_texturesSrvHeapStartIndex = 0u;
 #pragma endregion Textures
-    
+
     // TODO
     eastl::unique_ptr<struct MeshComponent> skyBox = nullptr;
     Microsoft::WRL::ComPtr<ID3D12Resource> skyBoxResource = nullptr;
@@ -242,7 +281,8 @@ private:
 private:
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTV()
     {
-        return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(), m_swapChain->GetBackBufferIndex(), m_rtvDescriptorSize);
+        return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
+                                             m_swapChain->GetBackBufferIndex(), m_rtvDescriptorSize);
     }
 
     D3D12_CPU_DESCRIPTOR_HANDLE GetDSV()

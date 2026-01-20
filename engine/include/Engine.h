@@ -23,11 +23,13 @@ public:
     static void InitRenderSubsystem(HWND windowHandle);
     static void Destroy();
     static void Update(float deltaTime);
+    static float GetDeltaTime();
 
     static void StartPlayMode();
     static void StopPlayMode();
     static void EscapePlayMode();
     static bool IsPlayMode();
+
 
 public:
     static Path &GetContentDirectory();
@@ -54,5 +56,6 @@ private:
     static inline Path s_contentDirectory;
     static inline Timeline<eastl::chrono::milliseconds> s_playModeTimeline{nullptr};
     static inline bool s_isPlayMode = false;
+    static inline float s_deltaTime = 0.0f;
 };
 } // namespace Blainn
