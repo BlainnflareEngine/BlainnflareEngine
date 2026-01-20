@@ -58,6 +58,9 @@ add_executable(${PROJECT_NAME} main.cpp
         "common/AABBHelpers.h"
         icon.rc)
 
+set (SPDLOG_WCHAR_TO_UTF8_SUPPORT ON)
+add_compile_definitions("SPDLOG_WCHAR_TO_UTF8_SUPPORT")
+
 add_subdirectory(libs/EASTL)
 add_subdirectory(libs/JoltPhysics/Build)
 add_subdirectory(libs/spdlog)

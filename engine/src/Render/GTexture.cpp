@@ -42,14 +42,18 @@ void GTexture::Resize(UINT width, UINT height, UINT depthOrArraySize)
     auto d3d12Device = m_Device.GetDevice2();
 
     auto heapDesc = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-    ThrowIfFailed(d3d12Device->CreateCommittedResource(
+    if (FAILED(d3d12Device->CreateCommittedResource(
         &heapDesc,
         D3D12_HEAP_FLAG_NONE,
         &resDesc,
         D3D12_RESOURCE_STATE_COMMON,
         m_ClearValue.get(),
         IID_PPV_ARGS(&m_d3d12Resource)
-        ));
+        )))
+    {
+        BF_ERROR("Failed to resize texture");
+        return;
+    }
 
     m_d3d12Resource->SetName(m_Name.c_str());
 

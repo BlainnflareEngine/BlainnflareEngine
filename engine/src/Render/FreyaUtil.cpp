@@ -7,24 +7,32 @@ ComPtr<ID3D12Resource> Blainn::FreyaUtil::CreateDefaultBuffer(ID3D12Device* devi
     auto defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
     auto buffer = CD3DX12_RESOURCE_DESC::Buffer(byteSize);
     // Create the actual default buffer resource
-    ThrowIfFailed(device->CreateCommittedResource(
+    if (FAILED(device->CreateCommittedResource(
         &defaultHeap,
         D3D12_HEAP_FLAG_NONE,
         &buffer,
         D3D12_RESOURCE_STATE_COMMON,
         nullptr,
-        IID_PPV_ARGS(defaultBuffer.GetAddressOf())));
+        IID_PPV_ARGS(defaultBuffer.GetAddressOf()))))
+    {
+        BF_ERROR("Failed to create default buffer.");
+        return nullptr;
+    }
 
 
     auto uploadHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
     // In order to copy CPU memory data into out default buffer, we need to create an intermediate upload heap
-    ThrowIfFailed(device->CreateCommittedResource(
+    if (FAILED(device->CreateCommittedResource(
         &uploadHeap,
         D3D12_HEAP_FLAG_NONE,
         &buffer,
         D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr,
-        IID_PPV_ARGS(uploadBuffer.GetAddressOf())));
+        IID_PPV_ARGS(uploadBuffer.GetAddressOf()))))
+    {
+        BF_ERROR("Failed to create upload buffer.");
+        return nullptr;
+    }
 
     // Describe the data we want to copy into the default buffer.
     D3D12_SUBRESOURCE_DATA subResourceData = {};
