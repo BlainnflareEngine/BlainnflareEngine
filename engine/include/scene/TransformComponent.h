@@ -56,6 +56,7 @@ public:
 
     Mat4 GetTransform() const
     {
+        BLAINN_PROFILE_FUNC();
         using namespace DirectX::SimpleMath;
         return Matrix::CreateScale(Scale) * Matrix::CreateFromQuaternion(Rotation)
                * Matrix::CreateTranslation(Translation);
@@ -63,6 +64,7 @@ public:
 
     void SetTransform(Mat4 &transform)
     {
+        BLAINN_PROFILE_FUNC();
         using namespace DirectX::SimpleMath;
         transform.Decompose(Scale, Rotation, Translation);
         EulerRotation = Rotation.ToEuler();
@@ -99,6 +101,7 @@ public:
 
     void SetRotationEuler(const Vec3 &euler)
     {
+        BLAINN_PROFILE_FUNC();
         using namespace DirectX::SimpleMath;
         EulerRotation = euler;
         Rotation = Quaternion::CreateFromYawPitchRoll(euler.x, euler.y, euler.z);
@@ -112,6 +115,7 @@ public:
 
     void SetRotation(const Quat &rotation)
     {
+        BLAINN_PROFILE_FUNC();
         using namespace DirectX::SimpleMath;
         auto warpToPi = [](const Vec3 v)
         {
@@ -128,10 +132,10 @@ public:
         EulerRotation = Rotation.ToEuler();
 
         Vec3 alternatives[4] = {
-            {EulerRotation.x - DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
-            {EulerRotation.x + DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
-            {EulerRotation.x + DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI},
-            {EulerRotation.x - DirectX::XM_PI, EulerRotation.y - DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI}};
+            {EulerRotation.y - DirectX::XM_PI, EulerRotation.x - DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
+            {EulerRotation.y - DirectX::XM_PI, EulerRotation.x + DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
+            {EulerRotation.y - DirectX::XM_PI, EulerRotation.x + DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI},
+            {EulerRotation.y - DirectX::XM_PI, EulerRotation.x - DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI}};
 
         float distances[5] = {(warpToPi(EulerRotation - originalEuler)).LengthSquared(),
                               (warpToPi(alternatives[0] - originalEuler)).LengthSquared(),

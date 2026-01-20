@@ -62,6 +62,7 @@ void PhysicsSubsystem::Destroy()
 
 void PhysicsSubsystem::Update()
 {
+    BLAINN_PROFILE_FUNC();
     assert(m_isInitialized && "PhysicsSubsystem not initialized. Call PhysicsSubsystem::Init() before using it.");
 
     float deltaTime = m_physicsTimeline->Tick();
@@ -115,6 +116,7 @@ void PhysicsSubsystem::StartSimulation()
 
 void Blainn::PhysicsSubsystem::UpdateBodyInJolt(Blainn::Scene &activeScene, const uuid &entityUuid)
 {
+    BLAINN_PROFILE_FUNC();
     Entity entity = activeScene.GetEntityWithUUID(entityUuid);
 
     Vec3 translation, scale;

@@ -39,6 +39,7 @@ void ScriptingSubsystem::Destroy()
 
 void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
 {
+    BLAINN_PROFILE_FUNC();
 #ifdef BLAINN_TEST_LUA_SCRIPTS
 
     static bool create;
