@@ -60,14 +60,10 @@ void PhysicsSubsystem::Destroy()
     // TODO: ?
 }
 
-void PhysicsSubsystem::Update()
+void PhysicsSubsystem::Update(float deltaTime)
 {
     BLAINN_PROFILE_FUNC();
     assert(m_isInitialized && "PhysicsSubsystem not initialized. Call PhysicsSubsystem::Init() before using it.");
-
-    float deltaTime = m_physicsTimeline->Tick();
-    if (deltaTime == 0.0f) return;
-    deltaTime /= 1000.0f;
 
     eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
     auto enities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
@@ -86,7 +82,6 @@ void PhysicsSubsystem::Update()
 
         {
             BodyGetter bodyGetter = GetBodyGetter(entity);
-            if (bodyGetter.GetMotionType() != PhysicsComponentMotionType::Dynamic) continue;
             if (bodyGetter.isTrigger()) continue;
 
             transformComp.SetTranslation(bodyGetter.GetPosition());

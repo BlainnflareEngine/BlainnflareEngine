@@ -32,7 +32,7 @@ public:
     static void Destroy();
 
     /// @brief physics has its own timeline so you do not need to pass deltaTime in Update()
-    static void Update();
+    static void Update(float deltaTime);
 
     static void StartSimulation();
     /// @brief copies transform component values to jolt

@@ -84,3 +84,8 @@ inline std::ostream &operator<<(std::ostream &os, const Blainn::Vec4 &v)
 {
     return os << std::format("{:6f} {:6f} {:6f} {:6f}\n", v.x, v.y, v.z, v.w);
 }
+
+inline std::ostream &operator<<(std::ostream &os, const Blainn::Quat &q)
+{
+    return os << std::format("{:6f} {:6f} {:6f} {:6f}\n", q.x, q.y, q.z, q.w);
+}

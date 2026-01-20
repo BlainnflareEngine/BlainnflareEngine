@@ -138,7 +138,7 @@ void Engine::Update(float deltaTime)
         float playModeDelta = s_playModeTimeline.Tick() / 1000.0f;
 
         ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
-        PhysicsSubsystem::Update();
+        PhysicsSubsystem::Update(playModeDelta);
         PerceptionSubsystem::GetInstance().Update(playModeDelta);
         AISubsystem::GetInstance().Update(playModeDelta);
         NavigationSubsystem::Update(playModeDelta);
