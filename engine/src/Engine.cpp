@@ -43,7 +43,7 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     PhysicsSubsystem::Init(globalTimeline);
 
     PerceptionSubsystem::GetInstance().Init();
-    
+
     PerceptionSubsystem::Settings perceptionSettings;
     perceptionSettings.enableLOD = true;
     perceptionSettings.lodNearDistance = 1000.0f;
@@ -71,29 +71,31 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     NavigationSubsystem::Init();
     NavigationSubsystem::SetShouldDrawDebug(true);
 
-    PhysicsSubsystem::AddEventListener(
-        PhysicsEventType::CollisionStarted,
-        [](const eastl::shared_ptr<PhysicsEvent>& event)
-        {
-            Scene &scene = *Engine::GetActiveScene();
-            auto entity1 = scene.GetEntityWithUUID(event->entity1);
-            auto entity2 = scene.GetEntityWithUUID(event->entity2);
+    PhysicsSubsystem::AddEventListener(PhysicsEventType::CollisionStarted,
+                                       [](const eastl::shared_ptr<PhysicsEvent> &event)
+                                       {
+                                           Scene &scene = *Engine::GetActiveScene();
+                                           auto entity1 = scene.GetEntityWithUUID(event->entity1);
+                                           auto entity2 = scene.GetEntityWithUUID(event->entity2);
 
-            if (!entity1.IsValid() || !entity2.IsValid()) return;
+                                           if (!entity1.IsValid() || !entity2.IsValid()) return;
 
-            Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
-            Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
+                                           Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
+                                           Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
 
-            eastl::string tag1 = "Unknown";
-            eastl::string tag2 = "Unknown";
+                                           eastl::string tag1 = "Unknown";
+                                           eastl::string tag2 = "Unknown";
 
-            if (entity1.HasComponent<StimulusComponent>()) tag1 = entity1.GetComponent<StimulusComponent>().tag;
-            if (entity2.HasComponent<StimulusComponent>()) tag2 = entity2.GetComponent<StimulusComponent>().tag;
+                                           if (entity1.HasComponent<StimulusComponent>())
+                                               tag1 = entity1.GetComponent<StimulusComponent>().tag;
+                                           if (entity2.HasComponent<StimulusComponent>())
+                                               tag2 = entity2.GetComponent<StimulusComponent>().tag;
 
-            PerceptionSubsystem::GetInstance().RegisterStimulus(entity2.GetUUID(), StimulusType::Touch, pos1, 0.0f, tag2);
-            PerceptionSubsystem::GetInstance().RegisterStimulus(entity1.GetUUID(), StimulusType::Touch, pos2, 0.0f, tag1);
-        }
-    );
+                                           PerceptionSubsystem::GetInstance().RegisterStimulus(
+                                               entity2.GetUUID(), StimulusType::Touch, pos1, 0.0f, tag2);
+                                           PerceptionSubsystem::GetInstance().RegisterStimulus(
+                                               entity1.GetUUID(), StimulusType::Touch, pos2, 0.0f, tag1);
+                                       });
 }
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
@@ -129,28 +131,14 @@ void Engine::Update(float deltaTime)
 
     Input::ProcessEvents();
 
-    // test
-    static float testAccumulator;
-    static int fpsCounterPrevValue;
-    static int fpsCounter;
-    fpsCounter++;
-    testAccumulator += deltaTime;
-    if (testAccumulator >= 1000.0f)
-    {
-        // std::cout << "Engine second" << std::endl;
-        // BF_WARN("FPS: {}", fpsCounter - fpsCounterPrevValue);
-        fpsCounterPrevValue = fpsCounter;
-
-        testAccumulator -= 1000.0f;
-    }
-
     if (s_isPlayMode)
     {
         float playModeDelta = s_playModeTimeline.Tick() / 1000.0f;
+
+        ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
         PhysicsSubsystem::Update();
         PerceptionSubsystem::GetInstance().Update(playModeDelta);
         AISubsystem::GetInstance().Update(playModeDelta);
-        ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
         NavigationSubsystem::Update(playModeDelta);
     }
 
@@ -178,13 +166,7 @@ void Engine::StartPlayMode()
     s_isPlayMode = true;
 
     PhysicsSubsystem::StartSimulation();
-
-    for (auto [entity, id, scriptComp] : s_activeScene->GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
-    {
-        for (auto [path, info] : scriptComp.scriptPaths)
-            ScriptingSubsystem::LoadScript(s_activeScene->GetEntityWithUUID(id.ID), Path(path.c_str()),
-                                           info.shouldTriggerStart);
-    }
+    ScriptingSubsystem::LoadAllScripts(*s_activeScene);
 
     for (auto [entity, id, aiComp] : s_activeScene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
     {
@@ -213,13 +195,7 @@ void Engine::EscapePlayMode()
     s_isPlayMode = false;
 
     PhysicsSubsystem::StopSimulation();
-
-    for (auto [entity, id, scriptComp] : s_activeScene->GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
-    {
-        for (auto &[id, _] : scriptComp.scripts)
-            ScriptingSubsystem::UnloadScript(id);
-    }
-
+    ScriptingSubsystem::UnloadAllScripts(*s_activeScene);
     AssetManager::GetInstance().ResetTextures();
 }
 

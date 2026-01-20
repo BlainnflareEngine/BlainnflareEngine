@@ -61,6 +61,7 @@ public:
 private:
     bool m_isLoaded = false;
     uuid m_id;
+    uuid m_owningEntityId;
     Path m_scriptPath; // stores absolute path
     sol::environment m_environment;
 

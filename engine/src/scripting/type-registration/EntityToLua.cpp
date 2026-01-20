@@ -7,6 +7,7 @@
 #include "components/MeshComponent.h"
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
+#include "components/CameraComponent.h"
 #include "handles/Handle.h"
 #include "scene/BasicComponents.h"
 #include "scene/Entity.h"
@@ -70,6 +71,13 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
     EntityType.set_function("HasScriptingComponent", [](Entity &e) { return e.HasComponent<ScriptingComponent>(); });
     EntityType.set_function("RemoveScriptingComponent",
                             [](Entity &e) { return e.RemoveComponentIfExists<ScriptingComponent>(); });
+
+    EntityType.set_function("AddCameraComponent", [](Entity &e) { return e.AddComponent<CameraComponent>(); });
+    EntityType.set_function("GetCameraComponent",
+                            [](Entity &e) -> CameraComponent * { return e.TryGetComponent<CameraComponent>(); });
+    EntityType.set_function("HasCameraComponent", [](Entity &e) { return e.HasComponent<CameraComponent>(); });
+    EntityType.set_function("RemoveCameraComponent",
+                            [](Entity &e) { return e.RemoveComponentIfExists<CameraComponent>(); });
 
     EntityType.set_function("AddPhysicsComponent",
                             [](Entity &e, const std::string &parentId, const std::string &componentId)
