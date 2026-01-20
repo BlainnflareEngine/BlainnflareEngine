@@ -56,6 +56,14 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
     TransformComponentType.set_function("SetRotationEuler", &TransformComponent::SetRotationEuler);
     TransformComponentType.set_function("SetRotation", &TransformComponent::SetRotation);
     TransformComponentType.set_function("GetRotation", &TransformComponent::GetRotation);
+    TransformComponentType.set_function("Rotate",
+                                        [](TransformComponent &transform, Vec3 euler)
+                                        {
+                                            Quat delta = Quat::CreateFromYawPitchRoll(euler);
+                                            Quat newRotation = transform.GetRotation() * delta;
+                                            newRotation.Normalize();
+                                            transform.SetRotation(newRotation);
+                                        });
     TransformComponentType.set_function("GetForwardVector", &TransformComponent::GetForwardVector);
     TransformComponentType.set_function("GetUpVector", &TransformComponent::GetUpVector);
     TransformComponentType.set_function("GetRightVector", &TransformComponent::GetRightVector);
@@ -80,21 +88,21 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
 
     sol::usertype<CameraComponent> CameraComponentType =
         luaState.new_usertype<CameraComponent>("CameraComponent", sol::constructors<CameraComponent()>());
-    CameraComponentType.set_function("SetPriority", [&luaState](CameraComponent &camera, int priority)
-                                     { camera.CameraPriority = priority; });
-    CameraComponentType.set_function("SetNearPlane", [&luaState](CameraComponent &camera, float nearPlane)
+    CameraComponentType.set_function("SetPriority",
+                                     [](CameraComponent &camera, int priority) { camera.CameraPriority = priority; });
+    CameraComponentType.set_function("SetNearPlane", [](CameraComponent &camera, float nearPlane)
                                      { camera.camera.SetNearZ(nearPlane); });
-    CameraComponentType.set_function("SetFarPlane", [&luaState](CameraComponent &camera, float farPlane)
-                                     { camera.camera.SetFarZ(farPlane); });
-    CameraComponentType.set_function("SetFovDegrees", [&luaState](CameraComponent &camera, float fov)
-                                     { camera.camera.SetFovDegrees(fov); });
-    CameraComponentType.set_function("GetPriority", [&luaState](CameraComponent &camera, int priority) -> int
+    CameraComponentType.set_function("SetFarPlane",
+                                     [](CameraComponent &camera, float farPlane) { camera.camera.SetFarZ(farPlane); });
+    CameraComponentType.set_function("SetFovDegrees",
+                                     [](CameraComponent &camera, float fov) { camera.camera.SetFovDegrees(fov); });
+    CameraComponentType.set_function("GetPriority", [](CameraComponent &camera, int priority) -> int
                                      { return camera.CameraPriority; });
-    CameraComponentType.set_function("GetNearPlane", [&luaState](CameraComponent &camera, float nearPlane) -> float
+    CameraComponentType.set_function("GetNearPlane", [](CameraComponent &camera, float nearPlane) -> float
                                      { return camera.camera.GetNearZ(); });
-    CameraComponentType.set_function("GetFarPlane", [&luaState](CameraComponent &camera, float farPlane) -> float
+    CameraComponentType.set_function("GetFarPlane", [](CameraComponent &camera, float farPlane) -> float
                                      { return camera.camera.GetFarZ(); });
-    CameraComponentType.set_function("GetFovDegrees", [&luaState](CameraComponent &camera, float fov) -> float
+    CameraComponentType.set_function("GetFovDegrees", [](CameraComponent &camera, float fov) -> float
                                      { return camera.camera.GetFovDegrees(); });
 }
 #endif

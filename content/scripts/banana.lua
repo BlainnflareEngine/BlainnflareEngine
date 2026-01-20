@@ -28,6 +28,15 @@ function OnStart()
         Log.Info("Physics component created and attached to entity: " .. e:GetTagComponent().Tag)
     end
 
+    if e:HasCameraComponent() then
+        Log.Warn("i have camera")
+        local cc = e:GetCameraComponent()
+        -- cc:SetFarPlane(1.0)
+        -- cc:SetNearPlane(1.0)
+        -- cc:GetPriority()
+        -- cc:SetFovDegrees(1.0)
+    end
+
     listenerHeldHandle = Input.AddEventListener(InputEventType.KeyHeld,
         function(event)
 
@@ -40,6 +49,7 @@ function OnStart()
             local tc = e:GetTransformComponent()
 
             local pos = tc:GetTranslation()
+
             local dt = savedDeltaTime or 0.0167
             local speed = MOVE_SPEED * dt
 
@@ -59,6 +69,14 @@ function OnStart()
             end
             if event.key == Key.D then
                 deltaPos = deltaPos + right * speed
+            end
+            if event.key == Key.Q then
+                local rotationDelta = Vec3:new(0.0, -1.0 * speed, 0.0)
+                tc:Rotate(rotationDelta)
+            end
+            if event.key == Key.E then
+                local rotationDelta = Vec3:new(0.0, 1.0 * speed, 0.0)
+                tc:Rotate(rotationDelta)
             end
 
             pos = pos + deltaPos
