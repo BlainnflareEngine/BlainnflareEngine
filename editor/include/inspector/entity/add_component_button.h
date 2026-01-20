@@ -26,20 +26,27 @@ public slots:
     void OnMeshAction();
     void OnPhysicsAction();
     void OnScriptingAction();
-    void OnAIControllerAction();
     void OnCameraAction();
     void OnSkyboxAction();
+
+    // AI
+    void OnAIControllerAction();
+    void OnPerceptionAction();
+    void OnStimulusAction();
     void OnNavmeshVolumeAction();
 
 private:
     Blainn::Entity m_entity;
     QBoxLayout *m_layout;
     QMenu *m_menu = nullptr;
+    QMenu *m_aiMenu = nullptr;
     QAction *m_transformAction = nullptr;
     QAction *m_meshAction = nullptr;
     QAction *m_physicsAction = nullptr;
     QAction *m_scriptingAction = nullptr;
     QAction *m_aiControllerAction = nullptr;
+    QAction *m_stimulusAction = nullptr;
+    QAction *m_perceptionAction = nullptr;
     QAction *m_cameraAction = nullptr;
     QAction *m_skyboxAction = nullptr;
     QAction *m_navmeshVolumeAction = nullptr;

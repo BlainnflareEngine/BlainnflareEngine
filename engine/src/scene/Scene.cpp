@@ -151,6 +151,8 @@ void Scene::SaveScene()
         Serializer::Skybox(e, out);
         Serializer::NavMeshVolume(e, out);
         Serializer::AIController(e, out);
+        Serializer::Stimulus(e, out);
+        Serializer::Perception(e, out);
 
         out << YAML::EndMap; // end for every entity
     }
@@ -311,17 +313,17 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
 
         if (HasTransform(entityNode))
         {
-            entity.AddComponent<TransformComponent>(GetTransform(entityNode["TransformComponent"]));
+            entity.AddComponent<TransformComponent>(eastl::move(GetTransform(entityNode["TransformComponent"])));
         }
 
         if (HasScripting(entityNode))
         {
-            entity.AddComponent<ScriptingComponent>(GetScripting(entityNode["ScriptingComponent"]));
+            entity.AddComponent<ScriptingComponent>(eastl::move(GetScripting(entityNode["ScriptingComponent"])));
         }
 
         if (HasMesh(entityNode))
         {
-            entity.AddComponent<MeshComponent>(GetMesh(entityNode["MeshComponent"]));
+            entity.AddComponent<MeshComponent>(eastl::move(GetMesh(entityNode["MeshComponent"])));
         }
 
         if (HasRelationship(entityNode))
@@ -334,14 +336,14 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
             }
             else
             {
-                entity.AddComponent<RelationshipComponent>(component);
+                entity.AddComponent<RelationshipComponent>(eastl::move(component));
             }
         }
 
         if (HasCamera(entityNode))
         {
             auto camera = GetCamera(entityNode["CameraComponent"]);
-            entity.AddComponent<CameraComponent>(camera);
+            entity.AddComponent<CameraComponent>(eastl::move(camera));
         }
 
         if (HasPhysics(entityNode))
@@ -357,13 +359,25 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
         if (HasSkybox(entityNode))
         {
             auto skybox = GetSkybox(entityNode["SkyboxComponent"]);
-            entity.AddComponent<SkyboxComponent>(skybox);
+            entity.AddComponent<SkyboxComponent>(eastl::move(skybox));
         }
 
         if (HasNavMeshVolume(entityNode))
         {
             auto navMeshVolume = GetNavMeshVolume(entityNode["NavMeshVolumeComponent"]);
-            entity.AddComponent<NavmeshVolumeComponent>(navMeshVolume);
+            entity.AddComponent<NavmeshVolumeComponent>(eastl::move(navMeshVolume));
+        }
+
+        if (HasStimulus(entityNode))
+        {
+            auto stimulus = GetStimulus(entityNode["StimulusComponent"]);
+            entity.AddComponent<StimulusComponent>(eastl::move(stimulus));
+        }
+
+        if (HasPerception(entityNode))
+        {
+            auto perception = GetPerception(entityNode["PerceptionComponent"]);
+            entity.AddComponent<PerceptionComponent>(eastl::move(perception));
         }
     }
 }
