@@ -109,6 +109,13 @@ inline MeshComponent GetMesh(const YAML::Node &node)
     Path relativeMaterialPath;
     Path absolutMaterialPath;
 
+    if (node["Enabled"]) mesh.Enabled = node["Enabled"].as<bool>();
+    else mesh.Enabled = true;
+
+    if (node["IsWalkable"]) mesh.IsWalkable = node["IsWalkable"].as<bool>();
+    else mesh.IsWalkable = false;
+
+
     if (node["Material"])
     {
         relativeMaterialPath = node["Material"].as<std::string>();
@@ -380,7 +387,7 @@ inline NavmeshVolumeComponent GetNavMeshVolume(const YAML::Node &node)
 {
     NavmeshVolumeComponent component;
 
-    if (!node || node.IsNull() || !node.IsMap())
+    if (!node || node.IsNull())
     {
         BF_WARN("Navmesh Volume component not found or invalid in .scene file.");
         return component;
@@ -389,7 +396,7 @@ inline NavmeshVolumeComponent GetNavMeshVolume(const YAML::Node &node)
     Vec3 extents = {node["Extent"]["X"].as<float>(), node["Extent"]["Y"].as<float>(), node["Extent"]["Z"].as<float>()};
     component.LocalBounds =
         JPH::AABox::sFromTwoPoints({-extents.x, -extents.y, -extents.z}, {extents.x, extents.y, extents.z});
-    component.IsEnabled = node["IsEnabled"].as<bool>();
+    component.IsEnabled = node["IsEnabled"].as<bool>(true);
     component.CellSize = node["CellSize"].as<float>();
     component.AgentHeight = node["AgentHeight"].as<float>();
     component.AgentRadius = node["AgentRadius"].as<float>();
@@ -462,26 +469,22 @@ inline PerceptionComponent GetPerception(const YAML::Node &node)
     if (node["SightRange"]) perception.sightRange = node["SightRange"].as<float>();
     if (node["SightFOV"]) perception.sightFOV = node["SightFOV"].as<float>();
     if (node["SightForgetTime"]) perception.sightForgetTime = node["SightForgetTime"].as<float>();
-    if (node["SightLOSCheckInterval"])
-        perception.sightLOSCheckInterval = node["SightLOSCheckInterval"].as<float>();
+    if (node["SightLOSCheckInterval"]) perception.sightLOSCheckInterval = node["SightLOSCheckInterval"].as<float>();
     if (node["SightRequireLOS"]) perception.sightRequireLOS = node["SightRequireLOS"].as<bool>();
 
     if (node["EnableSound"]) perception.enableSound = node["EnableSound"].as<bool>();
     if (node["SoundRange"]) perception.soundRange = node["SoundRange"].as<float>();
     if (node["SoundForgetTime"]) perception.soundForgetTime = node["SoundForgetTime"].as<float>();
-    if (node["SoundMinStrength"])
-        perception.soundMinStrength = node["SoundMinStrength"].as<float>();
+    if (node["SoundMinStrength"]) perception.soundMinStrength = node["SoundMinStrength"].as<float>();
 
     if (node["EnableTouch"]) perception.enableTouch = node["EnableTouch"].as<bool>();
     if (node["TouchForgetTime"]) perception.touchForgetTime = node["TouchForgetTime"].as<float>();
 
     if (node["EnableDamage"]) perception.enableDamage = node["EnableDamage"].as<bool>();
-    if (node["DamageForgetTime"])
-        perception.damageForgetTime = node["DamageForgetTime"].as<float>();
+    if (node["DamageForgetTime"]) perception.damageForgetTime = node["DamageForgetTime"].as<float>();
 
     if (node["UpdateInterval"]) perception.updateInterval = node["UpdateInterval"].as<float>();
-    if (node["MaxUpdateDistance"])
-        perception.maxUpdateDistance = node["MaxUpdateDistance"].as<float>();
+    if (node["MaxUpdateDistance"]) perception.maxUpdateDistance = node["MaxUpdateDistance"].as<float>();
     if (node["Enabled"]) perception.enabled = node["Enabled"].as<bool>();
 
     if (const YAML::Node &ignoreTagsNode = node["IgnoreTags"])

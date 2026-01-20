@@ -7,6 +7,7 @@
 
 namespace editor
 {
+class bool_input_field;
 class path_input_field;
 
 class mesh_widget : public component_widget_base
@@ -20,11 +21,17 @@ protected:
 
     void SetNewPath(const QString &oldPath, const QString &newPath);
     void SetNewMaterial(const QString &oldPath, const QString &newPath);
+    void SetEnabled(bool enabled);
+    void SetIsWalkable(bool enabled);
+
     virtual void DeleteComponent() override;
     void BlockSignals(bool block);
 
-    path_input_field *m_path_input;
-    path_input_field *m_material_input;
+private:
+    bool_input_field *m_enabled = nullptr;
+    bool_input_field *m_isWalkable = nullptr;
+    path_input_field *m_path_input = nullptr;
+    path_input_field *m_material_input = nullptr;
 };
 
 } // namespace editor

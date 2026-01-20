@@ -129,6 +129,8 @@ public:
         auto &mesh = entity.GetComponent<MeshComponent>();
 
         out << YAML::Key << "MeshComponent" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "Enabled" << YAML::Value << mesh.Enabled;
+        out << YAML::Key << "IsWalkable" << YAML::Value << mesh.IsWalkable;
         out << YAML::Key << "Path" << YAML::Value << AssetManager::GetInstance().GetMeshPath(*mesh.MeshHandle).string();
         out << YAML::Key << "Material" << YAML::Value
             << AssetManager::GetInstance().GetMaterialPath(*mesh.MaterialHandle).string();
