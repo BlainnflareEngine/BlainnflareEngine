@@ -76,6 +76,12 @@ private:
         {
             VertexBufferGPU = FreyaUtil::CreateDefaultBuffer(device.GetDevice2().Get(), pCommandList, vertices.data(),
                                                              vbByteSize, VertexBufferUploader); // Create GPU resource
+            if (!VertexBufferGPU)
+            {
+                BF_ERROR("Could not create vertex buffer");
+                m_bisLoaded = false;
+                return;
+            }
             // For vertex buffer view.
             std::wstring vbname = m_path.wstring() + L" vertex buffer";
             VertexBufferGPU->SetName(vbname.c_str());
@@ -90,6 +96,12 @@ private:
         {
             IndexBufferGPU = FreyaUtil::CreateDefaultBuffer(device.GetDevice2().Get(), pCommandList, indices.data(),
                                                             ibByteSize, IndexBufferUploader); // Create GPU resource
+            if (!IndexBufferGPU)
+            {
+                BF_ERROR("Could not create index buffer");
+                m_bisLoaded = false;
+                return;
+            }
             // For index buffer view.
             std::wstring name = m_path.wstring() + L" index buffer";
             IndexBufferGPU->SetName(name.c_str());
@@ -117,6 +129,8 @@ public:
         return allIndices;
     }
 
+    bool BuffersCreated() const {return m_bBuffersCreated;}
+
 private:
     Mat4 m_texTransform = Mat4::Identity;
 
@@ -143,6 +157,7 @@ private:
 private:
     eastl::vector<MeshData<>> m_meshes;
 
+    bool m_bBuffersCreated = true;
     bool m_bisLoaded = false;
 };
 

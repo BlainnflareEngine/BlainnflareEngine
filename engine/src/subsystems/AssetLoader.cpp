@@ -88,7 +88,7 @@ void AssetLoader::CreateModelGPUResources(Model &model)
     cmdQueue->ExecuteCommandList(cmdList.Get());
     cmdQueue->Flush();
 
-    model.m_bisLoaded = true;
+    model.m_bisLoaded = model.BuffersCreated();
 }
 
 void AssetLoader::ProcessNode(const Path &path, const aiNode &node, const aiScene &scene, const Mat4 &parentMatrix,
