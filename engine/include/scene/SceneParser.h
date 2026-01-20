@@ -438,4 +438,78 @@ inline StimulusComponent GetStimulus(const YAML::Node &node)
 
     return component;
 }
+
+inline bool HasPerception(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["PerceptionComponent"]) return true;
+
+    return false;
+}
+
+inline PerceptionComponent GetPerception(const YAML::Node &node)
+{
+    PerceptionComponent perception;
+
+    if (!node || node.IsNull())
+    {
+        BF_ERROR("Failed to parse perception component. Not found in .scene!");
+        return perception;
+    }
+
+    if (node["EnableSight"]) perception.enableSight = node["EnableSight"].as<bool>();
+    if (node["SightRange"]) perception.sightRange = node["SightRange"].as<float>();
+    if (node["SightFOV"]) perception.sightFOV = node["SightFOV"].as<float>();
+    if (node["SightForgetTime"]) perception.sightForgetTime = node["SightForgetTime"].as<float>();
+    if (node["SightLOSCheckInterval"])
+        perception.sightLOSCheckInterval = node["SightLOSCheckInterval"].as<float>();
+    if (node["SightRequireLOS"]) perception.sightRequireLOS = node["SightRequireLOS"].as<bool>();
+
+    if (node["EnableSound"]) perception.enableSound = node["EnableSound"].as<bool>();
+    if (node["SoundRange"]) perception.soundRange = node["SoundRange"].as<float>();
+    if (node["SoundForgetTime"]) perception.soundForgetTime = node["SoundForgetTime"].as<float>();
+    if (node["SoundMinStrength"])
+        perception.soundMinStrength = node["SoundMinStrength"].as<float>();
+
+    if (node["EnableTouch"]) perception.enableTouch = node["EnableTouch"].as<bool>();
+    if (node["TouchForgetTime"]) perception.touchForgetTime = node["TouchForgetTime"].as<float>();
+
+    if (node["EnableDamage"]) perception.enableDamage = node["EnableDamage"].as<bool>();
+    if (node["DamageForgetTime"])
+        perception.damageForgetTime = node["DamageForgetTime"].as<float>();
+
+    if (node["UpdateInterval"]) perception.updateInterval = node["UpdateInterval"].as<float>();
+    if (node["MaxUpdateDistance"])
+        perception.maxUpdateDistance = node["MaxUpdateDistance"].as<float>();
+    if (node["Enabled"]) perception.enabled = node["Enabled"].as<bool>();
+
+    if (const YAML::Node &ignoreTagsNode = node["IgnoreTags"])
+    {
+        if (ignoreTagsNode.IsSequence())
+        {
+            perception.ignoreTags.clear();
+            for (const auto &tagNode : ignoreTagsNode)
+            {
+                std::string tagStr = tagNode.as<std::string>("");
+                if (!tagStr.empty()) perception.ignoreTags.push_back(tagStr.c_str());
+            }
+        }
+    }
+
+    if (const YAML::Node &priorityTagsNode = node["PriorityTags"])
+    {
+        if (priorityTagsNode.IsSequence())
+        {
+            perception.priorityTags.clear();
+            for (const auto &tagNode : priorityTagsNode)
+            {
+                std::string tagStr = tagNode.as<std::string>("");
+                if (!tagStr.empty()) perception.priorityTags.push_back(tagStr.c_str());
+            }
+        }
+    }
+
+    return perception;
+}
 } // namespace Blainn

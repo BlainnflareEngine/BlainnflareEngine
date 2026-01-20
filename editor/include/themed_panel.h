@@ -26,6 +26,7 @@ public:
 protected:
     void paintEvent(QPaintEvent *event) override;
 
+
 private:
     PanelColor m_color;
 };

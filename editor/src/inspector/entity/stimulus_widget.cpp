@@ -26,7 +26,7 @@ stimulus_widget::stimulus_widget(const Blainn::Entity &entity, QWidget *parent)
         return;
     }
 
-    auto labelReactions = new QLabel(ToHeader2("Event reactions"), this);
+    auto labelReactions = new QLabel(ToHeader4("Event reactions"), this);
     labelReactions->setTextFormat(Qt::MarkdownText);
     auto separatorReactions = new QFrame(this);
     separatorReactions->setFrameStyle(HLine);
@@ -36,7 +36,7 @@ stimulus_widget::stimulus_widget(const Blainn::Entity &entity, QWidget *parent)
     m_touch = new bool_input_field("Touch", comp->enableTouch, this);
     m_damage = new bool_input_field("Damage", comp->enableDamage, this);
 
-    auto labelParameters = new QLabel(ToHeader2("Parameters"), this);
+    auto labelParameters = new QLabel(ToHeader4("Parameters"), this);
     labelParameters->setTextFormat(Qt::MarkdownText);
     auto separatorParameters = new QFrame(this);
     separatorParameters->setFrameStyle(HLine);

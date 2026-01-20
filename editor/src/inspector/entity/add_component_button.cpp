@@ -8,6 +8,7 @@
 #include "PhysicsSubsystem.h"
 #include "entity/scripting/scripting_widget.h"
 #include "ScriptingSubsystem.h"
+#include "../../../include/inspector/entity/perception_widget.h"
 #include "components/MeshComponent.h"
 #include "components/PhysicsComponent.h"
 #include "components/SkyboxComponent.h"
@@ -45,8 +46,10 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
     m_cameraAction = m_menu->addAction("Camera");
     m_skyboxAction = m_menu->addAction("Skybox");
 
+    // AI
     m_aiMenu = m_menu->addMenu("Artificial Intelligence");
     m_aiControllerAction = m_aiMenu->addAction("AI Controller");
+    m_perceptionAction = m_aiMenu->addAction("Perception");
     m_stimulusAction = m_aiMenu->addAction("Stimulus");
     m_navmeshVolumeAction = m_aiMenu->addAction("Navmesh Volume");
 
@@ -65,6 +68,7 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
     connect(m_navmeshVolumeAction, &QAction::triggered, this, &add_component_button::OnNavmeshVolumeAction);
     connect(m_aiControllerAction, &QAction::triggered, this, &add_component_button::OnAIControllerAction);
     connect(m_stimulusAction, &QAction::triggered, this, &add_component_button::OnStimulusAction);
+    connect(m_perceptionAction, &QAction::triggered, this, &add_component_button::OnPerceptionAction);
 }
 
 
@@ -131,6 +135,18 @@ void add_component_button::OnAIControllerAction()
 
     Blainn::AISubsystem::GetInstance().CreateAttachAIControllerComponent(m_entity, "");
     auto aiController = new ai_controller_widget(m_entity, this);
+    m_layout->insertWidget(m_layout->count() - 1, aiController);
+}
+
+
+void add_component_button::OnPerceptionAction()
+{
+    if (!m_entity.IsValid()) return;
+
+    if (m_entity.HasComponent<Blainn::AIControllerComponent>()) return;
+
+    m_entity.AddComponent<Blainn::PerceptionComponent>();
+    auto aiController = new perception_widget(m_entity, this);
     m_layout->insertWidget(m_layout->count() - 1, aiController);
 }
 

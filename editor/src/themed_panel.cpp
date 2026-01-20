@@ -58,4 +58,5 @@ void themed_panel::paintEvent(QPaintEvent *event)
     path.addRoundedRect(rect(), radius, radius);
     p.fillPath(path, backgroundColor);
 }
+
 } // namespace editor

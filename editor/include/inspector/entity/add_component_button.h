@@ -31,6 +31,7 @@ public slots:
 
     // AI
     void OnAIControllerAction();
+    void OnPerceptionAction();
     void OnStimulusAction();
     void OnNavmeshVolumeAction();
 
@@ -45,6 +46,7 @@ private:
     QAction *m_scriptingAction = nullptr;
     QAction *m_aiControllerAction = nullptr;
     QAction *m_stimulusAction = nullptr;
+    QAction *m_perceptionAction = nullptr;
     QAction *m_cameraAction = nullptr;
     QAction *m_skyboxAction = nullptr;
     QAction *m_navmeshVolumeAction = nullptr;

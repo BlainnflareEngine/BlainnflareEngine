@@ -20,6 +20,7 @@ inspector_widget::inspector_widget(QWidget *parent)
     setWidget(new QWidget());
 
     setAutoFillBackground(false);
+    setWidgetResizable(true);
 }
 
 
@@ -33,8 +34,7 @@ void inspector_widget::SetItem(QWidget *item)
 {
     if (m_locked) return;
 
-    if (widget())
-        widget()->deleteLater();
+    if (widget()) widget()->deleteLater();
 
     if (!item) return;
 

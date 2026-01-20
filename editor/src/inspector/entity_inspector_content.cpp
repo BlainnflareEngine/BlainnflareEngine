@@ -6,6 +6,7 @@
 
 #include "entity/scripting/scripting_widget.h"
 #include "LabelsUtils.h"
+#include "../../include/inspector/entity/perception_widget.h"
 #include "components/AIControllerComponent.h"
 #include "components/CameraComponent.h"
 #include "components/MeshComponent.h"
@@ -24,6 +25,8 @@
 #include "entity/skybox_widget.h"
 #include "entity/stimulus_widget.h"
 
+#include <QScrollArea>
+
 namespace editor
 {
 entity_inspector_content::entity_inspector_content(const EntityInspectorData &data, QWidget *parent)
@@ -31,24 +34,23 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     , m_data(data)
 {
     auto entity = m_data.node->GetEntity();
-    auto name = m_data.node->GetName();
-
     if (!entity.IsValid())
     {
         deleteLater();
         return;
     }
 
-    auto boxLayout = new QVBoxLayout();
-    setLayout(boxLayout);
+    auto *mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(10, 10, 10, 10);
+    mainLayout->setSpacing(5);
 
     m_tag = new QLabel(ToHeader2(m_data.tag), this);
     m_tag->setTextFormat(Qt::MarkdownText);
-    layout()->addWidget(m_tag);
+    mainLayout->addWidget(m_tag);
 
     auto separator = new QFrame(this);
     separator->setFrameShape(QFrame::HLine);
-    layout()->addWidget(separator);
+    mainLayout->addWidget(separator);
 
     connect(m_data.node, &EntityNode::OnTagChanged, this, &entity_inspector_content::SetTag);
 
@@ -82,6 +84,12 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
         layout()->addWidget(stimulus);
     }
 
+    if (entity.HasComponent<Blainn::PerceptionComponent>())
+    {
+        auto perception = new perception_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(perception);
+    }
+
     if (entity.HasComponent<Blainn::MeshComponent>())
     {
         auto mesh = new mesh_widget(m_data.node->GetEntity(), this);
@@ -106,8 +114,10 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
         layout()->addWidget(navmeshVolume);
     }
 
-    auto *addButton = new add_component_button(data.node->GetEntity(), boxLayout, this);
-    layout()->addWidget(addButton);
+    auto addButton = new add_component_button(entity, mainLayout, this);
+    mainLayout->addWidget(addButton);
+
+    mainLayout->addStretch(1);
 }
 
 

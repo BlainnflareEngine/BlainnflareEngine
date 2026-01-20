@@ -156,6 +156,11 @@ set(EDITOR_SOURCES
         include/inspector/entity/stimulus_widget.h
         src/inspector/entity/stimulus_widget.cpp
         include/inspector/input-widgets/string_input_field.h
+        src/inspector/input-widgets/collapsible_group.cpp
+        include/inspector/input-widgets/collapsible_group.h
+        src/inspector/entity/perception_widget.cpp
+        include/inspector/entity/perception_widget.h
+        include/inspector/input-widgets/string_list_input.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
