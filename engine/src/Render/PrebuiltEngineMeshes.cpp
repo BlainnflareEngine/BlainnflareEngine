@@ -111,4 +111,19 @@ namespace Blainn
         return meshData;
     }
 
+    MeshData<> PrebuiltEngineMeshes::CreateSphere(float radius, UINT sliceCount, UINT stackCount)
+    {
+        return MeshData<>();
+    }
+
+    MeshData<> PrebuiltEngineMeshes::CreateGrid(float width, float depth, UINT m, UINT n)
+    {
+        return MeshData<>();
+    }
+
+    MeshData<> PrebuiltEngineMeshes::CreateGeosphere(float radius, UINT numSubdivisions)
+    {
+        return MeshData<>();
+    }
+
 } // namespace Blainn
