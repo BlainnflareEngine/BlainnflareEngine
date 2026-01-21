@@ -6,6 +6,8 @@
 #include "Render/RuntimeCamera.h"
 
 namespace Blainn {
-    void RuntimeCamera::Update(float dt) {
+    void RuntimeCamera::Update(float dt)
+    {
+        Super::Update(dt);
     }
 } // Blainn

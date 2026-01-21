@@ -15,7 +15,7 @@ namespace Blainn
     {
     public:
         Texture() = default;
-        Texture(const Path &path, TextureType type, uint32_t index);
+        Texture(const Path &path, TextureType type, uint32_t index/*, bool IsCubeMap = false*/);
         virtual ~Texture() override;
 
         Texture(Texture &&other) = delete;
@@ -35,7 +35,9 @@ namespace Blainn
         void SetDescriptorOffset(UINT newOffset);
         void DisposeUploaders();
     private:
-        void CreateGPUResources(ID3D12GraphicsCommandList2 *cmdList, uint32_t index);
+        void Create(ID3D12GraphicsCommandList2 *cmdList, uint32_t index);
+        // Only dds files supported
+        void CreateCubemap(ID3D12GraphicsCommandList2 *cmdList, uint32_t index);
     private:
         Microsoft::WRL::ComPtr<ID3D12Resource> m_resource = nullptr;
         Microsoft::WRL::ComPtr<ID3D12Resource> m_uploadResource = nullptr;

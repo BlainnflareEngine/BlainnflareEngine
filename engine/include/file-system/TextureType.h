@@ -14,6 +14,7 @@ enum class TextureType
     METALLIC = 3,
     ROUGHNESS = 4,
     AO = 5,
-    OTHER = 6,
+    CUBEMAP = 6,
+    OTHER = 7,
 };
 } // namespace Blainn

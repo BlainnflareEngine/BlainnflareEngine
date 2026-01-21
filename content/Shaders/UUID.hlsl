@@ -13,10 +13,10 @@ cbuffer cbPerPass : register(b1)
 struct VSInput
 {
     float3 iPosL : POSITION0;
-    float3 iNormalL : NORMAL;
-    float3 iTangentU : TANGENT;
-    float3 iBitangentU : BITANGENT;
-    float2 iTexC : TEXCOORD0;
+    //float3 iNormalL : NORMAL;
+    //float3 iTangentU : TANGENT;
+    //float3 iBitangentU : BITANGENT;
+    //float2 iTexC : TEXCOORD0;
 };
 
 float4 VSMain(VSInput input) : SV_POSITION

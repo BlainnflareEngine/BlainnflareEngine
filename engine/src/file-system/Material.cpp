@@ -72,6 +72,11 @@ void Blainn::Material::SetTexture(const eastl::shared_ptr<TextureHandle> &textur
         m_aoTexture = textureHandle;
         break;
 
+    // Cubemap is not the part of object's material
+    //case TextureType::CUBEMAP:
+    //    BF_INFO("Trying to set other texture in " + m_path.string())
+    //    break;
+
     case TextureType::OTHER:
         BF_INFO("Trying to set other texture in " + m_path.string())
         break;
@@ -106,6 +111,11 @@ Blainn::TextureHandle &Blainn::Material::GetTextureHandle(TextureType type)
 
     case TextureType::AO:
         return *m_aoTexture;
+
+    // Cubemap is not the part of object's material
+    /*case TextureType::CUBEMAP:
+        BF_INFO("Trying to set other texture in " + m_path.string())
+    break;*/
 
     case TextureType::OTHER:
         BF_WARN("There is no texture handle for this texture type (OTHER).");

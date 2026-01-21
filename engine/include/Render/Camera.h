@@ -60,6 +60,8 @@ public:
     void SetPosition(float x, float y, float z);
     void SetPosition(const XMFLOAT3 &v);
 
+protected:
+    void UpdateProjectionMatrices();
 
 protected:
     XMFLOAT3 m_position = {0.0f, 0.0f, 0.0f};

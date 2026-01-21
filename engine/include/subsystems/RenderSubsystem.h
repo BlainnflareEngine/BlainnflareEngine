@@ -139,9 +139,11 @@ private:
     void UpdateObjectsCB(float deltaTime);
     void UpdateMaterialBuffer(float deltaTime);
     void UpdateShadowTransform(float deltaTime);
+
     void UpdateShadowPassCB(float deltaTime);
     void UpdateGeometryPassCB(float deltaTime);
-    void UpdateMainPassCB(float deltaTime);
+    void UpdateDeferredPassCB(float deltaTime);
+    void UpdateForwardPassCB(float deltaTime);
 
 private:
 #pragma region Shadows
