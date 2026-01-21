@@ -2,22 +2,42 @@
 // Created by gorev on 29.11.2025.
 //
 
-#include "../../../include/inspector/input-widgets/bool_input_field.h"
+#include "input-widgets/bool_input_field.h"
+
+
+#include <QHBoxLayout>
+#include <QLabel>
+
 
 namespace editor
 {
-bool_input_field::bool_input_field(const QString &name, bool defaultValue, const QColor &color, QWidget *parent)
-    : QCheckBox(name, parent)
+bool_input_field::bool_input_field(const QString &name, bool defaultValue, QWidget *parent, const QColor &color)
+    : QWidget(parent)
 {
-    setChecked(defaultValue);
+    auto* layout = new QHBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(5);
 
-    QPalette palette = this->palette();
-    palette.setColor(QPalette::WindowText, color);
-    palette.setColor(QPalette::ButtonText, color);
-    setPalette(palette);
+    m_checkbox = new QCheckBox(this);
+    m_checkbox->setChecked(defaultValue);
 
-    setStyleSheet(QString("QCheckBox { color: %1; }"
-                          "QCheckBox::indicator { width: 16px; height: 16px; }")
-                      .arg(color.name()));
+    m_label = new QLabel(name, this);
+    m_label->setStyleSheet(QString("QLabel { color: %1; font-weight: normal; }").arg(color.name()));
+
+    layout->addWidget(m_checkbox);
+    layout->addWidget(m_label);
+    layout->addStretch();
+
+    connect(m_checkbox, &QCheckBox::toggled, this, &bool_input_field::toggled);
+}
+
+bool bool_input_field::isChecked() const
+{
+    return m_checkbox->isChecked();
+}
+
+void bool_input_field::setChecked(bool checked)
+{
+    m_checkbox->setChecked(checked);
 }
 } // namespace editor

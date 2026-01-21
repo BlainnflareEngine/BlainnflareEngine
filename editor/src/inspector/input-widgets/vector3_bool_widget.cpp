@@ -28,17 +28,17 @@ editor::vector3_bool_widget::vector3_bool_widget(const QString &label, const Boo
 
     QSize fieldSize{70, 20};
 
-    m_x = new bool_input_field("X", defaultValue.x, xColor, this);
+    m_x = new bool_input_field("X", defaultValue.x, this, xColor);
     m_x->setMinimumSize(fieldSize);
     m_x->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(m_x, 1, 0);
 
-    m_y = new bool_input_field("Y", defaultValue.y, yColor, this);
+    m_y = new bool_input_field("Y", defaultValue.y, this, yColor);
     m_y->setMinimumSize(fieldSize);
     m_y->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(m_y, 1, 1);
 
-    m_z = new bool_input_field("Z", defaultValue.z, zColor, this);
+    m_z = new bool_input_field("Z", defaultValue.z, this, zColor);
     m_z->setMinimumSize(fieldSize);
     m_z->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     gridLayout->addWidget(m_z, 1, 2);

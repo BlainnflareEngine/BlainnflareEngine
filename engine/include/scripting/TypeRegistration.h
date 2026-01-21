@@ -19,6 +19,7 @@ void RegisterAssetLoaderTypes(sol::state &luaState);
 void RegisterEngineTypes(sol::state &luaState);
 void RegisterPhysicsTypes(sol::state &luaState);
 void RegisterAITypes(sol::state &luaState);
+void RegisterNavigationTypes(sol::state &luaState);
 
 void RegisterVectorTypes(sol::state &luaState);
 void RegisterVector2Type(sol::state &luaState);

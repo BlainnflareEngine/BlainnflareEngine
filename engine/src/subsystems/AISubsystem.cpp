@@ -160,6 +160,8 @@ bool AISubsystem::CreateAIController(Entity entity)
         return false;
     }
 
+    componentPtr->aiController.Possess(entity);
+
     componentPtr->aiScript = ScriptingSubsystem::LoadAiScript(entity, componentPtr->scriptPath);
     if (!componentPtr->aiScript)
     {
@@ -169,20 +171,20 @@ bool AISubsystem::CreateAIController(Entity entity)
     }
     const sol::table &scriptEnv = componentPtr->aiScript->GetEnvironment();
     
-    PerceptionComponent* perception = entity.TryGetComponent<PerceptionComponent>();
+    PerceptionComponent *perception = entity.TryGetComponent<PerceptionComponent>();
     if (!perception)
     {
         PerceptionSubsystem::GetInstance().CreateAttachPerceptionComponent(entity);
         perception = entity.TryGetComponent<PerceptionComponent>();
     }
-    
-    StimulusComponent* stimulus = entity.TryGetComponent<StimulusComponent>();
+
+    StimulusComponent *stimulus = entity.TryGetComponent<StimulusComponent>();
     if (!stimulus)
     {
         PerceptionSubsystem::GetInstance().CreateAttachStimulusComponent(entity);
         stimulus = entity.TryGetComponent<StimulusComponent>();
     }
-    
+
     sol::optional<sol::function> configurePerception = scriptEnv["ConfigurePerception"];
     if (configurePerception && perception)
     {
@@ -193,7 +195,7 @@ bool AISubsystem::CreateAIController(Entity entity)
             BF_ERROR("ConfigurePerception failed: " + eastl::string(err.what()));
         }
     }
-    
+
     sol::optional<sol::function> configureStimulus = scriptEnv["ConfigureStimulus"];
     if (configureStimulus && stimulus)
     {

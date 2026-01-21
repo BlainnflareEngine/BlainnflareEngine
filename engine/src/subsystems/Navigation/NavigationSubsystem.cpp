@@ -59,7 +59,8 @@ void NavigationSubsystem::Update(float deltaTime)
             AIController &controller = controllerComp.aiController;
 
             Vec3 moveDir;
-            if (controller.GetDesiredDirection(moveDir, controllerComp.StoppingDistance))
+            if (controller.GetDesiredDirection(moveDir, controllerComp.StoppingDistance,
+                                               controllerComp.StoppingDistance))
             {
                 transform.SetTranslation(transform.GetTranslation()
                                          + moveDir * deltaTime * controllerComp.MovementSpeed);
@@ -254,45 +255,13 @@ bool NavigationSubsystem::FindPath(const Vec3 &start, const Vec3 &end, eastl::ve
 }
 
 
-std::pair<bool, Vec3> NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint)
+std::pair<bool, Vec3> NavigationSubsystem::FindRandomPointOnNavMesh()
 {
     if (!m_navMesh || !m_navQuery) return {false, Vec3()};
 
     if (!m_navMesh || !m_navQuery)
     {
         BF_ERROR("NavMesh or NavQuery is null!");
-        return {false, Vec3()};
-    }
-
-    const dtNavMesh *nav = m_navMesh;
-    int maxTiles = nav->getMaxTiles();
-    BF_DEBUG("NavMesh tiles: {}", maxTiles);
-
-    int totalPolys = 0;
-    for (int i = 0; i < maxTiles; ++i)
-    {
-        const dtMeshTile *tile = nav->getTile(i);
-        if (tile && tile->header)
-        {
-            BF_DEBUG("Tile {}: {} polys", i, tile->header->polyCount);
-            totalPolys += tile->header->polyCount;
-        }
-    }
-
-    const dtMeshTile *tile = nav->getTile(0);
-    if (tile && tile->header)
-    {
-        BF_DEBUG("First few polygon flags:");
-        for (int i = 0; i < eastl::min(5, (int)tile->header->polyCount); ++i)
-        {
-            const dtPoly *poly = &tile->polys[i];
-            BF_DEBUG("Poly {}: flags = {}", i, poly->flags);
-        }
-    }
-
-    if (totalPolys == 0)
-    {
-        BF_ERROR("NavMesh has no polygons!");
         return {false, Vec3()};
     }
 
@@ -308,8 +277,7 @@ std::pair<bool, Vec3> NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoi
 }
 
 
-std::pair<bool, Vec3> NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint, const Vec3 &origin,
-                                                                    const float radius)
+std::pair<bool, Vec3> NavigationSubsystem::FindRandomPointOnNavMesh(const Vec3 &origin, const float radius)
 {
     if (!m_navMesh || !m_navQuery)
     {
@@ -375,7 +343,7 @@ void NavigationSubsystem::DrawDebugMesh()
             {
                 const Vec3 &a = verts[k];
                 const Vec3 &b = verts[(k + 1) % poly->vertCount];
-                RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(a, b, Color(0.0f, 1.0f, 0.0f, 1.0f));
+                RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(a, b, Color(1.0f, 1.0f, 0.0f, 1.0f));
             }
         }
     }

@@ -29,8 +29,8 @@ public:
 
     static bool FindPath(const Vec3 &start, const Vec3 &end, eastl::vector<Vec3> &outPath);
 
-    static std::pair<bool, Vec3> FindRandomPointOnNavMesh(Vec3 &outPoint);
-    static std::pair<bool, Vec3> FindRandomPointOnNavMesh(Vec3 &outPoint, const Vec3 &origin, const float radius);
+    static std::pair<bool, Vec3> FindRandomPointOnNavMesh();
+    static std::pair<bool, Vec3> FindRandomPointOnNavMesh(const Vec3 &origin, float radius);
 
     static bool IsNavMeshLoaded()
     {

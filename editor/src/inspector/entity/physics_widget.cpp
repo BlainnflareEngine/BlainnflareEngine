@@ -19,7 +19,7 @@ namespace editor
 physics_widget::physics_widget(const Blainn::Entity &entity, QWidget *parent)
     : component_widget_base(entity, "Physics", parent)
 {
-    m_isTrigger = new bool_input_field("Is Trigger", false, QColor(), this);
+    m_isTrigger = new bool_input_field("Is Trigger", false, this);
 
     m_gravityFactor = new float_input_field("Gravity", 1.0f, this);
     m_gravityFactor->SetDecimals(2);

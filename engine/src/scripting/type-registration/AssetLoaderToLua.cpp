@@ -22,7 +22,7 @@ void Blainn::RegisterAssetLoaderTypes(sol::state &luaState)
     // Expose TextureType to Lua
     luaState.new_enum<true>("TextureType", "NONE", TextureType::NONE, "ALBEDO", TextureType::ALBEDO, "NORMAL",
                             TextureType::NORMAL, "METALLIC", TextureType::METALLIC, "ROUGHNESS", TextureType::ROUGHNESS,
-                            "AO", TextureType::AO, "OTHER", TextureType::OTHER);
+                            "AO", TextureType::AO, "CUBEMAP", TextureType::CUBEMAP, "OTHER", TextureType::OTHER);
 
     // ImportMeshData binding
     sol::usertype<ImportMeshData> ImportMeshDataType =
