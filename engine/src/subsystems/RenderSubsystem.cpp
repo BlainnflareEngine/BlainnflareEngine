@@ -24,10 +24,15 @@
 #include "Render/RuntimeCamera.h"
 #include "Render/DDSTextureLoader.h"
 
+#include "imgui.h"
+#include "backends/imgui_impl_dx12.h"
+#include "ImGuizmo.h"
+
 #include <cassert>
 
 #include "PhysicsSubsystem.h"
 #include "components/PhysicsComponent.h"
+#include "Input/MouseEvents.h"
 #include "Render/GTexture.h"
 
 namespace Blainn
@@ -48,6 +53,8 @@ void Blainn::RenderSubsystem::Init(HWND window)
     LoadPipeline();
 
     m_debugRenderer = eastl::make_unique<Blainn::DebugRenderer>(m_device);
+
+    InitializeImGui();
 
     m_isInitialized = true;
     BF_INFO("RenderSubsystem::Init() called");
@@ -71,6 +78,9 @@ void Blainn::RenderSubsystem::SetWindowParams(HWND window)
 
 void Blainn::RenderSubsystem::Destroy()
 {
+    ImGui_ImplDX12_Shutdown();
+    ImGui::DestroyContext();
+
     m_isInitialized = false;
     BF_INFO("RenderSubsystem::Destroy()");
 }
@@ -143,6 +153,8 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
 uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
 {
     BLAINN_PROFILE_FUNC();
+    if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
+        return Engine::GetSelectionManager().GetSelectedUUID();
     if (x > m_width || y > m_height)
         return uuid{0, 0};
 
@@ -177,12 +189,22 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
 
     device->GetCopyableFootprints(&texDesc, 0, 1, 0, &footprint, &numRows, &rowSizeInBytes, &totalSize);
 
+    if (totalSize == 0)
+    {
+        BF_ERROR("Failed to create copyable footprint");
+        return uuid{0, 0};
+    }
+
     D3D12_RESOURCE_DESC buffersDesc = CD3DX12_RESOURCE_DESC::Buffer(totalSize);
     D3D12_HEAP_PROPERTIES const heapPropertiesReadback = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
 
     ID3D12Resource *textureReadback = nullptr;
-    device->CreateCommittedResource(&heapPropertiesReadback, D3D12_HEAP_FLAG_NONE, &buffersDesc,
-                                    D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&textureReadback));
+    if (FAILED(device->CreateCommittedResource(&heapPropertiesReadback, D3D12_HEAP_FLAG_NONE, &buffersDesc,
+                                    D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&textureReadback))))
+    {
+        BF_ERROR("Failed to create readback buffer");
+        return uuid{0, 0};
+    }
 
     m_device.Flush();
 
@@ -224,6 +246,8 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
     RenderForwardPasses(pCommandList);
 
     if (m_enableDebugLayer) RenderDebugPass(pCommandList);
+
+    RenderImGuiPass(pCommandList);
 }
 
 VOID Blainn::RenderSubsystem::InitializeWindow()
@@ -231,6 +255,70 @@ VOID Blainn::RenderSubsystem::InitializeWindow()
     CreateSwapChain();
     Reset();
     BF_INFO("D3D12 initialized!");
+}
+
+void RenderSubsystem::InitializeImGui()
+{
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGuiIO &io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    io.DisplaySize.x = m_width;
+    io.DisplaySize.y = m_height;
+
+    io.DeltaTime = 1 / 60.0f;
+
+    Input::AddEventListener(InputEventType::MouseButtonHeld, [](const InputEventPointer& event)
+    {
+        ImGuiIO &io = ImGui::GetIO();
+        MouseButtonPressedEvent* mbEvent = static_cast<MouseButtonPressedEvent *>(event.get());
+
+        io.MouseDown[static_cast<int>(mbEvent->GetMouseButton())] = true;
+        io.MouseClicked[static_cast<int>(mbEvent->GetMouseButton())] = true;
+    });
+
+    Input::AddEventListener(InputEventType::MouseButtonHeld, [](const InputEventPointer& event)
+    {
+        ImGuiIO &io = ImGui::GetIO();
+        MouseButtonPressedEvent* mbEvent = static_cast<MouseButtonPressedEvent *>(event.get());
+
+        io.MouseDown[static_cast<int>(mbEvent->GetMouseButton())] = true;
+        io.MouseClicked[static_cast<int>(mbEvent->GetMouseButton())] = false;
+    });
+
+    Input::AddEventListener(InputEventType::MouseButtonReleased, [](const InputEventPointer& event)
+    {
+        ImGuiIO &io = ImGui::GetIO();
+        MouseButtonPressedEvent* mbEvent = static_cast<MouseButtonPressedEvent *>(event.get());
+
+        io.MouseDown[static_cast<uint16_t>(mbEvent->GetMouseButton())] = false;
+    });
+
+    ImGui_ImplDX12_InitInfo initInfo{};
+    initInfo.Device = m_device.GetDevice2().Get();
+    initInfo.CommandQueue = m_device.GetCommandQueue()->GetCommandQueue().Get();
+    initInfo.NumFramesInFlight = SwapChainFrameCount;
+    initInfo.RTVFormat = BackBufferFormat;
+    initInfo.DSVFormat = DepthStencilFormat;
+    initInfo.SrvDescriptorHeap = m_device.GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).Get();
+    initInfo.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_handle)
+    {
+        static uint32_t descriptorAllocIndex = 2200;
+        auto& device = Device::GetInstance();
+        auto srvHeap = device.GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        auto descriptorSize = device.GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+        CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle(srvHeap->GetCPUDescriptorHandleForHeapStart());
+        cpuHandle.Offset(descriptorAllocIndex, descriptorSize);
+
+        *out_cpu_handle = cpuHandle;
+        *out_gpu_handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(srvHeap->GetGPUDescriptorHandleForHeapStart(), descriptorAllocIndex, descriptorSize);
+        descriptorAllocIndex++;
+    };
+    initInfo.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle){};
+    ImGui_ImplDX12_Init(&initInfo);
 }
 
 // Helper function for setting the window's title text.
@@ -366,6 +454,9 @@ void Blainn::RenderSubsystem::OnResize(UINT newWidth, UINT newHeight)
 
     // To recreate resources which depend on width and height (shadow maps, GBuffer etc.)
     Reset();
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2((float)m_width, (float)m_height);
 }
 
 void Blainn::RenderSubsystem::LoadPipeline()
@@ -1349,7 +1440,8 @@ void RenderSubsystem::RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList)
             Mat4 world;
             char id[16];
         } objData;
-        objData.world = transformComponent.GetTransform().Transpose();
+        Entity ent = Engine::GetActiveScene()->GetEntityWithUUID(idComponent.ID);
+        objData.world = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(ent).Transpose();//transformComponent.GetTransform().Transpose();
         idComponent.ID.bytes(objData.id);
 
         pCommandList->SetGraphicsRoot32BitConstants(0, 20, &objData, 0);
@@ -1374,6 +1466,63 @@ void RenderSubsystem::RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList)
 
     ResourceBarrier(pCommandList, m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetD3D12Resource().Get(),
                     D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ,
+                    D3D12_RESOURCE_STATE_GENERIC_READ);
+}
+
+void RenderSubsystem::RenderImGuiPass(ID3D12GraphicsCommandList2 *pCommandList)
+{
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT,
+                    D3D12_RESOURCE_STATE_RENDER_TARGET);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ,
+                    D3D12_RESOURCE_STATE_DEPTH_READ);
+
+    ImGuiIO& io = ImGui::GetIO();
+
+    Input::MousePosition mouse = Input::GetMousePosition();
+    io.MousePos = ImVec2(mouse.X, mouse.Y);
+
+    io.KeyCtrl  = Input::IsKeyHeld(KeyCode::LeftCtrl)  || Input::IsKeyHeld(KeyCode::RightCtrl);
+    io.KeyShift = Input::IsKeyHeld(KeyCode::LeftShift) || Input::IsKeyHeld(KeyCode::RightShift);
+    io.KeyAlt   = Input::IsKeyHeld(KeyCode::Alt);
+    io.KeySuper = Input::IsKeyHeld(KeyCode::LeftWin) || Input::IsKeyHeld(KeyCode::RightWin);
+
+    ImGui_ImplDX12_NewFrame();
+    ImGui::NewFrame();
+    //ImGui::ShowDemoWindow();
+
+    auto selectedUuid = Engine::GetSelectionManager().GetSelectedUUID();
+    Entity selectedEntity = Engine::GetActiveScene()->TryGetEntityWithUUID(selectedUuid);
+
+    if (m_enableDebugLayer && selectedEntity.IsValid() && selectedEntity.HasComponent<TransformComponent>())
+    {
+        ImGuizmo::BeginFrame();
+        //ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
+
+        static ImGuizmo::OPERATION mCurrentGizmoOperation(static_cast<ImGuizmo::OPERATION>(ImGuizmo::UNIVERSAL ^ ImGuizmo::ROTATE_SCREEN));
+        static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
+
+        ImGuiIO& io = ImGui::GetIO();
+        ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+
+        Mat4 cameraView = m_camera->GetViewMatrix();
+        Mat4 cameraProjection = m_camera->GetPerspectiveProjectionMatrix();
+        Mat4 matrix = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(selectedEntity);
+        ImGuizmo::Manipulate(
+            reinterpret_cast<float*>(&cameraView.m),
+            reinterpret_cast<float*>(&cameraProjection.m),
+            mCurrentGizmoOperation,
+            mCurrentGizmoMode,
+            reinterpret_cast<float*>(&matrix.m)
+            );
+        Engine::GetActiveScene()->SetFromWorldSpaceTransformMatrix(selectedEntity, matrix);
+    }
+
+    ImGui::Render();
+    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), pCommandList);
+
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET,
+                    D3D12_RESOURCE_STATE_PRESENT);
     ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ,
                     D3D12_RESOURCE_STATE_GENERIC_READ);
 }
