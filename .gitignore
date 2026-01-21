@@ -62,3 +62,4 @@ CMakePresets.json
 cmake-build-debug
 
 !content/*.obj
+CMakePresets.json
