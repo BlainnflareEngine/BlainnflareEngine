@@ -40,7 +40,6 @@ protected slots:
 
     void OnPositionConstraintsChanged(const BoolVector3 &value);
     void OnRotationConstraintsChanged(const BoolVector3 &value);
-    void OnScaleConstraintsChanged(const BoolVector3 &value);
 
 private:
     bool_input_field *m_isTrigger = nullptr;
@@ -57,7 +56,6 @@ private:
 
     vector3_bool_widget *m_positionConstraints = nullptr;
     vector3_bool_widget *m_rotationConstraints = nullptr;
-    vector3_bool_widget *m_scaleConstraints = nullptr;
 
     void ShowSphereSettings(float radius);
     void ShowBoxSettings(const Blainn::Vec3 &extents);

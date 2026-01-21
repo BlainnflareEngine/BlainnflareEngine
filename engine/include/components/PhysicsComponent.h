@@ -19,6 +19,10 @@ namespace Blainn
 {
 struct PhysicsComponent
 {
+    PhysicsComponent(Entity entityIn, ComponentShapeType shapeTypeIn)
+        : settings(entityIn, shapeTypeIn)
+        , shapeType(shapeTypeIn) {};
+
     void UpdateShape(ComponentShapeType newType, JPH::Ref<JPH::Shape> shape)
     {
         shapeType = newType;
@@ -35,6 +39,7 @@ struct PhysicsComponent
         return shapeType;
     }
 
+    PhysicsComponentSettings settings;
     uuid parentId = {};
     JPH::BodyID bodyId = JPH::BodyID();
     Vec3 prevFrameScale = Vec3::One; // for rescale tracking

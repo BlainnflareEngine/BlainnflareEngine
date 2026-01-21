@@ -95,6 +95,16 @@ bool Blainn::BodyGetter::collidesKinematicVsNonDynamic()
     return m_body.GetCollideKinematicVsNonDynamic();
 }
 
+
+AllowedDOFs Blainn::BodyGetter::GetAllowedDOFs()
+{
+    if (m_body.IsStatic())
+    {
+        return AllowedDOFs::All;
+    }
+    return m_body.GetMotionProperties()->GetAllowedDOFs();
+}
+
 eastl::optional<float> Blainn::BodyGetter::GetSphereShapeRadius()
 {
     PhysicsComponent &component = PhysicsSubsystem::GetPhysicsComponentByBodyId(m_bodyId);
