@@ -19,6 +19,9 @@ public:
     static void Init();
     static void Destroy();
 
+    static void LoadAllScripts(Scene &scene);
+    static void UnloadAllScripts(Scene &scene);
+
     static void Update(Scene &scene, float deltaTimeMs);
 
     static void CreateAttachScriptingComponent(Entity entity);

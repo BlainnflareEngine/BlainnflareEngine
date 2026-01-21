@@ -7,6 +7,7 @@
 #include "FileSystemUtils.h"
 #include "assimp/code/AssetLib/3MF/3MFXmlTags.h"
 #include "components/MeshComponent.h"
+#include "input-widgets/bool_input_field.h"
 #include "input-widgets/path_input_field.h"
 #include "scene/EntityTemplates.h"
 #include "spdlog/fmt/bundled/std.h"
@@ -18,10 +19,22 @@ namespace editor
 mesh_widget::mesh_widget(const Blainn::Entity &entity, QWidget *parent)
     : component_widget_base(entity, "Mesh", parent)
 {
+    Blainn::MeshComponent *mesh = m_entity.TryGetComponent<Blainn::MeshComponent>();
+    if (!mesh)
+    {
+        deleteLater();
+        return;
+    }
+
+    m_enabled = new bool_input_field("Enabled", mesh->Enabled, this);
+    m_isWalkable = new bool_input_field("IsWalkable", mesh->IsWalkable, this);
+
     m_path_input = new path_input_field("Mesh", formats::supported3DFormats, this);
 
     m_material_input = new path_input_field("Material", {formats::materialFormat}, this);
 
+    layout()->addWidget(m_enabled);
+    layout()->addWidget(m_isWalkable);
     layout()->addWidget(m_path_input);
     layout()->addWidget(m_material_input);
 
@@ -30,6 +43,8 @@ mesh_widget::mesh_widget(const Blainn::Entity &entity, QWidget *parent)
     UpdateMaterial();
     BlockSignals(false);
 
+    connect(m_enabled, &bool_input_field::toggled, this, &mesh_widget::SetEnabled);
+    connect(m_isWalkable, &bool_input_field::toggled, this, &mesh_widget::SetIsWalkable);
     connect(m_path_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewPath);
     connect(m_material_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewMaterial);
 }
@@ -89,6 +104,32 @@ void mesh_widget::SetNewMaterial(const QString &oldPath, const QString &newPath)
     if (Blainn::AssetManager::GetInstance().HasMaterial(path))
         mesh.MaterialHandle = Blainn::AssetManager::GetInstance().GetMaterial(path);
     else mesh.MaterialHandle = Blainn::AssetManager::GetInstance().LoadMaterial(path);
+}
+
+
+void mesh_widget::SetEnabled(bool enabled)
+{
+    Blainn::MeshComponent *mesh = m_entity.TryGetComponent<Blainn::MeshComponent>();
+    if (!mesh)
+    {
+        deleteLater();
+        return;
+    }
+
+    mesh->Enabled = enabled;
+}
+
+
+void mesh_widget::SetIsWalkable(bool enabled)
+{
+    Blainn::MeshComponent *mesh = m_entity.TryGetComponent<Blainn::MeshComponent>();
+    if (!mesh)
+    {
+        deleteLater();
+        return;
+    }
+
+    mesh->IsWalkable = enabled;
 }
 
 

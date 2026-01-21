@@ -80,20 +80,15 @@ void AssetLoader::CreateModelGPUResources(Model &model)
 {
     // Gpu stuff
     auto cmdQueue = Device::GetInstance().GetCommandQueue();
-    auto cmdList = cmdQueue->GetDefaultCommandList();
-    auto cmdAlloc = cmdQueue->GetDefaultCommandAllocator();
-    cmdAlloc->Reset();
-    cmdList->Reset(cmdAlloc.Get(), nullptr);
+    auto cmdAlloc = cmdQueue->GetCommandAllocator();
+    auto cmdList = cmdQueue->GetCommandList(cmdAlloc.Get());
 
     model.CreateGPUBuffers(cmdList.Get());
 
-    ThrowIfFailed(cmdList->Close());
-    ID3D12CommandList *const ppCommandLists[] = {cmdList.Get()};
-    cmdQueue->GetCommandQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-    cmdQueue->Flush();
+    cmdQueue->ExecuteCommandList(cmdList.Get());
     cmdQueue->Flush();
 
-    model.m_bisLoaded = true;
+    model.m_bisLoaded = model.BuffersCreated();
 }
 
 void AssetLoader::ProcessNode(const Path &path, const aiNode &node, const aiScene &scene, const Mat4 &parentMatrix,

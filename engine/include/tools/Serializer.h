@@ -129,6 +129,8 @@ public:
         auto &mesh = entity.GetComponent<MeshComponent>();
 
         out << YAML::Key << "MeshComponent" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "Enabled" << YAML::Value << mesh.Enabled;
+        out << YAML::Key << "IsWalkable" << YAML::Value << mesh.IsWalkable;
         out << YAML::Key << "Path" << YAML::Value << AssetManager::GetInstance().GetMeshPath(*mesh.MeshHandle).string();
         out << YAML::Key << "Material" << YAML::Value
             << AssetManager::GetInstance().GetMaterialPath(*mesh.MaterialHandle).string();
@@ -147,9 +149,11 @@ public:
         out << YAML::Key << "ControlParentTransform" << YAML::Value << physics.controlParentTransform;
 
         BodyGetter body = PhysicsSubsystem::GetBodyGetter(entity);
+        PhysicsComponentMotionType motionType = body.GetMotionType();
+        float gravityFactor = motionType == PhysicsComponentMotionType::Static ? 0.0f : body.GetGravityFactor();
         out << YAML::Key << "ObjectLayer" << YAML::Value << body.GetObjectLayer();
-        out << YAML::Key << "MotionType" << YAML::Value << static_cast<int>(body.GetMotionType());
-        out << YAML::Key << "GravityFactor" << YAML::Value << body.GetGravityFactor();
+        out << YAML::Key << "MotionType" << YAML::Value << static_cast<int>(motionType);
+        out << YAML::Key << "GravityFactor" << YAML::Value << gravityFactor;
         out << YAML::Key << "IsTrigger" << YAML::Value << body.isTrigger();
 
         Transform(entity, out);

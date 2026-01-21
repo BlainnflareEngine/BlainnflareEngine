@@ -25,7 +25,8 @@ bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
     sol::state &lua = ScriptingSubsystem::GetLuaState();
 
     m_environment = sol::environment(lua, sol::create, lua.globals());
-    m_environment["OwningEntity"] = owningEntity.GetUUID().str();
+    m_owningEntityId = owningEntity.GetUUID();
+    m_environment["OwningEntity"] = m_owningEntityId.str();
 
     sol::load_result script = lua.load_file(scriptPath.string());
     if (!script.valid())
@@ -126,6 +127,7 @@ bool LuaScript::OnDestroyCall()
 
 bool Blainn::LuaScript::OnCollisionStartedCall(const eastl::shared_ptr<PhysicsEvent> &physicsEvent)
 {
+    if (physicsEvent->entity1 != m_owningEntityId && physicsEvent->entity2 != m_owningEntityId) return false;
     if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnCollisionStarted)) return false;
     sol::state &lua = ScriptingSubsystem::GetLuaState();
     sol::state_view sv(lua);
@@ -138,6 +140,7 @@ bool Blainn::LuaScript::OnCollisionStartedCall(const eastl::shared_ptr<PhysicsEv
 
 bool Blainn::LuaScript::OnCollisionEndedCall(const eastl::shared_ptr<PhysicsEvent> &physicsEvent)
 {
+    if (physicsEvent->entity1 != m_owningEntityId && physicsEvent->entity2 != m_owningEntityId) return false;
     if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnCollisionEnded)) return false;
     sol::state &lua = ScriptingSubsystem::GetLuaState();
     sol::state_view sv(lua);

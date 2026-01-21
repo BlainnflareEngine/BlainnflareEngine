@@ -135,6 +135,8 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     m_currFrameResource->Fence =
         commandQueue->Signal(); // Advance the fence value to mark commands up to this fence point.
 #pragma endregion RenderStage
+
+    commandQueue->Flush();
 }
 
 uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
@@ -1027,6 +1029,7 @@ void Blainn::RenderSubsystem::ResourceBarrier(ID3D12GraphicsCommandList2 *pComma
 
 void Blainn::RenderSubsystem::RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
+    BLAINN_PROFILE_FUNC();
     UINT passCBByteSize = FreyaUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
 
     auto csmViewport = m_cascadeShadowMap->GetViewport();
@@ -1061,6 +1064,7 @@ void Blainn::RenderSubsystem::RenderDepthOnlyPass(ID3D12GraphicsCommandList2 *pC
 
 void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
+    BLAINN_PROFILE_FUNC();
     UINT passCBByteSize = FreyaUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
     // The viewport needs to be reset whenever the command list is reset.
     pCommandList->RSSetViewports(1u, &m_viewport);
@@ -1125,6 +1129,7 @@ void Blainn::RenderSubsystem::RenderGeometryPass(ID3D12GraphicsCommandList2 *pCo
 
 void Blainn::RenderSubsystem::RenderLightingPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
+    BLAINN_PROFILE_FUNC();
     DeferredDirectionalLightPass(pCommandList);
     DeferredPointLightPass(pCommandList);
     // DeferredSpotLightPass(pCommandList);
@@ -1201,6 +1206,7 @@ void Blainn::RenderSubsystem::DeferredSpotLightPass(ID3D12GraphicsCommandList2 *
 
 void Blainn::RenderSubsystem::RenderForwardPasses(ID3D12GraphicsCommandList2 *pCommandList)
 {
+    BLAINN_PROFILE_FUNC();
     // forward-like
     // RenderTransparencyPass(pCommandList);
     RenderSkyBoxPass(pCommandList);
@@ -1399,6 +1405,7 @@ void Blainn::RenderSubsystem::DrawMesh(ID3D12GraphicsCommandList2 *pCommandList,
 
 void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList)
 {
+    BLAINN_PROFILE_FUNC();
     auto commandQueue = m_device.GetCommandQueue();
 
     UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
@@ -1407,6 +1414,8 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
         Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
     for (const auto &[entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
     {
+        if (!entityMesh.Enabled) continue;
+
         auto currObjectCB = entityMesh.ObjectCB->Get();
 
         auto &model = entityMesh.MeshHandle->GetMesh();

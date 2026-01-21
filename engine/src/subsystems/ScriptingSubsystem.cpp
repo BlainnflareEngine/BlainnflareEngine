@@ -37,8 +37,27 @@ void ScriptingSubsystem::Destroy()
     m_scriptEntityConnections = {};
 }
 
+void Blainn::ScriptingSubsystem::LoadAllScripts(Scene &scene)
+{
+    for (auto [entity, id, scriptComp] : scene.GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
+    {
+        for (auto [path, info] : scriptComp.scriptPaths)
+            ScriptingSubsystem::LoadScript(scene.GetEntityWithUUID(id.ID), Path(path.c_str()), info.shouldTriggerStart);
+    }
+}
+
+void Blainn::ScriptingSubsystem::UnloadAllScripts(Scene &scene)
+{
+    for (auto [entity, id, scriptComp] : scene.GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
+    {
+        for (auto &[id, _] : scriptComp.scripts)
+            ScriptingSubsystem::UnloadScript(id);
+    }
+}
+
 void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
 {
+    BLAINN_PROFILE_FUNC();
 #ifdef BLAINN_TEST_LUA_SCRIPTS
 
     static bool create;
@@ -54,23 +73,6 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
         create = true;
     }
 #endif
-
-    // TODO: can be replaced with profiler
-    // const int num_tests = 10;
-    // long long duration = 0;
-    // for (int j = 0; j < num_tests; j++)
-    // {
-    //     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    //     for (int i = 0; i < 1000; i++)
-    //     {
-    //         ScriptingSubsystem::Update(*s_activeScene, deltaTime);
-    //     }
-    //     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    //     duration += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    // }
-    // long long avg = duration / num_tests;
-    // std::cout << avg << " avg microseconds" << std::endl;
-    // exit(0);
 
     auto view = scene.GetAllEntitiesWith<ScriptingComponent>();
     for (const auto &[entity, scriptingComponent] : view.each())

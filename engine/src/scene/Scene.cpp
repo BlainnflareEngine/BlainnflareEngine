@@ -364,7 +364,7 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
 
         if (HasNavMeshVolume(entityNode))
         {
-            auto navMeshVolume = GetNavMeshVolume(entityNode["NavMeshVolumeComponent"]);
+            auto navMeshVolume = GetNavMeshVolume(entityNode["NavmeshVolumeComponent"]);
             entity.AddComponent<NavmeshVolumeComponent>(eastl::move(navMeshVolume));
         }
 

@@ -17,14 +17,18 @@ Resource::Resource(Device &device, const D3D12_RESOURCE_DESC &resourceDesc, cons
         m_ClearValue = eastl::make_unique<D3D12_CLEAR_VALUE>(*clearValue);
 
     auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-    ThrowIfFailed(d3d12Device->CreateCommittedResource(
+    if (FAILED(d3d12Device->CreateCommittedResource(
         &heapProps,
         D3D12_HEAP_FLAG_NONE,
         &resourceDesc,
         D3D12_RESOURCE_STATE_COMMON,
         m_ClearValue.get(),
         IID_PPV_ARGS(&m_d3d12Resource)
-        ));
+        )))
+    {
+        BF_ERROR("Failed to create a committed resource");
+        return;
+    }
 
     CheckFeatureSupport();
 }

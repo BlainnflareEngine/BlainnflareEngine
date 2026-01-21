@@ -133,27 +133,14 @@ void Engine::Update(float deltaTime)
 
     Input::ProcessEvents();
 
-    // test
-    static float testAccumulator;
-    static int fpsCounterPrevValue;
-    static int fpsCounter;
-    fpsCounter++;
-    testAccumulator += deltaTime;
-    if (testAccumulator >= 1000.0f)
-    {
-        // std::cout << "Engine second" << std::endl;
-        // BF_WARN("FPS: {}", fpsCounter - fpsCounterPrevValue);
-        fpsCounterPrevValue = fpsCounter;
-        testAccumulator -= 1000.0f;
-    }
-
     if (s_isPlayMode)
     {
         float playModeDelta = s_playModeTimeline.Tick() / 1000.0f;
-        PhysicsSubsystem::Update();
+
+        ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
+        PhysicsSubsystem::Update(playModeDelta);
         PerceptionSubsystem::GetInstance().Update(playModeDelta);
         AISubsystem::GetInstance().Update(playModeDelta);
-        ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
         NavigationSubsystem::Update(playModeDelta);
     }
 
@@ -187,13 +174,7 @@ void Engine::StartPlayMode()
     s_isPlayMode = true;
 
     PhysicsSubsystem::StartSimulation();
-
-    for (auto [entity, id, scriptComp] : s_activeScene->GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
-    {
-        for (auto [path, info] : scriptComp.scriptPaths)
-            ScriptingSubsystem::LoadScript(s_activeScene->GetEntityWithUUID(id.ID), Path(path.c_str()),
-                                           info.shouldTriggerStart);
-    }
+    ScriptingSubsystem::LoadAllScripts(*s_activeScene);
 
     for (auto [entity, id, aiComp] : s_activeScene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
     {
@@ -222,13 +203,7 @@ void Engine::EscapePlayMode()
     s_isPlayMode = false;
 
     PhysicsSubsystem::StopSimulation();
-
-    for (auto [entity, id, scriptComp] : s_activeScene->GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
-    {
-        for (auto &[id, _] : scriptComp.scripts)
-            ScriptingSubsystem::UnloadScript(id);
-    }
-
+    ScriptingSubsystem::UnloadAllScripts(*s_activeScene);
     AssetManager::GetInstance().ResetTextures();
 }
 

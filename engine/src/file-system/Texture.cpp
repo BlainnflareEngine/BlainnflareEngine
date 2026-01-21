@@ -66,9 +66,16 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index)
         ScratchImage image;
         ScratchImage mipChain;
 
-        ThrowIfFailed(LoadFromWICFile((Engine::GetContentDirectory() / m_path).wstring().c_str(), WIC_FLAGS_FORCE_RGB, nullptr, image));
+        if (FAILED(LoadFromWICFile((Engine::GetContentDirectory() / m_path).wstring().c_str(), WIC_FLAGS_FORCE_RGB, nullptr, image)))
+        {
+            BF_ERROR("Failed to load texture: {}", (char*)m_path.u8string().c_str());
+            return;
+        }
 
-        ThrowIfFailed(GenerateMipMaps(*image.GetImages(), TEX_FILTER_BOX, 0, mipChain));
+        if (FAILED(GenerateMipMaps(*image.GetImages(), TEX_FILTER_BOX, 0, mipChain)))
+        {
+            BF_ERROR("Failed to generate mip map: {}", (char*)m_path.u8string().c_str());
+        }
 
         // create resource
         const auto &chainBase = *mipChain.GetImages();
@@ -88,9 +95,13 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index)
 
         CD3DX12_HEAP_PROPERTIES heapProps{D3D12_HEAP_TYPE_DEFAULT};
 
-        ThrowIfFailed(comDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &texDesc,
+        if (FAILED(comDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &texDesc,
                                                       D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
-                                                      IID_PPV_ARGS(&m_resource)));
+                                                      IID_PPV_ARGS(&m_resource))))
+        {
+            BF_ERROR("Failed to create texture: {}", (char*)m_path.u8string().c_str());
+            return;
+        }
         std::wstring name = m_path.wstring() + L" texture";
         m_resource->SetName(name.c_str());
 
@@ -111,11 +122,16 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index)
             GetRequiredIntermediateSize(m_resource.Get(), 0, static_cast<uint32_t>(subresources.size()));
         const CD3DX12_RESOURCE_DESC resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
 
-        ThrowIfFailed(comDevice->CreateCommittedResource(&heapProps2, D3D12_HEAP_FLAG_NONE, &resourceDesc,
+        if (FAILED(comDevice->CreateCommittedResource(&heapProps2, D3D12_HEAP_FLAG_NONE, &resourceDesc,
                                                       D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-                                                      IID_PPV_ARGS(&m_uploadResource)));
-        name = m_path.wstring() + L" upload buffer";
-        m_uploadResource->SetName(name.c_str());
+                                                      IID_PPV_ARGS(&m_uploadResource))))
+        {
+            BF_ERROR("Failed to create upload buffer for: {}", (char*)m_path.u8string().c_str());
+            m_resource = nullptr;
+            return;
+        }
+        std::wstring uploadname = m_path.wstring() + L" upload buffer";
+        m_uploadResource->SetName(uploadname.c_str());
 
         // write commands to copy data to upload texture (copying each subresource)
         UpdateSubresources(cmdList, m_resource.Get(), m_uploadResource.Get(), (UINT64)0u, 0u,

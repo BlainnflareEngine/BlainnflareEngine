@@ -369,10 +369,10 @@ void physics_widget::LoadValues()
     {
         auto body = Blainn::PhysicsSubsystem::GetBodyGetter(m_entity);
         isTrigger = body.isTrigger();
-        gravityFactor = body.GetGravityFactor();
         objectLayer = body.GetObjectLayer();
         shapeType = body.GetShapeType();
         motionType = body.GetMotionType();
+        gravityFactor = motionType == Blainn::PhysicsComponentMotionType::Static ? 0.0f : body.GetGravityFactor();
     }
 
     m_isTrigger->setChecked(isTrigger);

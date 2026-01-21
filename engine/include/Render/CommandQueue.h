@@ -46,6 +46,8 @@ namespace Blainn
         HANDLE m_fenceEvent;
         UINT64 m_fenceValue;
 
+        std::mutex m_commandAllocatorMutex;
+        std::mutex m_commandListMutex;
         D3D12_COMMAND_LIST_TYPE m_commandListType;
         CommandListQueue m_commandListQueue;
         CommandAllocatorQueue m_commandAllocatorQueue;

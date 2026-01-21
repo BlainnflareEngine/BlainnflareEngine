@@ -78,6 +78,7 @@ ComPtr<ID3D12CommandAllocator> Blainn::CommandQueue::CreateCommandAllocator()
 
 ComPtr<ID3D12CommandAllocator> Blainn::CommandQueue::GetCommandAllocator()
 {
+    std::lock_guard<std::mutex> lock(m_commandAllocatorMutex);
     ComPtr<ID3D12CommandAllocator> commandAllocator;
 
     if (!m_commandAllocatorQueue.empty())
@@ -105,6 +106,7 @@ ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::CreateCommandList(ID3D1
 
 ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::GetCommandList(ID3D12CommandAllocator *pCommandAllocator)
 {
+    std::lock_guard<std::mutex> lock(m_commandListMutex);
     ComPtr<ID3D12GraphicsCommandList2> commandList;
 
     if (!m_commandListQueue.empty())
@@ -137,11 +139,20 @@ ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::GetDefaultCommandList()
 // Execute a command list.
 void Blainn::CommandQueue::ExecuteCommandList(ComPtr<ID3D12GraphicsCommandList2> commandList)
 {
-    ThrowIfFailed(commandList->Close());
-    ID3D12CommandList *const ppCommandLists[] = {commandList.Get()};
-    m_commandQueue->ExecuteCommandLists(1u, ppCommandLists);
-    
-    m_commandListQueue.push(commandList);
+    BLAINN_PROFILE_FUNC();
+    {
+        BLAINN_PROFILE_SCOPE(CloseCommandList);
+        ThrowIfFailed(commandList->Close());
+    }
+    {
+        BLAINN_PROFILE_SCOPE(ExecuteCommandList);
+        ID3D12CommandList *const ppCommandLists[] = {commandList.Get()};
+        m_commandQueue->ExecuteCommandLists(1u, ppCommandLists);
+    }
+    {
+        BLAINN_PROFILE_SCOPE(PushCommandListToQueue);
+        m_commandListQueue.push(commandList);
+    }
 }
 
 ComPtr<ID3D12CommandQueue> Blainn::CommandQueue::GetCommandQueue() const
