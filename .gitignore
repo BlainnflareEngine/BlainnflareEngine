@@ -56,8 +56,9 @@ logs/*
 .idea/
 CMakeFiles/
 # client local machine's specific file
-CMakeSettings.json
 CMakePresets.json
+CMakeSettings.json
+CppProperties.json
 /out
 cmake-build-debug
 
