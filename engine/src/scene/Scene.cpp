@@ -777,7 +777,7 @@ void Blainn::Scene::SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTr
     if (parent)
     {
         Mat4 parentTransform = GetWorldSpaceTransformMatrix(parent);
-        Mat4 localTransform = parentTransform.Invert() * worldTransform;
+        Mat4 localTransform = worldTransform * parentTransform.Invert();
         entityTransform.SetTransform(localTransform);
     }
     else
