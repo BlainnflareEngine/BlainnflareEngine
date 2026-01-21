@@ -159,6 +159,8 @@ set(ENGINE_SOURCES
         include/components/StimulusComponent.h
         include/ai/PerceptionEvents.h
 
+        include/components/LightComponent.h
+
         include/components/CameraComponent.h
         src/Render/EditorCamera.cpp
         include/Render/EditorCamera.h

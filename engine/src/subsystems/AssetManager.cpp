@@ -12,7 +12,6 @@
 #include "File-System/Texture.h"
 
 #include "Render/PrebuiltEngineMeshes.h"
-#include "AssetManager.h"
 
 #include "Navigation/NavigationSubsystem.h"
 
@@ -50,7 +49,13 @@ void AssetManager::Init()
     material.SetTexture(defaultTexture, TextureType::ALBEDO);
     m_materialPaths[ToEASTLString(defaultMaterialPath.string())] = {0, 1};
     m_materials.emplace(eastl::make_shared<Material>(std::move(material)));
+    
+    LoadPrebuiltMeshes();
+#pragma endregion LoadDefaultResource
+}
 
+void AssetManager::LoadPrebuiltMeshes()
+{
     auto defaultMeshData = PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f);
     Model model;
     model.SetMeshes({defaultMeshData});
@@ -58,9 +63,7 @@ void AssetManager::Init()
     m_loader->CreateModelGPUResources(model);
 
     m_meshes.emplace(eastl::make_shared<Model>(model));
-#pragma endregion LoadDefaultResource
 }
-
 
 void AssetManager::Destroy()
 {
