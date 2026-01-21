@@ -59,7 +59,8 @@ void NavigationSubsystem::Update(float deltaTime)
             AIController &controller = controllerComp.aiController;
 
             Vec3 moveDir;
-            if (controller.GetDesiredDirection(moveDir, controllerComp.StoppingDistance))
+            if (controller.GetDesiredDirection(moveDir, controllerComp.StoppingDistance,
+                                               controllerComp.StoppingDistance))
             {
                 transform.SetTranslation(transform.GetTranslation()
                                          + moveDir * deltaTime * controllerComp.MovementSpeed);
@@ -254,10 +255,15 @@ bool NavigationSubsystem::FindPath(const Vec3 &start, const Vec3 &end, eastl::ve
 }
 
 
-// TODO: remove redundant args
-bool NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint, const Vec3 &center, float radius)
+std::pair<bool, Vec3> NavigationSubsystem::FindRandomPointOnNavMesh()
 {
-    if (!m_navMesh || !m_navQuery) return false;
+    if (!m_navMesh || !m_navQuery) return {false, Vec3()};
+
+    if (!m_navMesh || !m_navQuery)
+    {
+        BF_ERROR("NavMesh or NavQuery is null!");
+        return {false, Vec3()};
+    }
 
     dtPolyRef randomRef;
     float randomPt[3];
@@ -265,10 +271,47 @@ bool NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint, const Vec3 &c
     dtStatus status =
         m_navQuery->findRandomPoint(m_filter, &NavigationSubsystem::RandomFloatCallback, &randomRef, randomPt);
 
-    if (dtStatusFailed(status) || !randomRef) return false;
+    if (dtStatusFailed(status) || !randomRef) return {false, Vec3()};
 
-    outPoint = Vec3(randomPt[0], randomPt[1], randomPt[2]);
-    return true;
+    return {true, Vec3(randomPt[0], randomPt[1], randomPt[2])};
+}
+
+
+std::pair<bool, Vec3> NavigationSubsystem::FindRandomPointOnNavMesh(const Vec3 &origin, const float radius)
+{
+    if (!m_navMesh || !m_navQuery)
+    {
+        BF_ERROR("NavMesh or NavQuery is not initialized!");
+        return {false, Vec3()};
+    }
+
+    float originPos[3] = {origin.x, origin.y, origin.z};
+    dtPolyRef startRef;
+    float startPos[3];
+
+    float extents[3] = {radius, radius * 2.0f, radius};
+
+    dtStatus status = m_navQuery->findNearestPoly(originPos, extents, m_filter, &startRef, startPos);
+
+    if (dtStatusFailed(status) || !startRef)
+    {
+        BF_WARN("No starting polygon found near origin ({:.1f}, {:.1f}, {:.1f})", origin.x, origin.y, origin.z);
+        return {false, Vec3()};
+    }
+
+    dtPolyRef randomRef;
+    float randomPt[3];
+
+    status = m_navQuery->findRandomPointAroundCircle(startRef, startPos, radius, m_filter,
+                                                     &NavigationSubsystem::RandomFloatCallback, &randomRef, randomPt);
+
+    if (dtStatusFailed(status) || !randomRef)
+    {
+        BF_WARN("Failed to find random point around circle (radius: {:.1f})", radius);
+        return {false, Vec3()};
+    }
+
+    return {true, Vec3(randomPt[0], randomPt[1], randomPt[2])};
 }
 
 
@@ -300,7 +343,7 @@ void NavigationSubsystem::DrawDebugMesh()
             {
                 const Vec3 &a = verts[k];
                 const Vec3 &b = verts[(k + 1) % poly->vertCount];
-                RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(a, b, Color(0.0f, 1.0f, 0.0f, 1.0f));
+                RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(a, b, Color(1.0f, 1.0f, 0.0f, 1.0f));
             }
         }
     }

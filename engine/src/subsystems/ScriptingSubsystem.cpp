@@ -236,5 +236,6 @@ void Blainn::ScriptingSubsystem::RegisterBlainnTypes()
     RegisterScriptingTypes(m_lua);
     RegisterUUIDType(m_lua);
     RegisterAITypes(m_lua);
+    RegisterNavigationTypes(m_lua);
 #endif
 }

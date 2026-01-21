@@ -47,13 +47,16 @@ private:
     float m_maxValue = 100000.0f;
     int m_decimals = 3;
 
-    // TODO: make drag
     float m_dragSensitivity = 0.1f;
     bool m_dragging = false;
     QPoint m_lastMousePos;
     double m_dragStartValue = 0.0;
 
     bool m_immediateMode = true;
+
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
 };
 
 } // namespace editor

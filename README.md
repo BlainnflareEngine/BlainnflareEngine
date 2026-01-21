@@ -2,11 +2,11 @@
 
 ## Building the engine
 
-<p>To build the engine you need CMake and Qt6 installed.</p>
+To build the engine you need **CMake** and **Qt 6.9.2 msvc2022_64** installed. Cmake can be downloaded from the [official download page](https://cmake.org/download/). Qt can be downloaded from the official [Qt online installer](https://www.qt.io/development/download) or with [aqt installer](https://github.com/miurahr/aqtinstall).
 
-<p>Open the libs folder and run the clone_dependencies.bat</p>
+Open the libs folder and run the clone_dependencies.bat.
 
-<p>If you want to build without the editor run with flag </p>
+If you want to build without the editor run with flag
 <pre>-DBLAINN_EXCLUDE_EDITOR=ON</pre>
 
 <p>Open the project in your IDE of choice, and when generating the CMake you need to specify the flag  </p>
