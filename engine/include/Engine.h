@@ -21,6 +21,7 @@ public:
     Engine() = delete;
     static void Init(Timeline<eastl::chrono::milliseconds> &globalTimeline);
     static void InitRenderSubsystem(HWND windowHandle);
+    static void InitAISubsystems();
     static void Destroy();
     static void Update(float deltaTime);
     static float GetDeltaTime();
