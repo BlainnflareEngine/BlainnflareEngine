@@ -35,6 +35,9 @@ void Editor::Init(int argc, char **argv)
 
     auto *style = new oclero::qlementine::QlementineStyle(m_app);
     style->setThemeJsonPath(":/themes/dark.json");
+
+    // TODO: add switching themes
+    //style->setThemeJsonPath(":/themes/light.json");
     QApplication::setStyle(style);
 
     BF_DEBUG("Current working directory - " + current_path().string());

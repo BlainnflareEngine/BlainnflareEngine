@@ -20,8 +20,7 @@ Entities:
         z: 1
     RelationshipComponent:
       Parent: 00000000-0000-0000-0000-000000000000
-      Children:
-        []
+      Children: []
     MeshComponent:
       Path: Navmesh/nav_test.obj
       Material: Materials\Default.mat
@@ -44,8 +43,7 @@ Entities:
         z: 1
     RelationshipComponent:
       Parent: 00000000-0000-0000-0000-000000000000
-      Children:
-        []
+      Children: []
     NavmeshVolumeComponent:
       Extent:
         X: 50
@@ -57,3 +55,5 @@ Entities:
       AgentRadius: 0.6
       AgentMaxClimb: 0.5
       AgentMaxSlope: 45
+NavMeshData:
+  Path: Navmesh\Navmesh.scene.navmesh

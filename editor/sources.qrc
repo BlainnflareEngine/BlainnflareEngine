@@ -19,7 +19,9 @@
         <file>icons/stop.png</file>
         <file>icons/add.png</file>
         <file>icons/delete.png</file>
+
         <file>themes/dark.json</file>
+        <file>themes/light.json</file>
 
 		<file>templates/ScriptTemplate.lua</file>
 		<file>templates/BehaviorScriptTemplate.lua</file>
