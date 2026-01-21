@@ -50,17 +50,16 @@ void Blainn::Camera::Reset(float fovAngleYDegrees, float aspectRatio, float near
     m_nearWindowHeight = 2.0f * tanf(0.5f * m_fovYRad) * m_nearZ;
     m_farWindowHeight = 2.0f * tanf(0.5f * m_fovYRad) * m_farZ;
 
-    m_persProj = XMMatrixPerspectiveFovLH(m_fovYRad, m_aspectRatio, m_nearZ, m_farZ);
-    m_orthProj = XMMatrixOrthographicLH(GetNearWindowWidth(), GetNearWindowHeight(), nearZ, farZ);
+    UpdateProjectionMatrices();
 
 	// For frustum culling
 	//BoundingFrustum::CreateFromMatrix(m_frustum, m_persProj);
 }
 
-void Camera::SetAspectRatio(float aspectRatio) {
+void Camera::SetAspectRatio(float aspectRatio)
+{
 	m_aspectRatio = aspectRatio;
-    m_persProj = XMMatrixPerspectiveFovLH(m_fovYRad, m_aspectRatio, m_nearZ, m_farZ);
-    m_orthProj = XMMatrixOrthographicLH(GetNearWindowWidth(), GetNearWindowHeight(), m_nearZ, m_farZ);
+    UpdateProjectionMatrices();
 }
 
 
@@ -84,8 +83,7 @@ void Camera::SetNearZ(float value)
     m_nearZ = value;
     m_nearWindowHeight = 2.0f * tanf(0.5f * m_fovYRad) * m_nearZ;
 
-    m_persProj = XMMatrixPerspectiveFovLH(m_fovYRad, m_aspectRatio, m_nearZ, m_farZ);
-    m_orthProj = XMMatrixOrthographicLH(GetNearWindowWidth(), GetNearWindowHeight(), m_nearZ, m_farZ);
+    UpdateProjectionMatrices();
 }
 
 void Camera::SetFarZ(float value)
@@ -93,8 +91,7 @@ void Camera::SetFarZ(float value)
     m_farZ = value;
     m_farWindowHeight = 2.0f * tanf(0.5f * m_fovYRad) * m_farZ;
     
-    m_persProj = XMMatrixPerspectiveFovLH(m_fovYRad, m_aspectRatio, m_nearZ, m_farZ);
-    m_orthProj = XMMatrixOrthographicLH(GetNearWindowWidth(), GetNearWindowHeight(), m_nearZ, m_farZ);
+    UpdateProjectionMatrices();
 }
 
 float Blainn::Camera::GetFovYRad() const
@@ -116,8 +113,7 @@ void Camera::SetFovDegrees(float value)
 {
     m_fovYRad = (value / 180.0f) * XM_PI;
 
-    m_persProj = XMMatrixPerspectiveFovLH(m_fovYRad, m_aspectRatio, m_nearZ, m_farZ);
-    m_orthProj = XMMatrixOrthographicLH(GetNearWindowWidth(), GetNearWindowHeight(), m_nearZ, m_farZ);
+    UpdateProjectionMatrices();
 }
 
 XMFLOAT3 Blainn::Camera::GetPosition3f() const
@@ -140,6 +136,12 @@ void Blainn::Camera::SetPosition(const XMFLOAT3 &v)
 {
     m_position = v;
     m_isDirty = true;
+}
+
+void Camera::UpdateProjectionMatrices()
+{
+    m_persProj = XMMatrixPerspectiveFovLH(m_fovYRad, m_aspectRatio, m_nearZ, m_farZ);
+    m_orthProj = XMMatrixOrthographicLH(GetNearWindowWidth(), GetNearWindowHeight(), m_nearZ, m_farZ);
 }
 
 } // namespace Blainn

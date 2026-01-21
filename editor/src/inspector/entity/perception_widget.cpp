@@ -122,7 +122,6 @@ perception_widget::perception_widget(const Blainn::Entity &entity, QWidget *pare
     connect(m_sightLOSCheckInterval, &float_input_field::EditingFinished, this,
             &perception_widget::OnSightLOSCheckIntervalChanged);
     connect(m_sightRequireLOS, &bool_input_field::toggled, this, &perception_widget::OnSightRequireLOSChanged);
-
 }
 
 

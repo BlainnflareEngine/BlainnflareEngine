@@ -11,6 +11,7 @@
 namespace Blainn {
     class RuntimeCamera : public Camera
     {
+        using Super = Camera;
     public:
         virtual ~RuntimeCamera() = default;
 

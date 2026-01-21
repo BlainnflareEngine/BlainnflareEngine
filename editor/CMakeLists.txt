@@ -161,6 +161,8 @@ set(EDITOR_SOURCES
         src/inspector/entity/perception_widget.cpp
         include/inspector/entity/perception_widget.h
         include/inspector/input-widgets/string_list_input.h
+        src/inspector/input-widgets/vector3_bool_widget.cpp
+        include/inspector/input-widgets/vector3_bool_widget.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

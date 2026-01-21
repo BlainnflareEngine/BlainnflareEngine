@@ -174,13 +174,14 @@ void Engine::StartPlayMode()
     s_isPlayMode = true;
 
     PhysicsSubsystem::StartSimulation();
-    ScriptingSubsystem::LoadAllScripts(*s_activeScene);
 
     for (auto [entity, id, aiComp] : s_activeScene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
     {
         Entity ent = s_activeScene->GetEntityWithUUID(id.ID);
         AISubsystem::GetInstance().CreateAIController(ent);
     }
+
+    ScriptingSubsystem::LoadAllScripts(*s_activeScene);
 }
 
 void Engine::StopPlayMode()

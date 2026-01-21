@@ -48,7 +48,7 @@ void skybox_widget::OnSetNewPath(const QString & oldPath, const QString & newPat
     if (Blainn::AssetManager::GetInstance().HasMesh(path))
         mesh.textureHandle= Blainn::AssetManager::GetInstance().GetTexture(path);
     else
-        mesh.textureHandle = Blainn::AssetManager::GetInstance().LoadTexture(path, Blainn::TextureType::ALBEDO);
+        mesh.textureHandle = Blainn::AssetManager::GetInstance().LoadTexture(path, Blainn::TextureType::CUBEMAP);
 }
 
 } // namespace editor
