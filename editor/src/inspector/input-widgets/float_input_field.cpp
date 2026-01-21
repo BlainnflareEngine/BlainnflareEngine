@@ -11,9 +11,10 @@
 namespace editor
 {
 
-float_input_field::float_input_field(const QString &name, float value, QWidget *parent,bool immediate, QColor nameColor)
-    : QWidget(parent),
-    m_immediateMode(immediate)
+float_input_field::float_input_field(const QString &name, float value, QWidget *parent, bool immediate,
+                                     QColor nameColor)
+    : QWidget(parent)
+    , m_immediateMode(immediate)
 {
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
@@ -26,6 +27,7 @@ float_input_field::float_input_field(const QString &name, float value, QWidget *
     m_label->adjustSize();
     m_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     m_label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    m_label->setCursor(Qt::SizeHorCursor);
 
     if (nameColor != QColor())
     {
@@ -50,9 +52,8 @@ float_input_field::float_input_field(const QString &name, float value, QWidget *
     m_lastValue = value;
 
     connect(m_input, &NumericInputWidget::editingFinished, this, &float_input_field::OnEditingFinished);
-    
-    if(immediate)
-        connect(m_input, &NumericInputWidget::ValueChanged, this, &float_input_field::OnEditingFinished);
+
+    if (immediate) connect(m_input, &NumericInputWidget::ValueChanged, this, &float_input_field::OnEditingFinished);
 }
 
 
@@ -114,6 +115,56 @@ void float_input_field::OnEditingFinished()
     {
         m_lastValue = m_input->value();
         emit EditingFinished();
+    }
+}
+
+
+void float_input_field::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton)
+    {
+        m_dragging = true;
+        m_lastMousePos = event->globalPos();
+        m_input->setFocus();
+        event->accept();
+    }
+    else
+    {
+        QWidget::mousePressEvent(event);
+    }
+}
+
+
+void float_input_field::mouseMoveEvent(QMouseEvent *event)
+{
+    if (m_dragging)
+    {
+        QPoint delta = event->globalPos() - m_lastMousePos;
+        m_lastMousePos = event->globalPos();
+
+        float deltaValue = delta.x() * m_input->singleStep();
+        SetValue(m_input->value() + deltaValue);
+
+        emit EditingFinished();
+        event->accept();
+    }
+    else
+    {
+        QWidget::mouseMoveEvent(event);
+    }
+}
+
+
+void float_input_field::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton)
+    {
+        m_dragging = false;
+        event->accept();
+    }
+    else
+    {
+        QWidget::mouseReleaseEvent(event);
     }
 }
 
