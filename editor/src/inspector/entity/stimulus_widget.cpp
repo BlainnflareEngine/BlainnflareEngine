@@ -31,10 +31,10 @@ stimulus_widget::stimulus_widget(const Blainn::Entity &entity, QWidget *parent)
     auto separatorReactions = new QFrame(this);
     separatorReactions->setFrameStyle(HLine);
 
-    m_sight = new bool_input_field("Sight", comp->enableSight, this);
-    m_sound = new bool_input_field("Sound", comp->enableSound, this);
-    m_touch = new bool_input_field("Touch", comp->enableTouch, this);
-    m_damage = new bool_input_field("Damage", comp->enableDamage, this);
+    m_sight = new bool_input_field("Sight", comp->enableSight, QColor(), this);
+    m_sound = new bool_input_field("Sound", comp->enableSound, QColor(), this);
+    m_touch = new bool_input_field("Touch", comp->enableTouch, QColor(), this);
+    m_damage = new bool_input_field("Damage", comp->enableDamage, QColor(), this);
 
     auto labelParameters = new QLabel(ToHeader4("Parameters"), this);
     labelParameters->setTextFormat(Qt::MarkdownText);
