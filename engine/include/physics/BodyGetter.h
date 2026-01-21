@@ -36,6 +36,7 @@ public:
     float GetGravityFactor();
     bool isTrigger();
     bool collidesKinematicVsNonDynamic();
+    AllowedDOFs GetAllowedDOFs();
 
     ObjectLayer GetObjectLayer();
     PhysicsComponentMotionType GetMotionType();

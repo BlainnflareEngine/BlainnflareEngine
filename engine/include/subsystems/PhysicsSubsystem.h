@@ -39,6 +39,7 @@ public:
     static void UpdateBodyInJolt(Blainn::Scene &activeScene, const uuid &entityUuid);
     static void StopSimulation();
 
+    /// @brief recreates physics component if already exists
     static void CreateAttachPhysicsComponent(PhysicsComponentSettings &settings);
     static bool HasPhysicsComponent(Entity entity);
     static void DestroyPhysicsComponent(Entity entity);
@@ -69,6 +70,7 @@ private:
     PhysicsSubsystem() = delete;
 
     static void ProcessEvents();
+
 
     inline static eventpp::EventQueue<PhysicsEventType, void(const eastl::shared_ptr<PhysicsEvent> &),
                                       PhysicsEventPolicy>

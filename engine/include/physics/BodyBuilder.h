@@ -23,6 +23,7 @@ public:
     BodyBuilder &SetIsTrigger(bool isTrigger);
     BodyBuilder &SetGravityFactor(float factor);
     BodyBuilder &SetCollideKinematicVsNonDynamic(bool collide);
+    BodyBuilder &SetAllowedDOFs(AllowedDOFs dofs);
 
     JPH::BodyID Build(EActivation activate = EActivation::DontActivate);
 

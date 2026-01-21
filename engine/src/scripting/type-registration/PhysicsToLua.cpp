@@ -59,6 +59,13 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
     PhysicsComponentSettingsType["gravityFactor"] = &PhysicsComponentSettings::gravityFactor;
     PhysicsComponentSettingsType["shapeSettings"] = &PhysicsComponentSettings::shapeSettings;
 
+    // RayCastResult
+    sol::usertype<RayCastResult> RayCastResultType = luaState.new_usertype<RayCastResult>("RayCastResult");
+    RayCastResultType["entityId"] = &RayCastResult::entityId;
+    RayCastResultType["hitPoint"] = &RayCastResult::hitPoint;
+    RayCastResultType["hitNormal"] = &RayCastResult::hitNormal;
+    RayCastResultType["distance"] = &RayCastResult::distance;
+
     sol::table physicsTable = luaState.create_table();
 
     RegisterPhysicsBodyGetter(luaState, physicsTable);
@@ -74,8 +81,7 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
                                   [](PhysicsComponentSettings &settings)
                                   { PhysicsSubsystem::CreateAttachPhysicsComponent(settings); }));
 
-    physicsTable.set_function("HasPhysicsComponent",
-                              [](Entity e) { return PhysicsSubsystem::HasPhysicsComponent(e); });
+    physicsTable.set_function("HasPhysicsComponent", [](Entity e) { return PhysicsSubsystem::HasPhysicsComponent(e); });
     physicsTable.set_function("DestroyPhysicsComponent",
                               [](Entity e) { PhysicsSubsystem::DestroyPhysicsComponent(e); });
 
@@ -83,7 +89,6 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
     physicsTable.set_function("ActivateBody", [](Entity e) { PhysicsSubsystem::ActivateBody(e); });
     physicsTable.set_function("DeactivateBody", [](Entity e) { PhysicsSubsystem::DeactivateBody(e); });
 
-    // CastRay returns optional<RayCastResult> - convert to nil or table
     physicsTable.set_function("CastRay",
                               [&luaState](const Vec3 &origin, const Vec3 &dir)
                               {

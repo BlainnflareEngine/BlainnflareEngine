@@ -32,10 +32,12 @@ struct PhysicsComponentSettings
 
     EActivation activate = EActivation::DontActivate;
     PhysicsComponentMotionType motionType = PhysicsComponentMotionType::Dynamic;
+    AllowedDOFs allowedDOFs = AllowedDOFs::All;
     ObjectLayer layer = Layers::MOVING;
     bool isTrigger = false; // if false controls parent transform
     float gravityFactor = 1.0f;
 
+
     ShapeCreationSettings shapeSettings;
 };
-};
+}; // namespace Blainn

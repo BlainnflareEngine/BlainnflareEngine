@@ -76,6 +76,8 @@ bool editor::vector3_bool_widget::GetZ() const
 void editor::vector3_bool_widget::SetValue(const BoolVector3 &value)
 {
     m_x->setChecked(value.x);
+    m_y->setChecked(value.y);
+    m_z->setChecked(value.z);
 }
 
 
@@ -94,4 +96,8 @@ void editor::vector3_bool_widget::SetY(bool y)
 void editor::vector3_bool_widget::SetZ(bool z)
 {
     m_z->setChecked(z);
+}
+bool editor::vector3_bool_widget::AllSet() const
+{
+    return m_x->isChecked() && m_y->isChecked() && m_z->isChecked();
 }

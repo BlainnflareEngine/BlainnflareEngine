@@ -155,6 +155,7 @@ public:
         out << YAML::Key << "MotionType" << YAML::Value << static_cast<int>(motionType);
         out << YAML::Key << "GravityFactor" << YAML::Value << gravityFactor;
         out << YAML::Key << "IsTrigger" << YAML::Value << body.isTrigger();
+        out << YAML::Key << "Constraints" << YAML::Value << static_cast<uint32_t>(body.GetAllowedDOFs());
 
         Transform(entity, out);
 

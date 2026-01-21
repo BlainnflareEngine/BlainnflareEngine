@@ -136,6 +136,7 @@ inline eastl::string ToEASTLString(const std::string &s)
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/Physics/StateRecorder.h>
+#include <Jolt/Physics/Body/AllowedDOFs.h>
 #include <Jolt/RegisterTypes.h>
 #include <Jolt/Renderer/DebugRendererSimple.h>
 

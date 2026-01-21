@@ -74,6 +74,13 @@ BodyBuilder &Blainn::BodyBuilder::SetCollideKinematicVsNonDynamic(bool collide)
     return *this;
 }
 
+
+BodyBuilder &Blainn::BodyBuilder::SetAllowedDOFs(AllowedDOFs dofs)
+{
+    m_settings.mAllowedDOFs = dofs;
+    return *this;
+}
+
 JPH::BodyID BodyBuilder::Build(EActivation activate /*= JPH::EActivation::Activate*/)
 {
 
