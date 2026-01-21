@@ -29,12 +29,12 @@ perception_widget::perception_widget(const Blainn::Entity &entity, QWidget *pare
 
     // Sight Group
     m_sightGroup = new collapsible_group("Sight", THIRD, this);
-    m_sightEnabled = new bool_input_field("Enable Sight", comp.enableSight, this);
+    m_sightEnabled = new bool_input_field("Enable Sight", comp.enableSight, QColor(),this);
     m_sightRange = new float_input_field("Range", comp.sightRange, this);
     m_sightFOV = new float_input_field("FOV (degrees)", comp.sightFOV, this);
     m_sightForgetTime = new float_input_field("Forget Time (s)", comp.sightForgetTime, this);
     m_sightLOSCheckInterval = new float_input_field("LOS Check Interval (s)", comp.sightLOSCheckInterval, this);
-    m_sightRequireLOS = new bool_input_field("Require Line of Sight", comp.sightRequireLOS, this);
+    m_sightRequireLOS = new bool_input_field("Require Line of Sight", comp.sightRequireLOS, QColor(),this);
 
     m_sightRange->SetMinValue(0.1f);
     m_sightFOV->SetMinValue(1.0f);
@@ -53,7 +53,7 @@ perception_widget::perception_widget(const Blainn::Entity &entity, QWidget *pare
 
     // Sound Group
     m_soundGroup = new collapsible_group("Sound", THIRD, this);
-    m_soundEnabled = new bool_input_field("Enable Sound", comp.enableSound, this);
+    m_soundEnabled = new bool_input_field("Enable Sound", comp.enableSound,QColor(), this);
     m_soundRange = new float_input_field("Range", comp.soundRange, this);
     m_soundMinStrength = new float_input_field("Min Strength", comp.soundMinStrength, this);
     m_soundForgetTime = new float_input_field("Forget Time (s)", comp.soundForgetTime, this);
@@ -73,7 +73,7 @@ perception_widget::perception_widget(const Blainn::Entity &entity, QWidget *pare
 
     // Touch Group
     m_touchGroup = new collapsible_group("Touch", THIRD, this);
-    m_touchEnabled = new bool_input_field("Enable Touch", comp.touchForgetTime, this);
+    m_touchEnabled = new bool_input_field("Enable Touch", comp.touchForgetTime,QColor(), this);
     m_touchForgetTime = new float_input_field("Forget Time (s)", comp.touchForgetTime, this);
     m_touchForgetTime->SetMinValue(0.1f);
 
@@ -84,7 +84,7 @@ perception_widget::perception_widget(const Blainn::Entity &entity, QWidget *pare
 
     // Damage Group
     m_damageGroup = new collapsible_group("Damage", THIRD, this);
-    m_damageEnabled = new bool_input_field("Enable Damage", comp.enableDamage, this);
+    m_damageEnabled = new bool_input_field("Enable Damage", comp.enableDamage, QColor(),this);
     m_damageForgetTime = new float_input_field("Forget Time (s)", comp.damageForgetTime, this);
     m_damageForgetTime->SetMinValue(0.1f);
 

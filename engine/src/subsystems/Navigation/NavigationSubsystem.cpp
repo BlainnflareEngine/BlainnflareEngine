@@ -254,10 +254,47 @@ bool NavigationSubsystem::FindPath(const Vec3 &start, const Vec3 &end, eastl::ve
 }
 
 
-// TODO: remove redundant args
-bool NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint, const Vec3 &center, float radius)
+bool NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint)
 {
     if (!m_navMesh || !m_navQuery) return false;
+
+    if (!m_navMesh || !m_navQuery)
+    {
+        BF_ERROR("NavMesh or NavQuery is null!");
+        return false;
+    }
+
+    const dtNavMesh *nav = m_navMesh;
+    int maxTiles = nav->getMaxTiles();
+    BF_DEBUG("NavMesh tiles: {}", maxTiles);
+
+    int totalPolys = 0;
+    for (int i = 0; i < maxTiles; ++i)
+    {
+        const dtMeshTile *tile = nav->getTile(i);
+        if (tile && tile->header)
+        {
+            BF_DEBUG("Tile {}: {} polys", i, tile->header->polyCount);
+            totalPolys += tile->header->polyCount;
+        }
+    }
+
+    const dtMeshTile *tile = nav->getTile(0);
+    if (tile && tile->header)
+    {
+        BF_DEBUG("First few polygon flags:");
+        for (int i = 0; i < eastl::min(5, (int)tile->header->polyCount); ++i)
+        {
+            const dtPoly *poly = &tile->polys[i];
+            BF_DEBUG("Poly {}: flags = {}", i, poly->flags);
+        }
+    }
+
+    if (totalPolys == 0)
+    {
+        BF_ERROR("NavMesh has no polygons!");
+        return false;
+    }
 
     dtPolyRef randomRef;
     float randomPt[3];
@@ -266,6 +303,45 @@ bool NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint, const Vec3 &c
         m_navQuery->findRandomPoint(m_filter, &NavigationSubsystem::RandomFloatCallback, &randomRef, randomPt);
 
     if (dtStatusFailed(status) || !randomRef) return false;
+
+    outPoint = Vec3(randomPt[0], randomPt[1], randomPt[2]);
+    return true;
+}
+
+
+bool NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint, const Vec3 &origin, const float radius)
+{
+    if (!m_navMesh || !m_navQuery)
+    {
+        BF_ERROR("NavMesh or NavQuery is not initialized!");
+        return false;
+    }
+
+    float originPos[3] = {origin.x, origin.y, origin.z};
+    dtPolyRef startRef;
+    float startPos[3];
+
+    float extents[3] = {radius, radius * 2.0f, radius};
+
+    dtStatus status = m_navQuery->findNearestPoly(originPos, extents, m_filter, &startRef, startPos);
+
+    if (dtStatusFailed(status) || !startRef)
+    {
+        BF_WARN("No starting polygon found near origin ({:.1f}, {:.1f}, {:.1f})", origin.x, origin.y, origin.z);
+        return false;
+    }
+
+    dtPolyRef randomRef;
+    float randomPt[3];
+
+    status = m_navQuery->findRandomPointAroundCircle(startRef, startPos, radius, m_filter,
+                                                     &NavigationSubsystem::RandomFloatCallback, &randomRef, randomPt);
+
+    if (dtStatusFailed(status) || !randomRef)
+    {
+        BF_WARN("Failed to find random point around circle (radius: {:.1f})", radius);
+        return false;
+    }
 
     outPoint = Vec3(randomPt[0], randomPt[1], randomPt[2]);
     return true;

@@ -5,9 +5,11 @@
 #pragma once
 #include "component_widget_base.h"
 #include "input-widgets/enum_input_widget.h"
+#include "input-widgets/vector3_bool_widget.h"
 
 namespace editor
 {
+class vector3_bool_widget;
 class vector3_input_widget;
 class float_input_field;
 } // namespace editor
@@ -36,6 +38,9 @@ protected slots:
     void OnHalfHeightChanged();
     void OnExtentsChanged();
 
+    void OnPositionConstraintsChanged(const BoolVector3 &value);
+    void OnRotationConstraintsChanged(const BoolVector3 &value);
+    void OnScaleConstraintsChanged(const BoolVector3 &value);
 
 private:
     bool_input_field *m_isTrigger = nullptr;
@@ -50,8 +55,12 @@ private:
     float_input_field *m_halfHeight = nullptr;
     vector3_input_widget *m_extents = nullptr;
 
+    vector3_bool_widget *m_positionConstraints = nullptr;
+    vector3_bool_widget *m_rotationConstraints = nullptr;
+    vector3_bool_widget *m_scaleConstraints = nullptr;
+
     void ShowSphereSettings(float radius);
-    void ShowBoxSettings(const Blainn::Vec3& extents);
+    void ShowBoxSettings(const Blainn::Vec3 &extents);
     void ShowCylinderSettings(float radius, float halfHeight);
     void ShowCapsuleSettings(float radius, float halfHeight);
     void ClearSettings();

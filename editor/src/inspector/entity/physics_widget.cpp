@@ -7,7 +7,9 @@
 #include "PhysicsSubsystem.h"
 #include "components/PhysicsComponent.h"
 #include "input-widgets/bool_input_field.h"
+#include "input-widgets/collapsible_group.h"
 #include "input-widgets/float_input_field.h"
+#include "input-widgets/vector3_bool_widget.h"
 #include "input-widgets/vector3_input_widget.h"
 
 #include <QLayout>
@@ -17,19 +19,31 @@ namespace editor
 physics_widget::physics_widget(const Blainn::Entity &entity, QWidget *parent)
     : component_widget_base(entity, "Physics", parent)
 {
-    m_isTrigger = new bool_input_field("Is Trigger", false, this);
+    m_isTrigger = new bool_input_field("Is Trigger", false, QColor(), this);
 
     m_gravityFactor = new float_input_field("Gravity", 1.0f, this);
+    m_gravityFactor->SetDecimals(2);
 
     m_shape = new enum_input_widget<Blainn::ComponentShapeType>("Shape type", this);
     m_objectType = new enum_input_widget<Blainn::PhysicsComponentMotionType>("Object type", this);
     m_objectLayer = new enum_input_widget<Blainn::ObjectLayer>("Object layer", this);
+
+    auto constraintsGroup = new collapsible_group("Constraints", SECOND, this);
+    m_positionConstraints = new vector3_bool_widget("Position"); // TODO: add default values
+    constraintsGroup->AddWidget(m_positionConstraints);
+
+    m_rotationConstraints = new vector3_bool_widget("Rotation"); // TODO: add default values
+    constraintsGroup->AddWidget(m_rotationConstraints);
+
+    m_scaleConstraints = new vector3_bool_widget("Scale"); // TODO: add default values
+    constraintsGroup->AddWidget(m_scaleConstraints);
 
     layout()->addWidget(m_isTrigger);
     layout()->addWidget(m_gravityFactor);
     layout()->addWidget(m_shape);
     layout()->addWidget(m_objectType);
     layout()->addWidget(m_objectLayer);
+    layout()->addWidget(constraintsGroup);
 
     LoadValues();
 
@@ -38,6 +52,9 @@ physics_widget::physics_widget(const Blainn::Entity &entity, QWidget *parent)
     connect(m_objectLayer->comboBox(), &QComboBox::currentIndexChanged, this, &physics_widget::OnObjectLayerChanged);
     connect(m_isTrigger, &bool_input_field::toggled, this, &physics_widget::OnTriggerChanged);
     connect(m_gravityFactor, &float_input_field::EditingFinished, this, &physics_widget::OnGravityChanged);
+    connect(m_positionConstraints, &vector3_bool_widget::Toggled, this, &physics_widget::OnPositionConstraintsChanged);
+    connect(m_rotationConstraints, &vector3_bool_widget::Toggled, this, &physics_widget::OnRotationConstraintsChanged);
+    connect(m_scaleConstraints, &vector3_bool_widget::Toggled, this, &physics_widget::OnScaleConstraintsChanged);
 }
 
 
@@ -263,6 +280,30 @@ void physics_widget::OnExtentsChanged()
 }
 
 
+void physics_widget::OnPositionConstraintsChanged(const BoolVector3 &value)
+{
+    if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>()) return;
+
+    // TODO: update constraints
+}
+
+
+void physics_widget::OnRotationConstraintsChanged(const BoolVector3 &value)
+{
+    if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>()) return;
+
+    // TODO: update constraints
+}
+
+
+void physics_widget::OnScaleConstraintsChanged(const BoolVector3 &value)
+{
+    if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>()) return;
+
+    // TODO: update constraints
+}
+
+
 void physics_widget::ShowSphereSettings(float radius)
 {
     m_radius = new float_input_field("Radius", radius, this, false);
@@ -376,7 +417,7 @@ void physics_widget::LoadValues()
     }
 
     m_isTrigger->setChecked(isTrigger);
-    m_gravityFactor->SetValue(std::ceil(gravityFactor * 100.0f / 100.0f));
+    m_gravityFactor->SetValue(gravityFactor);
     m_objectLayer->SetValue(objectLayer);
     m_shape->SetValue(shapeType);
     m_objectType->SetValue(motionType);
@@ -391,6 +432,9 @@ void physics_widget::BlockSignals(bool value)
     m_objectLayer->blockSignals(value);
     m_shape->blockSignals(value);
     m_objectType->blockSignals(value);
+    m_positionConstraints->blockSignals(value);
+    m_rotationConstraints->blockSignals(value);
+    m_scaleConstraints->blockSignals(value);
 
     if (m_radius) m_radius->blockSignals(value);
     if (m_halfHeight) m_halfHeight->blockSignals(value);

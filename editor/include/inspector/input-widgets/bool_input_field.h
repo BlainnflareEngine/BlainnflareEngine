@@ -13,7 +13,8 @@ class bool_input_field : public QCheckBox
     Q_OBJECT
 
 public:
-    explicit bool_input_field(const QString &name, bool defaultValue = false, QWidget *parent = nullptr);
+    explicit bool_input_field(const QString &name, bool defaultValue = false, const QColor& nameColor = QColor(),
+                              QWidget *parent = nullptr);
 };
 
 } // namespace editor

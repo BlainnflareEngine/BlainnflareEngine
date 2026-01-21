@@ -5,8 +5,8 @@
 
 namespace Blainn
 {
-NavMeshBuildResult NavmeshBuilder::BuildNavMesh(const eastl::vector<NavMeshInputMesh> &meshes,
-                                                const JPH::AABox &bounds, const NavMeshBuildSettings &settings)
+NavMeshBuildResult NavmeshBuilder::BuildNavMesh(const eastl::vector<NavMeshInputMesh> &meshes, const JPH::AABox &bounds,
+                                                const NavMeshBuildSettings &settings)
 {
     BF_DEBUG("Building navmesh");
 
@@ -113,6 +113,22 @@ NavMeshBuildResult NavmeshBuilder::BuildNavMesh(const eastl::vector<NavMeshInput
         rcFreePolyMesh(pmesh);
         result.errorMsg = "Could not build poly mesh";
         return result;
+    }
+
+    if (pmesh->npolys > 0)
+    {
+        const unsigned short WALKABLE_FLAG = 1;
+        for (int i = 0; i < pmesh->npolys; ++i)
+        {
+            if (pmesh->areas[i] != RC_NULL_AREA)
+            {
+                pmesh->flags[i] = WALKABLE_FLAG;
+            }
+            else
+            {
+                pmesh->flags[i] = 0;
+            }
+        }
     }
 
     rcPolyMeshDetail *dmesh = rcAllocPolyMeshDetail();
