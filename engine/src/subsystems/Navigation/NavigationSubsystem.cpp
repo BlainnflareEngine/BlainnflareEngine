@@ -254,14 +254,14 @@ bool NavigationSubsystem::FindPath(const Vec3 &start, const Vec3 &end, eastl::ve
 }
 
 
-bool NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint)
+std::pair<bool, Vec3> NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint)
 {
-    if (!m_navMesh || !m_navQuery) return false;
+    if (!m_navMesh || !m_navQuery) return {false, Vec3()};
 
     if (!m_navMesh || !m_navQuery)
     {
         BF_ERROR("NavMesh or NavQuery is null!");
-        return false;
+        return {false, Vec3()};
     }
 
     const dtNavMesh *nav = m_navMesh;
@@ -293,7 +293,7 @@ bool NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint)
     if (totalPolys == 0)
     {
         BF_ERROR("NavMesh has no polygons!");
-        return false;
+        return {false, Vec3()};
     }
 
     dtPolyRef randomRef;
@@ -302,19 +302,19 @@ bool NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint)
     dtStatus status =
         m_navQuery->findRandomPoint(m_filter, &NavigationSubsystem::RandomFloatCallback, &randomRef, randomPt);
 
-    if (dtStatusFailed(status) || !randomRef) return false;
+    if (dtStatusFailed(status) || !randomRef) return {false, Vec3()};
 
-    outPoint = Vec3(randomPt[0], randomPt[1], randomPt[2]);
-    return true;
+    return {true, Vec3(randomPt[0], randomPt[1], randomPt[2])};
 }
 
 
-bool NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint, const Vec3 &origin, const float radius)
+std::pair<bool, Vec3> NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint, const Vec3 &origin,
+                                                                    const float radius)
 {
     if (!m_navMesh || !m_navQuery)
     {
         BF_ERROR("NavMesh or NavQuery is not initialized!");
-        return false;
+        return {false, Vec3()};
     }
 
     float originPos[3] = {origin.x, origin.y, origin.z};
@@ -328,7 +328,7 @@ bool NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint, const Vec3 &o
     if (dtStatusFailed(status) || !startRef)
     {
         BF_WARN("No starting polygon found near origin ({:.1f}, {:.1f}, {:.1f})", origin.x, origin.y, origin.z);
-        return false;
+        return {false, Vec3()};
     }
 
     dtPolyRef randomRef;
@@ -340,11 +340,10 @@ bool NavigationSubsystem::FindRandomPointOnNavMesh(Vec3 &outPoint, const Vec3 &o
     if (dtStatusFailed(status) || !randomRef)
     {
         BF_WARN("Failed to find random point around circle (radius: {:.1f})", radius);
-        return false;
+        return {false, Vec3()};
     }
 
-    outPoint = Vec3(randomPt[0], randomPt[1], randomPt[2]);
-    return true;
+    return {true, Vec3(randomPt[0], randomPt[1], randomPt[2])};
 }
 
 
