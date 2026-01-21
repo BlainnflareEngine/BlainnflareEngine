@@ -28,7 +28,8 @@ public:
     bool MoveTo(const Vec3 &target);
     void StopMoving();
     void StartMoving();
-    bool GetDesiredDirection(Vec3 &outDirection, float stoppingDistance, float offset = 0);
+    bool IsMoving() const;
+    bool GetDesiredDirection(Vec3 &outDirection, float stoppingDistance, float offset = 0.5f);
 
     void SetUpdateInterval(float interval)
     {

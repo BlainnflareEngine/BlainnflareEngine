@@ -169,6 +169,12 @@ void AIController::StartMoving()
 }
 
 
+bool AIController::IsMoving() const
+{
+    return m_isMoving;
+}
+
+
 bool AIController::GetDesiredDirection(Vec3 &outDirection, float stoppingDistance, float offset)
 {
     if (!m_isMoving || m_currentPath.empty() || m_pathIndex >= m_currentPath.size())
@@ -180,9 +186,15 @@ bool AIController::GetDesiredDirection(Vec3 &outDirection, float stoppingDistanc
     if (!m_controlledEntity.HasComponent<TransformComponent>()) return false;
 
     Vec3 agentPos = m_controlledEntity.GetComponent<TransformComponent>().GetTranslation();
-    agentPos.y += offset;
     Vec3 targetPoint = m_currentPath[m_pathIndex];
-    float distance = (targetPoint - agentPos).Length();
+
+    Vec3 adjustedTarget = targetPoint;
+    if (m_pathIndex != 0)
+    {
+        adjustedTarget.y += offset;
+    }
+
+    float distance = (adjustedTarget - agentPos).Length();
 
     if (distance <= stoppingDistance)
     {
@@ -192,10 +204,16 @@ bool AIController::GetDesiredDirection(Vec3 &outDirection, float stoppingDistanc
             m_isMoving = false;
             return false;
         }
+
         targetPoint = m_currentPath[m_pathIndex];
+        adjustedTarget = targetPoint;
+        if (m_pathIndex < m_currentPath.size() - 1)
+        {
+            adjustedTarget.y += offset;
+        }
     }
 
-    m_moveDirection = targetPoint - agentPos;
+    m_moveDirection = adjustedTarget - agentPos;
     m_moveDirection.Normalize();
     outDirection = m_moveDirection;
     return true;
