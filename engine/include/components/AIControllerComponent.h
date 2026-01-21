@@ -17,6 +17,7 @@ struct AIControllerComponent
 
     float MovementSpeed = 2;
     float StoppingDistance = 0.5;
+    float GroundOffset = 0.5;
 };
 
 } // namespace Blainn

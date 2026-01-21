@@ -119,6 +119,8 @@ public:
         out << YAML::Key << "Path" << aiController.scriptPath.c_str();
         out << YAML::Key << "MovementSpeed" << aiController.MovementSpeed;
         out << YAML::Key << "StoppingDistance" << aiController.StoppingDistance;
+        out << YAML::Key << "GroundOffset" << aiController.GroundOffset;
+
         out << YAML::EndMap;
     }
 
