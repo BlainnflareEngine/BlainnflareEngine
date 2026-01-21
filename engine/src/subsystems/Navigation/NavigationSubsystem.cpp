@@ -59,11 +59,9 @@ void NavigationSubsystem::Update(float deltaTime)
             AIController &controller = controllerComp.aiController;
 
             Vec3 moveDir;
-            if (controller.GetDesiredDirection(moveDir, controllerComp.StoppingDistance,
-                                               controllerComp.StoppingDistance))
+            if (controller.GetDesiredDirection(moveDir, controllerComp.StoppingDistance, controllerComp.GroundOffset))
             {
-                transform.SetTranslation(transform.GetTranslation()
-                                         + moveDir * deltaTime * controllerComp.MovementSpeed);
+                transform.SetTranslation(transform.GetTranslation() + moveDir * deltaTime * controllerComp.MovementSpeed);
             }
         }
     }
