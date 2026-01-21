@@ -79,8 +79,7 @@ void AIController::Update(float dt)
         m_activeTree->RequestAbort();
     }
 
-    BTStatus status = m_activeTree->Update(*m_blackboard); // ������ ������ �������� ������ ����� ����������, � � ���� �
-                                                           // sequence ��� ������ 1 � �� ��� ����� ������ � ������
+    BTStatus status = m_activeTree->Update(*m_blackboard);
 
     switch (status)
     {
@@ -114,7 +113,6 @@ void AIController::Update(float dt)
         break;
     }
 }
-
 
 void AIController::Possess(const Entity &entity)
 {

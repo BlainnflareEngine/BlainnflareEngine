@@ -107,6 +107,7 @@ set(ENGINE_SOURCES
         src/scripting/type-registration/PhysicsBodyGetterToLua.cpp
         src/scripting/type-registration/PhysicsBodyUpdaterToLua.cpp
         src/scripting/type-registration/AiToLua.cpp
+        src/scripting/type-registration/NavigationToLua.cpp
         src/scripting/type-registration/Vector2ToLua.cpp
         src/scripting/type-registration/Vector3ToLua.cpp
         src/scripting/type-registration/Vector4ToLua.cpp
