@@ -11,7 +11,8 @@ namespace Blainn
 		DepthShadow = 0,
 		DeferredGeometry,
 		DeferredLighting,
-		NumPasses = 3u
+		ForwardLighting, // could be helpful for particles, skybox and other forward-like shit
+		NumPasses = 4u
 	};
 
 	/*

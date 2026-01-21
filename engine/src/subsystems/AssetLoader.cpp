@@ -191,9 +191,8 @@ eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const Text
     assert(path.is_relative());
     auto texture = eastl::make_shared<Texture>(path, type, index);
     // causes runtime exception, Idk why
+    //Device::GetInstance().Flush();
     //texture->DisposeUploaders();
-    Device::GetInstance().Flush();
-    texture->DisposeUploaders();
     return texture;
 }
 
