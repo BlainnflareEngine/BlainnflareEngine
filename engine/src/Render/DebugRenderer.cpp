@@ -6,6 +6,7 @@
 #include "Render/DebugRenderer.h"
 
 #include "VertexTypes.h"
+#include "helpers.h"
 #include "Render/CommandQueue.h"
 #include "Render/FreyaUtil.h"
 #include "Render/RootSignature.h"
@@ -27,8 +28,8 @@ Blainn::DebugRenderer::~DebugRenderer()
 }
 
 void DebugRenderer::BeginDebugRenderPass(ID3D12GraphicsCommandList2 *commandList,
-                                            const D3D12_CPU_DESCRIPTOR_HANDLE& rtvDescriptor,
-                                            const D3D12_CPU_DESCRIPTOR_HANDLE& dsvDescriptor)
+                                         const D3D12_CPU_DESCRIPTOR_HANDLE &rtvDescriptor,
+                                         const D3D12_CPU_DESCRIPTOR_HANDLE &dsvDescriptor)
 {
     m_bIsRenderPassOngoing = true;
     m_commandList = commandList;
@@ -47,22 +48,17 @@ void DebugRenderer::EndDebugRenderPass()
     while (!m_debugRequests.empty() && m_currentFrame > m_debugRequests.front().first)
         m_debugRequests.pop_front();
 
-    if (m_lineListVertices.empty())
-        return;
+    if (m_lineListVertices.empty()) return;
 
     UINT vertexBufferSize = m_lineListVertices.size() * sizeof(VertexPositionColor);
     Microsoft::WRL::ComPtr<ID3D12Resource> lineVertexBuffer;
 
     const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
     const auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-    if(auto hr = m_device.GetDevice2()->CreateCommittedResource(
-        &heapProps,
-        D3D12_HEAP_FLAG_NONE,
-        &resDesc,
-        D3D12_RESOURCE_STATE_GENERIC_READ,
-        nullptr,
-        IID_PPV_ARGS(lineVertexBuffer.GetAddressOf())
-        ); FAILED(hr))
+    if (auto hr = m_device.GetDevice2()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resDesc,
+                                                                 D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+                                                                 IID_PPV_ARGS(lineVertexBuffer.GetAddressOf()));
+        FAILED(hr))
     {
         BF_ERROR("Could not create vertex buffer for debug rendering!");
         return;
@@ -70,9 +66,9 @@ void DebugRenderer::EndDebugRenderPass()
     m_debugRequests.push_back({m_currentFrame + 3, lineVertexBuffer});
     lineVertexBuffer->SetName(L"Debug Vertex Buffer");
 
-    UINT8* pVertexDataBegin;
-    CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
-    ThrowIfFailed(lineVertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
+    UINT8 *pVertexDataBegin;
+    CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
+    ThrowIfFailed(lineVertexBuffer->Map(0, &readRange, reinterpret_cast<void **>(&pVertexDataBegin)));
     memcpy(pVertexDataBegin, m_lineListVertices.data(), vertexBufferSize);
     lineVertexBuffer->Unmap(0, nullptr);
 
@@ -117,10 +113,27 @@ void Blainn::DebugRenderer::DrawLine(Vec3 inFrom, Vec3 inTo, Color color)
     m_lineListVertices.push_back({inTo, color});
 }
 
-void DebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor,
-    ECastShadow inCastShadow)
+void DebugRenderer::DrawArrow(Vec3 inFrom, Vec3 inTo, Color color, float size)
 {
-    //DebugRendererSimple::DrawTriangle(inV1, inV2, inV3, inColor, inCastShadow);
+    DrawLine(inFrom, inTo, color);
+
+    if (size > 0.0f)
+    {
+        // Draw arrow head
+        Vec3 dir = Vec3(inTo - inFrom);
+        float len = dir.Length();
+        if (len != 0.0f) dir = dir * (size / len);
+        else dir = Vec3(size, 0, 0);
+        Vec3 perp = size * GetNormalizedPerpendicular(dir);
+        DrawLine(inTo - dir + perp, inTo, color);
+        DrawLine(inTo - dir - perp, inTo, color);
+    }
+}
+
+void DebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor,
+                                 ECastShadow inCastShadow)
+{
+    // DebugRendererSimple::DrawTriangle(inV1, inV2, inV3, inColor, inCastShadow);
     const Color col = {inColor.r / 255.f, inColor.g / 255.f, inColor.b / 255.f, inColor.a / 255.f};
     const Vec3 V1 = {inV1.GetX(), inV1.GetY(), inV1.GetZ()};
     const Vec3 V2 = {inV2.GetX(), inV2.GetY(), inV2.GetZ()};
@@ -132,7 +145,7 @@ void DebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RV
 void DebugRenderer::DrawTriangle(Vec3 inV1, Vec3 inV2, Vec3 inV3, Color inColor)
 {
     BLAINN_PROFILE_SCOPE(DrawTriangle);
-    VertexPositionColor lineVertices[] = { {inV1, inColor}, {inV2, inColor}, {inV3, inColor}, {inV1, inColor} };
+    VertexPositionColor lineVertices[] = {{inV1, inColor}, {inV2, inColor}, {inV3, inColor}, {inV1, inColor}};
     m_lineListVertices.push_back({inV1, inColor});
     m_lineListVertices.push_back({inV2, inColor});
 
@@ -251,9 +264,11 @@ void Blainn::DebugRenderer::CreateRootSignature()
 
     // sorry for magic values, i don't want to drag the common header and the common types ;)
     CD3DX12_ROOT_PARAMETER slotRootParameter[1];
-    slotRootParameter[0].InitAsConstants(sizeof(Mat4) / sizeof(float), SHADER_REGISTER(0u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[0].InitAsConstants(sizeof(Mat4) / sizeof(float), SHADER_REGISTER(0u), REGISTER_SPACE_0,
+                                         D3D12_SHADER_VISIBILITY_ALL);
 
-    m_rootSignature->Create(m_device, ARRAYSIZE(slotRootParameter), slotRootParameter, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    m_rootSignature->Create(m_device, ARRAYSIZE(slotRootParameter), slotRootParameter,
+                            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 }
 
 void Blainn::DebugRenderer::CompileShaders()
@@ -304,5 +319,3 @@ void Blainn::DebugRenderer::CreatePSO()
 
     ThrowIfFailed(m_device.CreateGraphicsPipelineState(debugPSODesc, m_debugPipelineState));
 }
-
-

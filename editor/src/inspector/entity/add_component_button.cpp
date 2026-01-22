@@ -26,6 +26,7 @@
 #include "components/StimulusComponent.h"
 #include "entity/ai_controller_widget.h"
 #include "entity/camera_widget.h"
+#include "entity/directional_light_widget.h"
 #include "entity/stimulus_widget.h"
 
 
@@ -43,8 +44,6 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
     m_physicsAction = m_menu->addAction("Physics");
     m_scriptingAction = m_menu->addAction("Scripting");
 
-    m_cameraAction = m_menu->addAction("Camera");
-    m_skyboxAction = m_menu->addAction("Skybox");
 
     // AI
     m_aiMenu = m_menu->addMenu("Artificial Intelligence");
@@ -52,6 +51,14 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
     m_perceptionAction = m_aiMenu->addAction("Perception");
     m_stimulusAction = m_aiMenu->addAction("Stimulus");
     m_navmeshVolumeAction = m_aiMenu->addAction("Navmesh Volume");
+
+    // Render
+    m_renderMenu = m_menu->addMenu("Render");
+    m_cameraAction = m_renderMenu->addAction("Camera");
+    m_skyboxAction = m_renderMenu->addAction("Skybox");
+
+    m_renderMenu->addSeparator();
+    m_directLightAction = m_renderMenu->addAction("Direct light");
 
     setText("Add component");
 
@@ -61,14 +68,18 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
     connect(m_meshAction, &QAction::triggered, this, &add_component_button::OnMeshAction);
     connect(m_physicsAction, &QAction::triggered, this, &add_component_button::OnPhysicsAction);
     connect(m_scriptingAction, &QAction::triggered, this, &add_component_button::OnScriptingAction);
-    connect(m_cameraAction, &QAction::triggered, this, &add_component_button::OnCameraAction);
-    connect(m_skyboxAction, &QAction::triggered, this, &add_component_button::OnSkyboxAction);
 
     // AI
     connect(m_navmeshVolumeAction, &QAction::triggered, this, &add_component_button::OnNavmeshVolumeAction);
     connect(m_aiControllerAction, &QAction::triggered, this, &add_component_button::OnAIControllerAction);
     connect(m_stimulusAction, &QAction::triggered, this, &add_component_button::OnStimulusAction);
     connect(m_perceptionAction, &QAction::triggered, this, &add_component_button::OnPerceptionAction);
+
+
+    // Render
+    connect(m_cameraAction, &QAction::triggered, this, &add_component_button::OnCameraAction);
+    connect(m_skyboxAction, &QAction::triggered, this, &add_component_button::OnSkyboxAction);
+    connect(m_directLightAction, &QAction::triggered, this, &add_component_button::OnDirectLightAction);
 }
 
 
@@ -173,6 +184,20 @@ void add_component_button::OnCameraAction()
 
     auto camera = new camera_widget(m_entity, this);
     m_layout->insertWidget(m_layout->count() - 1, camera);
+}
+
+
+void add_component_button::OnDirectLightAction()
+{
+    if (!m_entity.IsValid()) return;
+
+    // TODO: check if has component
+    /*if (m_entity.HasComponent<Blainn::CameraComponent>()) return;
+    auto &comp = m_entity.AddComponent<Blainn::CameraComponent>();
+    comp.camera.Reset(75.f, 16 / 9.f, 0.01, 10000);*/
+
+    auto direct = new directional_light_widget(m_entity, this);
+    m_layout->insertWidget(m_layout->count() - 1, direct);
 }
 
 void add_component_button::OnSkyboxAction()
