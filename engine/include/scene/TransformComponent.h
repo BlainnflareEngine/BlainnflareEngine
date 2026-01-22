@@ -67,7 +67,8 @@ public:
         BLAINN_PROFILE_FUNC();
         using namespace DirectX::SimpleMath;
         transform.Decompose(Scale, Rotation, Translation);
-        EulerRotation = Rotation.ToEuler();
+        Vec3 re = Rotation.ToEuler();
+        EulerRotation = Vec3{re.y, re.x, re.z};
 
         MarkFramesDirty();
     }
