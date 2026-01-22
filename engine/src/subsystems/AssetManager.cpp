@@ -102,14 +102,8 @@ eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &relativePath, c
 {
     int index = m_meshes.emplace(eastl::make_shared<Model>(GetDefaultModel(), relativePath));
     m_meshPaths[ToEASTLString(relativePath.string())] = AssetData{index, 1};
-
-
-    BF_INFO("I don't have such model yet, here is default one, "
-            "i will place your model to your index later. Index - {0}",
-            index);
-
-
     vgjs::schedule([=]() { AddMeshWhenLoaded(relativePath, index, data); });
+
     return eastl::make_shared<MeshHandle>(index);
 }
 
@@ -160,10 +154,6 @@ eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &relativeP
     int index = m_textures.push_back(eastl::make_shared<Texture>());
     m_texturePaths[ToEASTLString(relativePath.string())] = AssetData{index, 1};
 
-    BF_INFO("Shiiiii... I don't have such texture, here is default one, "
-            "i will place some new texture to your index later. Index ={0}.",
-            index);
-
     vgjs::schedule([=]() { AddTextureWhenLoaded(relativePath, index, type); });
     return eastl::make_shared<TextureHandle>(index);
 }
@@ -185,17 +175,9 @@ eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path, A
 
     int index = data.index == -1 ? m_materials.emplace(eastl::make_shared<Material>()) : data.index;
     int count = data.refCount == 0 ? 1 : data.refCount;
-
     m_materialPaths[ToEASTLString(path.string())] = AssetData{index, count};
-
-
-    // TODO: push back default material
-    auto str = "I don't have that material, here is default one, "
-               "i will place new material to your index later "
-               + std::to_string(index);
-    BF_INFO(str)
-
     vgjs::schedule([=]() { AddMaterialWhenLoaded(path, index); });
+
     return eastl::make_shared<MaterialHandle>(index);
 }
 
@@ -277,7 +259,6 @@ void AssetManager::CreateScene(const Path &relativePath)
 
     scene["SceneName"] = relativePath.string();
     scene["SceneID"] = Rand::getRandomUUID().str();
-    BF_DEBUG("Opening scene {0}", relativePath.filename().string());
     std::ofstream fout(absolute_path);
     fout << scene;
 }
@@ -285,7 +266,6 @@ void AssetManager::CreateScene(const Path &relativePath)
 
 Texture &AssetManager::GetTextureByIndex(unsigned int index)
 {
-    //if (index >= m_materials.size()) return GetDefaultTexture();
     return *m_textures[index];
 }
 
@@ -323,30 +303,21 @@ void AssetManager::AddTextureWhenLoaded(const Path &path, const unsigned int ind
 {
     assert(path.is_relative());
 
-    BF_INFO("Started loading texture.");
     m_textures[index] = m_loader->LoadTexture(path, type, index);
-    auto str = "Placing texture to index " + std::to_string(index);
-    BF_INFO(str);
 }
 
 
 void AssetManager::AddMaterialWhenLoaded(const Path &relativePath, const unsigned int index)
 {
     assert(relativePath.is_relative());
-    BF_INFO("Started loading material.");
     m_materials[index] = m_loader->LoadMaterial(relativePath);
-    auto str = "Placing material to index " + std::to_string(index);
-    BF_INFO(str);
 }
 
 
 void AssetManager::AddMeshWhenLoaded(const Path &relativePath, const unsigned int index, const ImportMeshData data)
 {
     assert(relativePath.is_relative());
-    BF_INFO("Started loading model.");
     m_meshes[index] = m_loader->ImportModel(relativePath, data);
-    auto str = "Placing model to index " + std::to_string(index);
-    BF_INFO(str);
 }
 
 

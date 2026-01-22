@@ -1028,7 +1028,6 @@ void Blainn::RenderSubsystem::UpdateDeferredPassCB(float deltaTime)
         //XMVECTOR lightDir = -FreyaMath::SphericalToCarthesian(1.0f, m_sunTheta, m_sunPhi);
         //XMStoreFloat3(&m_mainPassCBData.DirLight.Direction, lightDir);
         m_mainPassCBData.DirLight.Color = entityLight.Color;
-        BF_DEBUG("Forward {} {} {}", transform.GetForwardVector().x, transform.GetForwardVector().y, transform.GetForwardVector().z);
         m_mainPassCBData.DirLight.Direction = transform.GetForwardVector();
     }
 #pragma endregion DirLight
