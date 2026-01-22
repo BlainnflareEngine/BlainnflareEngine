@@ -20,6 +20,7 @@ public:
     static Editor &GetInstance();
 
     void Init(int argc, char **argv);
+    void PostInit();
     void Destroy();
 
     void Show() const;

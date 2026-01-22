@@ -67,7 +67,7 @@ inline TransformComponent GetTransform(const YAML::Node &node)
             float x = rotationNode["x"].as<float>();
             float y = rotationNode["y"].as<float>();
             float z = rotationNode["z"].as<float>();
-            transform.SetRotationEuler(Vec3(x, y, z));
+            transform.SetRotation(Quat::CreateFromYawPitchRoll(x, y, z));
         }
     }
 
@@ -255,7 +255,7 @@ inline void GetPhysics(const YAML::Node &node, const Entity &entity)
 
     if (node["Constraints"])
     {
-        constraints = static_cast<uint8_t>(node["Constraints"].as<uint32_t>());
+        constraints = static_cast<uint8_t>(node["Constraints"].as<int>());
     }
 
     ShapeCreationSettings shapeSettings(shapeType);
@@ -285,6 +285,7 @@ inline void GetPhysics(const YAML::Node &node, const Entity &entity)
     settings.layer = layer;
     settings.motionType = motionType;
     settings.shapeSettings = shapeSettings;
+    settings.allowedDOFs = static_cast<AllowedDOFs>(constraints);
     PhysicsSubsystem::CreateAttachPhysicsComponent(settings);
 }
 
