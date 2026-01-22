@@ -102,8 +102,8 @@ void Blainn::Scene::Update()
          
             // commented this cause camera ViewMatrix is updated every frame depends on dirty flag and position
             
-            //Mat4 camViewMat = GetWorldSpaceTransformMatrix(*camEntity)/*.Invert()*/;
-            //cam->SetViewMatrix(camViewMat);
+            Mat4 camViewMat = GetWorldSpaceTransformMatrix(*camEntity).Invert();
+            cam->SetViewMatrix(camViewMat);
 
             cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
             RenderSubsystem::GetInstance().SetCamera(cam);

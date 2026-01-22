@@ -251,6 +251,12 @@ inline void GetPhysics(const YAML::Node &node, const Entity &entity)
     float gravityFactor = node["GravityFactor"].as<float>();
     bool isTrigger = node["IsTrigger"].as<bool>();
     ObjectLayer layer = static_cast<ObjectLayer>(node["ObjectLayer"].as<int>());
+    uint8_t constraints = static_cast<uint8_t>(Blainn::AllowedDOFs::All);
+
+    if (node["Constraints"])
+    {
+        constraints = static_cast<uint8_t>(node["Constraints"].as<uint32_t>());
+    }
 
     ShapeCreationSettings shapeSettings(shapeType);
 

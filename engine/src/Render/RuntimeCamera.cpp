@@ -8,6 +8,6 @@
 namespace Blainn {
     void RuntimeCamera::Update(float dt)
     {
-        Super::Update(dt);
+        //Super::Update(dt);
     }
 } // Blainn

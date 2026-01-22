@@ -127,7 +127,7 @@ void Blainn::RegisterNavigationTypes(sol::state &luaState)
                                           return false;
                                       }
                                       Vec3 dummy;
-                                      return controller->GetDesiredDirection(dummy, 0.5f);
+                                      return controller->IsMoving();
                                   });
 
     AIControllerType.set_function("GetBlackboard",

@@ -6,6 +6,7 @@ using PhysicsComponentMotionType = JPH::EMotionType;
 using EActivation = JPH::EActivation;
 using ObjectLayer = JPH::ObjectLayer;
 using AABox = JPH::AABox;
+using AllowedDOFs = JPH::EAllowedDOFs;
 
 enum class ComponentShapeType
 {
