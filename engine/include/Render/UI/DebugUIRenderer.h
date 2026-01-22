@@ -18,6 +18,8 @@ public:
 
     void DrawDebugUI();
 
+    bool IsGizmoHovered() const { return m_isGizmoHovered; }
+
 private:
     void DrawWorldGrid();
     void DrawGizmo();
@@ -33,11 +35,13 @@ public:
 
     bool ShouldDrawWorldGrid = true;
     bool ShouldDrawGizmo = true;
-    bool IsGizmoHovered = false;
     bool UseSnap = false;
-    Vec3 SnapValue = {5.0f, 5.0f, 5.0f};
+    float TranslationSnapValue = 0.5f;
+    float RotationSnapValue = 5.0f;
+    float ScaleSnapValue = 0.1f;
 
 private:
     Input::EventHandle h_keyPressed;
+    bool m_isGizmoHovered = false;
 };
 }

@@ -150,7 +150,7 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
 uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
 {
     BLAINN_PROFILE_FUNC();
-    if (m_UIRenderer->GetDebugUIRenderer().IsGizmoHovered)
+    if (m_UIRenderer->GetDebugUIRenderer().IsGizmoHovered())
         return Engine::GetSelectionManager().GetSelectedUUID();
     if (x > m_width || y > m_height)
         return uuid{0, 0};

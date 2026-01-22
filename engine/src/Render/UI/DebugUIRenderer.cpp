@@ -44,7 +44,7 @@ void DebugUIRenderer::Destroy()
     Input::RemoveEventListener(InputEventType::KeyPressed, h_keyPressed);
     ShouldDrawGizmo = false;
     ShouldDrawWorldGrid = false;
-    IsGizmoHovered = false;
+    m_isGizmoHovered = false;
 }
 
 void DebugUIRenderer::DrawDebugUI()
@@ -89,7 +89,7 @@ void DebugUIRenderer::DrawWorldGrid()
 
 void DebugUIRenderer::DrawGizmo()
 {
-    IsGizmoHovered = false;
+    m_isGizmoHovered = false;
     auto selectedUuid = Engine::GetSelectionManager().GetSelectedUUID();
     Entity selectedEntity = Engine::GetActiveScene()->TryGetEntityWithUUID(selectedUuid);
 
@@ -99,17 +99,24 @@ void DebugUIRenderer::DrawGizmo()
 
         //static ImGuizmo::OPERATION mCurrentGizmoOperation(static_cast<ImGuizmo::OPERATION>(ImGuizmo::UNIVERSAL ^ ImGuizmo::ROTATE_SCREEN));
         ImGuizmo::OPERATION mCurrentGizmoOperation = ImGuizmo::TRANSLATE;//(ImGuizmo::ROTATE_X | ImGuizmo::ROTATE_Y | ImGuizmo::ROTATE_Z);
+        Vec3 snapValue = {};
         switch (SelectedGizmoMode)
         {
         case GizmoOperationModes::TRANSLATE:
             mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+            snapValue = Vec3{TranslationSnapValue};
             break;
         case GizmoOperationModes::ROTATE:
             mCurrentGizmoOperation = ImGuizmo::ROTATE_X | ImGuizmo::ROTATE_Y | ImGuizmo::ROTATE_Z;
+            snapValue = Vec3{RotationSnapValue};
             break;
         case GizmoOperationModes::SCALE:
             mCurrentGizmoOperation = ImGuizmo::SCALE;
+            snapValue = Vec3{ScaleSnapValue};
             break;
+        default:
+            mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+            snapValue = Vec3{TranslationSnapValue};
         }
         static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
 
@@ -124,11 +131,11 @@ void DebugUIRenderer::DrawGizmo()
             mCurrentGizmoMode,
             reinterpret_cast<float*>(&matrix.m),
             NULL,
-            UseSnap ? reinterpret_cast<float*>(&SnapValue) : nullptr
+            UseSnap ? reinterpret_cast<float*>(&snapValue) : nullptr
             );
         Engine::GetActiveScene()->SetFromWorldSpaceTransformMatrix(selectedEntity, matrix);
 
-        IsGizmoHovered = ImGuizmo::IsOver();
+        m_isGizmoHovered = ImGuizmo::IsOver();
     }
 }
 

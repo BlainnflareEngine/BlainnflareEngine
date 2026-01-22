@@ -6,6 +6,7 @@
 #pragma once
 #include "DebugUIRenderer.h"
 #include "Input/InputSubsystem.h"
+#include "d3d12.h"
 
 namespace Blainn
 {
