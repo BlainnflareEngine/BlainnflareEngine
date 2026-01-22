@@ -181,6 +181,10 @@ set(ENGINE_SOURCES
         include/tools/SelectionManager.h
         src/tools/SelectionManager.cpp
         src/scripting/type-registration/UUIDToLua.cpp
+        include/Render/UI/UIRenderer.h
+        include/Render/UI/DebugUIRenderer.h
+        src/Render/UI/UIRenderer.cpp
+        src/Render/UI/DebugUIRenderer.cpp
 )
 
 file(GLOB IMGUI_SOURCES

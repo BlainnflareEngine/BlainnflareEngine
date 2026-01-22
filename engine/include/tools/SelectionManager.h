@@ -8,13 +8,15 @@
 #include "aliases.h"
 #include "EASTL/vector.h"
 #include "eventpp/eventdispatcher.h"
+#include "Input/InputSubsystem.h"
 
 namespace Blainn
 {
 class SelectionManager
 {
 public:
-    SelectionManager() = default;
+    SelectionManager();
+    ~SelectionManager();
 
     void SelectAt(const uint32_t x, const uint32_t y, bool keepSelection = false);
     void SelectUUID(uuid id, bool keepSelection = false);
@@ -28,5 +30,7 @@ private:
     eastl::vector<uuid> m_selectedUUIDs{20};
 
     uuid m_selectedUUID;
+
+    Input::EventHandle m_lmbInputHandle;
 };
 }
