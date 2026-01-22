@@ -99,6 +99,11 @@ editor_main::editor_main(QWidget *parent)
 
 editor_main::~editor_main()
 {
+    for (auto &[event, type] : m_sceneEvents)
+    {
+        Blainn::Scene::RemoveEventListener(type, event);
+    }
+
     delete ui;
 }
 
