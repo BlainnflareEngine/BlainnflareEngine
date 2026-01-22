@@ -63,3 +63,13 @@ inline Blainn::Vec3 GetNormalizedPerpendicular(const Blainn::Vec3 &vector)
         return Blainn::Vec3(0.0f, vector.z, -vector.y) / len;
     }
 }
+
+inline int ConvertDXColorToQColor(float color)
+{
+    return static_cast<int>(std::round(color * 255.0f));
+}
+
+inline float ConvertQColorToDXColor(int color)
+{
+    return static_cast<float>(color) / 255.0f;
+}

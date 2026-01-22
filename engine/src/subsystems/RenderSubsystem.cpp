@@ -24,12 +24,13 @@
 #include "Render/RuntimeCamera.h"
 #include "Render/DDSTextureLoader.h"
 #include "Render/UI/UIRenderer.h"
-
-#include <cassert>
+#include "Render/GTexture.h"
 
 #include "PhysicsSubsystem.h"
-#include "components/PhysicsComponent.h"
-#include "Render/GTexture.h"
+#include "Components/PhysicsComponent.h"
+#include "Components/LightComponent.h"
+
+#include <cassert>
 
 namespace Blainn
 {
@@ -906,8 +907,7 @@ void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
         m_perMaterialSBData = MaterialData();
         if (materials[matIndex] /* && materials[matIndex]->IsFramesDirty()*/)
         {
-            XMStoreFloat4x4(&m_perMaterialSBData.MatTransform,
-                            XMMatrixTranspose(materials[matIndex]->GetMaterialTransform()));
+            XMStoreFloat4x4(&m_perMaterialSBData.MatTransform, XMMatrixTranspose(materials[matIndex]->GetMaterialTransform()));
 
             m_perMaterialSBData.DiffuseAlbedo = materials[matIndex]->GetDefaultAldedo();
             // m_perMaterialSBData.FresnelR0 = mat->FresnelR0;
@@ -928,9 +928,10 @@ void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
                 materials[matIndex]->HasTexture(TextureType::METALLIC)
                     ? materials[matIndex]->GetTextureHandle(TextureType::METALLIC).GetIndex()
                     : static_cast<uint32_t>(-1);
+
             // m_perMaterialSBData.AOMapIndex = materials[matIndex]->GetTextureHandle(TextureType::AO).GetIndex();
 
-            // currMaterialDataSB->CopyData(matIndex, m_perMaterialSBData);
+            //currMaterialDataSB->CopyData(matIndex, m_perMaterialSBData);
 
             materials[matIndex]->FrameResetDirtyFlags();
         }
@@ -1021,9 +1022,15 @@ void Blainn::RenderSubsystem::UpdateDeferredPassCB(float deltaTime)
 
 #pragma region DirLight
     // Invert sign because other way light would be pointing up
-    XMVECTOR lightDir = -FreyaMath::SphericalToCarthesian(1.0f, m_sunTheta, m_sunPhi);
-    XMStoreFloat3(&m_mainPassCBData.DirLight.Direction, lightDir);
-    m_mainPassCBData.DirLight.Strength = {1.0f, 1.0f, 0.9f};
+    const auto &dirLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<TransformComponent, DirectionalLightComponent>();
+    for (const auto &[entity, transform, entityLight] : dirLightEntitiesView.each())
+    {
+        //XMVECTOR lightDir = -FreyaMath::SphericalToCarthesian(1.0f, m_sunTheta, m_sunPhi);
+        //XMStoreFloat3(&m_mainPassCBData.DirLight.Direction, lightDir);
+        m_mainPassCBData.DirLight.Color = entityLight.Color;
+        BF_DEBUG("Forward {} {} {}", transform.GetForwardVector().x, transform.GetForwardVector().y, transform.GetForwardVector().z);
+        m_mainPassCBData.DirLight.Direction = transform.GetForwardVector();
+    }
 #pragma endregion DirLight
 
     auto currPassCB = m_currFrameResource->PassCB.get();

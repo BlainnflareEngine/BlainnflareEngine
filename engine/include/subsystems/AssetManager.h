@@ -25,7 +25,7 @@ struct ImportMeshData;
     #define MAX_MATERIALS 64
 #endif
 #ifndef MAX_MESHES
-    #define MAX_MESHES 64
+    #define MAX_MESHES 128
 #endif
 
 class AssetManager
@@ -38,6 +38,8 @@ class AssetManager
         int refCount;
     };
 
+    void LoadPrebuiltMeshes();
+
 public:
     NO_COPY_NO_MOVE(AssetManager);
 
@@ -45,6 +47,7 @@ public:
 
     void Init();
     void Destroy();
+
 
     bool HasMesh(const Path &relativePath);
     eastl::shared_ptr<MeshHandle> GetMesh(const Path &relativePath);
