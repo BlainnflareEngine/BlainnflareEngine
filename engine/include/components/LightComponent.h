@@ -8,7 +8,6 @@ namespace Blainn
 {
     enum class ELightType
     {
-        NONE = -1,
         Directional,
         Point,
         Spot,
@@ -19,21 +18,49 @@ namespace Blainn
     {
         LightComponent()
         {
-
         }
 
-        LightComponent(const eastl::shared_ptr<MeshHandle> &meshHandle)
+        LightComponent(const LightComponent& other)
         {
-            MeshHandle = meshHandle;
+
         }
 
-        LightComponent(eastl::shared_ptr<MeshHandle>&& meshHandle)
+        LightComponent(LightComponent &&other)
         {
-            MeshHandle = eastl::move(meshHandle);
-        }
 
-        eastl::shared_ptr<MeshHandle> MeshHandle;
-        LightData Light;
-        ELightType LightType = ELightType::NONE;
+        }
+        XMFLOAT4 Color = {1.0f, 1.0f, 1.0f, 1.0f};
     };
+
+    struct DirectionalLight : public LightComponent
+    {
+        DirectionalLight()
+        {
+
+        }
+
+        XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
+    };
+
+    struct PointLight : public LightComponent
+    {
+        PointLight()
+        {
+        }
+
+        float Range;
+    };
+
+    struct SpotLight : public LightComponent
+    {
+        SpotLight()
+        {
+        }
+
+        XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
+        float Range;
+        float SpotInnerAngle;
+        float SpotOuterAngle;
+    };
+
 } // namespace Blainn
