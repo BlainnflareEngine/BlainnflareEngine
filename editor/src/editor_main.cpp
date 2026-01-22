@@ -85,6 +85,15 @@ editor_main::editor_main(QWidget *parent)
             []() { QDesktopServices::openUrl(QUrl("https://youtu.be/xvFZjo5PgG0?list=RDxvFZjo5PgG0")); });
 
     connect(ui->m_viewportSettings, &QToolButton::clicked, this, &editor_main::OnViewportSettingsClicked);
+
+    m_sceneEvents.emplace_back(
+        Blainn::Scene::AddEventListener(Blainn::SceneEventType::SceneChanged,
+                                        [this](const Blainn::SceneEventPointer &event)
+                                        {
+                                            auto sceneEvent = static_cast<Blainn::SceneChangedEvent *>(event.get());
+                                            this->ui->m_sceneName->setText(sceneEvent->GetName().c_str());
+                                        }),
+        Blainn::SceneEventType::SceneChanged);
 }
 
 

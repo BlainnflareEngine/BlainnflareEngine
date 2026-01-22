@@ -6,6 +6,7 @@
 
 #include "context-menu/SceneContextMenu.h"
 #include "inspector_widget.h"
+#include "scene/Scene.h"
 
 
 #include <QMainWindow>
@@ -47,7 +48,9 @@ private:
 
     void OpenAddToScene() const;
 
-    QMenu* m_viewportSettingsMenu = nullptr;
+    QMenu *m_viewportSettingsMenu = nullptr;
+
+    eastl::vector<eastl::pair<Blainn::Scene::EventHandle, Blainn::SceneEventType>> m_sceneEvents;
 
 private slots:
     void OnOpenSettings();
