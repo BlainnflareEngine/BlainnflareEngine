@@ -70,7 +70,7 @@ cbuffer cbPerPass : register(b1)
     //float gFogStart;
     //float gFogRange;
     
-    Light gDirLight;
+    DirectionalLight gDirLight;
 };
 
 StructuredBuffer<MaterialData> gMaterialData : register(t0);
