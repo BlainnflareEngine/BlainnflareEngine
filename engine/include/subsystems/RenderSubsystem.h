@@ -88,6 +88,15 @@ public:
         return *m_debugRenderer;
     }
 
+    const UIRenderer &GetUIRenderer() const
+    {
+        return *m_UIRenderer;
+    }
+    UIRenderer &GetUIRenderer()
+    {
+        return *m_UIRenderer;
+    }
+
     void SetCamera(Camera *camera)
     {
         m_camera = camera;

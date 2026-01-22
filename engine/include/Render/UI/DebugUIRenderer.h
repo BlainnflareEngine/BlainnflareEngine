@@ -34,7 +34,7 @@ public:
     bool ShouldDrawWorldGrid = true;
     bool ShouldDrawGizmo = true;
     bool IsGizmoHovered = false;
-    bool UseSnap = true;
+    bool UseSnap = false;
     Vec3 SnapValue = {5.0f, 5.0f, 5.0f};
 
 private:
