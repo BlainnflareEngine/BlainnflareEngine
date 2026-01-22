@@ -59,8 +59,15 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
                                                                { this->OnSceneChanged(event); }),
                                Blainn::SceneEventType::SceneChanged);
 
+    /*
     m_selectionHandle =
-        Blainn::Engine::GetSelectionManager().CallbackList.append([this](Blainn::uuid id) { ChangeSelection(id); });
+        Blainn::Engine::GetSelectionManager().CallbackList.append([this](Blainn::uuid id) {BLAINN_PROFILE_SCOPE(QtSceneWidgetPickingCallback); ChangeSelection(id); });
+*/
+    m_selectionHandle = Blainn::Engine::GetSelectionManager().AddCallback(
+        [this](Blainn::uuid id){
+            BLAINN_PROFILE_SCOPE(QtSceneWidgetPickingCallback);
+            ChangeSelection(id);
+        });
 }
 
 scene_hierarchy_widget::~scene_hierarchy_widget()
@@ -68,7 +75,7 @@ scene_hierarchy_widget::~scene_hierarchy_widget()
     for (auto &[event, type] : m_sceneEvents)
         Blainn::Scene::RemoveEventListener(type, event);
 
-    Blainn::Engine::GetSelectionManager().CallbackList.remove(m_selectionHandle);
+    Blainn::Engine::GetSelectionManager().RemoveCallback(m_selectionHandle);
 
     delete ui;
 }
@@ -285,24 +292,45 @@ void scene_hierarchy_widget::keyPressEvent(QKeyEvent *event)
 
 void scene_hierarchy_widget::ChangeSelection(Blainn::uuid id)
 {
-    auto index = SceneItemModel::FindIndexByEntity(m_sceneModel, id);
+    BLAINN_PROFILE_FUNC()
 
-    setCurrentIndex(index);
+    QModelIndex index;
+    {
+        BLAINN_PROFILE_SCOPE(FindIndexByEntity);
+        index = SceneItemModel::FindIndexByEntity(m_sceneModel, id);
+    }
 
+    {
+        BLAINN_PROFILE_SCOPE(SetCurrentIndex);
+        setCurrentIndex(index);
+    }
+
+    {
+        BLAINN_PROFILE_SCOPE(InvalidIndexReturn0);
     if (!index.isValid())
     {
         Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
         return;
     }
+    }
 
-    auto entity = SceneItemModel::GetNodeFromIndex(index);
     InspectorFabric fabric;
     EntityInspectorData data;
+    {
+        BLAINN_PROFILE_SCOPE(GetEntityData);
+    auto entity = SceneItemModel::GetNodeFromIndex(index);
     data.tag = entity->GetName();
     data.node = entity;
-
-    auto inspector = fabric.GetEntityInspector(data);
-    Blainn::Editor::GetInstance().GetInspector().SetItem(inspector);
+    }
+    entity_inspector_content *inspector;
+    {
+        BLAINN_PROFILE_SCOPE(GetEntityInspectorContent);
+        inspector = fabric.GetEntityInspector(data);
+    }
+    {
+        BLAINN_PROFILE_SCOPE(SetItem);
+        Blainn::Editor::GetInstance().GetInspector().SetItem(inspector);
+    }
 }
 
 

@@ -67,8 +67,11 @@ public:
         BLAINN_PROFILE_FUNC();
         using namespace DirectX::SimpleMath;
         transform.Decompose(Scale, Rotation, Translation);
+        /*
         Vec3 re = Rotation.ToEuler();
         EulerRotation = Vec3{re.y, re.x, re.z};
+        */
+        EulerRotation = Rotation.ToEuler();
 
         MarkFramesDirty();
     }
@@ -118,46 +121,9 @@ public:
     {
         BLAINN_PROFILE_FUNC();
         using namespace DirectX::SimpleMath;
-        auto warpToPi = [](const Vec3 v)
-        {
-            constexpr auto piVec = Vec3(DirectX::XM_PI);
-            const auto x = v + piVec;
-            const auto y = 2 * piVec;
 
-            const auto mod = x - y * Vec3(DirectX::XMVectorFloor(x / y));
-            return mod - piVec;
-        };
-
-        const auto originalEuler = EulerRotation;
         Rotation = rotation;
-        EulerRotation = Rotation.ToEuler();
-
-        Vec3 alternatives[4] = {
-            {EulerRotation.y - DirectX::XM_PI, EulerRotation.x - DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
-            {EulerRotation.y - DirectX::XM_PI, EulerRotation.x + DirectX::XM_PI, EulerRotation.z - DirectX::XM_PI},
-            {EulerRotation.y - DirectX::XM_PI, EulerRotation.x + DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI},
-            {EulerRotation.y - DirectX::XM_PI, EulerRotation.x - DirectX::XM_PI, EulerRotation.z + DirectX::XM_PI}};
-
-        float distances[5] = {(warpToPi(EulerRotation - originalEuler)).LengthSquared(),
-                              (warpToPi(alternatives[0] - originalEuler)).LengthSquared(),
-                              (warpToPi(alternatives[1] - originalEuler)).LengthSquared(),
-                              (warpToPi(alternatives[2] - originalEuler)).LengthSquared(),
-                              (warpToPi(alternatives[3] - originalEuler)).LengthSquared()};
-
-        float best = distances[0];
-        int bestIndex = 0;
-        for (const auto &distance : distances)
-        {
-            if (distance < best)
-            {
-                best = distance;
-                EulerRotation = alternatives[bestIndex];
-            }
-            bestIndex++;
-        }
-
-        EulerRotation = warpToPi(EulerRotation);
-        MarkFramesDirty();
+        EulerRotation = rotation.ToEuler();
     }
 
 

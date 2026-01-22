@@ -46,6 +46,9 @@ namespace Blainn
         // this is not working, we didn't yet bother to render text!
         virtual void DrawText3D(JPH::RVec3Arg inPosition, const std::string_view &inString, JPH::ColorArg inColor, float inHeight) override {}
 
+        void SetDebugEnabled(bool value) {m_bIsDebugEnabled = value;}
+        void ClearDebugList() {m_lineListVertices.clear();}
+
     private:
         void CreateRootSignature();
         void CompileShaders();
@@ -56,6 +59,7 @@ namespace Blainn
         DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
         bool m_bIsRenderPassOngoing = false;
+        bool m_bIsDebugEnabled = false;
 
         Device& m_device;
 

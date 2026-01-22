@@ -100,6 +100,8 @@ void DebugRenderer::SetViewProjMatrix(const Mat4 &viewProjMat)
 
 void Blainn::DebugRenderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor)
 {
+    if (!m_bIsDebugEnabled)
+        return;
     Color col = {inColor.r / 255.f, inColor.g / 255.f, inColor.b / 255.f, inColor.a / 255.f};
     Vec3 from = {inFrom.GetX(), inFrom.GetY(), inFrom.GetZ()};
     Vec3 to = {inTo.GetX(), inTo.GetY(), inTo.GetZ()};
@@ -109,12 +111,16 @@ void Blainn::DebugRenderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, J
 void Blainn::DebugRenderer::DrawLine(Vec3 inFrom, Vec3 inTo, Color color)
 {
     BLAINN_PROFILE_SCOPE(DrawLine);
+    if (!m_bIsDebugEnabled)
+        return;
     m_lineListVertices.push_back({inFrom, color});
     m_lineListVertices.push_back({inTo, color});
 }
 
 void DebugRenderer::DrawArrow(Vec3 inFrom, Vec3 inTo, Color color, float size)
 {
+    if (!m_bIsDebugEnabled)
+        return;
     DrawLine(inFrom, inTo, color);
 
     if (size > 0.0f)
@@ -133,6 +139,8 @@ void DebugRenderer::DrawArrow(Vec3 inFrom, Vec3 inTo, Color color, float size)
 void DebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor,
                                  ECastShadow inCastShadow)
 {
+    if (!m_bIsDebugEnabled)
+        return;
     // DebugRendererSimple::DrawTriangle(inV1, inV2, inV3, inColor, inCastShadow);
     const Color col = {inColor.r / 255.f, inColor.g / 255.f, inColor.b / 255.f, inColor.a / 255.f};
     const Vec3 V1 = {inV1.GetX(), inV1.GetY(), inV1.GetZ()};
@@ -145,6 +153,8 @@ void DebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RV
 void DebugRenderer::DrawTriangle(Vec3 inV1, Vec3 inV2, Vec3 inV3, Color inColor)
 {
     BLAINN_PROFILE_SCOPE(DrawTriangle);
+    if (!m_bIsDebugEnabled)
+        return;
     VertexPositionColor lineVertices[] = {{inV1, inColor}, {inV2, inColor}, {inV3, inColor}, {inV1, inColor}};
     m_lineListVertices.push_back({inV1, inColor});
     m_lineListVertices.push_back({inV2, inColor});
@@ -159,6 +169,8 @@ void DebugRenderer::DrawTriangle(Vec3 inV1, Vec3 inV2, Vec3 inV3, Color inColor)
 
 void DebugRenderer::DrawWireBox(Vec3 min, Vec3 max, Color color)
 {
+    if (!m_bIsDebugEnabled)
+        return;
     JPH::Vec3 vmin = {min.x, min.y, min.z};
     JPH::Vec3 vmax = {max.x, max.y, max.z};
     JPH::AABox box = {vmin, vmax};
@@ -172,6 +184,8 @@ void DebugRenderer::DrawWireBox(Vec3 min, Vec3 max, Color color)
 
 void DebugRenderer::DrawWireBox(Mat4 matrix, Vec3 min, Vec3 max, Color color)
 {
+    if (!m_bIsDebugEnabled)
+        return;
     JPH::Vec3 vmin = {min.x, min.y, min.z};
     JPH::Vec3 vmax = {max.x, max.y, max.z};
     JPH::AABox box = {vmin, vmax};
@@ -193,6 +207,8 @@ void DebugRenderer::DrawWireBox(Mat4 matrix, Vec3 min, Vec3 max, Color color)
 
 void DebugRenderer::DrawWireSphere(Vec3 center, float radius, Color color)
 {
+    if (!m_bIsDebugEnabled)
+        return;
     JPH::Vec3 V1 = {center.x, center.y, center.z};
 
     JPH::Color col;
@@ -206,6 +222,8 @@ void DebugRenderer::DrawWireSphere(Vec3 center, float radius, Color color)
 
 void DebugRenderer::DrawWireUnitSphere(Mat4 matrix, Color color)
 {
+    if (!m_bIsDebugEnabled)
+        return;
     JPH::Color col;
     col.r = floor(color.R() * 255);
     col.g = floor(color.G() * 255);
@@ -224,6 +242,8 @@ void DebugRenderer::DrawWireUnitSphere(Mat4 matrix, Color color)
 
 void DebugRenderer::DrawCapsule(Mat4 matrix, float halfHeightOfCylinder, float radius, Color color)
 {
+    if (!m_bIsDebugEnabled)
+        return;
     JPH::Color col;
     col.r = floor(color.R() * 255);
     col.g = floor(color.G() * 255);
@@ -242,6 +262,8 @@ void DebugRenderer::DrawCapsule(Mat4 matrix, float halfHeightOfCylinder, float r
 
 void DebugRenderer::DrawCylinder(Mat4 matrix, float halfHeight, float radius, Color color)
 {
+    if (!m_bIsDebugEnabled)
+        return;
     JPH::Color col;
     col.r = floor(color.R() * 255);
     col.g = floor(color.G() * 255);

@@ -33,19 +33,24 @@ SelectionManager::~SelectionManager()
 
 void SelectionManager::SelectAt(const uint32_t x, const uint32_t y, bool keepSelection)
 {
+    BLAINN_PROFILE_FUNC()
     uuid newID = RenderSubsystem::GetInstance().GetUUIDAt(x, y);
 
     if (newID == m_selectedUUID)
         return;
 
-    CallbackList(newID);
     m_selectedUUID = newID;
+    for (auto& cbf : m_Callbacks)
+        cbf(newID);
 }
 
 void SelectionManager::SelectUUID(uuid id, bool keepSelection)
 {
-    CallbackList(id);
+    if (id == m_selectedUUID)
+        return;
     m_selectedUUID = id;
+    for (auto& cbf : m_Callbacks)
+        cbf(id);
 }
 
 void SelectionManager::DeselectAll()

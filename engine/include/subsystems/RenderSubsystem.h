@@ -69,10 +69,7 @@ public:
         m_swapChain->ToggleFullscreen();
     }
 
-    void SetEnableDebug(bool newValue)
-    {
-        m_enableDebugLayer = newValue;
-    }
+    void SetEnableDebug(bool newValue);
 
     bool DebugEnabled() const
     {
