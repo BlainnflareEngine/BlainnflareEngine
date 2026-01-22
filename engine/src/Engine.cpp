@@ -25,7 +25,7 @@ using namespace Blainn;
 
 void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
 {
-#if defined(DEBUG) || defined(_DEBUG)
+#if (defined(DEBUG) || defined(_DEBUG)) && !defined(BLAINN_DISABLE_D3D_DEBUG_LAYER)
     // Enable the debug layer (requires the Graphics Tools "optional feature").
     // NOTE: Enabling the debug layer after device creation will invalidate the active device.
     Device::CreateDebugLayer();

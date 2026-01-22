@@ -19,9 +19,10 @@ const int gNumFrameResources = 3;
 
 class DebugRenderer;
 class Device;
-class RootSignature;
 struct FrameResource;
+class RootSignature;
 class SelectionManager;
+class UIRenderer;
 
 class RenderSubsystem
 {
@@ -229,6 +230,7 @@ private:
     eastl::unordered_map<PipelineStateObject::EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
 
     eastl::unique_ptr<Blainn::DebugRenderer> m_debugRenderer;
+    eastl::unique_ptr<Blainn::UIRenderer> m_UIRenderer;
 
     RenderTarget m_uuidRenderTarget;
 
@@ -293,5 +295,8 @@ private:
     {
         return m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
     }
+
+    // Probably not the best idea, but it is what it is ;=
+    friend class UIRenderer;
 };
 } // namespace Blainn

@@ -20,7 +20,7 @@ public:
         : QWidget(parent)
     {
         setFocusPolicy(Qt::ClickFocus);
-        setMouseTracking(false);
+        setMouseTracking(true);
     }
 
 protected:
@@ -53,14 +53,6 @@ protected:
         int eventButton = static_cast<int>(event->button());
         Blainn::Input::UpdateButtonState(static_cast<Blainn::MouseButton>(--eventButton),
                                          Blainn::ButtonState::Pressed);
-
-        if (event->button() == Qt::MouseButton::LeftButton)
-        {
-            uint32_t xPos = event->x();
-            uint32_t yPos = event->y();
-            Blainn::Engine::GetSelectionManager().SelectAt(xPos, yPos);
-        }
-
         QWidget::mousePressEvent(event);
         setFocus();
     }

@@ -9,6 +9,7 @@ cmake_policy(SET CMP0169 OLD)
 add_compile_options(/EHsc)
 
 option(BLAINN_EXCLUDE_EDITOR "Build the engine without the editor" OFF)
+option(BLAINN_DISABLE_D3D_DEBUG_LAYER "Disable debug layer for better performance" OFF)
 
 set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "Disable RecastDemo (we don't need SDL2)" FORCE)
 set(RECASTNAVIGATION_EXAMPLES OFF CACHE BOOL "Disable examples" FORCE)
@@ -34,6 +35,10 @@ add_compile_definitions(
 
 if(TRACY_ENABLE)
     add_compile_definitions("TRACY_ENABLE;BLAINN_ENABLE_PROFILING=1")
+endif()
+
+if(BLAINN_DISABLE_D3D_DEBUG_LAYER)
+    add_compile_definitions("BLAINN_DISABLE_D3D_DEBUG_LAYER")
 endif()
 
 set(PROJECT_NAME
