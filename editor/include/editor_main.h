@@ -56,7 +56,7 @@ private slots:
     void OnBuildNavMesh();
 
     void OnStartPlayMode();
-    void OnStopPlayMode();
+    void OnStopPlayModeToggle();
 
     void OnViewportSettingsClicked();
 };

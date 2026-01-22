@@ -27,10 +27,10 @@ public:
     static float GetDeltaTime();
 
     static void StartPlayMode();
-    static void StopPlayMode();
+    static void TogglePausePlayMode();
     static void EscapePlayMode();
     static bool IsPlayMode();
-
+    static bool PlayModePaused();
 
 public:
     static Path &GetContentDirectory();
@@ -47,7 +47,10 @@ public:
                                    const std::string &winClassTitle, HINSTANCE hInst);
     static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-    static SelectionManager& GetSelectionManager() {return m_selectionManager;}
+    static SelectionManager &GetSelectionManager()
+    {
+        return m_selectionManager;
+    }
 
 private:
     static inline SelectionManager m_selectionManager = SelectionManager();
@@ -57,6 +60,7 @@ private:
     static inline Path s_contentDirectory;
     static inline Timeline<eastl::chrono::milliseconds> s_playModeTimeline{nullptr};
     static inline bool s_isPlayMode = false;
+    static inline bool s_playModePaused = false;
     static inline float s_deltaTime = 0.0f;
 };
 } // namespace Blainn

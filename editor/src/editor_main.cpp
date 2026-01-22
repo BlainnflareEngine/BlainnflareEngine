@@ -13,6 +13,7 @@
 #include "ui_editor_main.h"
 #include "Navigation/NavigationSubsystem.h"
 #include "components/NavMeshVolumeComponent.h"
+#include "oclero/qlementine/style/QlementineStyle.hpp"
 
 #include <QDesktopServices>
 #include <QListView>
@@ -32,6 +33,8 @@ editor_main::editor_main(QWidget *parent)
 
     ui->folderContent->AddAdditionalView(ui->folders->GetTreeView());
     ui->folders->AddAdditionalView(ui->folderContent->GetListView());
+
+    ui->m_stopButton->setCheckable(true);
 
     connect(ui->folders, &folders_widget::folderSelected, ui->folderContent,
             &folder_content_widget::OnFolderSelectedPath);
@@ -59,7 +62,7 @@ editor_main::editor_main(QWidget *parent)
 
 
     connect(ui->m_playButton, &QPushButton::clicked, this, &editor_main::OnStartPlayMode);
-    connect(ui->m_stopButton, &QPushButton::clicked, this, &editor_main::OnStopPlayMode);
+    connect(ui->m_stopButton, &QPushButton::toggled, this, &editor_main::OnStopPlayModeToggle);
 
     // Action bar
     ui->actionSave->setShortcut(Qt::CTRL + Qt::Key_S);
@@ -179,13 +182,9 @@ void editor_main::OnStartPlayMode()
     }
 }
 
-
-void editor_main::OnStopPlayMode()
+void editor_main::OnStopPlayModeToggle()
 {
-    if (Blainn::Engine::IsPlayMode())
-    {
-        Blainn::Engine::StopPlayMode();
-    }
+    Blainn::Engine::TogglePausePlayMode();
 }
 
 void editor_main::OnViewportSettingsClicked()
