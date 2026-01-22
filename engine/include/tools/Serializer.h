@@ -119,6 +119,8 @@ public:
         out << YAML::Key << "Path" << aiController.scriptPath.c_str();
         out << YAML::Key << "MovementSpeed" << aiController.MovementSpeed;
         out << YAML::Key << "StoppingDistance" << aiController.StoppingDistance;
+        out << YAML::Key << "GroundOffset" << aiController.GroundOffset;
+
         out << YAML::EndMap;
     }
 
@@ -155,6 +157,7 @@ public:
         out << YAML::Key << "MotionType" << YAML::Value << static_cast<int>(motionType);
         out << YAML::Key << "GravityFactor" << YAML::Value << gravityFactor;
         out << YAML::Key << "IsTrigger" << YAML::Value << body.isTrigger();
+        out << YAML::Key << "Constraints" << YAML::Value << static_cast<uint32_t>(body.GetAllowedDOFs());
 
         Transform(entity, out);
 

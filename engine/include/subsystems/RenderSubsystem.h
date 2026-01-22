@@ -111,6 +111,7 @@ private:
     // Record all the commands we need to render the scene into the command list.
     void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
     void InitializeWindow();
+    void InitializeImGui();
 
 #pragma region BoilerplateD3D12
     VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter,
@@ -139,9 +140,11 @@ private:
     void UpdateObjectsCB(float deltaTime);
     void UpdateMaterialBuffer(float deltaTime);
     void UpdateShadowTransform(float deltaTime);
+
     void UpdateShadowPassCB(float deltaTime);
     void UpdateGeometryPassCB(float deltaTime);
-    void UpdateMainPassCB(float deltaTime);
+    void UpdateDeferredPassCB(float deltaTime);
+    void UpdateForwardPassCB(float deltaTime);
 
 private:
 #pragma region Shadows
@@ -164,6 +167,7 @@ private:
     void RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList);
 
     void RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList);
+    void RenderImGuiPass(ID3D12GraphicsCommandList2 *pCommandList);
 
     void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource *pResource,
                          D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);

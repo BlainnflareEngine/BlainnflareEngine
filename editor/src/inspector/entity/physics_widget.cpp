@@ -19,7 +19,7 @@ namespace editor
 physics_widget::physics_widget(const Blainn::Entity &entity, QWidget *parent)
     : component_widget_base(entity, "Physics", parent)
 {
-    m_isTrigger = new bool_input_field("Is Trigger", false, QColor(), this);
+    m_isTrigger = new bool_input_field("Is Trigger", false, this);
 
     m_gravityFactor = new float_input_field("Gravity", 1.0f, this);
     m_gravityFactor->SetDecimals(2);
@@ -34,9 +34,6 @@ physics_widget::physics_widget(const Blainn::Entity &entity, QWidget *parent)
 
     m_rotationConstraints = new vector3_bool_widget("Rotation"); // TODO: add default values
     constraintsGroup->AddWidget(m_rotationConstraints);
-
-    m_scaleConstraints = new vector3_bool_widget("Scale"); // TODO: add default values
-    constraintsGroup->AddWidget(m_scaleConstraints);
 
     layout()->addWidget(m_isTrigger);
     layout()->addWidget(m_gravityFactor);
@@ -54,7 +51,6 @@ physics_widget::physics_widget(const Blainn::Entity &entity, QWidget *parent)
     connect(m_gravityFactor, &float_input_field::EditingFinished, this, &physics_widget::OnGravityChanged);
     connect(m_positionConstraints, &vector3_bool_widget::Toggled, this, &physics_widget::OnPositionConstraintsChanged);
     connect(m_rotationConstraints, &vector3_bool_widget::Toggled, this, &physics_widget::OnRotationConstraintsChanged);
-    connect(m_scaleConstraints, &vector3_bool_widget::Toggled, this, &physics_widget::OnScaleConstraintsChanged);
 }
 
 
@@ -282,27 +278,50 @@ void physics_widget::OnExtentsChanged()
 
 void physics_widget::OnPositionConstraintsChanged(const BoolVector3 &value)
 {
+    if (m_rotationConstraints->AllSet() && m_positionConstraints->AllSet())
+    {
+        BF_ERROR("You cannot set all constraints to true! Use static body instead.");
+        m_rotationConstraints->SetValue({false, false, false});
+        m_positionConstraints->SetValue({false, false, false});
+        return;
+    }
+
     if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>()) return;
 
-    // TODO: update constraints
+    Blainn::PhysicsComponent &physicsComponent = m_entity.GetComponent<Blainn::PhysicsComponent>();
+    Blainn::PhysicsComponentSettings settings = physicsComponent.settings;
+    settings.allowedDOFs =
+        UpdateBit<Blainn::AllowedDOFs, uint8_t>(settings.allowedDOFs, Blainn::AllowedDOFs::TranslationX, value.x);
+    settings.allowedDOFs =
+        UpdateBit<Blainn::AllowedDOFs, uint8_t>(settings.allowedDOFs, Blainn::AllowedDOFs::TranslationY, value.y);
+    settings.allowedDOFs =
+        UpdateBit<Blainn::AllowedDOFs, uint8_t>(settings.allowedDOFs, Blainn::AllowedDOFs::TranslationZ, value.z);
+    Blainn::PhysicsSubsystem::CreateAttachPhysicsComponent(settings);
 }
 
 
 void physics_widget::OnRotationConstraintsChanged(const BoolVector3 &value)
 {
+    if (m_rotationConstraints->AllSet() && m_positionConstraints->AllSet())
+    {
+        BF_ERROR("You cannot set all constraints to true! Use static body instead.");
+        m_rotationConstraints->SetValue({false, false, false});
+        m_positionConstraints->SetValue({false, false, false});
+        return;
+    }
+
     if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>()) return;
 
-    // TODO: update constraints
+    Blainn::PhysicsComponent &physicsComponent = m_entity.GetComponent<Blainn::PhysicsComponent>();
+    Blainn::PhysicsComponentSettings settings = physicsComponent.settings;
+    settings.allowedDOFs =
+        UpdateBit<Blainn::AllowedDOFs, uint8_t>(settings.allowedDOFs, Blainn::AllowedDOFs::RotationX, value.x);
+    settings.allowedDOFs =
+        UpdateBit<Blainn::AllowedDOFs, uint8_t>(settings.allowedDOFs, Blainn::AllowedDOFs::RotationY, value.y);
+    settings.allowedDOFs =
+        UpdateBit<Blainn::AllowedDOFs, uint8_t>(settings.allowedDOFs, Blainn::AllowedDOFs::RotationZ, value.z);
+    Blainn::PhysicsSubsystem::CreateAttachPhysicsComponent(settings);
 }
-
-
-void physics_widget::OnScaleConstraintsChanged(const BoolVector3 &value)
-{
-    if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PhysicsComponent>()) return;
-
-    // TODO: update constraints
-}
-
 
 void physics_widget::ShowSphereSettings(float radius)
 {
@@ -406,6 +425,7 @@ void physics_widget::LoadValues()
     Blainn::ObjectLayer objectLayer;
     Blainn::ComponentShapeType shapeType;
     Blainn::PhysicsComponentMotionType motionType;
+    Blainn::AllowedDOFs allowedDofs;
 
     {
         auto body = Blainn::PhysicsSubsystem::GetBodyGetter(m_entity);
@@ -414,6 +434,7 @@ void physics_widget::LoadValues()
         shapeType = body.GetShapeType();
         motionType = body.GetMotionType();
         gravityFactor = motionType == Blainn::PhysicsComponentMotionType::Static ? 0.0f : body.GetGravityFactor();
+        allowedDofs = body.GetAllowedDOFs();
     }
 
     m_isTrigger->setChecked(isTrigger);
@@ -421,6 +442,14 @@ void physics_widget::LoadValues()
     m_objectLayer->SetValue(objectLayer);
     m_shape->SetValue(shapeType);
     m_objectType->SetValue(motionType);
+    m_positionConstraints->SetValue(
+        {!HasBit<Blainn::AllowedDOFs, uint8_t>(allowedDofs, Blainn::AllowedDOFs::TranslationX),
+         !HasBit<Blainn::AllowedDOFs, uint8_t>(allowedDofs, Blainn::AllowedDOFs::TranslationY),
+         !HasBit<Blainn::AllowedDOFs, uint8_t>(allowedDofs, Blainn::AllowedDOFs::TranslationZ)});
+    m_rotationConstraints->SetValue(
+        {!HasBit<Blainn::AllowedDOFs, uint8_t>(allowedDofs, Blainn::AllowedDOFs::RotationX),
+         !HasBit<Blainn::AllowedDOFs, uint8_t>(allowedDofs, Blainn::AllowedDOFs::RotationY),
+         !HasBit<Blainn::AllowedDOFs, uint8_t>(allowedDofs, Blainn::AllowedDOFs::RotationZ)});
     LoadShape();
 }
 
@@ -434,7 +463,6 @@ void physics_widget::BlockSignals(bool value)
     m_objectType->blockSignals(value);
     m_positionConstraints->blockSignals(value);
     m_rotationConstraints->blockSignals(value);
-    m_scaleConstraints->blockSignals(value);
 
     if (m_radius) m_radius->blockSignals(value);
     if (m_halfHeight) m_halfHeight->blockSignals(value);

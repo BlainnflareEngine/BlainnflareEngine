@@ -28,3 +28,24 @@
     x &operator=(const x &) = delete;                                                                                  \
     x(x &&) = delete;                                                                                                  \
     x &operator=(x &&) = delete;
+
+
+template <typename T, typename CastToType = uint32_t> T inline SetBit(T flags, T bit)
+{
+    return static_cast<T>(static_cast<CastToType>(flags) | static_cast<CastToType>(bit));
+}
+
+template <typename T, typename CastToType = uint32_t> T ClearBit(T flags, T bit)
+{
+    return static_cast<T>(static_cast<CastToType>(flags) & ~static_cast<CastToType>(bit));
+}
+
+template <typename T, typename CastToType = uint32_t> bool HasBit(T flags, T bit)
+{
+    return (static_cast<CastToType>(flags) & static_cast<CastToType>(bit)) != 0;
+}
+
+template <typename T, typename CastToType = uint32_t> T inline UpdateBit(T flags, T bit, bool bitValue)
+{
+    return bitValue ? ClearBit<T, CastToType>(flags, bit) : SetBit<T, CastToType>(flags, bit);
+}

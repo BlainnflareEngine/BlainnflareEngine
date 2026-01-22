@@ -26,8 +26,8 @@ mesh_widget::mesh_widget(const Blainn::Entity &entity, QWidget *parent)
         return;
     }
 
-    m_enabled = new bool_input_field("Enabled", mesh->Enabled, QColor(), this);
-    m_isWalkable = new bool_input_field("IsWalkable", mesh->IsWalkable, QColor(), this);
+    m_enabled = new bool_input_field("Enabled", mesh->Enabled, this);
+    m_isWalkable = new bool_input_field("IsWalkable", mesh->IsWalkable, this);
 
     m_path_input = new path_input_field("Mesh", formats::supported3DFormats, this);
 

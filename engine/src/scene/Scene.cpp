@@ -98,8 +98,13 @@ void Blainn::Scene::Update()
         }
         else
         {
+            cam->SetPosition(camTransform->GetTranslation());
+         
+            // commented this cause camera ViewMatrix is updated every frame depends on dirty flag and position
+            
             Mat4 camViewMat = GetWorldSpaceTransformMatrix(*camEntity).Invert();
             cam->SetViewMatrix(camViewMat);
+
             cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
             RenderSubsystem::GetInstance().SetCamera(cam);
         }
@@ -777,7 +782,7 @@ void Blainn::Scene::SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTr
     if (parent)
     {
         Mat4 parentTransform = GetWorldSpaceTransformMatrix(parent);
-        Mat4 localTransform = parentTransform.Invert() * worldTransform;
+        Mat4 localTransform = worldTransform * parentTransform.Invert();
         entityTransform.SetTransform(localTransform);
     }
     else

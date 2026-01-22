@@ -7,7 +7,8 @@
 namespace Blainn
 {
 
-void AIController::Init(BTMap trees, eastl::unique_ptr<UtilitySelector> utility, eastl::unique_ptr<Blackboard> blackboard)
+void AIController::Init(BTMap trees, eastl::unique_ptr<UtilitySelector> utility,
+                        eastl::unique_ptr<Blackboard> blackboard)
 {
     m_trees = eastl::move(trees);
     m_utility = eastl::move(utility);
@@ -20,17 +21,16 @@ void AIController::Init(BTMap trees, eastl::unique_ptr<UtilitySelector> utility,
 
 bool AIController::ShouldUpdate(float dt)
 {
-    if (m_updateInterval <= 0.0f)
-        return true;
-    
+    if (m_updateInterval <= 0.0f) return true;
+
     m_timeSinceLastUpdate += dt;
-    
+
     if (m_timeSinceLastUpdate >= m_updateInterval)
     {
         m_timeSinceLastUpdate = 0.0f;
         return true;
     }
-    
+
     return false;
 }
 
@@ -55,11 +55,9 @@ void AIController::HardReset()
 
 void AIController::Update(float dt)
 {
-    if (!m_utility)
-        return;
-    
-    if (!ShouldUpdate(dt))
-        return;
+    if (!m_utility) return;
+
+    if (!ShouldUpdate(dt)) return;
 
     m_utilityContext.UpdateCooldowns(dt);
 
@@ -81,7 +79,7 @@ void AIController::Update(float dt)
         m_activeTree->RequestAbort();
     }
 
-    BTStatus status = m_activeTree->Update(*m_blackboard); // должен заново обходить дерево после завершения, а у него в sequence уже индекс 1 и он все время ливает в саксес
+    BTStatus status = m_activeTree->Update(*m_blackboard);
 
     switch (status)
     {
@@ -115,7 +113,6 @@ void AIController::Update(float dt)
         break;
     }
 }
-
 
 void AIController::Possess(const Entity &entity)
 {
@@ -172,7 +169,13 @@ void AIController::StartMoving()
 }
 
 
-bool AIController::GetDesiredDirection(Vec3 &outDirection, float stoppingDistance)
+bool AIController::IsMoving() const
+{
+    return m_isMoving;
+}
+
+
+bool AIController::GetDesiredDirection(Vec3 &outDirection, float stoppingDistance, float offset)
 {
     if (!m_isMoving || m_currentPath.empty() || m_pathIndex >= m_currentPath.size())
     {
@@ -184,7 +187,14 @@ bool AIController::GetDesiredDirection(Vec3 &outDirection, float stoppingDistanc
 
     Vec3 agentPos = m_controlledEntity.GetComponent<TransformComponent>().GetTranslation();
     Vec3 targetPoint = m_currentPath[m_pathIndex];
-    float distance = (targetPoint - agentPos).Length();
+
+    Vec3 adjustedTarget = targetPoint;
+    if (m_pathIndex != 0)
+    {
+        adjustedTarget.y += offset;
+    }
+
+    float distance = (adjustedTarget - agentPos).Length();
 
     if (distance <= stoppingDistance)
     {
@@ -194,10 +204,16 @@ bool AIController::GetDesiredDirection(Vec3 &outDirection, float stoppingDistanc
             m_isMoving = false;
             return false;
         }
+
         targetPoint = m_currentPath[m_pathIndex];
+        adjustedTarget = targetPoint;
+        if (m_pathIndex < m_currentPath.size() - 1)
+        {
+            adjustedTarget.y += offset;
+        }
     }
 
-    m_moveDirection = targetPoint - agentPos;
+    m_moveDirection = adjustedTarget - agentPos;
     m_moveDirection.Normalize();
     outDirection = m_moveDirection;
     return true;
@@ -227,7 +243,7 @@ void AIController::CleanupActiveTree()
     m_abortRequested = false;
 }
 
-void AIController::SetActiveBT(const eastl::string& treeName)
+void AIController::SetActiveBT(const eastl::string &treeName)
 {
     auto it = m_trees.find(treeName);
     if (it == m_trees.end())

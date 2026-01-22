@@ -17,15 +17,18 @@ public:
 
 protected:
     virtual void DeleteComponent() override;
+    virtual void OnUpdate() override;
 
 protected slots:
     void OnPathChanged(const QString &old, const QString &path);
     void OnMovementSpeedChanged();
     void OnStoppingDistanceChanged();
+    void OnGroundOffsetChanged();
 
     path_input_field *m_path_input = nullptr;
     float_input_field *m_movementSpeed = nullptr;
     float_input_field *m_stoppingDistance = nullptr;
+    float_input_field *m_groundOffset = nullptr;
 };
 
 } // namespace editor

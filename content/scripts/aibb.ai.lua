@@ -8,12 +8,22 @@ function ConfigureStimulus(stimulus)
     stimulus:SetStimulusTag("TestAI")
 end
 
+local ai = GetAIController(OwningEntity)
+local scene = Engine.GetActiveScene()
+local e = scene:TryGetEntityWithUUID(OwningEntity)
+if not e:IsValid() then
+    Log.Error("AI is invalid")
+    return
+end
+local tc = e:GetTransformComponent()
+
 Blackboard =
 {
     target_point = { 1.0, 2.0, 1.0 },
     cooldown = 0.5,
     enemy_visible = false,
-    playerTag = "Player"
+    playerTag = "Player",
+    startedPatroling = false
 }
 
 BehaviourTrees = 
@@ -25,12 +35,39 @@ BehaviourTrees =
             {
                 type = BTType.Action,
                 fn = function(bb)
-                    if Blackboard.btAbortRequested then
+
+                    if bb:GetBool("btAbortRequested") then
                         return "aborted"
                     end
+                    
+                    if bb:GetBool("startedPatroling") and ai:IsMoving() then
 
-                    Log.Info("Patrolling...")
-                    return "success"  -- Success
+                        Log.Info("Is moving")
+                        return "running"
+
+                    elseif not bb:GetBool("startedPatroling") and not ai:IsMoving() then
+
+                        bb:Set("startedPatroling", true)
+                        local point = Vec3:new()
+                        local isFound, point = Navigation.FindRandomPointOnNavMeshInRadius(point, tc:GetTranslation(), 2)
+
+                        if not isFound then
+                            Log.Warn("No random point was found")
+                            return "failure"
+                        end
+
+                        Log.Info("Patroling to " .. point.x .. " " .. point.y .. " " .. point.z)
+                        ai:MoveTo(point)
+                        return "running"
+
+                    end
+                    
+                    bb:Set("startedPatroling", false)
+                    bb:Set("enemy_visible", true)
+
+                    Log.Info("Enemy visible " .. tostring(bb:GetBool("enemy_visible")))
+                    
+                    return "success"
                 end,
 
                 onReset = function()
@@ -48,7 +85,7 @@ BehaviourTrees =
             -- Condition как обычный узел
             {
                 type = BTType.Condition,
-                fn = function(Blackboard)
+                fn = function(bb)
                     -- Проверяем условие
                     return true
                 end,
@@ -56,11 +93,11 @@ BehaviourTrees =
                     {
                         type = BTType.Action,
                         fn = function(bb)
-                            if Blackboard.btAbortRequested then
+                            if bb:GetBool("btAbortRequested") then
                                 return "aborted"
                             end
                             
-                            if bb.enemy_visible then
+                            if not bb:GetBool("enemy_visible") then
                                 return "failure"  -- Failure
                             end
                             
@@ -88,7 +125,7 @@ Utility =
             name = "Patrol",
             bt   = "Patrol",
 
-            score = function(Blackboard)
+            score = function(bb)
                 Log.Info("Utility patrol score")
                 return 0.1
             end
@@ -99,9 +136,9 @@ Utility =
             bt   = "Chase",
 
             cooldown = 1.0,
-            score = function(Blackboard)
+            score = function(bb)
                 Log.Info("Utility chase score")
-                return Blackboard.enemy_visible and 1.0 or 0.0
+                return bb:GetBool("enemy_visible") and 1.0 or 0.0
             end
         }
     }

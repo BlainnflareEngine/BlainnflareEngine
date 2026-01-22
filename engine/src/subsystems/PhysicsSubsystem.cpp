@@ -15,6 +15,9 @@
 #include "scene/Scene.h"
 #include "scene/TransformComponent.h"
 
+#include "subsystems/RenderSubsystem.h"
+#include "Render/DebugRenderer.h"
+
 using namespace Blainn;
 
 void PhysicsSubsystem::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
@@ -151,13 +154,14 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
 
     if (componentPtr)
     {
-        BF_ERROR("Entity already has physics component");
-        return;
+        BF_WARN("Entity already has physics component. Recreating...");
+        DestroyPhysicsComponent(settings.entity);
     }
 
     uuid parentId = settings.entity.GetUUID();
 
-    PhysicsComponent component;
+    PhysicsComponent component(settings.entity, settings.shapeSettings.shapeType);
+    component.settings = settings;
     component.parentId = parentId;
     component.prevFrameScale = transformComponentPtr->GetScale();
 
@@ -178,7 +182,8 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
         .SetShape(component.GetShape().GetPtr())
         .SetIsTrigger(settings.isTrigger)
         .SetGravityFactor(settings.gravityFactor)
-        .SetLayer(settings.layer);
+        .SetLayer(settings.layer)
+        .SetAllowedDOFs(settings.allowedDOFs);
 
     component.bodyId = builder.Build(settings.activate);
     m_bodyEntityConnections.try_emplace(component.bodyId, parentId);
@@ -239,6 +244,10 @@ JPH::PhysicsSystem &PhysicsSubsystem::GetPhysicsSystem()
 
 eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 directionAndDistance)
 {
+    Vec3 min = origin;
+    Vec3 max = origin + directionAndDistance;
+    RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(min, max, Blainn::Color(1, 0, 0, 1));
+
     JPH::RRayCast ray(ToJoltRVec3(origin), ToJoltRVec3(directionAndDistance));
     JPH::RayCastResult joltResult;
     if (!m_joltPhysicsSystem->GetNarrowPhaseQuery().CastRay(ray, joltResult))
@@ -255,7 +264,6 @@ eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 direc
     rayCastResult.distance = joltResult.mFraction * directionAndDistance.Length();
     rayCastResult.hitPoint = origin + directionAndDistance * joltResult.mFraction;
 
-    // TODO: get child shape or leave this?
     JPH::RefConst<JPH::Shape> bodyShape = bodyGetter.GetShape();
     rayCastResult.hitNormal = ToBlainnVec3(
         bodyShape->GetSurfaceNormal(joltResult.mSubShapeID2, ToJoltVec3(rayCastResult.hitPoint - bodyPosition)));

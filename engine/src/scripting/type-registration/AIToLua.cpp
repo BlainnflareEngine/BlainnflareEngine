@@ -58,58 +58,72 @@ void Blainn::RegisterAITypes(sol::state &luaState)
     auto BlackboardType = luaState.new_usertype<Blackboard>("Blackboard", sol::no_constructor);
 
     BlackboardType.set_function("Set", 
-        [](Blackboard* bb, const eastl::string& key, sol::object value)
+        [](Blackboard* bb, const std::string& key, sol::object value)
         {
             if (!bb) return;
-            bb->Set(key, value);
+            bb->Set(key.c_str(), value);
         }
     );
     
     BlackboardType.set_function("GetInt", 
-        [](Blackboard* bb, const eastl::string& key) -> int
+        [](Blackboard *bb, const std::string &key) -> int
         {
             if (!bb) return 0;
-            return bb->Get<int>(key);
+            return bb->Get<int>(key.c_str());
         }
     );
     
     BlackboardType.set_function("GetFloat", 
-        [](Blackboard* bb, const eastl::string& key) -> float
+        [](Blackboard *bb, const std::string &key) -> float
         {
             if (!bb) return 0.0f;
-            return bb->Get<float>(key);
+            return bb->Get<float>(key.c_str());
         }
     );
     
     BlackboardType.set_function("GetDouble", 
-        [](Blackboard* bb, const eastl::string& key) -> double
+        [](Blackboard *bb, const std::string &key) -> double
         {
             if (!bb) return 0.0;
-            return bb->Get<double>(key);
+            return bb->Get<double>(key.c_str());
         }
     );
     
     BlackboardType.set_function("GetBool", 
-        [](Blackboard* bb, const eastl::string& key) -> bool
+        [](Blackboard *bb, const std::string &key) -> bool
         {
             if (!bb) return false;
-            return bb->Get<bool>(key);
+            return bb->Get<bool>(key.c_str());
         }
     );
     
     BlackboardType.set_function("GetString", 
-        [](Blackboard* bb, const eastl::string& key) -> std::string
+        [](Blackboard *bb, const std::string &key) -> std::string
         {
             if (!bb) return "";
-            return bb->Get<eastl::string>(key).c_str();
+            return bb->Get<eastl::string>(key.c_str()).c_str();
         }
     );
+
+    BlackboardType.set_function("GetVec2",
+        [](Blackboard *bb, const std::string &key) -> Vec2
+        {
+            if (!bb) return Vec2();
+            return bb->Get<Vec2>(key.c_str());
+        });
+
+    BlackboardType.set_function("GetVec2",
+        [](Blackboard *bb, const std::string &key) -> Vec3
+        {
+            if (!bb) return Vec3();
+            return bb->Get<Vec3>(key.c_str());
+        });
     
     BlackboardType.set_function("Has", 
-        [](Blackboard* bb, const eastl::string& key) -> bool
+        [](Blackboard *bb, const std::string &key) -> bool
         {
             if (!bb) return false;
-            return bb->Has(key);
+            return bb->Has(key.c_str());
         }
     );
 

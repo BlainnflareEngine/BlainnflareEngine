@@ -251,6 +251,12 @@ inline void GetPhysics(const YAML::Node &node, const Entity &entity)
     float gravityFactor = node["GravityFactor"].as<float>();
     bool isTrigger = node["IsTrigger"].as<bool>();
     ObjectLayer layer = static_cast<ObjectLayer>(node["ObjectLayer"].as<int>());
+    uint8_t constraints = static_cast<uint8_t>(Blainn::AllowedDOFs::All);
+
+    if (node["Constraints"])
+    {
+        constraints = static_cast<uint8_t>(node["Constraints"].as<uint32_t>());
+    }
 
     ShapeCreationSettings shapeSettings(shapeType);
 
@@ -302,11 +308,15 @@ inline void GetAIController(const YAML::Node &node, const Entity &entity)
     std::string path = node["Path"].as<std::string>("");
     float movementSpeed = node["MovementSpeed"].as<float>();
     float stoppingDistance = node["StoppingDistance"].as<float>();
+    float groundOffset = 0.5;
+
+    if (node["GroundOffset"]) groundOffset = node["GroundOffset"].as<float>();
 
     AISubsystem::GetInstance().CreateAttachAIControllerComponent(entity, path);
     auto &comp = entity.GetComponent<AIControllerComponent>();
     comp.MovementSpeed = movementSpeed;
     comp.StoppingDistance = stoppingDistance;
+    comp.GroundOffset = groundOffset;
 }
 
 inline bool HasCamera(const YAML::Node &node)

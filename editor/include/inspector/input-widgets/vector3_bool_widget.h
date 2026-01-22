@@ -31,6 +31,8 @@ public:
     void SetY(bool y);
     void SetZ(bool z);
 
+    bool AllSet() const;
+
 signals:
     void Toggled(const BoolVector3 &value);
 

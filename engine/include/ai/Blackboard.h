@@ -11,7 +11,7 @@
 namespace Blainn
 {
 
-using BlackboardValue = std::variant<int, float, double, bool, eastl::string, std::string>;
+using BlackboardValue = std::variant<int, float, double, bool, eastl::string, std::string, Vec2, Vec3>;
 
 class Blackboard
 {
@@ -70,6 +70,14 @@ public:
         //{
         //    values[key] = eastl::make_shared<Value<eastl::string>>(value.as<eastl::string>());
         //}
+        else if (value.is<Vec2>())
+        {
+            values[key] = eastl::make_shared<Value<Vec2>>(value.as<Vec2>());
+        }
+        else if (value.is<Vec3>())
+        {
+            values[key] = eastl::make_shared<Value<Vec3>>(value.as<Vec3>());
+        }
         else
         {
             BF_ERROR("Blackboard: Unsupported type for key '" + key

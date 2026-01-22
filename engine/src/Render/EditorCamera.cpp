@@ -38,20 +38,19 @@ void EditorCamera::Reset(float fovAngleY, float aspectRatio, float nearZ, float 
                                                          }),
                                  InputEventType::KeyHeld});
 
-        m_inputEvents.push_back(
-            {Input::AddEventListener(
-                 InputEventType::KeyPressed,
-                 [this](const InputEventPointer &event)
-                 {
-                     const KeyPressedEvent *keyEvent = static_cast<const KeyPressedEvent *>(event.get());
-                     auto key = keyEvent->GetKey();
+        m_inputEvents.push_back({Input::AddEventListener(InputEventType::KeyPressed,
+                                                         [this](const InputEventPointer &event)
+                                                         {
+                                                             const KeyPressedEvent *keyEvent =
+                                                                 static_cast<const KeyPressedEvent *>(event.get());
+                                                             auto key = keyEvent->GetKey();
 
-                     if (Input::IsMouseButtonHeld(MouseButton::Right))
-                     {
-                         SetCameraProperties(key, InputEventType::KeyPressed);
-                     }
-                 }),
-             InputEventType::KeyPressed});
+                                                             if (Input::IsMouseButtonHeld(MouseButton::Right))
+                                                             {
+                                                                 SetCameraProperties(key, InputEventType::KeyPressed);
+                                                             }
+                                                         }),
+                                 InputEventType::KeyPressed});
 
         m_inputEvents.push_back({Input::AddEventListener(InputEventType::KeyReleased,
                                                          [this](const InputEventPointer &event)

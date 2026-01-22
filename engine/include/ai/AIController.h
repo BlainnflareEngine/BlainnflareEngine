@@ -14,11 +14,7 @@ class AIController
 public:
     AIController() = default;
 
-    void Init(
-        BTMap trees,
-        eastl::unique_ptr<UtilitySelector> utility,
-        eastl::unique_ptr<Blackboard> blackboard
-    );
+    void Init(BTMap trees, eastl::unique_ptr<UtilitySelector> utility, eastl::unique_ptr<Blackboard> blackboard);
 
     void Update(float dt);
 
@@ -28,22 +24,29 @@ public:
     {
         return *m_blackboard;
     }
-    
+
     bool MoveTo(const Vec3 &target);
     void StopMoving();
     void StartMoving();
-    bool GetDesiredDirection(Vec3 &outDirection, float stoppingDistance);
+    bool IsMoving() const;
+    bool GetDesiredDirection(Vec3 &outDirection, float stoppingDistance, float offset = 0.5f);
 
-    void SetUpdateInterval(float interval) { m_updateInterval = interval; }
-    float GetUpdateInterval() const { return m_updateInterval; }
+    void SetUpdateInterval(float interval)
+    {
+        m_updateInterval = interval;
+    }
+    float GetUpdateInterval() const
+    {
+        return m_updateInterval;
+    }
     bool ShouldUpdate(float dt);
 
     void HardReset();
     void ClearState();
 
 private:
-    void ActivateDecision(const eastl::string& decisionName);
-    void SetActiveBT(const eastl::string& treeName);
+    void ActivateDecision(const eastl::string &decisionName);
+    void SetActiveBT(const eastl::string &treeName);
     void CleanupActiveTree();
     void HandleBTError();
 
@@ -52,7 +55,7 @@ private:
     UtilityContext m_utilityContext;
 
     BTMap m_trees;
-    BehaviourTree* m_activeTree = nullptr;
+    BehaviourTree *m_activeTree = nullptr;
     eastl::string m_activeTreeName;
     eastl::string m_activeDecisionName;
 
@@ -67,7 +70,7 @@ private:
     eastl::vector<Vec3> m_currentPath;
 
     Entity m_controlledEntity;
-    
+
     // LOD
     float m_updateInterval = 0.0f; // 0 каждый кадр
     float m_timeSinceLastUpdate = 0.0f;

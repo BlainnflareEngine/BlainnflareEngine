@@ -107,6 +107,7 @@ set(ENGINE_SOURCES
         src/scripting/type-registration/PhysicsBodyGetterToLua.cpp
         src/scripting/type-registration/PhysicsBodyUpdaterToLua.cpp
         src/scripting/type-registration/AiToLua.cpp
+        src/scripting/type-registration/NavigationToLua.cpp
         src/scripting/type-registration/Vector2ToLua.cpp
         src/scripting/type-registration/Vector3ToLua.cpp
         src/scripting/type-registration/Vector4ToLua.cpp
@@ -182,6 +183,18 @@ set(ENGINE_SOURCES
         src/scripting/type-registration/UUIDToLua.cpp
 )
 
+file(GLOB IMGUI_SOURCES
+        "${IMGUI_DIR}/*.h"
+        "${IMGUI_DIR}/*.cpp"
+        "${IMGUI_DIR}/backends/imgui_impl_win32.h"
+        "${IMGUI_DIR}/backends/imgui_impl_win32.cpp"
+        "${IMGUI_DIR}/backends/imgui_impl_dx12.h"
+        "${IMGUI_DIR}/backends/imgui_impl_dx12.cpp"
+        "${IMGUIZMO_DIR}/*.h"
+        "${IMGUIZMO_DIR}/*.cpp"
+)
+
+list(APPEND ENGINE_SOURCES ${IMGUI_SOURCES})
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
 
@@ -204,6 +217,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${CMAKE_SOURCE_DIR}/libs/eventpp/include"
         "${CMAKE_SOURCE_DIR}/libs/recastnavigation/Recast/Include"
         "${CMAKE_SOURCE_DIR}/libs/recastnavigation/Detour/Include"
+        "${IMGUI_DIR}"
+        "${IMGUIZMO_DIR}"
 )
 
 

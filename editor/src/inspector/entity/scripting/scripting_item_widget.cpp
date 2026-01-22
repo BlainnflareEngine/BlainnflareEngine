@@ -19,7 +19,7 @@ scripting_item_widget::scripting_item_widget(QWidget *parent)
     layout()->setContentsMargins(20, 10, 20, 10);
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 
-    m_triggerStart = new bool_input_field("Trigger Start", true, QColor(), this);
+    m_triggerStart = new bool_input_field("Trigger Start", true, this);
     m_scriptPath = new path_input_field("Path", QStringList{"lua"}, this);
     m_removeButton = new QPushButton("Remove", this);
 
