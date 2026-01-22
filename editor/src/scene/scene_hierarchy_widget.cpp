@@ -46,18 +46,30 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
     connect(this->selectionModel(), &QItemSelectionModel::selectionChanged, this,
             &scene_hierarchy_widget::OnSelectionChanged);
 
-    Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityCreated,
-                                    [this](const Blainn::SceneEventPointer &event) { this->OnEntityCreated(event); });
-    Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityDestroyed,
-                                    [this](const Blainn::SceneEventPointer &event) { this->OnEntityDestroyed(event); });
-    Blainn::Scene::AddEventListener(Blainn::SceneEventType::SceneChanged,
-                                    [this](const Blainn::SceneEventPointer &event) { this->OnSceneChanged(event); });
+    m_sceneEvents.emplace_back(Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityCreated,
+                                                               [this](const Blainn::SceneEventPointer &event)
+                                                               { this->OnEntityCreated(event); }),
+                               Blainn::SceneEventType::EntityCreated);
+    m_sceneEvents.emplace_back(Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityDestroyed,
+                                                               [this](const Blainn::SceneEventPointer &event)
+                                                               { this->OnEntityDestroyed(event); }),
+                               Blainn::SceneEventType::EntityDestroyed);
+    m_sceneEvents.emplace_back(Blainn::Scene::AddEventListener(Blainn::SceneEventType::SceneChanged,
+                                                               [this](const Blainn::SceneEventPointer &event)
+                                                               { this->OnSceneChanged(event); }),
+                               Blainn::SceneEventType::SceneChanged);
 
-    Blainn::Engine::GetSelectionManager().CallbackList.append([this](Blainn::uuid id) { ChangeSelection(id); });
+    m_selectionHandle =
+        Blainn::Engine::GetSelectionManager().CallbackList.append([this](Blainn::uuid id) { ChangeSelection(id); });
 }
 
 scene_hierarchy_widget::~scene_hierarchy_widget()
 {
+    for (auto &[event, type] : m_sceneEvents)
+        Blainn::Scene::RemoveEventListener(type, event);
+
+    Blainn::Engine::GetSelectionManager().CallbackList.remove(m_selectionHandle);
+
     delete ui;
 }
 
