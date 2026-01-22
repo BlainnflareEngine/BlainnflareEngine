@@ -23,6 +23,7 @@
 #include <QLayout>
 
 #include "components/CameraComponent.h"
+#include "components/LightComponent.h"
 #include "components/StimulusComponent.h"
 #include "entity/ai_controller_widget.h"
 #include "entity/camera_widget.h"
@@ -191,10 +192,9 @@ void add_component_button::OnDirectLightAction()
 {
     if (!m_entity.IsValid()) return;
 
-    // TODO: check if has component
-    /*if (m_entity.HasComponent<Blainn::CameraComponent>()) return;
-    auto &comp = m_entity.AddComponent<Blainn::CameraComponent>();
-    comp.camera.Reset(75.f, 16 / 9.f, 0.01, 10000);*/
+    if (m_entity.HasComponent<Blainn::DirectionalLightComponent>()) return;
+
+    m_entity.AddComponent<Blainn::DirectionalLightComponent>();
 
     auto direct = new directional_light_widget(m_entity, this);
     m_layout->insertWidget(m_layout->count() - 1, direct);

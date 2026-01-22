@@ -32,14 +32,14 @@ namespace Blainn
         XMFLOAT4 Color = {1.0f, 1.0f, 1.0f, 1.0f};
     };
 
-    struct DirectionalLight : public LightComponent
+    struct DirectionalLightComponent : public LightComponent
     {
-        DirectionalLight()
+        DirectionalLightComponent()
         {
 
         }
 
-        XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
+        //XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
     };
 
     struct PointLight : public LightComponent
@@ -57,7 +57,7 @@ namespace Blainn
         {
         }
 
-        XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
+        //XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
         float Range;
         float SpotInnerAngle;
         float SpotOuterAngle;

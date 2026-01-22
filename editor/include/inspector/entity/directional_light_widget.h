@@ -7,6 +7,10 @@
 
 namespace editor
 {
+class color_input_field;
+}
+namespace editor
+{
 
 class directional_light_widget : public component_widget_base
 {
@@ -17,7 +21,10 @@ protected:
     virtual void DeleteComponent() override;
     virtual void OnUpdate() override;
 
+    void OnColorChanged();
+
 private:
+    color_input_field *m_lightColor = nullptr;
 };
 
 } // namespace editor

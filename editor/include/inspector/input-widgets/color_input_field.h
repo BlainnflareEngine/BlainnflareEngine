@@ -8,6 +8,7 @@
 #include <QWidget>
 
 
+class QColorDialog;
 class QPushButton;
 class QLabel;
 namespace editor
@@ -36,6 +37,8 @@ private:
     QLabel *m_label = nullptr;
     QPushButton *m_button = nullptr;
     QColor m_color;
+
+    QColorDialog *m_dialog = nullptr;
 };
 
 } // namespace editor

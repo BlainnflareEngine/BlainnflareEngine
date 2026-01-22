@@ -251,7 +251,7 @@ inline void GetPhysics(const YAML::Node &node, const Entity &entity)
     float gravityFactor = node["GravityFactor"].as<float>();
     bool isTrigger = node["IsTrigger"].as<bool>();
     ObjectLayer layer = static_cast<ObjectLayer>(node["ObjectLayer"].as<int>());
-    uint8_t constraints = static_cast<uint8_t>(Blainn::AllowedDOFs::All);
+    uint8_t constraints = static_cast<uint8_t>(AllowedDOFs::All);
 
     if (node["Constraints"])
     {
@@ -275,7 +275,7 @@ inline void GetPhysics(const YAML::Node &node, const Entity &entity)
         if (auto &extents = shapeSettingsNode["HalfExtent"])
         {
             shapeSettings.halfExtents =
-                Blainn::Vec3(extents["X"].as<float>(), extents["Y"].as<float>(), extents["Z"].as<float>());
+                Vec3(extents["X"].as<float>(), extents["Y"].as<float>(), extents["Z"].as<float>());
         }
     }
 
@@ -289,6 +289,7 @@ inline void GetPhysics(const YAML::Node &node, const Entity &entity)
     PhysicsSubsystem::CreateAttachPhysicsComponent(settings);
 }
 
+
 inline bool HasAIController(const YAML::Node &node)
 {
     if (!node || node.IsNull()) return false;
@@ -297,6 +298,7 @@ inline bool HasAIController(const YAML::Node &node)
 
     return false;
 }
+
 
 inline void GetAIController(const YAML::Node &node, const Entity &entity)
 {
@@ -525,5 +527,24 @@ inline PerceptionComponent GetPerception(const YAML::Node &node)
     }
 
     return perception;
+}
+
+inline bool HasDirectionalLight(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["DirectionalLightComponent"]) return true;
+
+    return false;
+}
+
+inline DirectionalLightComponent GetDirectionalLight(const YAML::Node &node)
+{
+    DirectionalLightComponent directionalLight;
+
+    directionalLight.Color = {node["Color"]["R"].as<float>(), node["Color"]["G"].as<float>(),
+                              node["Color"]["B"].as<float>(), node["Color"]["A"].as<float>()};
+
+    return directionalLight;
 }
 } // namespace Blainn
