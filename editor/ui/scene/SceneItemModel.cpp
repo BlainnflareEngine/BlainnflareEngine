@@ -280,8 +280,7 @@ void editor::SceneItemModel::SortAccordingToMeta(eastl::shared_ptr<SceneMeta> &m
 bool editor::SceneItemModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column,
                                           const QModelIndex &parent)
 {
-    if (action != Qt::MoveAction || !data || !data->hasFormat(MIME_ENTITY_UUID))
-        return false;
+    if (action != Qt::MoveAction || !data || !data->hasFormat(MIME_ENTITY_UUID)) return false;
 
     QByteArray encoded = data->data(MIME_ENTITY_UUID);
     if (encoded.size() != sizeof(Blainn::uuid)) return false;
@@ -298,13 +297,11 @@ bool editor::SceneItemModel::dropMimeData(const QMimeData *data, Qt::DropAction 
             Blainn::Entity newParent;
             if (parent.isValid())
             {
-                EntityNode* parentNode = static_cast<EntityNode*>(parent.internalPointer());
+                EntityNode *parentNode = static_cast<EntityNode *>(parent.internalPointer());
                 newParent = scene->TryGetEntityWithUUID(parentNode->GetUUID());
             }
-            if (newParent)
-                entity.SetParent(newParent);
-            else
-                scene->UnparentEntity(entity);
+            if (newParent) entity.SetParent(newParent);
+            else scene->UnparentEntity(entity);
         }
     }
 

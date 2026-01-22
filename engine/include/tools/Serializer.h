@@ -8,6 +8,7 @@
 #include "PhysicsSubsystem.h"
 #include "components/AIControllerComponent.h"
 #include "components/CameraComponent.h"
+#include "components/LightComponent.h"
 #include "components/MeshComponent.h"
 #include "components/NavMeshVolumeComponent.h"
 #include "components/PhysicsComponent.h"
@@ -157,7 +158,7 @@ public:
         out << YAML::Key << "MotionType" << YAML::Value << static_cast<int>(motionType);
         out << YAML::Key << "GravityFactor" << YAML::Value << gravityFactor;
         out << YAML::Key << "IsTrigger" << YAML::Value << body.isTrigger();
-        out << YAML::Key << "Constraints" << YAML::Value << static_cast<uint32_t>(body.GetAllowedDOFs());
+        out << YAML::Key << "Constraints" << YAML::Value << static_cast<int>(body.GetAllowedDOFs());
 
         Transform(entity, out);
 
@@ -332,6 +333,21 @@ public:
         out << YAML::Key << "Tag" << YAML::Value << stimulus.tag.c_str();
         out << YAML::Key << "Enabled" << YAML::Value << stimulus.enabled;
 
+        out << YAML::EndMap;
+    }
+
+    static void DirectionalLightComponent(Entity &entity, YAML::Emitter &out)
+    {
+        auto light = entity.TryGetComponent<Blainn::DirectionalLightComponent>();
+        if (!light) return;
+
+        out << YAML::Key << "DirectionalLightComponent" << YAML::Value << YAML::BeginMap;
+
+        out << YAML::Key << "Color" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "R" << YAML::Value << light->Color.x;
+        out << YAML::Key << "G" << YAML::Value << light->Color.y;
+        out << YAML::Key << "B" << YAML::Value << light->Color.z;
+        out << YAML::Key << "A" << YAML::Value << light->Color.w;
         out << YAML::EndMap;
     }
 };

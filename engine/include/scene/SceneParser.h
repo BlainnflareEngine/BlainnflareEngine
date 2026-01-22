@@ -67,7 +67,7 @@ inline TransformComponent GetTransform(const YAML::Node &node)
             float x = rotationNode["x"].as<float>();
             float y = rotationNode["y"].as<float>();
             float z = rotationNode["z"].as<float>();
-            transform.SetRotationEuler(Vec3(x, y, z));
+            transform.SetRotation(Quat::CreateFromYawPitchRoll(x, y, z));
         }
     }
 
@@ -251,11 +251,11 @@ inline void GetPhysics(const YAML::Node &node, const Entity &entity)
     float gravityFactor = node["GravityFactor"].as<float>();
     bool isTrigger = node["IsTrigger"].as<bool>();
     ObjectLayer layer = static_cast<ObjectLayer>(node["ObjectLayer"].as<int>());
-    uint8_t constraints = static_cast<uint8_t>(Blainn::AllowedDOFs::All);
+    uint8_t constraints = static_cast<uint8_t>(AllowedDOFs::All);
 
     if (node["Constraints"])
     {
-        constraints = static_cast<uint8_t>(node["Constraints"].as<uint32_t>());
+        constraints = static_cast<uint8_t>(node["Constraints"].as<int>());
     }
 
     ShapeCreationSettings shapeSettings(shapeType);
@@ -275,7 +275,7 @@ inline void GetPhysics(const YAML::Node &node, const Entity &entity)
         if (auto &extents = shapeSettingsNode["HalfExtent"])
         {
             shapeSettings.halfExtents =
-                Blainn::Vec3(extents["X"].as<float>(), extents["Y"].as<float>(), extents["Z"].as<float>());
+                Vec3(extents["X"].as<float>(), extents["Y"].as<float>(), extents["Z"].as<float>());
         }
     }
 
@@ -285,8 +285,10 @@ inline void GetPhysics(const YAML::Node &node, const Entity &entity)
     settings.layer = layer;
     settings.motionType = motionType;
     settings.shapeSettings = shapeSettings;
+    settings.allowedDOFs = static_cast<AllowedDOFs>(constraints);
     PhysicsSubsystem::CreateAttachPhysicsComponent(settings);
 }
+
 
 inline bool HasAIController(const YAML::Node &node)
 {
@@ -296,6 +298,7 @@ inline bool HasAIController(const YAML::Node &node)
 
     return false;
 }
+
 
 inline void GetAIController(const YAML::Node &node, const Entity &entity)
 {
@@ -524,5 +527,24 @@ inline PerceptionComponent GetPerception(const YAML::Node &node)
     }
 
     return perception;
+}
+
+inline bool HasDirectionalLight(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["DirectionalLightComponent"]) return true;
+
+    return false;
+}
+
+inline DirectionalLightComponent GetDirectionalLight(const YAML::Node &node)
+{
+    DirectionalLightComponent directionalLight;
+
+    directionalLight.Color = {node["Color"]["R"].as<float>(), node["Color"]["G"].as<float>(),
+                              node["Color"]["B"].as<float>(), node["Color"]["A"].as<float>()};
+
+    return directionalLight;
 }
 } // namespace Blainn

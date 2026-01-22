@@ -58,6 +58,10 @@ int main(int argc, char **argv)
 
     Blainn::Engine::InitRenderSubsystem(hwnd);
 
+#if defined(BLAINN_INCLUDE_EDITOR)
+    Blainn::Editor::GetInstance().PostInit();
+#endif
+
     MSG msg = {0};
 
     globalTimeline.Start();

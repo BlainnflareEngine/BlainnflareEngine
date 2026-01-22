@@ -163,6 +163,12 @@ set(EDITOR_SOURCES
         include/inspector/input-widgets/string_list_input.h
         src/inspector/input-widgets/vector3_bool_widget.cpp
         include/inspector/input-widgets/vector3_bool_widget.h
+        src/inspector/entity/directional_light_widget.cpp
+        include/inspector/entity/directional_light_widget.h
+        include/context-menu/ViewportSettingsContext.h
+        src/context-menu/ViewportSettingsContext.cpp
+        src/inspector/input-widgets/slider_input_field.cpp
+        include/inspector/input-widgets/slider_input_field.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

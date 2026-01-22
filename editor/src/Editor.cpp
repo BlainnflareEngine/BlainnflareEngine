@@ -37,7 +37,7 @@ void Editor::Init(int argc, char **argv)
     style->setThemeJsonPath(":/themes/dark.json");
 
     // TODO: add switching themes
-    //style->setThemeJsonPath(":/themes/light.json");
+    // style->setThemeJsonPath(":/themes/light.json");
     QApplication::setStyle(style);
 
     BF_DEBUG("Current working directory - " + current_path().string());
@@ -66,6 +66,12 @@ void Editor::Init(int argc, char **argv)
     m_editorMain->SetContentDirectory(editor::ToQString(Engine::GetContentDirectory().string().c_str()));
 
     Log::AddSink(GetEditorSink());
+}
+
+
+void Editor::PostInit()
+{
+    m_editorMain->PostInit();
 }
 
 

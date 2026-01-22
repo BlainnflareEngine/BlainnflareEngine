@@ -49,3 +49,27 @@ template <typename T, typename CastToType = uint32_t> T inline UpdateBit(T flags
 {
     return bitValue ? ClearBit<T, CastToType>(flags, bit) : SetBit<T, CastToType>(flags, bit);
 }
+
+inline Blainn::Vec3 GetNormalizedPerpendicular(const Blainn::Vec3 &vector)
+{
+    if (abs(vector.x) > abs(vector.y))
+    {
+        float len = sqrt(vector.x * vector.x + vector.z * vector.z);
+        return Blainn::Vec3(vector.z, 0.0f, -vector.x) / len;
+    }
+    else
+    {
+        float len = sqrt(vector.y * vector.y + vector.z * vector.z);
+        return Blainn::Vec3(0.0f, vector.z, -vector.y) / len;
+    }
+}
+
+inline int ConvertDXColorToQColor(float color)
+{
+    return static_cast<int>(std::round(color * 255.0f));
+}
+
+inline float ConvertQColorToDXColor(int color)
+{
+    return static_cast<float>(color) / 255.0f;
+}

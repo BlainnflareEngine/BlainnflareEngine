@@ -6,6 +6,7 @@
 
 #include "context-menu/SceneContextMenu.h"
 #include "inspector_widget.h"
+#include "scene/Scene.h"
 
 
 #include <QMainWindow>
@@ -13,6 +14,7 @@
 
 namespace editor
 {
+class ViewportSettingsContext;
 class console_messages_widget;
 }
 namespace editor
@@ -32,6 +34,7 @@ public:
     explicit editor_main(QWidget *parent = nullptr);
     ~editor_main() override;
 
+    void PostInit();
 
     void SetContentDirectory(const QString &path);
     void closeEvent(QCloseEvent *event) override;
@@ -44,10 +47,11 @@ private:
     Ui::editor_main *ui;
 
     QString m_contentPath;
+    ViewportSettingsContext* m_viewportSettingsContext;
 
     void OpenAddToScene() const;
 
-    QMenu* m_viewportSettingsMenu = nullptr;
+    eastl::vector<eastl::pair<Blainn::Scene::EventHandle, Blainn::SceneEventType>> m_sceneEvents;
 
 private slots:
     void OnOpenSettings();
@@ -56,9 +60,7 @@ private slots:
     void OnBuildNavMesh();
 
     void OnStartPlayMode();
-    void OnStopPlayMode();
-
-    void OnViewportSettingsClicked();
+    void OnStopPlayModeToggle();
 };
 
 } // namespace editor

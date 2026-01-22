@@ -9,6 +9,7 @@
 #include "../../include/inspector/entity/perception_widget.h"
 #include "components/AIControllerComponent.h"
 #include "components/CameraComponent.h"
+#include "components/LightComponent.h"
 #include "components/MeshComponent.h"
 #include "components/NavMeshVolumeComponent.h"
 #include "components/SkyboxComponent.h"
@@ -18,6 +19,7 @@
 #include "entity/add_component_button.h"
 #include "entity/ai_controller_widget.h"
 #include "entity/camera_widget.h"
+#include "entity/directional_light_widget.h"
 #include "entity/mesh_widget.h"
 #include "entity/navmesh_volume_widget.h"
 #include "entity/physics_widget.h"
@@ -61,6 +63,12 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     {
         auto transform = new transform_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(transform);
+    }
+
+    if (entity.HasComponent<Blainn::DirectionalLightComponent>())
+    {
+        auto dirLight = new directional_light_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(dirLight);
     }
 
     if (entity.HasComponent<Blainn::PhysicsComponent>())

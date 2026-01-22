@@ -28,6 +28,7 @@ namespace Blainn
 
         virtual void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override;
         void DrawLine(Vec3 inFrom, Vec3 inTo, Color color);
+        void DrawArrow(Vec3 inFrom, Vec3 inTo, Color color, float size);
 
         virtual void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow) override;
         void DrawTriangle(Vec3 inV1, Vec3 inV2, Vec3 inV3, Color inColor);

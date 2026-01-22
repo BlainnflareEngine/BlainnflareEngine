@@ -11,6 +11,7 @@
 #include "SceneItemModel.h"
 #include "oclero/qlementine/widgets/Menu.hpp"
 #include "scene_hierarchy_widget.h"
+#include "components/LightComponent.h"
 
 #include <QClipboard>
 #include <QKeyEvent>
@@ -64,6 +65,7 @@ void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
     QAction *createEntityAction = menu->addAction(index.isValid() ? "Create child entity" : "Create entity");
     QAction *createCameraAction = menu->addAction("Create camera");
     QAction *createSkyboxAction = menu->addAction("Create skybox");
+    QAction *createDirectLightAction = menu->addAction("Create directional light");
 
     if (index.isValid())
     {
@@ -82,6 +84,9 @@ void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
 
     if (createSkyboxAction)
         connect(createSkyboxAction, &QAction::triggered, this, [this, index]() { AddSkybox(index); });
+
+    if (createDirectLightAction)
+        connect(createDirectLightAction, &QAction::triggered, this, [this, index]() { AddDirectionalLight(index); });
 
     if (index.isValid())
     {
@@ -169,6 +174,29 @@ void SceneContextMenu::AddSkybox(const QModelIndex &index)
     {
         auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Skybox", false, true);
         entity.AddComponent<Blainn::SkyboxComponent>();
+    }
+}
+
+
+void SceneContextMenu::AddDirectionalLight(const QModelIndex &index)
+{
+    if (index.isValid())
+    {
+        Blainn::Entity parent = SceneItemModel::GetNodeFromIndex(index)->GetEntity();
+
+        if (parent.IsValid())
+        {
+            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Directional light", false, true);
+            entity.AddComponent<Blainn::TransformComponent>();
+            entity.AddComponent<Blainn::DirectionalLightComponent>();
+        }
+        else BF_ERROR("Parent entity is invalid.");
+    }
+    else
+    {
+        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Directional light", false, true);
+        entity.AddComponent<Blainn::TransformComponent>();
+        entity.AddComponent<Blainn::DirectionalLightComponent>();
     }
 }
 

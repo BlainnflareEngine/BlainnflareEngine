@@ -57,7 +57,8 @@ void transform_widget::OnRotationChanged()
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
 
-    transform.SetRotationEuler(m_rotation->GetValue() * XM_PI / 180.f);
+    auto quat = Blainn::Quat::CreateFromYawPitchRoll(m_rotation->GetValue() * XM_PI / 180.f);
+    transform.SetRotation(quat);
 
     const auto &scene = Blainn::Engine::GetActiveScene();
     if (!scene)

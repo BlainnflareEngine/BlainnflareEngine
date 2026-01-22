@@ -95,7 +95,13 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
                                   auto res = PhysicsSubsystem::CastRay(origin, dir);
                                   sol::state_view lua(luaState);
                                   if (!res) return sol::object(sol::nil);
-                                  return sol::make_object(lua, *res);
+                                  sol::table t = luaState.create_table();
+                                  RayCastResult rayCastResult = res.value();
+                                  t["entityId"] = rayCastResult.entityId.str();
+                                  t["distance"] = rayCastResult.distance;
+                                  t["hitNormal"] = rayCastResult.hitNormal;
+                                  t["hitPoint"] = rayCastResult.hitPoint;
+                                  return sol::object(t);
                               });
 
     luaState["Physics"] = physicsTable;

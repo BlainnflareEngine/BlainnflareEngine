@@ -68,11 +68,42 @@ bool color_input_field::HasFocus() const
 
 void color_input_field::OnColorButtonClicked()
 {
-    QColor newColor = QColorDialog::getColor(m_color, this, "Pick color");
-    if (newColor.isValid() && newColor != m_color)
+    if (!m_dialog)
     {
-        SetValue(newColor);
-        emit EditingFinished();
+        m_dialog = new QColorDialog(this);
+        m_dialog->setOption(QColorDialog::DontUseNativeDialog, true);
+        m_dialog->setModal(false);
+
+        connect(m_dialog, &QColorDialog::currentColorChanged, this,
+                [this](const QColor &color)
+                {
+                    if (color.isValid())
+                    {
+                        SetValue(color);
+                        emit EditingFinished();
+                    }
+                });
+
+        connect(m_dialog, &QColorDialog::finished, this,
+                [this](int result)
+                {
+                    if (result == QDialog::Accepted)
+                    {
+                        QColor newColor = m_dialog->currentColor();
+                        if (newColor.isValid() && newColor != m_color)
+                        {
+                            SetValue(newColor);
+                            emit EditingFinished();
+                        }
+                    }
+                    m_dialog->deleteLater();
+                    m_dialog = nullptr;
+                });
     }
+
+    m_dialog->setCurrentColor(m_color);
+    m_dialog->show();
+    m_dialog->raise();
+    m_dialog->activateWindow();
 }
 } // namespace editor

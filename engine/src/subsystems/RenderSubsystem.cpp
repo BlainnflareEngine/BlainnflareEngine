@@ -912,7 +912,7 @@ void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
             m_perMaterialSBData.DiffuseAlbedo = materials[matIndex]->GetDefaultAldedo();
             // m_perMaterialSBData.FresnelR0 = mat->FresnelR0;
             m_perMaterialSBData.Roughness = materials[matIndex]->GetDefaultRougnessScale();
-            m_perMaterialSBData.DiffuseMapIndex = 
+            m_perMaterialSBData.DiffuseMapIndex =
                 materials[matIndex]->HasTexture(TextureType::ALBEDO)
                     ? materials[matIndex]->GetTextureHandle(TextureType::ALBEDO).GetIndex()
                     : static_cast<uint32_t>(-1);
@@ -1022,13 +1022,14 @@ void Blainn::RenderSubsystem::UpdateDeferredPassCB(float deltaTime)
 
 #pragma region DirLight
     // Invert sign because other way light would be pointing up
-    const auto &dirLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, DirectionalLight>();
-    for (const auto &[entity, entityID, entityLight] : dirLightEntitiesView.each())
+    const auto &dirLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<TransformComponent, DirectionalLightComponent>();
+    for (const auto &[entity, transform, entityLight] : dirLightEntitiesView.each())
     {
         //XMVECTOR lightDir = -FreyaMath::SphericalToCarthesian(1.0f, m_sunTheta, m_sunPhi);
         //XMStoreFloat3(&m_mainPassCBData.DirLight.Direction, lightDir);
         m_mainPassCBData.DirLight.Color = entityLight.Color;
-        m_mainPassCBData.DirLight.Direction = entityLight.Direction;
+        BF_DEBUG("Forward {} {} {}", transform.GetForwardVector().x, transform.GetForwardVector().y, transform.GetForwardVector().z);
+        m_mainPassCBData.DirLight.Direction = transform.GetForwardVector();
     }
 #pragma endregion DirLight
 
