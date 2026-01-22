@@ -41,11 +41,17 @@ namespace Blainn
 		float Distances[MaxCascades];
 	};
 
+	struct DirectionalLightData
+	{
+        XMFLOAT4 Color = {1.0f, 1.0f, 0.9f, 1.0f}; // (Color * TempRGB), Intensity
+		XMFLOAT3 Direction = { 0.5f, -1.0f, 0.5f };
+        float pad;
+	};
+
 	struct LightData
 	{
-		XMFLOAT3 Strength = { 0.5f, 0.5f, 0.5f };
+		XMFLOAT3 Color = { 0.5f, 0.5f, 0.5f };		// Color * TempRGB * Intensity
 		float FallOfStart = 1.0f;					// spot/point
-		XMFLOAT3 Direction = { 0.5f, -1.0f, 0.5f }; // spot/dir
 		float FallOfEnd = 10.0f;					// spot/point
 		XMFLOAT3 Position = { 0.0f, 0.0f, 0.0f };	// spot/point
 		float SpotPower = 64.0f;					// spot only
@@ -98,7 +104,7 @@ namespace Blainn
 		float FogStart = 8.0f;
 		float FogRange = 18.0f;*/
 
-		LightData DirLight;
+		DirectionalLightData DirLight;
 	};
 
 	/*

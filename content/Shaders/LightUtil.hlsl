@@ -1,5 +1,12 @@
 #define MaxLights 16
 
+struct DirectionalLight
+{
+    float4 Color;      // xyz: color * TempRGB, w: intensity
+    float3 Direction;
+    float pad;
+};
+
 struct Light
 {
     float3 Strength;
@@ -55,11 +62,11 @@ float3 BlinnPhong(float3 lightStrength, float3 lightDir, float3 N, float3 viewDi
     return (mat.DiffuseAlbedo.rgb + specAlbedo) * lightStrength;
 }
 
-float3 CalcDirLight(Light L, float3 N, float3 viewDir, Material mat, float shadowFactor)
+float3 CalcDirLight(DirectionalLight L, float3 N, float3 viewDir, Material mat, float shadowFactor)
 {
     float3 lightDirection = normalize(-L.Direction);
     float NdotL = max(dot(lightDirection, N), 0.0f);
-    float3 lightStrength = NdotL * L.Strength;
+    float3 lightStrength = NdotL * L.Color.xyz * L.Color.w;
     return BlinnPhong(lightStrength, lightDirection, N, viewDir, mat) * shadowFactor;
 }
 

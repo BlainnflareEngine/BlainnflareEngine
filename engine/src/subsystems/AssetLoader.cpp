@@ -17,10 +17,6 @@
 #include "Render/Device.h"
 #include "Render/CommandQueue.h"
 
-#include <DirectXTK12/Inc/DDSTextureLoader.h>
-#include <DirectXTK12/Inc/ResourceUploadBatch.h>
-#include <DirectXTK12/Inc/WICTextureLoader.h>
-
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
