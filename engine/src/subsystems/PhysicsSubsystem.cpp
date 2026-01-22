@@ -268,6 +268,9 @@ eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 direc
     rayCastResult.hitNormal = ToBlainnVec3(
         bodyShape->GetSurfaceNormal(joltResult.mSubShapeID2, ToJoltVec3(rayCastResult.hitPoint - bodyPosition)));
 
+    RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(
+        rayCastResult.hitPoint, rayCastResult.hitPoint + rayCastResult.hitNormal, Blainn::Color(0, 0, 1, 1));
+
     return eastl::optional<RayCastResult>(eastl::move(rayCastResult));
 }
 
