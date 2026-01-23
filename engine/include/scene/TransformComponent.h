@@ -108,7 +108,7 @@ public:
         BLAINN_PROFILE_FUNC();
         using namespace DirectX::SimpleMath;
         EulerRotation = euler;
-        Rotation = Quaternion::CreateFromYawPitchRoll(euler.x, euler.y, euler.z);
+        Rotation = Quaternion::CreateFromYawPitchRoll(euler.y, euler.x, euler.z);
         MarkFramesDirty();
     }
 
