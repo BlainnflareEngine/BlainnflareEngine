@@ -99,11 +99,11 @@ void Blainn::Scene::Update()
         else
         {
             cam->SetPosition(camTransform->GetTranslation());
-         
+
             // commented this cause camera ViewMatrix is updated every frame depends on dirty flag and position
-            
-            //Mat4 camViewMat = GetWorldSpaceTransformMatrix(*camEntity)/*.Invert()*/;
-            //cam->SetViewMatrix(camViewMat);
+
+            Mat4 camViewMat = GetWorldSpaceTransformMatrix(*camEntity).Invert();
+            cam->SetViewMatrix(camViewMat);
 
             cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
             RenderSubsystem::GetInstance().SetCamera(cam);
@@ -158,6 +158,7 @@ void Scene::SaveScene()
         Serializer::AIController(e, out);
         Serializer::Stimulus(e, out);
         Serializer::Perception(e, out);
+        Serializer::DirectionalLightComponent(e, out);
 
         out << YAML::EndMap; // end for every entity
     }
@@ -383,6 +384,12 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
         {
             auto perception = GetPerception(entityNode["PerceptionComponent"]);
             entity.AddComponent<PerceptionComponent>(eastl::move(perception));
+        }
+
+        if (HasDirectionalLight(entityNode))
+        {
+            auto light = GetDirectionalLight(entityNode["DirectionalLightComponent"]);
+            entity.AddComponent<DirectionalLightComponent>(eastl::move(light));
         }
     }
 }
@@ -782,7 +789,7 @@ void Blainn::Scene::SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTr
     if (parent)
     {
         Mat4 parentTransform = GetWorldSpaceTransformMatrix(parent);
-        Mat4 localTransform = parentTransform.Invert() * worldTransform;
+        Mat4 localTransform = worldTransform * parentTransform.Invert();
         entityTransform.SetTransform(localTransform);
     }
     else

@@ -25,7 +25,7 @@ using namespace Blainn;
 
 void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
 {
-#if defined(DEBUG) || defined(_DEBUG)
+#if (defined(DEBUG) || defined(_DEBUG)) && !defined(BLAINN_DISABLE_D3D_DEBUG_LAYER)
     // Enable the debug layer (requires the Graphics Tools "optional feature").
     // NOTE: Enabling the debug layer after device creation will invalidate the active device.
     Device::CreateDebugLayer();
@@ -133,15 +133,15 @@ void Engine::Update(float deltaTime)
 
     Input::ProcessEvents();
 
-    if (s_isPlayMode)
-    {
-        float playModeDelta = s_playModeTimeline.Tick() / 1000.0f;
+    float playModeDelta = s_playModeTimeline.Tick() / 1000.0f;
 
+    if (s_isPlayMode && !s_playModePaused)
+    {
         ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
         PhysicsSubsystem::Update(playModeDelta);
         PerceptionSubsystem::GetInstance().Update(playModeDelta);
-        AISubsystem::GetInstance().Update(playModeDelta);
         NavigationSubsystem::Update(playModeDelta);
+        AISubsystem::GetInstance().Update(playModeDelta);
     }
 
     s_activeScene->Update();
@@ -184,10 +184,16 @@ void Engine::StartPlayMode()
     ScriptingSubsystem::LoadAllScripts(*s_activeScene);
 }
 
-void Engine::StopPlayMode()
+void Engine::TogglePausePlayMode()
 {
-    s_playModeTimeline.Pause();
-    PhysicsSubsystem::StopSimulation();
+    if (!s_playModePaused)
+    {
+        s_playModePaused = true;
+    }
+    else
+    {
+        s_playModePaused = false;
+    }
 }
 
 
@@ -212,6 +218,12 @@ void Engine::EscapePlayMode()
 bool Engine::IsPlayMode()
 {
     return s_isPlayMode;
+}
+
+
+bool Engine::PlayModePaused()
+{
+    return s_playModePaused;
 }
 
 

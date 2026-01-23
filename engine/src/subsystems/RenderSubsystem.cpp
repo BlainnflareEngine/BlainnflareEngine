@@ -23,12 +23,14 @@
 #include "Render/EditorCamera.h"
 #include "Render/RuntimeCamera.h"
 #include "Render/DDSTextureLoader.h"
-
-#include <cassert>
+#include "Render/UI/UIRenderer.h"
+#include "Render/GTexture.h"
 
 #include "PhysicsSubsystem.h"
-#include "components/PhysicsComponent.h"
-#include "Render/GTexture.h"
+#include "Components/PhysicsComponent.h"
+#include "Components/LightComponent.h"
+
+#include <cassert>
 
 namespace Blainn
 {
@@ -48,6 +50,9 @@ void Blainn::RenderSubsystem::Init(HWND window)
     LoadPipeline();
 
     m_debugRenderer = eastl::make_unique<Blainn::DebugRenderer>(m_device);
+    m_UIRenderer = eastl::make_unique<Blainn::UIRenderer>();
+
+    m_UIRenderer->Initialize(m_width, m_height);
 
     m_isInitialized = true;
     BF_INFO("RenderSubsystem::Init() called");
@@ -71,8 +76,21 @@ void Blainn::RenderSubsystem::SetWindowParams(HWND window)
 
 void Blainn::RenderSubsystem::Destroy()
 {
+    m_UIRenderer = nullptr;
+    m_debugRenderer = nullptr;
+
     m_isInitialized = false;
     BF_INFO("RenderSubsystem::Destroy()");
+}
+
+void RenderSubsystem::SetEnableDebug(bool newValue)
+{
+    m_enableDebugLayer = newValue;
+    if (m_debugRenderer)
+    {
+        m_debugRenderer->SetDebugEnabled(newValue);
+        m_debugRenderer->ClearDebugList();
+    }
 }
 
 Blainn::RenderSubsystem &Blainn::RenderSubsystem::GetInstance()
@@ -143,6 +161,8 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
 uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
 {
     BLAINN_PROFILE_FUNC();
+    if (m_UIRenderer->GetDebugUIRenderer().IsGizmoHovered())
+        return Engine::GetSelectionManager().GetSelectedUUID();
     if (x > m_width || y > m_height)
         return uuid{0, 0};
 
@@ -177,12 +197,22 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
 
     device->GetCopyableFootprints(&texDesc, 0, 1, 0, &footprint, &numRows, &rowSizeInBytes, &totalSize);
 
+    if (totalSize == 0)
+    {
+        BF_ERROR("Failed to create copyable footprint");
+        return uuid{0, 0};
+    }
+
     D3D12_RESOURCE_DESC buffersDesc = CD3DX12_RESOURCE_DESC::Buffer(totalSize);
     D3D12_HEAP_PROPERTIES const heapPropertiesReadback = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
 
-    ID3D12Resource *textureReadback = nullptr;
-    device->CreateCommittedResource(&heapPropertiesReadback, D3D12_HEAP_FLAG_NONE, &buffersDesc,
-                                    D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&textureReadback));
+    ComPtr<ID3D12Resource> textureReadback = nullptr;
+    if (FAILED(device->CreateCommittedResource(&heapPropertiesReadback, D3D12_HEAP_FLAG_NONE, &buffersDesc,
+                                    D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&textureReadback))))
+    {
+        BF_ERROR("Failed to create readback buffer");
+        return uuid{0, 0};
+    }
 
     m_device.Flush();
 
@@ -192,7 +222,7 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
     src.SubresourceIndex = 0;
 
     D3D12_TEXTURE_COPY_LOCATION dst{};
-    dst.pResource = textureReadback;
+    dst.pResource = textureReadback.Get();
     dst.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
     dst.PlacedFootprint = footprint;
 
@@ -207,6 +237,8 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
     uint8_t *rowStart = data + y * footprint.Footprint.RowPitch;
     uint8_t *texel = rowStart + x * 16;
     uuid id(texel);
+
+    textureReadback->Unmap(0, nullptr);
     return id;
 }
 
@@ -224,6 +256,8 @@ void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pC
     RenderForwardPasses(pCommandList);
 
     if (m_enableDebugLayer) RenderDebugPass(pCommandList);
+
+    RenderImGuiPass(pCommandList);
 }
 
 VOID Blainn::RenderSubsystem::InitializeWindow()
@@ -363,6 +397,8 @@ void Blainn::RenderSubsystem::OnResize(UINT newWidth, UINT newHeight)
     m_width = newWidth;
     m_height = newHeight;
     m_aspectRatio = static_cast<float>(m_width) / m_height;
+
+    m_UIRenderer->Resize(m_width, m_height);
 
     // To recreate resources which depend on width and height (shadow maps, GBuffer etc.)
     Reset();
@@ -883,8 +919,7 @@ void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
         m_perMaterialSBData = MaterialData();
         if (materials[matIndex] /* && materials[matIndex]->IsFramesDirty()*/)
         {
-            XMStoreFloat4x4(&m_perMaterialSBData.MatTransform,
-                            XMMatrixTranspose(materials[matIndex]->GetMaterialTransform()));
+            XMStoreFloat4x4(&m_perMaterialSBData.MatTransform, XMMatrixTranspose(materials[matIndex]->GetMaterialTransform()));
 
             m_perMaterialSBData.DiffuseAlbedo = materials[matIndex]->GetDefaultAldedo();
             // m_perMaterialSBData.FresnelR0 = mat->FresnelR0;
@@ -905,9 +940,10 @@ void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
                 materials[matIndex]->HasTexture(TextureType::METALLIC)
                     ? materials[matIndex]->GetTextureHandle(TextureType::METALLIC).GetIndex()
                     : static_cast<uint32_t>(-1);
+
             // m_perMaterialSBData.AOMapIndex = materials[matIndex]->GetTextureHandle(TextureType::AO).GetIndex();
 
-            // currMaterialDataSB->CopyData(matIndex, m_perMaterialSBData);
+            //currMaterialDataSB->CopyData(matIndex, m_perMaterialSBData);
 
             materials[matIndex]->FrameResetDirtyFlags();
         }
@@ -998,9 +1034,14 @@ void Blainn::RenderSubsystem::UpdateDeferredPassCB(float deltaTime)
 
 #pragma region DirLight
     // Invert sign because other way light would be pointing up
-    XMVECTOR lightDir = -FreyaMath::SphericalToCarthesian(1.0f, m_sunTheta, m_sunPhi);
-    XMStoreFloat3(&m_mainPassCBData.DirLight.Direction, lightDir);
-    m_mainPassCBData.DirLight.Strength = {1.0f, 1.0f, 0.9f};
+    const auto &dirLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<TransformComponent, DirectionalLightComponent>();
+    for (const auto &[entity, transform, entityLight] : dirLightEntitiesView.each())
+    {
+        //XMVECTOR lightDir = -FreyaMath::SphericalToCarthesian(1.0f, m_sunTheta, m_sunPhi);
+        //XMStoreFloat3(&m_mainPassCBData.DirLight.Direction, lightDir);
+        m_mainPassCBData.DirLight.Color = entityLight.Color;
+        m_mainPassCBData.DirLight.Direction = transform.GetForwardVector();
+    }
 #pragma endregion DirLight
 
     auto currPassCB = m_currFrameResource->PassCB.get();
@@ -1349,7 +1390,8 @@ void RenderSubsystem::RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList)
             Mat4 world;
             char id[16];
         } objData;
-        objData.world = transformComponent.GetTransform().Transpose();
+        Entity ent = Engine::GetActiveScene()->GetEntityWithUUID(idComponent.ID);
+        objData.world = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(ent).Transpose();//transformComponent.GetTransform().Transpose();
         idComponent.ID.bytes(objData.id);
 
         pCommandList->SetGraphicsRoot32BitConstants(0, 20, &objData, 0);
@@ -1374,6 +1416,21 @@ void RenderSubsystem::RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList)
 
     ResourceBarrier(pCommandList, m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetD3D12Resource().Get(),
                     D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ,
+                    D3D12_RESOURCE_STATE_GENERIC_READ);
+}
+
+void RenderSubsystem::RenderImGuiPass(ID3D12GraphicsCommandList2 *pCommandList)
+{
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT,
+                    D3D12_RESOURCE_STATE_RENDER_TARGET);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ,
+                    D3D12_RESOURCE_STATE_DEPTH_READ);
+
+    m_UIRenderer->RenderUI(pCommandList);
+
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET,
+                    D3D12_RESOURCE_STATE_PRESENT);
     ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ,
                     D3D12_RESOURCE_STATE_GENERIC_READ);
 }

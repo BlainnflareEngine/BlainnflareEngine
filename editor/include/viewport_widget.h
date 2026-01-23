@@ -20,7 +20,7 @@ public:
         : QWidget(parent)
     {
         setFocusPolicy(Qt::ClickFocus);
-        setMouseTracking(false);
+        setMouseTracking(true);
     }
 
 protected:
@@ -48,18 +48,11 @@ protected:
     void mousePressEvent(QMouseEvent *event) override
     {
         QPoint globalPos = QCursor::pos();
-        Blainn::Input::ResetMousePosition(globalPos.x(), globalPos.y());
+        Blainn::Input::ResetMousePosition(event->x(), event->y());
 
-        Blainn::Input::UpdateButtonState(static_cast<Blainn::MouseButton>(event->button()),
+        int eventButton = static_cast<int>(event->button());
+        Blainn::Input::UpdateButtonState(static_cast<Blainn::MouseButton>(--eventButton),
                                          Blainn::ButtonState::Pressed);
-
-        if (event->button() == Qt::MouseButton::LeftButton)
-        {
-            uint32_t xPos = event->x();
-            uint32_t yPos = event->y();
-            Blainn::Engine::GetSelectionManager().SelectAt(xPos, yPos);
-        }
-
         QWidget::mousePressEvent(event);
         setFocus();
     }
@@ -67,16 +60,17 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override
     {
         QPoint globalPos = QCursor::pos();
-        Blainn::Input::UpdateMousePosition(globalPos.x(), globalPos.y());
+        Blainn::Input::UpdateMousePosition(event->x(), event->y());
         QWidget::mouseMoveEvent(event);
     }
 
     void mouseReleaseEvent(QMouseEvent *event) override
     {
         QPoint globalPos = QCursor::pos();
-        Blainn::Input::ResetMousePosition(globalPos.x(), globalPos.y());
+        Blainn::Input::ResetMousePosition(event->x(), event->y());
 
-        Blainn::Input::UpdateButtonState(static_cast<Blainn::MouseButton>(event->button()),
+        int eventButton = static_cast<int>(event->button());
+        Blainn::Input::UpdateButtonState(static_cast<Blainn::MouseButton>(--eventButton),
                                          Blainn::ButtonState::Released);
         QWidget::mouseReleaseEvent(event);
     }

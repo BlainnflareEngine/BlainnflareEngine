@@ -28,6 +28,7 @@ namespace Blainn
 
         virtual void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override;
         void DrawLine(Vec3 inFrom, Vec3 inTo, Color color);
+        void DrawArrow(Vec3 inFrom, Vec3 inTo, Color color, float size);
 
         virtual void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow) override;
         void DrawTriangle(Vec3 inV1, Vec3 inV2, Vec3 inV3, Color inColor);
@@ -45,6 +46,9 @@ namespace Blainn
         // this is not working, we didn't yet bother to render text!
         virtual void DrawText3D(JPH::RVec3Arg inPosition, const std::string_view &inString, JPH::ColorArg inColor, float inHeight) override {}
 
+        void SetDebugEnabled(bool value) {m_bIsDebugEnabled = value;}
+        void ClearDebugList() {m_lineListVertices.clear();}
+
     private:
         void CreateRootSignature();
         void CompileShaders();
@@ -55,6 +59,7 @@ namespace Blainn
         DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
         bool m_bIsRenderPassOngoing = false;
+        bool m_bIsDebugEnabled = false;
 
         Device& m_device;
 

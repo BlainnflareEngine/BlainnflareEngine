@@ -159,6 +159,8 @@ set(ENGINE_SOURCES
         include/components/StimulusComponent.h
         include/ai/PerceptionEvents.h
 
+        include/components/LightComponent.h
+
         include/components/CameraComponent.h
         src/Render/EditorCamera.cpp
         include/Render/EditorCamera.h
@@ -181,8 +183,24 @@ set(ENGINE_SOURCES
         include/tools/SelectionManager.h
         src/tools/SelectionManager.cpp
         src/scripting/type-registration/UUIDToLua.cpp
+        include/Render/UI/UIRenderer.h
+        include/Render/UI/DebugUIRenderer.h
+        src/Render/UI/UIRenderer.cpp
+        src/Render/UI/DebugUIRenderer.cpp
 )
 
+file(GLOB IMGUI_SOURCES
+        "${IMGUI_DIR}/*.h"
+        "${IMGUI_DIR}/*.cpp"
+        "${IMGUI_DIR}/backends/imgui_impl_win32.h"
+        "${IMGUI_DIR}/backends/imgui_impl_win32.cpp"
+        "${IMGUI_DIR}/backends/imgui_impl_dx12.h"
+        "${IMGUI_DIR}/backends/imgui_impl_dx12.cpp"
+        "${IMGUIZMO_DIR}/*.h"
+        "${IMGUIZMO_DIR}/*.cpp"
+)
+
+list(APPEND ENGINE_SOURCES ${IMGUI_SOURCES})
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
 
@@ -205,6 +223,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${CMAKE_SOURCE_DIR}/libs/eventpp/include"
         "${CMAKE_SOURCE_DIR}/libs/recastnavigation/Recast/Include"
         "${CMAKE_SOURCE_DIR}/libs/recastnavigation/Detour/Include"
+        "${IMGUI_DIR}"
+        "${IMGUIZMO_DIR}"
 )
 
 

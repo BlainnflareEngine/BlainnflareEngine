@@ -19,9 +19,10 @@ const int gNumFrameResources = 3;
 
 class DebugRenderer;
 class Device;
-class RootSignature;
 struct FrameResource;
+class RootSignature;
 class SelectionManager;
+class UIRenderer;
 
 class RenderSubsystem
 {
@@ -68,10 +69,7 @@ public:
         m_swapChain->ToggleFullscreen();
     }
 
-    void SetEnableDebug(bool newValue)
-    {
-        m_enableDebugLayer = newValue;
-    }
+    void SetEnableDebug(bool newValue);
 
     bool DebugEnabled() const
     {
@@ -85,6 +83,15 @@ public:
     DebugRenderer &GetDebugRenderer()
     {
         return *m_debugRenderer;
+    }
+
+    const UIRenderer &GetUIRenderer() const
+    {
+        return *m_UIRenderer;
+    }
+    UIRenderer &GetUIRenderer()
+    {
+        return *m_UIRenderer;
     }
 
     void SetCamera(Camera *camera)
@@ -111,6 +118,7 @@ private:
     // Record all the commands we need to render the scene into the command list.
     void PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList);
     void InitializeWindow();
+    void InitializeImGui();
 
 #pragma region BoilerplateD3D12
     VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter,
@@ -166,6 +174,7 @@ private:
     void RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList);
 
     void RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList);
+    void RenderImGuiPass(ID3D12GraphicsCommandList2 *pCommandList);
 
     void ResourceBarrier(ID3D12GraphicsCommandList2 *pCommandList, ID3D12Resource *pResource,
                          D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
@@ -227,6 +236,7 @@ private:
     eastl::unordered_map<PipelineStateObject::EPsoType, ComPtr<ID3D12PipelineState>> m_pipelineStates;
 
     eastl::unique_ptr<Blainn::DebugRenderer> m_debugRenderer;
+    eastl::unique_ptr<Blainn::UIRenderer> m_UIRenderer;
 
     RenderTarget m_uuidRenderTarget;
 
@@ -291,5 +301,8 @@ private:
     {
         return m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
     }
+
+    // Probably not the best idea, but it is what it is ;=
+    friend class UIRenderer;
 };
 } // namespace Blainn

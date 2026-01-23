@@ -41,13 +41,13 @@
     {                                                                                                                  \
         spdlog::get(BLAINN_DEFAULT_LOGGER_NAME)->critical(__VA_ARGS__);                                                \
     }
-#elif
-#define BF_TRACE(...)
-#define BF_DEBUG(...)
-#define BF_INFO(...)
-#define BF_WARN(...)
-#define BF_ERROR(...)
-#define BF_FATAL(...)
+#else
+#define BF_TRACE(...) ;
+#define BF_DEBUG(...) ;
+#define BF_INFO(...)  ;
+#define BF_WARN(...)  ;
+#define BF_ERROR(...) ;
+#define BF_FATAL(...) ;
 #endif
 
 namespace Blainn

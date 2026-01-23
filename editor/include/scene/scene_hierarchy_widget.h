@@ -7,6 +7,7 @@
 
 #include "SceneMeta.h"
 #include "context-menu/SceneContextMenu.h"
+#include "scene/Scene.h"
 #include "scene/SceneEvent.h"
 
 
@@ -59,7 +60,11 @@ private:
     SceneContextMenu *m_addToSceneMenu;
     eastl::shared_ptr<SceneMeta> m_sceneMeta;
 
-    void CreateEntityInHierarchy(Blainn::Entity& entity, bool bSceneChanged = false, bool bCreatedInEditor = false);
-    void CreateEntityInHierarchy(Blainn::Entity&& entity, bool bSceneChanged = false, bool bCreatedInEditor = false);
+    eastl::vector<eastl::pair<Blainn::Scene::EventHandle, Blainn::SceneEventType>> m_sceneEvents;
+    //eventpp::CallbackList<void(Blainn::uuid)>::Handle m_selectionHandle;
+    size_t m_selectionHandle;
+
+    void CreateEntityInHierarchy(Blainn::Entity &entity, bool bSceneChanged = false, bool bCreatedInEditor = false);
+    void CreateEntityInHierarchy(Blainn::Entity &&entity, bool bSceneChanged = false, bool bCreatedInEditor = false);
 };
 }; // namespace editor

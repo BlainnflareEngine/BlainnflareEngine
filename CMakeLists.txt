@@ -9,6 +9,7 @@ cmake_policy(SET CMP0169 OLD)
 add_compile_options(/EHsc)
 
 option(BLAINN_EXCLUDE_EDITOR "Build the engine without the editor" OFF)
+option(BLAINN_DISABLE_D3D_DEBUG_LAYER "Disable debug layer for better performance" OFF)
 
 set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "Disable RecastDemo (we don't need SDL2)" FORCE)
 set(RECASTNAVIGATION_EXAMPLES OFF CACHE BOOL "Disable examples" FORCE)
@@ -34,6 +35,10 @@ add_compile_definitions(
 
 if(TRACY_ENABLE)
     add_compile_definitions("TRACY_ENABLE;BLAINN_ENABLE_PROFILING=1")
+endif()
+
+if(BLAINN_DISABLE_D3D_DEBUG_LAYER)
+    add_compile_definitions("BLAINN_DISABLE_D3D_DEBUG_LAYER")
 endif()
 
 set(PROJECT_NAME
@@ -99,6 +104,8 @@ set(JobSystem_DIR ${PROJECT_SOURCE_DIR}/libs/ViennaGameJobSystem)
 set(Entt_DIR ${PROJECT_SOURCE_DIR}/libs/entt)
 set(LUA_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/libs/lua/lua-5.4.4/src)
 set(SOL2_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/libs/sol2/include)
+set(IMGUI_DIR ${PROJECT_SOURCE_DIR}/libs/imgui)
+set(IMGUIZMO_DIR ${PROJECT_SOURCE_DIR}/libs/ImGuizmo)
 
 add_subdirectory(${ENGINE_DIR})
 
@@ -140,37 +147,29 @@ else()
             EDITOR)
 endif()
 
+set(BLAINN_COMMON_INCLUDES
+        "${ENGINE_DIR}"
+        "${CMAKE_SOURCE_DIR}/libs"
+        "${LIBS_DIR}"
+        "${JobSystem_DIR}/include"
+        "${TracyClient_DIR}/public"
+        "${spdlog_DIR}/include"
+        "${CMAKE_SOURCE_DIR}/common"
+        "${uuid_v4_DIR}"
+        "${Entt_DIR}/single_include"
+        $<TARGET_PROPERTY:assimp::assimp,INTERFACE_INCLUDE_DIRECTORIES>
+        "${LIBS_DIR}/eventpp/include"
+        "${IMGUI_DIR}"
+        "${IMGUIZMO_DIR}"
+)
 
-if(BLAINN_EXCLUDE_EDITOR)
-    target_include_directories(${PROJECT_NAME} PUBLIC
-            "${ENGINE_DIR}"
-            "${CMAKE_SOURCE_DIR}/libs"
-            "${LIBS_DIR}"
-            "${JobSystem_DIR}/include"
-            "${TracyClient_DIR}/public"
-            "${spdlog_DIR}/include"
-            "${CMAKE_SOURCE_DIR}/common"
-            "${uuid_v4_DIR}"
-            "${Entt_DIR}/single_include"
-            $<TARGET_PROPERTY:assimp::assimp,INTERFACE_INCLUDE_DIRECTORIES>
-            "${LIBS_DIR}/eventpp/include"
-    )
-else()
-    target_include_directories(${PROJECT_NAME} PUBLIC
-            "${ENGINE_DIR}"
-            "${EDITOR_DIR}"
-            "${CMAKE_SOURCE_DIR}/libs"
-            "${LIBS_DIR}"
-            "${JobSystem_DIR}/include"
-            "${TracyClient_DIR}/public"
-            "${spdlog_DIR}/include"
-            "${CMAKE_SOURCE_DIR}/common"
-            "${uuid_v4_DIR}"
-            "${Entt_DIR}/single_include"
-            $<TARGET_PROPERTY:assimp::assimp,INTERFACE_INCLUDE_DIRECTORIES>
-            "${LIBS_DIR}/eventpp/include"
-    )
+if(NOT BLAINN_EXCLUDE_EDITOR)
+    list(APPEND BLAINN_COMMON_INCLUDES "${EDITOR_DIR}")
 endif()
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+        ${BLAINN_COMMON_INCLUDES}
+)
 
 
 if(NOT BLAINN_EXCLUDE_EDITOR)
@@ -178,7 +177,7 @@ if(NOT BLAINN_EXCLUDE_EDITOR)
 
     # Qt files deploy for Windows
     if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-        set(DEBUG_SUFFIX "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:d>")
+        set(DEBUG_SUFFIX "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>,$<CONFIG:Release>>>:d>")
         set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
         if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
             set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")

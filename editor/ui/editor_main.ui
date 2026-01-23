@@ -348,16 +348,16 @@
                  <number>5</number>
                 </property>
                 <property name="leftMargin">
-                 <number>0</number>
+                 <number>5</number>
                 </property>
                 <property name="topMargin">
-                 <number>0</number>
+                 <number>2</number>
                 </property>
                 <property name="rightMargin">
-                 <number>0</number>
+                 <number>5</number>
                 </property>
                 <property name="bottomMargin">
-                 <number>0</number>
+                 <number>2</number>
                 </property>
                 <item>
                  <widget class="QPushButton" name="AddToScene">
@@ -393,6 +393,13 @@
                    </size>
                   </property>
                  </spacer>
+                </item>
+                <item>
+                 <widget class="QLabel" name="m_sceneName">
+                  <property name="text">
+                   <string>SceneName</string>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </widget>
