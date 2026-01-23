@@ -70,4 +70,12 @@ void component_widget_base::ShowSettingsMenu()
 
     m_settingsMenu->popup(pos);
 }
+
+
+void component_widget_base::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    themed_panel::paintEvent(event);
+}
 } // namespace editor

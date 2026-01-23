@@ -23,6 +23,8 @@ namespace editor
 material_inspector_content::material_inspector_content(const QString &file, QWidget *parent)
     : browser_item_inspector_content(file, parent)
 {
+    BLAINN_PROFILE_FUNC();
+
     auto *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(20, 20, 20, 20);
     mainLayout->setSpacing(10);

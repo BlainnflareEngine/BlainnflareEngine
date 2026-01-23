@@ -23,6 +23,7 @@ public:
 protected:
     void DeleteComponent() override;
 
+    void paintEvent(QPaintEvent *event) override;
 protected slots:
     void OnSightEnabledChanged();
     void OnSightRangeChanged();

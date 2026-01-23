@@ -127,7 +127,7 @@ void Engine::Destroy()
 void Engine::Update(float deltaTime)
 {
     // this trace doesn't make sense, it exactly matches the frame
-    BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop");
+    BLAINN_PROFILE_SCOPE_DYNAMIC("Engine loop");
 
     s_deltaTime = deltaTime;
 

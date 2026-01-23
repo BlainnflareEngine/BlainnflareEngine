@@ -565,19 +565,6 @@
              <property name="bottomMargin">
               <number>0</number>
              </property>
-             <item>
-              <widget class="inspector_widget" name="m_inspector">
-               <property name="frameShape">
-                <enum>QFrame::Shape::NoFrame</enum>
-               </property>
-               <property name="frameShadow">
-                <enum>QFrame::Shadow::Plain</enum>
-               </property>
-               <property name="widgetResizable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
             </layout>
            </widget>
           </widget>
@@ -857,12 +844,6 @@
    <class>console_messages_widget</class>
    <extends>QPlainTextEdit</extends>
    <header>console_messages_widget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>inspector_widget</class>
-   <extends>QScrollArea</extends>
-   <header>inspector_widget.h</header>
-   <container>1</container>
   </customwidget>
   <customwidget>
    <class>scene_hierarchy_widget</class>

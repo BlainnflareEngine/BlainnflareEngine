@@ -23,6 +23,8 @@ protected:
 
     void OnColorChanged();
 
+    void paintEvent(QPaintEvent *event) override;
+
 private:
     color_input_field *m_lightColor = nullptr;
 };

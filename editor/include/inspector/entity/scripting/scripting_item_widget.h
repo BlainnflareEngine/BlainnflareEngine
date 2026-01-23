@@ -47,6 +47,8 @@ private:
     bool_input_field *m_triggerStart = nullptr;
     path_input_field *m_scriptPath = nullptr;
     QPushButton *m_removeButton = nullptr;
+
+    void paintEvent(QPaintEvent *event) override;
 };
 
 } // namespace editor

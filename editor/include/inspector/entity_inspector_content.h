@@ -21,6 +21,9 @@ public:
 
     void SetTag(const QString &tag);
 
+    void paintEvent(QPaintEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+
 protected:
     EntityInspectorData m_data;
 
