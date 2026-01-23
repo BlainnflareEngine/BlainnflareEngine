@@ -48,6 +48,18 @@ namespace Blainn
         float pad;
 	};
 
+	struct PointLightData
+    {
+        XMFLOAT4 Color = {1.0f, 1.0f, 0.9f, 1.0f}; // (Color * TempRGB), Intensity
+    };
+
+	struct SpotLightData
+    {
+        XMFLOAT4 Color = {1.0f, 1.0f, 0.9f, 1.0f}; // (Color * TempRGB), Intensity
+        XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
+        float pad;
+    };
+
 	struct LightData
 	{
 		XMFLOAT3 Color = { 0.5f, 0.5f, 0.5f };		// Color * TempRGB * Intensity
@@ -72,11 +84,17 @@ namespace Blainn
 		uint32_t objPad2 = 0u;
 	};
 
-	struct InstanceData
+	struct PointLightInstanceData
 	{
 		XMFLOAT4X4 World;
-		LightData Light;
+        PointLightData Light;
 	};
+
+	struct SpotLightInstancedData
+    {
+        XMFLOAT4X4 World;
+        SpotLightData Light;
+    };
 
 	struct PassConstants
 	{

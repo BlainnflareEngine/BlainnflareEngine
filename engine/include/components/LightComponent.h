@@ -39,8 +39,6 @@ namespace Blainn
         {
 
         }
-
-        //XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
     };
 
     struct PointLightComponent : public LightComponent
