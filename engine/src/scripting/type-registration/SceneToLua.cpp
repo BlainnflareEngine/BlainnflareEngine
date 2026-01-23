@@ -26,22 +26,18 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
 {
     using namespace Blainn;
 
-    // Register the SceneEvent enum
     luaState.new_enum<true>("SceneEventType", "EntityCreated", SceneEventType::EntityCreated, "EntityDestroyed",
                             SceneEventType::EntityDestroyed, "EntityChanged", SceneEventType::EntityChanged,
                             "SceneChanged", SceneEventType::SceneChanged);
 
-    // Register SceneEvent class hierarchy so Lua can call methods on derived events via base
     sol::usertype<SceneEvent> LuaSceneEventType = luaState.new_usertype<SceneEvent>("SceneEvent", sol::no_constructor);
     LuaSceneEventType.set_function("GetEventType", &SceneEvent::GetEventType);
 
-    // SceneChangedEvent
     sol::usertype<SceneChangedEvent> SceneChangedEventType = luaState.new_usertype<SceneChangedEvent>(
         "SceneChangedEvent", sol::no_constructor, sol::base_classes, sol::bases<SceneEvent>());
     SceneChangedEventType.set_function("GetName",
                                        [](SceneChangedEvent &e) { return std::string(e.GetName().c_str()); });
 
-    // EntityEvent and derived types
     sol::usertype<EntityEvent> EntityEventType = luaState.new_usertype<EntityEvent>(
         "EntityEvent", sol::no_constructor, sol::base_classes, sol::bases<SceneEvent>());
     EntityEventType.set_function("GetEntity", &EntityEvent::GetEntity);
@@ -62,10 +58,10 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
     sol::usertype<EntityReparentedEvent> EntityReparentedEventType = luaState.new_usertype<EntityReparentedEvent>(
         "EntityReparentedEvent", sol::no_constructor, sol::base_classes, sol::bases<EntityChangedEvent>());
 
-    // Register a Scene usertype (no constructor exposed to Lua)
     sol::usertype<Scene> SceneType = luaState.new_usertype<Scene>("Scene", sol::no_constructor);
 
-    // Simple wrappers to handle conversions between std::string and eastl::string / uuid
+    SceneType.set_function("GetName", [](Scene &s) { return std::string(s.GetName().c_str()); });
+
     SceneType.set_function("CreateEntity", [](Scene &scene, const std::string &name, bool onSceneChanged)
                            { return scene.CreateEntity(eastl::string(name.c_str()), onSceneChanged); });
 
@@ -81,7 +77,6 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
             return scene.CreateEntityWithID(id, eastl::string(name.c_str()), shouldSort, onSceneChanged);
         });
 
-    // CreateEntities - convenience wrapper accepting a path to a YAML file
     SceneType.set_function("CreateEntities",
                            [](Scene &scene, const std::string &yamlFilePath, bool onSceneChanged)
                            {
