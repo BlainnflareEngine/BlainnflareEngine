@@ -870,11 +870,13 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
     const auto &renderEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
     for (const auto &[entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
     {
+        const auto &_entity = Engine::GetActiveScene()->TryGetEntityWithUUID(entityID.ID);
+        if (!_entity.IsValid()) continue;
+        
         if (entityTransform.IsFramesDirty() || entityMesh.MaterialHandle->GetMaterial().IsFramesDirty())
         {
             ObjectConstants objConstants;
 
-            const auto &_entity = Engine::GetActiveScene()->GetEntityWithUUID(entityID.ID);
             auto world = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(_entity);
             auto transposeWorld = world.Transpose();
             auto invTransposeWorld = transposeWorld.Invert();
