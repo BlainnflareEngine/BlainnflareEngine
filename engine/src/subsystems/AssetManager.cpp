@@ -48,7 +48,7 @@ void AssetManager::Init()
     Material material = Material(defaultMaterialPath, "");
     material.SetTexture(defaultTexture, TextureType::ALBEDO);
     m_materialPaths[ToEASTLString(defaultMaterialPath.string())] = {0, 1};
-    m_materials.emplace(eastl::make_shared<Material>(std::move(material)));
+    m_materials.emplace(eastl::make_shared<Material>(eastl::move(material)));
     
     LoadPrebuiltMeshes();
 #pragma endregion LoadDefaultResource
@@ -56,13 +56,29 @@ void AssetManager::Init()
 
 void AssetManager::LoadPrebuiltMeshes()
 {
-    auto defaultMeshData = PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f);
+    // could be rewritten with a lambda i suppose
     Model model;
-    model.SetMeshes({defaultMeshData});
+#pragma region Box
+    model = Model{};
+    model.SetMeshes({PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f)});
     model.CreateBufferResources();
-    m_loader->CreateModelGPUResources(model);
-
+    model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
+#pragma endregion Box
+#pragma region Sphere
+    model = Model{};
+    model.SetMeshes({PrebuiltEngineMeshes::CreateSphere(1.0f, 16.0f, 16.0f)});
+    model.CreateBufferResources();
+    model.CreateGPUBuffers();
+    m_meshes.emplace(eastl::make_shared<Model>(model));
+#pragma endregion Sphere
+#pragma region Cone
+    model = Model{};
+    model.SetMeshes({PrebuiltEngineMeshes::CreateCylinder(1.0f, 0.0f, 1.0f, 16.0f)});
+    model.CreateBufferResources();
+    model.CreateGPUBuffers();
+    m_meshes.emplace(eastl::make_shared<Model>(model));
+#pragma endregion Cone
 }
 
 void AssetManager::Destroy()
@@ -333,9 +349,9 @@ Material &AssetManager::GetDefaultMaterial()
 }
 
 
-Model &AssetManager::GetDefaultModel()
+Model &AssetManager::GetDefaultModel(uint32_t index /*= 0u*/)
 {
-    return *m_meshes[0];
+    return *m_meshes[index];
 }
 
 

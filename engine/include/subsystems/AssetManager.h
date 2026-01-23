@@ -3,10 +3,10 @@
 //
 
 #pragma once
+
 #include "AssetLoader.h"
 #include "FreeListVector.h"
 #include "helpers.h"
-
 
 namespace Blainn
 {
@@ -92,7 +92,7 @@ private:
 
     Texture &GetDefaultTexture();
     Material &GetDefaultMaterial();
-    Model &GetDefaultModel();
+    Model &GetDefaultModel(uint32_t index = 0u);
 
     void IncreaseTextureRefCount(const unsigned int index);
     void IncreaseMaterialRefCount(const unsigned int index);
