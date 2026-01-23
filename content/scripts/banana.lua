@@ -98,6 +98,15 @@ function OnStart()
                 local updater = Physics.GetBodyUpdater(e)
                 updater.AddImpulse(Vec3:new(0.0, JUMP_IMPULSE, 0.0))
             end
+
+            if event.key == Key.G then
+                if (Engine.GetActiveScene():GetName() == "Scene.scene")
+                then
+                    AssetManager.OpenScene("Navmesh.scene")
+                else
+                    AssetManager.OpenScene("Scene.scene")
+                end
+            end
         end
     )
 end

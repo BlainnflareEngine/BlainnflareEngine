@@ -31,6 +31,7 @@ public:
     static void EscapePlayMode();
     static bool IsPlayMode();
     static bool PlayModePaused();
+    static void InitScenePlayMode();
 
 public:
     static Path &GetContentDirectory();
@@ -62,5 +63,6 @@ private:
     static inline bool s_isPlayMode = false;
     static inline bool s_playModePaused = false;
     static inline float s_deltaTime = 0.0f;
+    static inline eastl::string s_startPlayModeSceneName;
 };
 } // namespace Blainn
