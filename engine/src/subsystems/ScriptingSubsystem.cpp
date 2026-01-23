@@ -241,6 +241,7 @@ void Blainn::ScriptingSubsystem::RegisterBlainnTypes()
     RegisterSceneTypes(m_lua);
     RegisterAssetManagerTypes(m_lua);
     RegisterEngineTypes(m_lua);
+    RegisterDebugTypes(m_lua);
     RegisterPhysicsTypes(m_lua);
     RegisterScriptingTypes(m_lua);
     RegisterUUIDType(m_lua);

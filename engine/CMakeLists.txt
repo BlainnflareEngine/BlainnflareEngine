@@ -113,6 +113,7 @@ set(ENGINE_SOURCES
         src/scripting/type-registration/Vector4ToLua.cpp
         src/scripting/type-registration/RegisterQuatType.cpp
         src/scripting/type-registration/RegisterMat4Type.cpp
+        src/scripting/type-registration/DebugUIRendererToLua.cpp
 
         include/subsystems/PhysicsSubsystem.h
         src/subsystems/PhysicsSubsystem.cpp
