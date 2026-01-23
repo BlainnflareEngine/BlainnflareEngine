@@ -4,6 +4,7 @@
 
 #include "scripting/TypeRegistration.h"
 
+#include "Engine.h"
 #include "ImportAssetData.h"
 #include "file-system/Material.h"
 #include "file-system/Model.h"
@@ -105,7 +106,12 @@ void Blainn::RegisterAssetManagerTypes(sol::state &luaState)
                              return m.GetPath().string();
                          });
 
-    manager.set_function("OpenScene", [](const std::string &path) { AssetManager::OpenScene(Path(path)); });
+    manager.set_function("OpenScene",
+                         [](const std::string &path)
+                         {
+                             AssetManager::OpenScene(Path(path));
+                             Engine::InitScenePlayMode();
+                         });
     manager.set_function("CreateScene", [](const std::string &path) { AssetManager::CreateScene(Path(path)); });
     manager.set_function("SceneExists",
                          [](const std::string &path) -> bool { return AssetManager::SceneExists(Path(path)); });
