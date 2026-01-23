@@ -15,15 +15,17 @@ using namespace Blainn;
 SelectionManager::SelectionManager()
 {
     m_lmbInputHandle = Input::AddEventListener(InputEventType::MouseButtonPressed,
-        [this](const InputEventPointer& pEvent){
-            auto event = static_cast<MouseButtonPressedEvent*>(pEvent.get());
+                                               [this](const InputEventPointer &pEvent)
+                                               {
+                                                   auto event = static_cast<MouseButtonPressedEvent *>(pEvent.get());
 
-            if (event->GetMouseButton() == MouseButton::Left)
-            {
-                uint32_t xPos = event->GetX();
-                uint32_t yPos = event->GetY();
-                SelectAt(xPos, yPos);
-            }});
+                                                   if (event->GetMouseButton() == MouseButton::Left)
+                                                   {
+                                                       uint32_t xPos = event->GetX();
+                                                       uint32_t yPos = event->GetY();
+                                                       SelectAt(xPos, yPos);
+                                                   }
+                                               });
 }
 
 SelectionManager::~SelectionManager()
@@ -33,24 +35,26 @@ SelectionManager::~SelectionManager()
 
 void SelectionManager::SelectAt(const uint32_t x, const uint32_t y, bool keepSelection)
 {
-    BLAINN_PROFILE_FUNC()
+    BLAINN_PROFILE_FUNC();
     uuid newID = RenderSubsystem::GetInstance().GetUUIDAt(x, y);
 
-    if (newID == m_selectedUUID)
-        return;
+    if (newID == m_selectedUUID) return;
 
-    m_selectedUUID = newID;
-    for (auto& cbf : m_Callbacks)
-        cbf(newID);
+    CallbackList(newID);
+    /*m_selectedUUID = newID;
+    for (auto &cbf : m_Callbacks)
+        cbf(newID);*/
 }
 
 void SelectionManager::SelectUUID(uuid id, bool keepSelection)
 {
-    if (id == m_selectedUUID)
-        return;
+    if (id == m_selectedUUID) return;
     m_selectedUUID = id;
-    for (auto& cbf : m_Callbacks)
-        cbf(id);
+
+    CallbackList(id);
+
+    /*for (auto &cbf : m_Callbacks)
+        cbf(id);*/
 }
 
 void SelectionManager::DeselectAll()

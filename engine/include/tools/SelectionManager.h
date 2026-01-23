@@ -25,9 +25,9 @@ public:
     void DeselectAll();
     uuid GetSelectedUUID() const { return m_selectedUUID; }
 
-    //eventpp::CallbackList<void(uuid)> CallbackList;
-    size_t AddCallback(const CallbackFn &func) { m_Callbacks.push_back(func); return m_Callbacks.size() - 1; }
-    void RemoveCallback(size_t handle) { if (handle < m_Callbacks.size()) m_Callbacks.erase(m_Callbacks.begin() + handle); }
+    eventpp::CallbackList<void(uuid)> CallbackList;
+    //size_t AddCallback(const CallbackFn &func) { m_Callbacks.push_back(func); return m_Callbacks.size() - 1; }
+    //void RemoveCallback(size_t handle) { if (handle < m_Callbacks.size()) m_Callbacks.erase(m_Callbacks.begin() + handle); }
 private:
     // TODO
     eastl::vector<uuid> m_selectedUUIDs{20};

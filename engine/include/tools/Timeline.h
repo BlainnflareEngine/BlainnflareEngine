@@ -129,6 +129,8 @@ template <typename EastlDurationType> inline void Timeline<EastlDurationType>::A
 template <typename EastlDurationType>
 inline void Timeline<EastlDurationType>::RemoveChildTimeline(Timeline *childTimeline)
 {
+    if (m_childTimelines.size() == 0 ) return;
+
     auto it = eastl::find(m_childTimelines.begin(), m_childTimelines.end(), childTimeline);
     if (it != m_childTimelines.end())
     {

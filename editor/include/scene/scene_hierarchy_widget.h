@@ -41,6 +41,8 @@ public:
     void OnEntityDestroyed(const Blainn::SceneEventPointer &event);
     void OnSceneChanged(const Blainn::SceneEventPointer &event);
 
+    void paintEvent(QPaintEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 public slots:
 
     void OnItemDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
@@ -49,10 +51,11 @@ public slots:
 
     void SaveCurrentMeta();
 
+
 protected:
     void keyPressEvent(QKeyEvent *event) override;
-
     void ChangeSelection(Blainn::uuid id);
+
 
 private:
     Ui::scene_hierarchy_widget *ui;
@@ -61,8 +64,8 @@ private:
     eastl::shared_ptr<SceneMeta> m_sceneMeta;
 
     eastl::vector<eastl::pair<Blainn::Scene::EventHandle, Blainn::SceneEventType>> m_sceneEvents;
-    //eventpp::CallbackList<void(Blainn::uuid)>::Handle m_selectionHandle;
-    size_t m_selectionHandle;
+    eventpp::CallbackList<void(Blainn::uuid)>::Handle m_selectionHandle;
+    // size_t m_selectionHandle;
 
     void CreateEntityInHierarchy(Blainn::Entity &entity, bool bSceneChanged = false, bool bCreatedInEditor = false);
     void CreateEntityInHierarchy(Blainn::Entity &&entity, bool bSceneChanged = false, bool bCreatedInEditor = false);

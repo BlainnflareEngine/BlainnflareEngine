@@ -152,6 +152,19 @@ console_messages_widget *editor_main::GetConsoleWidget() const
 }
 
 
+void editor_main::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+    QMainWindow::paintEvent(event);
+}
+
+void editor_main::resizeEvent(QResizeEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+    QMainWindow::resizeEvent(event);
+}
+
+
 void editor_main::OpenAddToScene() const
 {
     QPoint pos = ui->AddToScene->rect().bottomLeft();
