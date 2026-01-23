@@ -59,6 +59,8 @@ private:
     QAction *m_navmeshVolumeAction = nullptr;
 
     QAction *m_directLightAction = nullptr;
+
+    void paintEvent(QPaintEvent *event) override;
 };
 
 } // namespace editor

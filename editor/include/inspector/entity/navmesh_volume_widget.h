@@ -15,6 +15,7 @@ public:
 protected:
     virtual void DeleteComponent() override;
     void OnUpdate() override;
+    void paintEvent(QPaintEvent *event) override;
 
 private:
     vector3_input_widget *m_extents = nullptr;

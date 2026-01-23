@@ -17,6 +17,7 @@ private:
     path_input_field *m_texture_input;
 
     void UpdatePath();
+    void paintEvent(QPaintEvent *event) override;
 
     void OnSetNewPath(const QString &oldPath, const QString &newPath);
 };

@@ -66,6 +66,8 @@ private:
     void LoadValues();
     void LoadShape();
     void BlockSignals(bool value);
+
+    void paintEvent(QPaintEvent *event) override;
 };
 
 } // namespace editor

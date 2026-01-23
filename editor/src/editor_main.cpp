@@ -37,6 +37,9 @@ editor_main::editor_main(QWidget *parent)
 
     ui->m_stopButton->setCheckable(true);
 
+    m_inspector = new inspector_widget();
+    ui->inspectorTab->layout()->addWidget(m_inspector);
+
     connect(ui->folders, &folders_widget::folderSelected, ui->folderContent,
             &folder_content_widget::OnFolderSelectedPath);
     connect(ui->folders, &folders_widget::folderSelected, ui->pathBar, &path_bar_widget::SetCurrentPath);
@@ -142,7 +145,7 @@ void editor_main::closeEvent(QCloseEvent *event)
 
 inspector_widget &editor_main::GetInspectorWidget()
 {
-    return *ui->m_inspector;
+    return *m_inspector;
 }
 
 

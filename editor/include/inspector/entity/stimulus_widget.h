@@ -24,7 +24,7 @@ public:
 
 protected:
     virtual void DeleteComponent() override;
-
+    void paintEvent(QPaintEvent *event) override;
 private slots:
     void OnSightChanged(bool value);
     void OnSoundChanged(bool value);

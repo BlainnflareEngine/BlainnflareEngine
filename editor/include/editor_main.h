@@ -49,6 +49,7 @@ public:
 private:
     Ui::editor_main *ui;
 
+    inspector_widget *m_inspector = nullptr;
     QString m_contentPath;
     ViewportSettingsContext* m_viewportSettingsContext;
 

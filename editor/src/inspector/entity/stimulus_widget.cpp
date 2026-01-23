@@ -72,6 +72,12 @@ void stimulus_widget::DeleteComponent()
     if (m_entity.IsValid()) m_entity.RemoveComponentIfExists<Blainn::StimulusComponent>();
     deleteLater();
 }
+void stimulus_widget::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    component_widget_base::paintEvent(event);
+}
 
 
 void stimulus_widget::OnSightChanged(bool value)

@@ -38,6 +38,7 @@ protected slots:
 protected:
     virtual void OnUpdate() override;
     virtual void DeleteComponent() override;
+    void paintEvent(QPaintEvent *event) override;
 
 private:
     vector3_input_widget *m_position;

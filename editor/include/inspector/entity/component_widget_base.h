@@ -30,6 +30,8 @@ protected:
     QLabel *m_label;
 
     void ShowSettingsMenu();
+
+    void paintEvent(QPaintEvent *event) override;
 };
 
 } // namespace editor

@@ -26,6 +26,8 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
 
     ui->setupUi(this);
 
+    setSortingEnabled(false);
+
     m_sceneModel = new SceneItemModel(this);
     setModel(m_sceneModel);
     setHeaderHidden(true);
