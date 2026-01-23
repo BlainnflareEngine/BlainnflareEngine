@@ -42,6 +42,7 @@ void SelectionManager::SelectAt(const uint32_t x, const uint32_t y, bool keepSel
     uuid newID = RenderSubsystem::GetInstance().GetUUIDAt(x, y);
 
     if (newID == m_selectedUUID) return;
+    m_selectedUUID = newID;
 
     CallbackList(newID);
 }
