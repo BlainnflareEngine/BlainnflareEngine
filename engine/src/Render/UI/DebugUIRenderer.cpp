@@ -57,6 +57,14 @@ void DebugUIRenderer::DrawDebugUI()
 
     DrawWorldGrid();
     DrawGizmo();
+
+    if (ShouldDrawFrameTime)
+    {
+        ImGui::Begin("UI");
+        ImGui::Text("Deltatime: %8.4f", Engine::GetDeltaTime());
+        ImGui::Text("FPS:       %8.4f", 1000.f / Engine::GetDeltaTime());
+        ImGui::End();
+    }
 }
 
 void DebugUIRenderer::DrawWorldGrid()

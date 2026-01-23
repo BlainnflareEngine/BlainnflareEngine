@@ -11,6 +11,7 @@
 #include "aliases.h"
 #include "Input/MouseEvents.h"
 #include "Navigation/NavigationSubsystem.h"
+#include "Render/UI/UIRenderer.h"
 #include "scene/Scene.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
@@ -130,6 +131,7 @@ void Engine::Update(float deltaTime)
     BLAINN_PROFILE_SCOPE_DYNAMIC("Engine loop");
 
     s_deltaTime = deltaTime;
+    RenderSubsystem::GetInstance().GetUIRenderer().StartImGuiFrame();
 
     Input::ProcessEvents();
 

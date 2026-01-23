@@ -199,6 +199,8 @@ file(GLOB IMGUI_SOURCES
         "${IMGUI_DIR}/backends/imgui_impl_dx12.cpp"
         "${IMGUIZMO_DIR}/*.h"
         "${IMGUIZMO_DIR}/*.cpp"
+        "${CMAKE_SOURCE_DIR}/libs/sol2_ImGui_Bindings/*.h"
+        "${CMAKE_SOURCE_DIR}/libs/sol2_ImGui_Bindings/*.cpp"
 )
 
 list(APPEND ENGINE_SOURCES ${IMGUI_SOURCES})
@@ -226,6 +228,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${CMAKE_SOURCE_DIR}/libs/recastnavigation/Detour/Include"
         "${IMGUI_DIR}"
         "${IMGUIZMO_DIR}"
+        "${CMAKE_SOURCE_DIR}/libs/sol2_ImGui_Bindings"
 )
 
 

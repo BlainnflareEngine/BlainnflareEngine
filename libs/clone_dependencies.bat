@@ -20,7 +20,8 @@ https://github.com/microsoft/DirectXTex.git ^
 https://github.com/wqking/eventpp.git ^
 https://github.com/recastnavigation/recastnavigation.git ^
 https://github.com/ocornut/imgui.git ^
-https://github.com/CedricGuillemet/ImGuizmo.git
+https://github.com/CedricGuillemet/ImGuizmo.git ^
+https://github.com/WhoLeb/sol2_ImGui_Bindings.git
 
 REM Change to the directory containing this script
 cd /d "%~dp0"

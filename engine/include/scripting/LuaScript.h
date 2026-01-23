@@ -29,6 +29,7 @@ public:
     bool OnDestroyCall();
     bool OnCollisionStartedCall(const eastl::shared_ptr<PhysicsEvent> &physicsEvent);
     bool OnCollisionEndedCall(const eastl::shared_ptr<PhysicsEvent> &physicsEvent);
+    bool OnDrawUI();
 
     template <typename... Args> bool CustomCall(eastl::string_view functionName = "", Args &&...args)
     {
@@ -72,6 +73,7 @@ private:
         inline const static eastl::string kOnDestroy = "OnDestroy";
         inline const static eastl::string kOnCollisionStarted = "OnCollisionStarted";
         inline const static eastl::string kOnCollisionEnded = "OnCollisionEnded";
+        inline const static eastl::string kOnDrawUI = "OnDrawUI";
     };
     eastl::unordered_set<eastl::string> m_predefinedFunctions;
 

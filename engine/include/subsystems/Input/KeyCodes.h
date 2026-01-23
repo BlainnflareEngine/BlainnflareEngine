@@ -65,7 +65,7 @@ typedef enum class KeyCode : uint16_t
     Print = 0x2A, //Print key
     Execute = 0x2B, //Execute key
     PrintScreen = 0x2C, //Print screen key
-    Inser = 0x2D, //Insert key
+    Insert = 0x2D, //Insert key
     Delete = 0x2E, //Delete key
     Help = 0x2F, //Help key
 
