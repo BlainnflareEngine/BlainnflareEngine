@@ -83,6 +83,16 @@ void Blainn::RenderSubsystem::Destroy()
     BF_INFO("RenderSubsystem::Destroy()");
 }
 
+void RenderSubsystem::SetEnableDebug(bool newValue)
+{
+    m_enableDebugLayer = newValue;
+    if (m_debugRenderer)
+    {
+        m_debugRenderer->SetDebugEnabled(newValue);
+        m_debugRenderer->ClearDebugList();
+    }
+}
+
 Blainn::RenderSubsystem &Blainn::RenderSubsystem::GetInstance()
 {
     static RenderSubsystem render;
@@ -196,7 +206,7 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
     D3D12_RESOURCE_DESC buffersDesc = CD3DX12_RESOURCE_DESC::Buffer(totalSize);
     D3D12_HEAP_PROPERTIES const heapPropertiesReadback = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
 
-    ID3D12Resource *textureReadback = nullptr;
+    ComPtr<ID3D12Resource> textureReadback = nullptr;
     if (FAILED(device->CreateCommittedResource(&heapPropertiesReadback, D3D12_HEAP_FLAG_NONE, &buffersDesc,
                                     D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&textureReadback))))
     {
@@ -212,7 +222,7 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
     src.SubresourceIndex = 0;
 
     D3D12_TEXTURE_COPY_LOCATION dst{};
-    dst.pResource = textureReadback;
+    dst.pResource = textureReadback.Get();
     dst.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
     dst.PlacedFootprint = footprint;
 
@@ -227,6 +237,8 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
     uint8_t *rowStart = data + y * footprint.Footprint.RowPitch;
     uint8_t *texel = rowStart + x * 16;
     uuid id(texel);
+
+    textureReadback->Unmap(0, nullptr);
     return id;
 }
 
@@ -1010,7 +1022,6 @@ void Blainn::RenderSubsystem::UpdateDeferredPassCB(float deltaTime)
         //XMVECTOR lightDir = -FreyaMath::SphericalToCarthesian(1.0f, m_sunTheta, m_sunPhi);
         //XMStoreFloat3(&m_mainPassCBData.DirLight.Direction, lightDir);
         m_mainPassCBData.DirLight.Color = entityLight.Color;
-        BF_DEBUG("Forward {} {} {}", transform.GetForwardVector().x, transform.GetForwardVector().y, transform.GetForwardVector().z);
         m_mainPassCBData.DirLight.Direction = transform.GetForwardVector();
     }
 #pragma endregion DirLight
