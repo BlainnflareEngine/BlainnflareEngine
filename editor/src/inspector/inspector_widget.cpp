@@ -32,7 +32,7 @@ inspector_widget::~inspector_widget()
 
 void inspector_widget::SetItem(QWidget *item)
 {
-    BLAINN_PROFILE_FUNC()
+    BLAINN_PROFILE_FUNC();
     if (m_locked) return;
 
     if (widget()) widget()->deleteLater();

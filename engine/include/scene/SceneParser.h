@@ -67,7 +67,7 @@ inline TransformComponent GetTransform(const YAML::Node &node)
             float x = rotationNode["x"].as<float>();
             float y = rotationNode["y"].as<float>();
             float z = rotationNode["z"].as<float>();
-            transform.SetRotation(Quat::CreateFromYawPitchRoll(x, y, z));
+            transform.SetRotation(Quat::CreateFromYawPitchRoll(y, x, z));
         }
     }
 
