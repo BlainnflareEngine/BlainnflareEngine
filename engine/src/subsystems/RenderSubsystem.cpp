@@ -888,6 +888,20 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
             entityTransform.FrameResetDirtyFlags();
         }
     }
+
+    const auto &pointLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<TransformComponent, PointLightComponent>();
+    for (const auto &[entity, transform, entityLight] : pointLightEntitiesView.each())
+    {
+        m_mainPassCBData.DirLight.Color = entityLight.Color;
+        m_mainPassCBData.DirLight.Direction = transform.GetForwardVector();
+    }
+
+    const auto &spotLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<TransformComponent, SpotLightComponent>();
+    for (const auto &[entity, transform, entityLight] : spotLightEntitiesView.each())
+    {
+        m_mainPassCBData.DirLight.Color = entityLight.Color;
+        m_mainPassCBData.DirLight.Direction = transform.GetForwardVector();
+    }
 }
 
 void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
@@ -1237,8 +1251,7 @@ void Blainn::RenderSubsystem::RenderSkyBoxPass(ID3D12GraphicsCommandList2 *pComm
     UINT passCBByteSize = FreyaUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
 
     // Set GBuffer depth for read to properly draw sky box
-    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ,
-                    D3D12_RESOURCE_STATE_DEPTH_READ);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_READ);
 
     auto rtvHandle = GetRTV();
     CD3DX12_CPU_DESCRIPTOR_HANDLE dsvHandle(m_dsvHeap->GetCPUDescriptorHandleForHeapStart(), 2, m_dsvDescriptorSize);
@@ -1247,19 +1260,15 @@ void Blainn::RenderSubsystem::RenderSkyBoxPass(ID3D12GraphicsCommandList2 *pComm
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
     auto currFrameGPUVirtualAddress = FreyaUtil::GetGPUVirtualAddress(
         currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DeferredLighting));
-    pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerPassDataCB,
-                                                    currFrameGPUVirtualAddress);
+    pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerPassDataCB, currFrameGPUVirtualAddress);
 
     // Bind SkyBox texture
-    pCommandList->SetGraphicsRootDescriptorTable(
-        RootSignature::ERootParam::SkyBox,
-        CD3DX12_GPU_DESCRIPTOR_HANDLE(m_srvHeap->GetGPUDescriptorHandleForHeapStart(), m_skyCubeSrvHeapStartIndex,
-                                      m_cbvSrvUavDescriptorSize));
+    pCommandList->SetGraphicsRootDescriptorTable(RootSignature::ERootParam::SkyBox,
+        CD3DX12_GPU_DESCRIPTOR_HANDLE(m_srvHeap->GetGPUDescriptorHandleForHeapStart(), m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
     pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::Sky).Get());
     DrawMesh(pCommandList, skyBox);
 
-    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ,
-                    D3D12_RESOURCE_STATE_GENERIC_READ);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 
 void Blainn::RenderSubsystem::RenderTransparencyPass(ID3D12GraphicsCommandList2 *pCommandList)
@@ -1269,10 +1278,8 @@ void Blainn::RenderSubsystem::RenderTransparencyPass(ID3D12GraphicsCommandList2 
 
 void RenderSubsystem::RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
-    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT,
-                    D3D12_RESOURCE_STATE_RENDER_TARGET);
-    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ,
-                    D3D12_RESOURCE_STATE_DEPTH_READ);
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_READ);
     m_debugRenderer->BeginDebugRenderPass(pCommandList, GetRTV(), m_GBuffer->GetDsv(GBuffer::EGBufferLayer::DEPTH));
     m_debugRenderer->SetViewProjMatrix(m_mainPassCBData.ViewProj);
 
@@ -1287,7 +1294,7 @@ void RenderSubsystem::RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList)
         case ComponentShapeType::Box:
         {
             auto min = bodyGetter.GetBoxShapeHalfExtents().value();
-            Mat4 transformMatrix = Mat4::CreateFromQuaternion(bodyGetter.GetRotation())
+            Mat4 transformMatrix = Mat4::CreateFromQuaternion(bodyGetter.GetRotation()) 
                                    * Mat4::CreateTranslation(bodyGetter.GetPosition());
 
             m_debugRenderer->DrawWireBox(transformMatrix, min, -min, {0, 1, 0, 1});
@@ -1325,22 +1332,17 @@ void RenderSubsystem::RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList)
     }
 
     m_debugRenderer->EndDebugRenderPass();
-    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET,
-                    D3D12_RESOURCE_STATE_PRESENT);
-    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ,
-                    D3D12_RESOURCE_STATE_GENERIC_READ);
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 
 void RenderSubsystem::RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
-    ResourceBarrier(pCommandList, m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetD3D12Resource().Get(),
-                    D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ,
-                    D3D12_RESOURCE_STATE_DEPTH_READ);
+    ResourceBarrier(pCommandList, m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetD3D12Resource().Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_READ);
 
     const float clearColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    pCommandList->ClearRenderTargetView(m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetRenderTargetView(),
-                                        clearColor, 0u, nullptr);
+    pCommandList->ClearRenderTargetView(m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetRenderTargetView(), clearColor, 0u, nullptr);
 
     pCommandList->SetGraphicsRootSignature(m_UUIDRootSignature->Get());
     pCommandList->SetPipelineState(m_pipelineStates[PipelineStateObject::EPsoType::UUID].Get());
@@ -1387,25 +1389,19 @@ void RenderSubsystem::RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList)
         }
     }
 
-    ResourceBarrier(pCommandList, m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetD3D12Resource().Get(),
-                    D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
-    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ,
-                    D3D12_RESOURCE_STATE_GENERIC_READ);
+    ResourceBarrier(pCommandList, m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetD3D12Resource().Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 
 void RenderSubsystem::RenderImGuiPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
-    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT,
-                    D3D12_RESOURCE_STATE_RENDER_TARGET);
-    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ,
-                    D3D12_RESOURCE_STATE_DEPTH_READ);
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_READ);
 
     m_UIRenderer->RenderUI(pCommandList);
 
-    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET,
-                    D3D12_RESOURCE_STATE_PRESENT);
-    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ,
-                    D3D12_RESOURCE_STATE_GENERIC_READ);
+    ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+    ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 
 void Blainn::RenderSubsystem::DrawMesh(ID3D12GraphicsCommandList2 *pCommandList, eastl::unique_ptr<struct MeshComponent> &meshComponent)

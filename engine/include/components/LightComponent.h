@@ -25,10 +25,11 @@ namespace Blainn
 
         }
 
-        LightComponent(LightComponent &&other)
+        LightComponent(LightComponent &&other) noexcept
         {
 
         }
+
         XMFLOAT4 Color = {1.0f, 1.0f, 1.0f, 1.0f};
     };
 
@@ -42,18 +43,19 @@ namespace Blainn
         //XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
     };
 
-    struct PointLight : public LightComponent
+    struct PointLightComponent : public LightComponent
     {
-        PointLight()
+        PointLightComponent()
         {
+
         }
 
         float Range;
     };
 
-    struct SpotLight : public LightComponent
+    struct SpotLightComponent : public LightComponent
     {
-        SpotLight()
+        SpotLightComponent()
         {
         }
 
