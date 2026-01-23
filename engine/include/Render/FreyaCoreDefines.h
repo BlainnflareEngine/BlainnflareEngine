@@ -54,3 +54,9 @@
 #define REGISTER_SPACE_1 1
 
 #define SHADER_REGISTER(x) (x)
+
+/*
+ * Graphics features
+ */
+#define MaxPointLights 1024
+#define MaxSpotLights 1024
