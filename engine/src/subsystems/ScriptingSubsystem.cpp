@@ -41,7 +41,7 @@ void Blainn::ScriptingSubsystem::LoadAllScripts(Scene &scene)
 {
     for (auto [entity, id, scriptComp] : scene.GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
     {
-        for (auto [path, info] : scriptComp.scriptPaths)
+        for (auto &[path, info] : scriptComp.scriptPaths)
             ScriptingSubsystem::LoadScript(scene.GetEntityWithUUID(id.ID), Path(path.c_str()), info.shouldTriggerStart);
     }
 }
@@ -50,8 +50,17 @@ void Blainn::ScriptingSubsystem::UnloadAllScripts(Scene &scene)
 {
     for (auto [entity, id, scriptComp] : scene.GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
     {
-        for (auto &[id, _] : scriptComp.scripts)
+        eastl::vector<uuid> scriptUuids;
+        scriptUuids.reserve(scriptComp.scripts.size());
+        for (const auto &[scriptUuid, _] : scriptComp.scripts)
+        {
+            scriptUuids.push_back(scriptUuid);
+        }
+
+        for (const auto &id : scriptUuids)
+        {
             ScriptingSubsystem::UnloadScript(id);
+        }
     }
 }
 
