@@ -741,7 +741,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     pointLightIntersectsFarPlanePsoDesc.BlendState.IndependentBlendEnable = FALSE;
     pointLightIntersectsFarPlanePsoDesc.BlendState.RenderTarget[0] = RTBlendDesc;
 
-    pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+    pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthEnable = FALSE;
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
@@ -751,9 +751,9 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     ThrowIfFailed(m_device.CreateGraphicsPipelineState(pointLightIntersectsFarPlanePsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::DeferredPointIntersectsFarPlane]));
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC pointLightWithinFrustumPsoDesc = pointLightIntersectsFarPlanePsoDesc;
-    pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; // ???
-    pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
-    ThrowIfFailed(m_device.CreateGraphicsPipelineState( pointLightWithinFrustumPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::DeferredPointWithinFrustum]));
+    pointLightWithinFrustumPsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+    pointLightWithinFrustumPsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(pointLightWithinFrustumPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::DeferredPointWithinFrustum]));
 
     //pointLightFullQuadPsoDesc
 
@@ -875,7 +875,7 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
     {
         const auto &_entity = Engine::GetActiveScene()->TryGetEntityWithUUID(entityID.ID);
         if (!_entity.IsValid()) continue;
-        
+
         if (entityTransform.IsFramesDirty() || entityMesh.MaterialHandle->GetMaterial().IsFramesDirty())
         {
             ObjectConstants objConstants;
@@ -906,8 +906,7 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
         const auto &_entity = Engine::GetActiveScene()->TryGetEntityWithUUID(entityID.ID);
         if (!_entity.IsValid()) continue;
 
-        ++m_pointLightsCount;
-        if (!entityTransform.IsFramesDirty() && !entityLight.IsFramesDirty()) continue;
+        //if (!entityTransform.IsFramesDirty() && !entityLight.IsFramesDirty()) continue;
 
         PointLightInstanceData m_perInstanceSBData;
 
@@ -918,8 +917,8 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
         m_perInstanceSBData.Light.FalloffStart = entityLight.FalloffStart;
         m_perInstanceSBData.Light.Position = entityTransform.GetTranslation();
 
-        currPointLightSB->CopyData(m_pointLightsCount, m_perInstanceSBData);
-        
+        currPointLightSB->CopyData(m_pointLightsCount++, m_perInstanceSBData);
+
         entityTransform.FrameResetDirtyFlags();
         entityLight.FrameResetDirtyFlags();
     }
@@ -927,8 +926,7 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
 
 #pragma region SpotLights
     //const auto &spotLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<TransformComponent, SpotLightComponent>();
-    //for (const auto &[entity, transform, entityLight] :
-    //spotLightEntitiesView.each())
+    //for (const auto &[entity, transform, entityLight] : spotLightEntitiesView.each())
     //{
         //++m_spotLightsCount;
         //if (!entityTransform.IsFramesDirty() /*|| !entityLight.IsFramesDirty()*/) continue;
@@ -1336,7 +1334,7 @@ void RenderSubsystem::RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList)
         case ComponentShapeType::Box:
         {
             auto min = bodyGetter.GetBoxShapeHalfExtents().value();
-            Mat4 transformMatrix = Mat4::CreateFromQuaternion(bodyGetter.GetRotation()) 
+            Mat4 transformMatrix = Mat4::CreateFromQuaternion(bodyGetter.GetRotation())
                                    * Mat4::CreateTranslation(bodyGetter.GetPosition());
 
             m_debugRenderer->DrawWireBox(transformMatrix, min, -min, {0, 1, 0, 1});

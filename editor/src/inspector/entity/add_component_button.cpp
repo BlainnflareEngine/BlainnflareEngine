@@ -27,8 +27,9 @@
 #include "components/StimulusComponent.h"
 #include "entity/ai_controller_widget.h"
 #include "entity/camera_widget.h"
-#include "entity/directional_light_widget.h"
+#include "../../../include/inspector/entity/light/directional_light_widget.h"
 #include "entity/stimulus_widget.h"
+#include "entity/light/point_light_widget.h"
 
 
 namespace editor
@@ -60,6 +61,7 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
 
     m_renderMenu->addSeparator();
     m_directLightAction = m_renderMenu->addAction("Direct light");
+    m_pointLightAction = m_renderMenu->addAction("Point light");
 
     setText("Add component");
 
@@ -81,6 +83,7 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
     connect(m_cameraAction, &QAction::triggered, this, &add_component_button::OnCameraAction);
     connect(m_skyboxAction, &QAction::triggered, this, &add_component_button::OnSkyboxAction);
     connect(m_directLightAction, &QAction::triggered, this, &add_component_button::OnDirectLightAction);
+    connect(m_pointLightAction, &QAction::triggered, this, &add_component_button::OnPointLightAction);
 }
 
 
@@ -199,6 +202,21 @@ void add_component_button::OnDirectLightAction()
     auto direct = new directional_light_widget(m_entity, this);
     m_layout->insertWidget(m_layout->count() - 1, direct);
 }
+
+
+void add_component_button::OnPointLightAction()
+{
+    if (!m_entity.IsValid()) return;
+
+    if (m_entity.HasComponent<Blainn::PointLightComponent>()) return;
+
+    m_entity.AddComponent<Blainn::PointLightComponent>();
+
+    auto point = new point_light_widget(m_entity, this);
+    m_layout->insertWidget(m_layout->count() - 1, point);
+}
+
+
 void add_component_button::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();

@@ -336,7 +336,7 @@ public:
         out << YAML::EndMap;
     }
 
-    static void DirectionalLightComponent(Entity &entity, YAML::Emitter &out)
+    static void DirectionalLight(Entity &entity, YAML::Emitter &out)
     {
         auto light = entity.TryGetComponent<Blainn::DirectionalLightComponent>();
         if (!light) return;
@@ -349,6 +349,26 @@ public:
         out << YAML::Key << "B" << YAML::Value << light->Color.z;
         out << YAML::Key << "A" << YAML::Value << light->Color.w;
         out << YAML::EndMap;
+        out << YAML::EndMap;
+    }
+
+    static void PointLight(Entity &entity, YAML::Emitter &out)
+    {
+        auto light = entity.TryGetComponent<PointLightComponent>();
+        if (!light) return;
+
+        out << YAML::Key << "PointLightComponent" << YAML::Value << YAML::BeginMap;
+
+        out << YAML::Key << "Color" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "R" << YAML::Value << light->Color.x;
+        out << YAML::Key << "G" << YAML::Value << light->Color.y;
+        out << YAML::Key << "B" << YAML::Value << light->Color.z;
+        out << YAML::Key << "A" << YAML::Value << light->Color.w;
+        out << YAML::EndMap;
+
+        out << YAML::Key << "FalloffStart" << YAML::Value << light->FalloffStart;
+        out << YAML::Key << "FalloffEnd" << YAML::Value << light->FalloffEnd;
+
         out << YAML::EndMap;
     }
 };

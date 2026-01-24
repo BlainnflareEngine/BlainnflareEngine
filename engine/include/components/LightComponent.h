@@ -71,8 +71,8 @@ namespace Blainn
 
         }
 
-        float FalloffEnd; // Range
-        float FalloffStart;
+        float FalloffEnd = 1; // Range
+        float FalloffStart = 0.1;
     };
 
     struct SpotLightComponent : public LightComponent

@@ -23,7 +23,7 @@ public:
     void SaveValues();
     void RestoreValues();
 
-    void ShowMenu();
+    void ShowMenu(bool checked);
 
 protected:
     void EnablePicking(bool value);
