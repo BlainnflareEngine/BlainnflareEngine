@@ -80,7 +80,7 @@ void Blainn::RegisterInputTypes(sol::state &luaState)
     {"Print",          KeyCode::Print},
     {"Execute",        KeyCode::Execute},
     {"PrintScreen",    KeyCode::PrintScreen},
-    {"Inser",          KeyCode::Inser},
+    {"Insert",         KeyCode::Insert},
     {"Delete",         KeyCode::Delete},
     {"Help",           KeyCode::Help},
     {"Num0",           KeyCode::Num0},

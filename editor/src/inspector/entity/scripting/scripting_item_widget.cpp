@@ -75,4 +75,12 @@ void scripting_item_widget::OnRemoveClicked()
 }
 
 
+void scripting_item_widget::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    themed_panel::paintEvent(event);
+}
+
+
 } // namespace editor

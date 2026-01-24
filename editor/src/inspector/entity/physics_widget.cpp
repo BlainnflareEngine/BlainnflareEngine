@@ -468,4 +468,10 @@ void physics_widget::BlockSignals(bool value)
     if (m_halfHeight) m_halfHeight->blockSignals(value);
     if (m_extents) m_extents->blockSignals(value);
 }
+void physics_widget::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    component_widget_base::paintEvent(event);
+}
 } // namespace editor

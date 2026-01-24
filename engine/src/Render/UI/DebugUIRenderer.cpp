@@ -57,6 +57,14 @@ void DebugUIRenderer::DrawDebugUI()
 
     DrawWorldGrid();
     DrawGizmo();
+
+    if (ShouldDrawFrameTime)
+    {
+        ImGui::Begin("UI");
+        ImGui::Text("Deltatime: %8.4f", Engine::GetDeltaTime());
+        ImGui::Text("FPS:       %8.4f", 1000.f / Engine::GetDeltaTime());
+        ImGui::End();
+    }
 }
 
 void DebugUIRenderer::DrawWorldGrid()
@@ -118,7 +126,7 @@ void DebugUIRenderer::DrawGizmo()
             mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
             snapValue = Vec3{TranslationSnapValue};
         }
-        static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
+        ImGuizmo::MODE mCurrentGizmoMode(WorldGizmo ? ImGuizmo::WORLD : ImGuizmo::LOCAL);
 
         auto camera = RenderSubsystem::GetInstance().GetCamera();
         Mat4 cameraView = camera->GetViewMatrix();

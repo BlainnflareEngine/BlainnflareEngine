@@ -127,4 +127,12 @@ void ai_controller_widget::OnGroundOffsetChanged()
 
     comp->GroundOffset = m_groundOffset->GetValue();
 }
+
+
+void ai_controller_widget::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    component_widget_base::paintEvent(event);
+}
 } // namespace editor

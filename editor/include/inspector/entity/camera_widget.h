@@ -30,5 +30,7 @@ private:
     float_input_field *m_FOV = nullptr;
     float_input_field *m_nearZ = nullptr;
     float_input_field *m_farZ = nullptr;
+
+    void paintEvent(QPaintEvent *event) override;
 };
 } // namespace editor

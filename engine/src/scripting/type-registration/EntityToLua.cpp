@@ -13,6 +13,7 @@
 #include "scene/Entity.h"
 #include "scene/Scene.h"
 #include "subsystems/ScriptingSubsystem.h"
+#include "subsystems/PhysicsSubsystem.h"
 
 using namespace Blainn;
 
@@ -88,6 +89,21 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
                             });
     EntityType.set_function("GetPhysicsComponent",
                             [](Entity &e) -> PhysicsComponent * { return e.TryGetComponent<PhysicsComponent>(); });
+
+    EntityType.set_function("CastRay",
+                            [&luaState](Entity &e, const Vec3 &origin, const Vec3 &dir)
+                            {
+                                auto res = PhysicsSubsystem::FilteredCastRay(e, origin, dir);
+                                sol::state_view lua(luaState);
+                                if (!res) return sol::object(sol::nil);
+                                sol::table t = luaState.create_table();
+                                RayCastResult rayCastResult = res.value();
+                                t["entityId"] = rayCastResult.entityId.str();
+                                t["distance"] = rayCastResult.distance;
+                                t["hitNormal"] = rayCastResult.hitNormal;
+                                t["hitPoint"] = rayCastResult.hitPoint;
+                                return sol::object(t);
+                            });
 }
 
 #endif

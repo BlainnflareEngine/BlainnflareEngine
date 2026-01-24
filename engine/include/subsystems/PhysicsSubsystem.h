@@ -57,7 +57,12 @@ public:
     static BodyUpdater GetBodyUpdater(Entity entity);
     static BodyGetter GetBodyGetter(Entity entity);
 
-    static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance);
+    /// @brief  ignores entity and its children
+    static eastl::optional<RayCastResult> FilteredCastRay(Entity entity, Vec3 origin, Vec3 directionAndDistance);
+    static eastl::optional<RayCastResult> CastRay(Vec3 origin, Vec3 directionAndDistance,
+                                                  const JPH::BroadPhaseLayerFilter &inBroadPhaseLayerFilter = {},
+                                                  const JPH::ObjectLayerFilter &inObjectLayerFilter = {},
+                                                  const JPH::BodyFilter &inBodyFilter = {});
 
     static PhysicsEventHandle AddEventListener(const PhysicsEventType eventType,
                                                eastl::function<void(const eastl::shared_ptr<PhysicsEvent> &)> listener);

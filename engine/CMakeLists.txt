@@ -113,6 +113,7 @@ set(ENGINE_SOURCES
         src/scripting/type-registration/Vector4ToLua.cpp
         src/scripting/type-registration/RegisterQuatType.cpp
         src/scripting/type-registration/RegisterMat4Type.cpp
+        src/scripting/type-registration/DebugUIRendererToLua.cpp
 
         include/subsystems/PhysicsSubsystem.h
         src/subsystems/PhysicsSubsystem.cpp
@@ -198,6 +199,8 @@ file(GLOB IMGUI_SOURCES
         "${IMGUI_DIR}/backends/imgui_impl_dx12.cpp"
         "${IMGUIZMO_DIR}/*.h"
         "${IMGUIZMO_DIR}/*.cpp"
+        "${CMAKE_SOURCE_DIR}/libs/sol2_ImGui_Bindings/*.h"
+        "${CMAKE_SOURCE_DIR}/libs/sol2_ImGui_Bindings/*.cpp"
 )
 
 list(APPEND ENGINE_SOURCES ${IMGUI_SOURCES})
@@ -225,6 +228,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${CMAKE_SOURCE_DIR}/libs/recastnavigation/Detour/Include"
         "${IMGUI_DIR}"
         "${IMGUIZMO_DIR}"
+        "${CMAKE_SOURCE_DIR}/libs/sol2_ImGui_Bindings"
 )
 
 

@@ -35,6 +35,8 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     : inspector_content_base(parent)
     , m_data(data)
 {
+    BLAINN_PROFILE_FUNC();
+
     auto entity = m_data.node->GetEntity();
     if (!entity.IsValid())
     {
@@ -61,71 +63,96 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
 
     if (entity.HasComponent<Blainn::TransformComponent>())
     {
+        BLAINN_PROFILE_SCOPE(CreateTransformWidget);
+
         auto transform = new transform_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(transform);
     }
 
     if (entity.HasComponent<Blainn::DirectionalLightComponent>())
     {
+        BLAINN_PROFILE_SCOPE(CreateDirectionalLightWidget);
+
         auto dirLight = new directional_light_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(dirLight);
     }
 
     if (entity.HasComponent<Blainn::PhysicsComponent>())
     {
+        BLAINN_PROFILE_SCOPE(CreatePhysicsWidget);
+
         auto physics = new physics_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(physics);
     }
 
     if (entity.HasComponent<Blainn::ScriptingComponent>())
     {
+        BLAINN_PROFILE_SCOPE(CreateScriptingWidget);
+
         auto scripting = new scripting_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(scripting);
     }
 
     if (entity.HasComponent<Blainn::AIControllerComponent>())
     {
+        BLAINN_PROFILE_SCOPE(CreateAIControllerWidget);
+
         auto aiController = new ai_controller_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(aiController);
     }
 
     if (entity.HasComponent<Blainn::StimulusComponent>())
     {
+        BLAINN_PROFILE_SCOPE(CreateStimulusWidget);
+
         auto stimulus = new stimulus_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(stimulus);
     }
 
     if (entity.HasComponent<Blainn::PerceptionComponent>())
     {
+        BLAINN_PROFILE_SCOPE(CreatePerceptionWidget);
+
         auto perception = new perception_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(perception);
     }
 
     if (entity.HasComponent<Blainn::MeshComponent>())
     {
+        BLAINN_PROFILE_SCOPE(CreateMeshWidget);
+
         auto mesh = new mesh_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(mesh);
     }
 
     if (entity.HasComponent<Blainn::SkyboxComponent>())
     {
+        BLAINN_PROFILE_SCOPE(CreateSkyboxWidget);
+
         auto skybox = new skybox_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(skybox);
     }
 
     if (entity.HasComponent<Blainn::CameraComponent>())
     {
+        BLAINN_PROFILE_SCOPE(CreateCameraWidget);
+
         auto camera = new camera_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(camera);
     }
 
     if (entity.HasComponent<Blainn::NavmeshVolumeComponent>())
     {
+        BLAINN_PROFILE_SCOPE(CreateNavmeshVolumeWidget);
+
         auto navmeshVolume = new navmesh_volume_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(navmeshVolume);
     }
 
-    mainLayout->addStretch(1);
+    {
+        BLAINN_PROFILE_SCOPE(AddStretch);
+        mainLayout->addStretch(1);
+    }
 }
 
 
@@ -133,5 +160,21 @@ void entity_inspector_content::SetTag(const QString &tag)
 {
     m_data.tag = tag;
     m_tag->setText(ToHeader2(tag));
+}
+
+
+void entity_inspector_content::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    inspector_content_base::paintEvent(event);
+}
+
+
+void entity_inspector_content::resizeEvent(QResizeEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    inspector_content_base::resizeEvent(event);
 }
 } // namespace editor

@@ -15,6 +15,8 @@ namespace editor
 
 inspector_content_base *InspectorFabric::GetInspector(const QString &file)
 {
+    BLAINN_PROFILE_FUNC();
+
     QFileInfo fileInfo(file);
     if (!fileInfo.exists())
     {
@@ -40,6 +42,8 @@ inspector_content_base *InspectorFabric::GetInspector(const QString &file)
 
 material_inspector_content *InspectorFabric::GetMaterialInspector(const QString &file)
 {
+    BLAINN_PROFILE_FUNC();
+
     auto inspector = new material_inspector_content(file);
     inspector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     inspector->adjustSize();
@@ -49,6 +53,8 @@ material_inspector_content *InspectorFabric::GetMaterialInspector(const QString 
 
 mesh_inspector_content *InspectorFabric::GetMeshInspector(const QString &file)
 {
+    BLAINN_PROFILE_FUNC();
+
     auto inspector = new mesh_inspector_content(file);
     inspector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     inspector->adjustSize();
@@ -58,9 +64,9 @@ mesh_inspector_content *InspectorFabric::GetMeshInspector(const QString &file)
 
 entity_inspector_content *InspectorFabric::GetEntityInspector(const EntityInspectorData &data)
 {
+    BLAINN_PROFILE_FUNC();
+
     auto inspector = new entity_inspector_content(data);
-    inspector->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    inspector->adjustSize();
     return inspector;
 }
 } // namespace editor

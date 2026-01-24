@@ -79,6 +79,14 @@ void camera_widget::OnFarZChanged()
     }
 }
 
+
+void camera_widget::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    component_widget_base::paintEvent(event);
+}
+
 void camera_widget::OnNearZChanged()
 {
     auto *cam = m_entity.TryGetComponent<Blainn::CameraComponent>();

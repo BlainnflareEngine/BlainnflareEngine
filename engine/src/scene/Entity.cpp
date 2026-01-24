@@ -49,7 +49,7 @@ void Entity::SetParent(Entity parent)
     }
     else
     {
-        SetParentUUID(uuid());
+        SetParentUUID(uuid{});
     }
 
     m_Scene->ReportEntityReparent(*this);
