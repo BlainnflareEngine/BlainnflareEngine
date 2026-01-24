@@ -43,9 +43,13 @@ public:
     inspector_widget &GetInspectorWidget();
     console_messages_widget *GetConsoleWidget() const;
 
+    void paintEvent(QPaintEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
+
 private:
     Ui::editor_main *ui;
 
+    inspector_widget *m_inspector = nullptr;
     QString m_contentPath;
     ViewportSettingsContext* m_viewportSettingsContext;
 

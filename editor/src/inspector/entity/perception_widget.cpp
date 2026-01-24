@@ -131,6 +131,12 @@ void perception_widget::DeleteComponent()
 
     deleteLater();
 }
+void perception_widget::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    component_widget_base::paintEvent(event);
+}
 
 
 /*void perception_widget::LoadValues()

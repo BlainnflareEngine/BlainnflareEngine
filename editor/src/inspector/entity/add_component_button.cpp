@@ -199,6 +199,12 @@ void add_component_button::OnDirectLightAction()
     auto direct = new directional_light_widget(m_entity, this);
     m_layout->insertWidget(m_layout->count() - 1, direct);
 }
+void add_component_button::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    QPushButton::paintEvent(event);
+}
 
 void add_component_button::OnSkyboxAction()
 {

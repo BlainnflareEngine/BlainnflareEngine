@@ -27,6 +27,8 @@ protected:
     virtual void DeleteComponent() override;
     void BlockSignals(bool block);
 
+    void paintEvent(QPaintEvent *event) override;
+
 private:
     bool_input_field *m_enabled = nullptr;
     bool_input_field *m_isWalkable = nullptr;

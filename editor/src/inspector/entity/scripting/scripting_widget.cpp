@@ -160,4 +160,12 @@ void scripting_widget::ConnectScriptItemSignals(scripting_item_widget *widget)
     connect(widget, &scripting_item_widget::ScriptPathChanged, this, &scripting_widget::OnScriptItemPathChanged);
     connect(widget, &scripting_item_widget::Removed, this, [this, widget]() { OnScriptItemRemoved(widget); });
 }
+
+
+void scripting_widget::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    component_widget_base::paintEvent(event);
+}
 } // namespace editor

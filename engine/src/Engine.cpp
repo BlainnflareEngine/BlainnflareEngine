@@ -11,6 +11,7 @@
 #include "aliases.h"
 #include "Input/MouseEvents.h"
 #include "Navigation/NavigationSubsystem.h"
+#include "Render/UI/UIRenderer.h"
 #include "scene/Scene.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
@@ -127,9 +128,10 @@ void Engine::Destroy()
 void Engine::Update(float deltaTime)
 {
     // this trace doesn't make sense, it exactly matches the frame
-    BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop");
+    BLAINN_PROFILE_SCOPE_DYNAMIC("Engine loop");
 
     s_deltaTime = deltaTime;
+    RenderSubsystem::GetInstance().GetUIRenderer().StartImGuiFrame();
 
     Input::ProcessEvents();
 
@@ -201,6 +203,7 @@ void Engine::EscapePlayMode()
 
     s_isPlayMode = false;
     AssetManager::GetInstance().ResetTextures();
+    Log::SetNotFoundMainCameraLogged(false);
 }
 
 

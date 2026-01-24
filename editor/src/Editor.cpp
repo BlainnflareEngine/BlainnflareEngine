@@ -99,6 +99,7 @@ HWND Editor::GetViewportHWND()
 
 void Editor::Update() const
 {
+    BLAINN_PROFILE_SCOPE(Editor loop);
     m_app->processEvents();
 }
 

@@ -38,21 +38,37 @@ void ViewportSettingsContext::Initialize()
 
     auto &render = Blainn::RenderSubsystem::GetInstance();
 
+    QAction *vsyncAction = m_viewportSettingsMenu->addAction("VSync");
+    vsyncAction->setCheckable(true);
+    vsyncAction->setChecked(render.GetVSyncEnabled());
+
+    QAction *enablePickingAction = m_viewportSettingsMenu->addAction("Enable picking");
+    enablePickingAction->setCheckable(true);
+    enablePickingAction->setChecked(Blainn::Engine::GetSelectionManager().EnablePicking);
+
     QAction *debugPhysicsAction = m_viewportSettingsMenu->addAction("Debug lines");
     debugPhysicsAction->setCheckable(true);
     debugPhysicsAction->setChecked(render.DebugEnabled());
 
-    QAction *vsyncAction = m_viewportSettingsMenu->addAction("VSync");
-    vsyncAction->setCheckable(true);
-    vsyncAction->setChecked(render.GetVSyncEnabled());
+    QAction *renderDebugUIAction = m_viewportSettingsMenu->addAction("Render debug ui");
+    renderDebugUIAction->setCheckable(true);
+    renderDebugUIAction->setChecked(render.GetUIRenderer().ShouldRenderDebugUI);
+
+    QAction *frameTimeAction = m_viewportSettingsMenu->addAction("Show frame time");
+    frameTimeAction->setCheckable(true);
+    frameTimeAction->setChecked(render.GetUIRenderer().GetDebugUIRenderer().ShouldDrawFrameTime);
+
+    QAction *gridAction = m_viewportSettingsMenu->addAction("Show world grid");
+    gridAction->setCheckable(true);
+    gridAction->setChecked(render.GetUIRenderer().GetDebugUIRenderer().ShouldDrawWorldGrid);
 
     QAction *gizmoAction = m_viewportSettingsMenu->addAction("Show gizmo");
     gizmoAction->setCheckable(true);
     gizmoAction->setChecked(render.GetUIRenderer().GetDebugUIRenderer().ShouldDrawGizmo);
 
-    QAction *gridAction = m_viewportSettingsMenu->addAction("Show world grid");
-    gridAction->setCheckable(true);
-    gridAction->setChecked(render.GetUIRenderer().GetDebugUIRenderer().ShouldDrawWorldGrid);
+    QAction *setGizmoModeAction = m_viewportSettingsMenu->addAction("World space gizmo");
+    setGizmoModeAction ->setCheckable(true);
+    setGizmoModeAction->setChecked(render.GetUIRenderer().GetDebugUIRenderer().WorldGizmo);
 
     QAction *snapAction = m_viewportSettingsMenu->addAction("Use snapping");
     snapAction->setCheckable(true);
@@ -88,11 +104,15 @@ void ViewportSettingsContext::Initialize()
     scaleAction->setDefaultWidget(scaleField);
     m_viewportSettingsMenu->addAction(scaleAction);
 
-    connect(debugPhysicsAction, &QAction::toggled, this, &ViewportSettingsContext::ShowDebugLines);
-    connect(vsyncAction, &QAction::toggled, this, &ViewportSettingsContext::EnableVSync);
-    connect(gizmoAction, &QAction::toggled, this, &ViewportSettingsContext::EnableGizmo);
-    connect(gridAction, &QAction::toggled, this, &ViewportSettingsContext::EnableWorldGrid);
-    connect(snapAction, &QAction::toggled, this, &ViewportSettingsContext::UseSnapping);
+    connect(vsyncAction,            &QAction::toggled, this, &ViewportSettingsContext::EnableVSync);
+    connect(enablePickingAction,    &QAction::toggled, this, &ViewportSettingsContext::EnablePicking);
+    connect(debugPhysicsAction,     &QAction::toggled, this, &ViewportSettingsContext::ShowDebugLines);
+    connect(renderDebugUIAction,    &QAction::toggled, this, &ViewportSettingsContext::RenderDebugUI);
+    connect(frameTimeAction,        &QAction::toggled, this, &ViewportSettingsContext::ShowFrameTime);
+    connect(gridAction,             &QAction::toggled, this, &ViewportSettingsContext::EnableWorldGrid);
+    connect(gizmoAction,            &QAction::toggled, this, &ViewportSettingsContext::EnableGizmo);
+    connect(setGizmoModeAction,     &QAction::toggled, this, &ViewportSettingsContext::SetGizmoMode);
+    connect(snapAction,             &QAction::toggled, this, &ViewportSettingsContext::UseSnapping);
 
     connect(translationField, &float_input_field::EditingFinished, this,
             [this, translationField]() { OnTranslationSnappingChanged(translationField->GetValue()); });
@@ -112,15 +132,20 @@ void ViewportSettingsContext::SaveValues()
     if (auto config = Blainn::Editor::GetInstance().GetEditorConfig())
     {
         auto &render = Blainn::RenderSubsystem::GetInstance();
+        auto& debugUIRenderer = render.GetUIRenderer().GetDebugUIRenderer();
 
-        config["DebugLines"] = render.DebugEnabled();
-        config["VSync"] = render.GetVSyncEnabled();
-        config["ShouldDrawGizmo"] = render.GetUIRenderer().GetDebugUIRenderer().ShouldDrawGizmo;
-        config["ShouldDrawWorldGrid"] = render.GetUIRenderer().GetDebugUIRenderer().ShouldDrawWorldGrid;
-        config["UseSnap"] = render.GetUIRenderer().GetDebugUIRenderer().UseSnap;
-        config["TranslationSnapValue"] = render.GetUIRenderer().GetDebugUIRenderer().TranslationSnapValue;
-        config["RotationSnapValue"] = render.GetUIRenderer().GetDebugUIRenderer().RotationSnapValue;
-        config["ScaleSnapValue"] = render.GetUIRenderer().GetDebugUIRenderer().ScaleSnapValue;
+        config["VSync"]                 = render.GetVSyncEnabled();
+        config["EnablePicking"]         = Blainn::Engine::GetSelectionManager().EnablePicking;
+        config["DebugLines"]            = render.DebugEnabled();
+        config["ShouldRenderDebugUI"]   = render.GetUIRenderer().ShouldRenderDebugUI;
+        config["ShouldDrawFrameTime"]   = debugUIRenderer.ShouldDrawFrameTime;
+        config["ShouldDrawWorldGrid"]   = debugUIRenderer.ShouldDrawWorldGrid;
+        config["ShouldDrawGizmo"]       = debugUIRenderer.ShouldDrawGizmo;
+        config["GizmoWorldMode"]        = debugUIRenderer.WorldGizmo;
+        config["UseSnap"]               = debugUIRenderer.UseSnap;
+        config["TranslationSnapValue"]  = debugUIRenderer.TranslationSnapValue;
+        config["RotationSnapValue"]     = debugUIRenderer.RotationSnapValue;
+        config["ScaleSnapValue"]        = debugUIRenderer.ScaleSnapValue;
 
         std::ofstream fout(Blainn::Editor::GetInstance().GetEditorConfigPath().string());
         fout << config;
@@ -135,16 +160,18 @@ void ViewportSettingsContext::RestoreValues()
         auto &render = Blainn::RenderSubsystem::GetInstance();
         auto &debugUIRenderer = render.GetUIRenderer().GetDebugUIRenderer();
 
-        if (config["DebugLines"]) render.SetEnableDebug(config["DebugLines"].as<bool>());
-        if (config["VSync"]) render.SetVSyncEnabled(config["VSync"].as<bool>());
-        if (config["ShouldDrawGizmo"]) debugUIRenderer.ShouldDrawGizmo = config["ShouldDrawGizmo"].as<bool>();
-        if (config["ShouldDrawWorldGrid"])
-            debugUIRenderer.ShouldDrawWorldGrid = config["ShouldDrawWorldGrid"].as<bool>();
-        if (config["UseSnap"]) debugUIRenderer.UseSnap = config["UseSnap"].as<bool>();
-        if (config["TranslationSnapValue"])
-            debugUIRenderer.TranslationSnapValue = config["TranslationSnapValue"].as<float>();
-        if (config["RotationSnapValue"]) debugUIRenderer.RotationSnapValue = config["RotationSnapValue"].as<float>();
-        if (config["ScaleSnapValue"]) debugUIRenderer.ScaleSnapValue = config["ScaleSnapValue"].as<float>();
+        if (config["VSync"])                render.SetVSyncEnabled(config["VSync"].as<bool>());
+        if (config["EnablePicking"])        Blainn::Engine::GetSelectionManager().EnablePicking = config["EnablePicking"].as<bool>();
+        if (config["DebugLines"])           render.SetEnableDebug(config["DebugLines"].as<bool>());
+        if (config["ShouldRenderDebugUI"])  render.GetUIRenderer().ShouldRenderDebugUI = config["ShouldRenderDebugUI"].as<bool>();
+        if (config["ShouldDrawFrameTime"])  debugUIRenderer.ShouldDrawFrameTime = config["ShouldDrawFrameTime"].as<bool>();
+        if (config["ShouldDrawWorldGrid"])  debugUIRenderer.ShouldDrawWorldGrid = config["ShouldDrawWorldGrid"].as<bool>();
+        if (config["ShouldDrawGizmo"])      debugUIRenderer.ShouldDrawGizmo = config["ShouldDrawGizmo"].as<bool>();
+        if (config["GizmoWorldMode"])       debugUIRenderer.WorldGizmo = config["GizmoWorldMode"].as<bool>();
+        if (config["UseSnap"])              debugUIRenderer.UseSnap = config["UseSnap"].as<bool>();
+        if (config["TranslationSnapValue"]) debugUIRenderer.TranslationSnapValue = config["TranslationSnapValue"].as<float>();
+        if (config["RotationSnapValue"])    debugUIRenderer.RotationSnapValue = config["RotationSnapValue"].as<float>();
+        if (config["ScaleSnapValue"])       debugUIRenderer.ScaleSnapValue = config["ScaleSnapValue"].as<float>();
     }
 }
 
@@ -156,15 +183,37 @@ void ViewportSettingsContext::ShowMenu()
 }
 
 
+void ViewportSettingsContext::EnableVSync(bool value)
+{
+    Blainn::RenderSubsystem::GetInstance().SetVSyncEnabled(value);
+}
+
+
+void ViewportSettingsContext::EnablePicking(bool value)
+{
+    Blainn::Engine::GetSelectionManager().EnablePicking = value;
+}
+
+
 void ViewportSettingsContext::ShowDebugLines(bool value)
 {
     Blainn::RenderSubsystem::GetInstance().SetEnableDebug(value);
 }
 
-
-void ViewportSettingsContext::EnableVSync(bool value)
+void ViewportSettingsContext::RenderDebugUI(bool value)
 {
-    Blainn::RenderSubsystem::GetInstance().SetVSyncEnabled(value);
+    Blainn::RenderSubsystem::GetInstance().GetUIRenderer().ShouldRenderDebugUI = value;
+}
+
+void ViewportSettingsContext::ShowFrameTime(bool value)
+{
+    Blainn::RenderSubsystem::GetInstance().GetUIRenderer().GetDebugUIRenderer().ShouldDrawFrameTime = value;
+}
+
+
+void ViewportSettingsContext::EnableWorldGrid(bool value)
+{
+    Blainn::RenderSubsystem::GetInstance().GetUIRenderer().GetDebugUIRenderer().ShouldDrawWorldGrid = value;
 }
 
 
@@ -174,9 +223,9 @@ void ViewportSettingsContext::EnableGizmo(bool value)
 }
 
 
-void ViewportSettingsContext::EnableWorldGrid(bool value)
+void ViewportSettingsContext::SetGizmoMode(bool value)
 {
-    Blainn::RenderSubsystem::GetInstance().GetUIRenderer().GetDebugUIRenderer().ShouldDrawWorldGrid = value;
+    Blainn::RenderSubsystem::GetInstance().GetUIRenderer().GetDebugUIRenderer().WorldGizmo = value;
 }
 
 

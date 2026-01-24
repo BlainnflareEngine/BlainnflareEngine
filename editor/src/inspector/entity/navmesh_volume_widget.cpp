@@ -48,6 +48,12 @@ void navmesh_volume_widget::OnUpdate()
     Blainn::RenderSubsystem::GetInstance().GetDebugRenderer().DrawWireBox(transform.GetTransform(), min, max,
                                                                           {0, 1, 0, 1});
 }
+void navmesh_volume_widget::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    component_widget_base::paintEvent(event);
+}
 
 
 void navmesh_volume_widget::OnExtentsChanged()

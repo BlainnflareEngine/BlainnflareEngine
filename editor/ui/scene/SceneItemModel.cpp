@@ -209,6 +209,7 @@ editor::EntityNode *editor::SceneItemModel::GetNodeFromIndex(const QModelIndex &
 
 QModelIndex editor::SceneItemModel::FindIndexByEntity(SceneItemModel *model, const Blainn::uuid &id)
 {
+    BLAINN_PROFILE_FUNC();
     // TODO: recursive deletion will have bad performance in future
     // This is future Ivan problem :)
     return FindIndexByIDRecursive(model, QModelIndex(), id);
@@ -300,7 +301,7 @@ bool editor::SceneItemModel::dropMimeData(const QMimeData *data, Qt::DropAction 
                 EntityNode *parentNode = static_cast<EntityNode *>(parent.internalPointer());
                 newParent = scene->TryGetEntityWithUUID(parentNode->GetUUID());
             }
-            if (newParent) entity.SetParent(newParent);
+            if (newParent) scene->ParentEntity(entity, newParent);
             else scene->UnparentEntity(entity);
         }
     }

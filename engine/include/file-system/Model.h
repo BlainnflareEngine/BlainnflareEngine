@@ -41,7 +41,7 @@ public:
         return totalIndexCount;
     }
 
-    void CreateGPUBuffers(ID3D12GraphicsCommandList2 *pCommandList /*, uint32_t64 frameValue*/);
+    void CreateGPUBuffers();
     void DisposeUploaders();
 
     // TO DO: proper way: texture transoform matrix for every MeshData object

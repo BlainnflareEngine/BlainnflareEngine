@@ -35,6 +35,12 @@ void skybox_widget::UpdatePath()
                                    .string());
     m_texture_input->SetPath(path);
 }
+void skybox_widget::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    component_widget_base::paintEvent(event);
+}
 
 void skybox_widget::OnSetNewPath(const QString & oldPath, const QString & newPath)
 {
@@ -46,7 +52,7 @@ void skybox_widget::OnSetNewPath(const QString & oldPath, const QString & newPat
     auto &mesh = m_entity.GetComponent<Blainn::SkyboxComponent>();
 
     if (Blainn::AssetManager::GetInstance().HasMesh(path))
-        mesh.textureHandle= Blainn::AssetManager::GetInstance().GetTexture(path);
+        mesh.textureHandle = Blainn::AssetManager::GetInstance().GetTexture(path);
     else
         mesh.textureHandle = Blainn::AssetManager::GetInstance().LoadTexture(path, Blainn::TextureType::CUBEMAP);
 }

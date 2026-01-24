@@ -19,11 +19,17 @@ namespace Blainn
             DeferredGeometry,
             Wireframe,
 
+
             DeferredDirectional,
+            
             DeferredPointWithinFrustum,
             DeferredPointIntersectsFarPlane,
             DeferredPointFullQuad,
-            DeferredSpot,
+            
+            DeferredSpotWithinFrustum,
+            DeferredSpotIntersectsFarPlane,
+            DeferredSpotFullQuad,
+
 
             Transparency,
             Sky,
@@ -31,7 +37,7 @@ namespace Blainn
 
             UUID,
 
-            NumPipelineStates = 12u
+            NumPipelineStates
         };
 
     public:
