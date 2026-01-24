@@ -25,7 +25,7 @@ protected:
     void DeleteComponent() override;
     void OnUpdate() override;
 
-    void OnColorChanged(const QColor &color);
+    void OnColorChanged();
     void OnRangeChanged();
     void OnAttenuationChanged();
 

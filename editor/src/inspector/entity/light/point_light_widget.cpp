@@ -2,12 +2,12 @@
 // Created by gorev on 24.01.2026.
 //
 
-#include "../../../../include/inspector/entity/light/point_light_widget.h"
+#include "inspector/entity/light/point_light_widget.h"
 
 #include "components/LightComponent.h"
 #include "input-widgets/color_input_field.h"
 #include "input-widgets/float_input_field.h"
-
+#include "scene/EntityTemplates.h"
 #include <QLayout>
 
 namespace editor
@@ -53,7 +53,7 @@ void point_light_widget::OnUpdate()
 }
 
 
-void point_light_widget::OnColorChanged(const QColor &color)
+void point_light_widget::OnColorChanged()
 {
     auto light = m_entity.TryGetComponent<Blainn::PointLightComponent>();
     if (!light) deleteLater();
@@ -62,9 +62,7 @@ void point_light_widget::OnColorChanged(const QColor &color)
                               ConvertQColorToDXColor(m_color->GetValue().green()),
                               ConvertQColorToDXColor(m_color->GetValue().blue())};
     light->Color = newColor;
-
-    // TODO:
-    // light->markAsDirty;
+    light->MarkFramesDirty();
 }
 
 
@@ -74,9 +72,7 @@ void point_light_widget::OnRangeChanged()
     if (!light) deleteLater();
 
     light->FalloffEnd = m_range->GetValue();
-
-    // TODO:
-    // light->markAsDirty;
+    light->MarkFramesDirty();
 }
 
 
@@ -86,8 +82,6 @@ void point_light_widget::OnAttenuationChanged()
     if (!light) deleteLater();
 
     light->FalloffStart = m_attenuation->GetValue();
-
-    // TODO:
-    // light->markAsDirty;
+    light->MarkFramesDirty();
 }
 } // namespace editor

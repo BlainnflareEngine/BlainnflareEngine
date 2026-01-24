@@ -83,7 +83,7 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
     connect(m_cameraAction, &QAction::triggered, this, &add_component_button::OnCameraAction);
     connect(m_skyboxAction, &QAction::triggered, this, &add_component_button::OnSkyboxAction);
     connect(m_directLightAction, &QAction::triggered, this, &add_component_button::OnDirectLightAction);
-    connect(m_pointLightAction, &QAction::triggered, this, &add_component_button::OnDirectLightAction);
+    connect(m_pointLightAction, &QAction::triggered, this, &add_component_button::OnPointLightAction);
 }
 
 

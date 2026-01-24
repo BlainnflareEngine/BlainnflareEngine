@@ -880,7 +880,7 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
     {
         const auto &_entity = Engine::GetActiveScene()->TryGetEntityWithUUID(entityID.ID);
         if (!_entity.IsValid()) continue;
-        
+
         if (entityTransform.IsFramesDirty() || entityMesh.MaterialHandle->GetMaterial().IsFramesDirty())
         {
             ObjectConstants objConstants;
@@ -911,7 +911,6 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
         const auto &_entity = Engine::GetActiveScene()->TryGetEntityWithUUID(entityID.ID);
         if (!_entity.IsValid()) continue;
 
-        ++m_pointLightsCount;
         if (!entityTransform.IsFramesDirty() && !entityLight.IsFramesDirty()) continue;
 
         PointLightInstanceData m_perInstanceSBData;
@@ -923,8 +922,8 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
         m_perInstanceSBData.Light.FalloffStart = entityLight.FalloffStart;
         m_perInstanceSBData.Light.Position = entityTransform.GetTranslation();
 
-        currPointLightSB->CopyData(m_pointLightsCount, m_perInstanceSBData);
-        
+        currPointLightSB->CopyData(m_pointLightsCount++, m_perInstanceSBData);
+
         entityTransform.FrameResetDirtyFlags();
         entityLight.FrameResetDirtyFlags();
     }
@@ -1341,7 +1340,7 @@ void RenderSubsystem::RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList)
         case ComponentShapeType::Box:
         {
             auto min = bodyGetter.GetBoxShapeHalfExtents().value();
-            Mat4 transformMatrix = Mat4::CreateFromQuaternion(bodyGetter.GetRotation()) 
+            Mat4 transformMatrix = Mat4::CreateFromQuaternion(bodyGetter.GetRotation())
                                    * Mat4::CreateTranslation(bodyGetter.GetPosition());
 
             m_debugRenderer->DrawWireBox(transformMatrix, min, -min, {0, 1, 0, 1});
