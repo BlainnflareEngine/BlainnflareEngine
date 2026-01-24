@@ -71,8 +71,8 @@ namespace Blainn
 
         }
 
-        float FalloffEnd = 1; // Range
-        float FalloffStart = 0.1;
+        float FalloffEnd = 1.0f; // Range
+        float FalloffStart = 0.1f;
     };
 
     struct SpotLightComponent : public LightComponent
@@ -81,8 +81,8 @@ namespace Blainn
         {
         }
 
-        //XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
-        float Range;
+        float FalloffEnd = 1.0f; // Range
+        float FalloffStart = 0.1f;
         float SpotInnerAngle;
         float SpotOuterAngle;
     };

@@ -82,7 +82,7 @@ float3 BlinnPhong(float3 lightStrength, float3 lightDir, float3 N, float3 viewDi
     return (mat.DiffuseAlbedo.rgb + specAlbedo) * lightStrength;
 }
 
-float3 CalcDirLight(DirectionalLight L, float3 N, float3 viewDir, Material mat, float shadowFactor)
+float3 ComputeDirLight(DirectionalLight L, float3 N, float3 viewDir, Material mat, float shadowFactor)
 {
     float3 lightDirection = normalize(-L.Direction);
     float NdotL = max(dot(lightDirection, N), 0.0f);
@@ -95,7 +95,7 @@ float CalcAttenuation(float distance, float falloffStart, float falloffEnd)
     return saturate((falloffEnd - distance) / (falloffEnd - falloffStart));
 }
 
-float3 CalcPointLight(PointLight L, float3 N, float3 posW, float3 viewDir, Material mat)
+float3 ComputePointLight(PointLight L, float3 N, float3 posW, float3 viewDir, Material mat)
 {
     float3 lightVec = L.Position - posW;
     
