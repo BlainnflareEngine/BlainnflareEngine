@@ -8,7 +8,7 @@ Blainn::FrameResource::FrameResource(Device &device, UINT passCount, UINT materi
     PassCB = eastl::make_unique<UploadBuffer<PassConstants>>(device.GetDevice2().Get(), passCount, TRUE);
     MaterialSB = eastl::make_unique<UploadBuffer<MaterialData>>(device.GetDevice2().Get(), materialCount, FALSE);                 // Structured buffer 
     PointLightSB = eastl::make_unique<UploadBuffer<PointLightInstanceData>>(device.GetDevice2().Get(), maxNumPointLights, FALSE); // Structured buffer
-    SpotLightSB = eastl::make_unique<UploadBuffer<SpotLightInstancedData>>(device.GetDevice2().Get(), maxNumSpotLights, FALSE);   // Structured buffer
+    SpotLightSB = eastl::make_unique<UploadBuffer<SpotLightInstanceData>>(device.GetDevice2().Get(), maxNumSpotLights, FALSE);    // Structured buffer
 }
 
 Blainn::FrameResource::~FrameResource()

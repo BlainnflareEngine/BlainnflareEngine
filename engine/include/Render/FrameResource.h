@@ -19,7 +19,7 @@ namespace Blainn
         eastl::unique_ptr<UploadBuffer<PassConstants>> PassCB = nullptr;
         eastl::unique_ptr<UploadBuffer<MaterialData>> MaterialSB = nullptr;
         eastl::unique_ptr<UploadBuffer<PointLightInstanceData>> PointLightSB = nullptr;
-        eastl::unique_ptr<UploadBuffer<SpotLightInstancedData>> SpotLightSB = nullptr;
+        eastl::unique_ptr<UploadBuffer<SpotLightInstanceData>> SpotLightSB = nullptr;
         
         // Fence value to mark commands up to this fence point. This lets us check if these frame resources are still in use by the GPU.
         UINT64 Fence = 0;

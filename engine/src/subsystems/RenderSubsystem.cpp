@@ -123,7 +123,7 @@ void Blainn::RenderSubsystem::Render(float deltaTime)
     }
 
     UpdateObjectsCB(deltaTime);
-    //UpdateLightsBuffers(deltaTime);
+    UpdateLightsBuffers(deltaTime);
     UpdateMaterialBuffer(deltaTime);
 
     UpdateShadowTransform(deltaTime);
@@ -905,18 +905,23 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
 #pragma region PointLights
     auto currPointLightSB = m_currFrameResource->PointLightSB.get();
 
-    const auto &pointLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<TransformComponent, /*MeshComponent,*/ PointLightComponent>();
-    for (const auto &[entity, entityTransform, /*entityMesh,*/ entityLight] : pointLightEntitiesView.each())
+    const auto &pointLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, /*MeshComponent,*/ PointLightComponent>();
+    for (const auto &[entity, entityID, entityTransform, /*entityMesh,*/ entityLight] : pointLightEntitiesView.each())
     {
+        const auto &_entity = Engine::GetActiveScene()->TryGetEntityWithUUID(entityID.ID);
+        if (!_entity.IsValid()) continue;
+
         ++m_pointLightsCount;
-        if (!entityTransform.IsFramesDirty()) continue;
+        if (!entityTransform.IsFramesDirty() /*|| !entityLight.IsFramesDirty()*/) continue;
 
         PointLightInstanceData m_perInstanceSBData;
 
-        auto world = entityTransform.GetTransform();
-
+        auto world = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(_entity);
         XMStoreFloat4x4(&m_perInstanceSBData.World, XMMatrixTranspose(world));
-        // light params
+        m_perInstanceSBData.Light.Color = entityLight.Color;
+        m_perInstanceSBData.Light.FalloffEnd = entityLight.FalloffEnd; // range
+        m_perInstanceSBData.Light.FalloffStart = entityLight.FalloffStart;
+        m_perInstanceSBData.Light.Position = entityTransform.GetTranslation();
 
         currPointLightSB->CopyData(m_pointLightsCount, m_perInstanceSBData);
         entityTransform.FrameResetDirtyFlags();
@@ -929,9 +934,9 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
     //spotLightEntitiesView.each())
     //{
         //++m_spotLightsCount;
-        //if (!entityTransform.IsFramesDirty()) continue;
+        //if (!entityTransform.IsFramesDirty() /*|| !entityLight.IsFramesDirty()*/) continue;
 
-        //SpotLightInstancedData m_perInstanceSBData;
+        //SpotLightInstanceData m_perInstanceSBData;
     //}
 #pragma endregion SpotLights
 }
@@ -1063,9 +1068,9 @@ void Blainn::RenderSubsystem::UpdateDeferredPassCB(float deltaTime)
 #pragma region DirLight
     // Invert sign because other way light would be pointing up
     const auto &dirLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<TransformComponent, DirectionalLightComponent>();
-    for (const auto &[entity, entityTransform, entityDirLight] : dirLightEntitiesView.each())
+    for (const auto &[entity, entityTransform, entityLight] : dirLightEntitiesView.each())
     {
-        m_deferredPassCBData.DirLight.Color = entityDirLight.Color;
+        m_deferredPassCBData.DirLight.Color = entityLight.Color;
         m_deferredPassCBData.DirLight.Direction = entityTransform.GetForwardVector();
     }
 #pragma endregion DirLight
@@ -1257,8 +1262,8 @@ void Blainn::RenderSubsystem::DeferredPointLightPass(ID3D12GraphicsCommandList2 
 
 void Blainn::RenderSubsystem::DeferredSpotLightPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
-    auto instanceBuffer = m_currFrameResource->PointLightSB->Get();
-    pCommandList->SetGraphicsRootShaderResourceView(RootSignature::ERootParam::PointLightsDataSB, instanceBuffer->GetGPUVirtualAddress());
+    auto instanceBuffer = m_currFrameResource->SpotLightSB->Get();
+    pCommandList->SetGraphicsRootShaderResourceView(RootSignature::ERootParam::SpotLightsDataSB, instanceBuffer->GetGPUVirtualAddress());
 
     // !!! HACK (TO DRAW EVEN IF FRUSTUM INTERSECTS LIGHT VOLUME)
     pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::DeferredSpotWithinFrustum).Get());

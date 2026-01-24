@@ -51,23 +51,20 @@ namespace Blainn
 	struct PointLightData
     {
         XMFLOAT4 Color = {1.0f, 1.0f, 0.9f, 1.0f}; // (Color * TempRGB), Intensity
+        XMFLOAT3 Position = {0.0f, 0.0f, 0.0f};
+		float FalloffStart = 0.1f;
+        XMFLOAT3 TempRGB = {0.0f, 0.0f, 0.0f}; // padding actually 
+        float FalloffEnd = 1.0f;
     };
 
 	struct SpotLightData
     {
-        XMFLOAT4 Color = {1.0f, 1.0f, 0.9f, 1.0f}; // (Color * TempRGB), Intensity
+        XMFLOAT4 Color = {1.0f, 1.0f, 0.9f, 1.0f}; // (Color * TempRGB), Intensity (SpotPower)
         XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
-        float pad;
+        float FalloffStart = 0.1f;
+        XMFLOAT3 Position = {0.0f, 0.0f, 0.0f};
+        float FalloffEnd = 1.0f;
     };
-
-	struct LightData
-	{
-		XMFLOAT3 Color = { 0.5f, 0.5f, 0.5f };		// Color * TempRGB * Intensity
-		float FallOfStart = 1.0f;					// spot/point
-		float FallOfEnd = 10.0f;					// spot/point
-		XMFLOAT3 Position = { 0.0f, 0.0f, 0.0f };	// spot/point
-		float SpotPower = 64.0f;					// spot only
-	};
 
 	/*
 	 * Constant buffers types
@@ -90,7 +87,7 @@ namespace Blainn
         PointLightData Light;
 	};
 
-	struct SpotLightInstancedData
+	struct SpotLightInstanceData
     {
         XMFLOAT4X4 World;
         SpotLightData Light;
