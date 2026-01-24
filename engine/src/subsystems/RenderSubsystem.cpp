@@ -573,17 +573,12 @@ void Blainn::RenderSubsystem::CreateRootSignature()
     CD3DX12_ROOT_PARAMETER slotRootParameter[RootSignature::ERootParam::NumRootParameters];
 
     // Perfomance TIP: Order from most frequent to least frequent.
-    slotRootParameter[RootSignature::ERootParam::PerObjectDataCB].InitAsConstantBufferView(
-        SHADER_REGISTER(0u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
-    slotRootParameter[RootSignature::ERootParam::PerPassDataCB].InitAsConstantBufferView(
-        SHADER_REGISTER(1u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[RootSignature::ERootParam::PerObjectDataCB].InitAsConstantBufferView(SHADER_REGISTER(0u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[RootSignature::ERootParam::PerPassDataCB].InitAsConstantBufferView(SHADER_REGISTER(1u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
 
-    slotRootParameter[RootSignature::ERootParam::MaterialsDataSB].InitAsShaderResourceView(
-        SHADER_REGISTER(0u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
-    slotRootParameter[RootSignature::ERootParam::PointLightsDataSB].InitAsShaderResourceView(
-        SHADER_REGISTER(1u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
-    slotRootParameter[RootSignature::ERootParam::SpotLightsDataSB].InitAsShaderResourceView(
-        SHADER_REGISTER(2u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[RootSignature::ERootParam::MaterialsDataSB].InitAsShaderResourceView(SHADER_REGISTER(0u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[RootSignature::ERootParam::PointLightsDataSB].InitAsShaderResourceView(SHADER_REGISTER(1u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[RootSignature::ERootParam::SpotLightsDataSB].InitAsShaderResourceView(SHADER_REGISTER(2u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
 
     slotRootParameter[RootSignature::ERootParam::CascadedShadowMaps].InitAsDescriptorTable(1u, &cascadeShadowSrv, D3D12_SHADER_VISIBILITY_PIXEL);
     slotRootParameter[RootSignature::ERootParam::GBufferTextures].InitAsDescriptorTable(1u, &GBufferTable, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -746,7 +741,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     pointLightIntersectsFarPlanePsoDesc.BlendState.IndependentBlendEnable = FALSE;
     pointLightIntersectsFarPlanePsoDesc.BlendState.RenderTarget[0] = RTBlendDesc;
 
-    pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+    pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthEnable = FALSE;
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
     pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
@@ -756,9 +751,9 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     ThrowIfFailed(m_device.CreateGraphicsPipelineState(pointLightIntersectsFarPlanePsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::DeferredPointIntersectsFarPlane]));
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC pointLightWithinFrustumPsoDesc = pointLightIntersectsFarPlanePsoDesc;
-    pointLightIntersectsFarPlanePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; // ???
-    pointLightIntersectsFarPlanePsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
-    ThrowIfFailed(m_device.CreateGraphicsPipelineState( pointLightWithinFrustumPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::DeferredPointWithinFrustum]));
+    pointLightWithinFrustumPsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+    pointLightWithinFrustumPsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(pointLightWithinFrustumPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::DeferredPointWithinFrustum]));
 
     //pointLightFullQuadPsoDesc
 
@@ -931,8 +926,7 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
 
 #pragma region SpotLights
     //const auto &spotLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<TransformComponent, SpotLightComponent>();
-    //for (const auto &[entity, transform, entityLight] :
-    //spotLightEntitiesView.each())
+    //for (const auto &[entity, transform, entityLight] : spotLightEntitiesView.each())
     //{
         //++m_spotLightsCount;
         //if (!entityTransform.IsFramesDirty() /*|| !entityLight.IsFramesDirty()*/) continue;
