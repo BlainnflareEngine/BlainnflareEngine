@@ -8,6 +8,7 @@
 #include "Engine.h"
 #include "FileSystemUtils.h"
 #include "ui_editor_main.h"
+#include "EditorConsoleMessage.h"
 
 #include <QApplication>
 #include <QImageReader>
@@ -31,7 +32,7 @@ void Editor::Init(int argc, char **argv)
     m_app = new QApplication(argc, argv);
 
     QList<QByteArray> formats = QImageReader::supportedImageFormats();
-    qRegisterMetaType<editor::LogMessage>("LogMessage");
+    qRegisterMetaType<LogMessage>("LogMessage");
 
     auto *style = new oclero::qlementine::QlementineStyle(m_app);
     style->setThemeJsonPath(":/themes/dark.json");

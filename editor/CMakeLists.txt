@@ -169,6 +169,7 @@ set(EDITOR_SOURCES
         src/context-menu/ViewportSettingsContext.cpp
         src/inspector/input-widgets/slider_input_field.cpp
         include/inspector/input-widgets/slider_input_field.h
+        include/EditorConsoleMessage.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
