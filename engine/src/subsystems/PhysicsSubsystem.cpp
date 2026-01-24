@@ -17,6 +17,7 @@
 
 #include "subsystems/RenderSubsystem.h"
 #include "Render/DebugRenderer.h"
+#include "PhysicsSubsystem.h"
 
 using namespace Blainn;
 
@@ -242,16 +243,19 @@ JPH::PhysicsSystem &PhysicsSubsystem::GetPhysicsSystem()
     return *m_joltPhysicsSystem;
 }
 
-eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 directionAndDistance)
+eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 directionAndDistance,
+                                                         const JPH::BroadPhaseLayerFilter &inBroadPhaseLayerFilter,
+                                                         const JPH::ObjectLayerFilter &inObjectLayerFilter,
+                                                         const JPH::BodyFilter &inBodyFilter)
 {
-    Vec3 min = origin;
-    Vec3 max = origin + directionAndDistance;
-    RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(min, max, Blainn::Color(1, 0, 0, 1));
-
     JPH::RRayCast ray(ToJoltRVec3(origin), ToJoltRVec3(directionAndDistance));
     JPH::RayCastResult joltResult;
-    if (!m_joltPhysicsSystem->GetNarrowPhaseQuery().CastRay(ray, joltResult))
+    if (!m_joltPhysicsSystem->GetNarrowPhaseQuery().CastRay(ray, joltResult, inBroadPhaseLayerFilter,
+                                                            inObjectLayerFilter, inBodyFilter))
     {
+        // draw line from origin to direction point
+        RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(origin, origin + directionAndDistance,
+                                                                   Blainn::Color(1, 0, 0, 1));
         return eastl::optional<RayCastResult>();
     }
     JPH::BodyID hitBodyId = joltResult.mBodyID;
@@ -264,14 +268,60 @@ eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 direc
     rayCastResult.distance = joltResult.mFraction * directionAndDistance.Length();
     rayCastResult.hitPoint = origin + directionAndDistance * joltResult.mFraction;
 
+    Quat bodyRotation = bodyGetter.GetRotation();
+    Quat invBodyRotation;
+    bodyRotation.Inverse(invBodyRotation);
     JPH::RefConst<JPH::Shape> bodyShape = bodyGetter.GetShape();
-    rayCastResult.hitNormal = ToBlainnVec3(
-        bodyShape->GetSurfaceNormal(joltResult.mSubShapeID2, ToJoltVec3(rayCastResult.hitPoint - bodyPosition)));
 
+    Vec3 localHitPoint = Vec3::Transform(rayCastResult.hitPoint - bodyPosition, invBodyRotation);
+    Vec3 localNormal = ToBlainnVec3(bodyShape->GetSurfaceNormal(joltResult.mSubShapeID2, ToJoltVec3(localHitPoint)));
+    Vec3 worldNormal = Vec3::Transform(localNormal, bodyRotation);
+    worldNormal.Normalize();
+
+    rayCastResult.hitNormal = worldNormal;
+
+    // draw line from origin to hit point
+    RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(origin, rayCastResult.hitPoint,
+                                                               Blainn::Color(1, 0, 0, 1));
+    // draw normal at hit point
     RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(
         rayCastResult.hitPoint, rayCastResult.hitPoint + rayCastResult.hitNormal, Blainn::Color(0, 0, 1, 1));
 
+
     return eastl::optional<RayCastResult>(eastl::move(rayCastResult));
+}
+
+eastl::optional<RayCastResult> PhysicsSubsystem::FilteredCastRay(Entity entity, Vec3 origin, Vec3 directionAndDistance)
+{
+    eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
+
+    JPH::IgnoreMultipleBodiesFilter bodyFilter;
+    eastl::queue<uuid> traversalEntityIds;
+    traversalEntityIds.push(entity.GetUUID());
+
+    while (!traversalEntityIds.empty())
+    {
+        Entity currentEntity = activeScene->GetEntityWithUUID(traversalEntityIds.front());
+
+        RelationshipComponent *relationshipComp = currentEntity.TryGetComponent<RelationshipComponent>();
+        if (relationshipComp)
+        {
+            for (const uuid &childId : relationshipComp->Children)
+            {
+                traversalEntityIds.push(childId);
+            }
+        }
+
+        PhysicsComponent *physicsComp = currentEntity.TryGetComponent<PhysicsComponent>();
+        if (physicsComp)
+        {
+            bodyFilter.IgnoreBody(physicsComp->bodyId);
+        }
+
+        traversalEntityIds.pop();
+    }
+
+    return CastRay(origin, directionAndDistance, {}, {}, bodyFilter);
 }
 
 

@@ -44,8 +44,8 @@
 #else
 #define BF_TRACE(...) ;
 #define BF_DEBUG(...) ;
-#define BF_INFO(...)  ;
-#define BF_WARN(...)  ;
+#define BF_INFO(...) ;
+#define BF_WARN(...) ;
 #define BF_ERROR(...) ;
 #define BF_FATAL(...) ;
 #endif
@@ -61,11 +61,15 @@ public:
                         const std::string &pattern = "%^[%Y-%m-%d %H:%M:%S.%e] %v%$");
     static void RemoveSink(const std::shared_ptr<spdlog::sinks::base_sink<std::mutex>> &sink);
 
+    static void TryLogNotFoundMainCamera();
+    static void SetNotFoundMainCameraLogged(bool logged);
+
 private:
     Log() = default;
     ~Log() = default;
 
     inline static std::shared_ptr<spdlog::logger> s_Logger{nullptr};
+    inline static bool s_notFoundMainCameraLogged = false;
 };
 } // namespace Blainn
 
