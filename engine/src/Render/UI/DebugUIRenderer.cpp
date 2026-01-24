@@ -126,7 +126,7 @@ void DebugUIRenderer::DrawGizmo()
             mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
             snapValue = Vec3{TranslationSnapValue};
         }
-        static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
+        ImGuizmo::MODE mCurrentGizmoMode(WorldGizmo ? ImGuizmo::WORLD : ImGuizmo::LOCAL);
 
         auto camera = RenderSubsystem::GetInstance().GetCamera();
         Mat4 cameraView = camera->GetViewMatrix();
