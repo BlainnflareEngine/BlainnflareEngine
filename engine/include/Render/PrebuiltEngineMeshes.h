@@ -7,11 +7,11 @@ namespace Blainn
 {
     enum class EPrebuiltMeshType : uint32_t
     {
-        CUBE = 0u, // default
+        BOX = 0u, // default
         SPHERE,    // point light mesh
         CONE,      // spot light mesh
+        GRID,      // optional for plane representing or world grid
         GEOSPHERE, // optional for point light and other
-        GRID,      // optional for plane representing
         NUM_PREBUILT_MESHES
     };
 
