@@ -10,56 +10,142 @@
 
 #ifdef BLAINN_REGISTER_LUA_TYPES
 
+using namespace Blainn;
+
+static Mat4 Mat4_Transposed(const Mat4& m)
+{
+    return m.Transpose();
+}
+
+static Mat4 Mat4_Inverted(const Mat4& m)
+{
+    return m.Invert();
+}
+
+static std::tuple<Vec3, Quat, Vec3> Mat4_Decompose(Mat4& m)
+{
+    Vec3 scale, translation;
+    Quat rotation;
+    m.Decompose(scale, rotation, translation);
+    return { scale, rotation, translation };
+}
+
+static Mat4 Mat4_Lerp(const Mat4& a, const Mat4& b, float t)
+{
+    return Mat4::Lerp(a, b, t);
+}
+
+static Mat4 Mat4_Transform(const Mat4& m, const Quat& q)
+{
+    return Mat4::Transform(m, q);
+}
+
 void Blainn::RegisterMat4Type(sol::state &luaState)
 {
-    // Register Mat4 (Matrix)
-    sol::usertype<Mat4> Mat4Type =
-        luaState.new_usertype<Mat4>("Mat4", sol::constructors<Mat4()>(), sol::meta_function::multiplication,
-                                    [](const Mat4 &a, const Mat4 &b) { return a * b; });
+    auto Mat4Type = luaState.new_usertype<Mat4>(
+        "Mat4",
+        sol::constructors<
+            Mat4(),
+            Mat4(
+                float, float, float, float,
+                float, float, float, float,
+                float, float, float, float,
+                float, float, float, float
+            )
+        >()
+    );
 
-    auto toVec3 = [](const sol::object &o) -> Vec3
-    {
-        if (o.is<Vec3>()) return o.as<Vec3>();
-        if (o.is<sol::table>())
-        {
-            sol::table t = o.as<sol::table>();
-            float x = t["x"] ? t["x"] : 0.0f;
-            float y = t["y"] ? t["y"] : 0.0f;
-            float z = t["z"] ? t["z"] : 0.0f;
-            return Vec3(x, y, z);
-        }
-        return Vec3::Zero;
-    };
+    // operators
+    Mat4Type[sol::meta_function::equal_to] = &Mat4::operator==;
+    Mat4Type[sol::meta_function::unary_minus] = [](const Mat4& m) { return -m; };
 
-    // Add Mat4 factory helpers and instance helpers
-    Mat4Type["CreateTranslation"] = [toVec3](const sol::object &o) { return Mat4::CreateTranslation(toVec3(o)); };
-    Mat4Type["CreateScaleVec"] = [toVec3](const sol::object &o) { return Mat4::CreateScale(toVec3(o)); };
-    Mat4Type["CreateScale"] = static_cast<Mat4 (*)(float, float, float)>(&Mat4::CreateScale);
-    Mat4Type["CreateScaleUniform"] = static_cast<Mat4 (*)(float)>(&Mat4::CreateScale);
-    Mat4Type["CreateRotationX"] = static_cast<Mat4 (*)(float)>(&Mat4::CreateRotationX);
-    Mat4Type["CreateRotationY"] = static_cast<Mat4 (*)(float)>(&Mat4::CreateRotationY);
-    Mat4Type["CreateRotationZ"] = static_cast<Mat4 (*)(float)>(&Mat4::CreateRotationZ);
-    auto toQuat = [](const sol::object &o) -> Quat
-    {
-        if (o.is<Quat>()) return o.as<Quat>();
-        if (o.is<sol::table>())
-        {
-            sol::table t = o.as<sol::table>();
-            float x = t["x"] ? t["x"] : 0.0f;
-            float y = t["y"] ? t["y"] : 0.0f;
-            float z = t["z"] ? t["z"] : 0.0f;
-            float w = t["w"] ? t["w"] : 0.0f;
-            return Quat(w, x, y, z);
-        }
-        return Quat(1.f, 0.f, 0.f, 0.f);
-    };
+    Mat4Type[sol::meta_function::addition] =
+        [](const Mat4& a, const Mat4& b) { return a + b; };
 
-    Mat4Type["CreateFromQuaternion"] = [toQuat](const sol::object &o) { return Mat4::CreateFromQuaternion(toQuat(o)); };
+    Mat4Type[sol::meta_function::subtraction] =
+        [](const Mat4& a, const Mat4& b) { return a - b; };
 
-    Mat4Type["Transpose"] = static_cast<Mat4 (Mat4::*)() const>(&Mat4::Transpose);
-    Mat4Type["Invert"] = static_cast<Mat4 (Mat4::*)() const>(&Mat4::Invert);
-    Mat4Type["ToEuler"] = static_cast<Vec3 (Mat4::*)() const>(&Mat4::ToEuler);
-    // Register the identity matrix as a convenience in the global Lua state
-    luaState["Mat4Identity"] = sol::make_object(luaState, Mat4::Identity);
+    Mat4Type[sol::meta_function::multiplication] = sol::overload(
+        [](const Mat4& a, const Mat4& b) { return a * b; },
+        [](const Mat4& m, float s) { return m * s; },
+        [](float s, const Mat4& m) { return s * m; }
+    );
+
+    Mat4Type[sol::meta_function::division] = sol::overload(
+        [](const Mat4& m, float s) { return m / s; },
+        [](const Mat4& a, const Mat4& b) { return a / b; }
+    );
+
+    // properties (direction + translation)
+    Mat4Type["Right"]       = sol::property(
+        static_cast<Vec3 (Mat4::*)() const>(&Mat4::Right),
+        static_cast<void (Mat4::*)(const Vec3&)>(&Mat4::Right));
+
+    Mat4Type["Up"]       = sol::property(
+        static_cast<Vec3 (Mat4::*)() const>(&Mat4::Right),
+        static_cast<void (Mat4::*)(const Vec3&)>(&Mat4::Right));
+    Mat4Type["Forward"]       = sol::property(
+        static_cast<Vec3 (Mat4::*)() const>(&Mat4::Backward),
+        static_cast<void (Mat4::*)(const Vec3&)>(&Mat4::Backward));
+    Mat4Type["Translation"]       = sol::property(
+        static_cast<Vec3 (Mat4::*)() const>(&Mat4::Translation),
+        static_cast<void (Mat4::*)(const Vec3&)>(&Mat4::Translation));
+
+    // metrics
+    Mat4Type["Determinant"] =
+        static_cast<float (Mat4::*)() const>(&Mat4::Determinant);
+
+    // instance methods (non-mutating)
+    Mat4Type["Transpose"] = &Mat4_Transposed;
+    Mat4Type["Invert"]    = &Mat4_Inverted;
+    Mat4Type["ToEuler"]   =
+        static_cast<Vec3 (Mat4::*)() const>(&Mat4::ToEuler);
+
+    Mat4Type["Decompose"] = &Mat4_Decompose;
+
+    // static factories
+    Mat4Type["Identity"] = sol::var(Mat4::Identity);
+
+    Mat4Type["Translation"] = sol::overload(
+        static_cast<Mat4 (*)(const Vec3&)>(&Mat4::CreateTranslation),
+        static_cast<Mat4 (*)(float, float, float)>(&Mat4::CreateTranslation)
+    );
+
+    Mat4Type["Scale"] = sol::overload(
+        static_cast<Mat4 (*)(const Vec3&)>(&Mat4::CreateScale),
+        static_cast<Mat4 (*)(float, float, float)>(&Mat4::CreateScale),
+        static_cast<Mat4 (*)(float)>(&Mat4::CreateScale)
+    );
+
+    Mat4Type["RotationX"] = &Mat4::CreateRotationX;
+    Mat4Type["RotationY"] = &Mat4::CreateRotationY;
+    Mat4Type["RotationZ"] = &Mat4::CreateRotationZ;
+
+    Mat4Type["FromAxisAngle"] =
+        &Mat4::CreateFromAxisAngle;
+
+    Mat4Type["FromQuaternion"] =
+        &Mat4::CreateFromQuaternion;
+
+    Mat4Type["FromYawPitchRoll"] = sol::overload(
+        static_cast<Mat4 (*)(float, float, float)>(&Mat4::CreateFromYawPitchRoll),
+        static_cast<Mat4 (*)(const Vec3&)>(&Mat4::CreateFromYawPitchRoll)
+    );
+
+    Mat4Type["LookAt"]   = &Mat4::CreateLookAt;
+    Mat4Type["World"]    = &Mat4::CreateWorld;
+
+    Mat4Type["PerspectiveFov"] =
+        &Mat4::CreatePerspectiveFieldOfView;
+
+    Mat4Type["Perspective"] =
+        &Mat4::CreatePerspective;
+
+    Mat4Type["Orthographic"] =
+        &Mat4::CreateOrthographic;
+
+    // interpolation / transform
+    Mat4Type["Lerp"]      = &Mat4_Lerp;
+    Mat4Type["Transform"] = &Mat4_Transform;
 }
 #endif
