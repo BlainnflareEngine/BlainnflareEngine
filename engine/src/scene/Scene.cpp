@@ -567,6 +567,8 @@ void Blainn::Scene::CreateAttachMeshComponent(Entity entity, const Path &path, c
 
 void Scene::ParentEntity(Entity entity, Entity parent)
 {
+    if (!parent) return;
+
     if (parent.IsDescendantOf(entity))
     {
         UnparentEntity(parent);
@@ -585,8 +587,7 @@ void Scene::ParentEntity(Entity entity, Entity parent)
         if (previousParent) UnparentEntity(entity);
     }
 
-    entity.SetParentUUID(parent.GetUUID());
-    parent.Children().push_back(entity.GetUUID());
+    entity.SetParent(parent);
 
     ConvertToLocalSpace(entity);
     ReportEntityReparent(entity);
@@ -756,7 +757,7 @@ void Scene::ConvertToLocalSpace(Entity entity)
 
     auto &transform = entity.Transform();
     auto parentTransform = GetWorldSpaceTransformMatrix(parent);
-    auto localTransform = parentTransform.Invert() * transform.GetTransform();
+    auto localTransform = transform.GetTransform() * parentTransform.Invert();
     transform.SetTransform(localTransform);
 }
 

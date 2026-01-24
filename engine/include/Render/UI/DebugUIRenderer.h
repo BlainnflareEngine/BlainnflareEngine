@@ -36,6 +36,7 @@ public:
     bool ShouldDrawFrameTime = false;
     bool ShouldDrawWorldGrid = true;
     bool ShouldDrawGizmo = true;
+    bool WorldGizmo = true;
     bool UseSnap = false;
     float TranslationSnapValue = 0.5f;
     float RotationSnapValue = 5.0f;
