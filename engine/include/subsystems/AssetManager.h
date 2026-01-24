@@ -38,6 +38,9 @@ class AssetManager
         int refCount;
     };
 
+    // To load default diffuse texture and cubemap at init time
+    void LoadDefaultTextures();
+    void LoadDefaultMaterials();
     void LoadPrebuiltMeshes();
 
 public:
@@ -51,7 +54,7 @@ public:
 
     bool HasMesh(const Path &relativePath);
     eastl::shared_ptr<MeshHandle> GetMesh(const Path &relativePath);
-    static eastl::shared_ptr<MeshHandle> GetDefaultMesh();
+    static eastl::shared_ptr<MeshHandle> GetDefaultMesh(uint32_t index = 0u);
     eastl::shared_ptr<MeshHandle> LoadMesh(const Path &relativePath, const ImportMeshData &data);
     Model &GetMeshByIndex(unsigned int index);
     Model &GetMeshByHandle(const MeshHandle &handle);
@@ -90,7 +93,7 @@ private:
     void AddMaterialWhenLoaded(const Path &relativePath, const unsigned int index);
     void AddMeshWhenLoaded(const Path &relativePath, const unsigned int index, const ImportMeshData data);
 
-    Texture &GetDefaultTexture();
+    Texture &GetDefaultTexture(uint32_t index = 0u);
     Material &GetDefaultMaterial();
     Model &GetDefaultModel(uint32_t index = 0u);
 

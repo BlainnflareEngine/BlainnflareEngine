@@ -17,6 +17,9 @@
 
 namespace Blainn
 {
+const Path relativeDefaultDiffuseTexturePath = "Textures/Default.dds";
+const Path relativeDefaultMaterialPath = "Materials/Default.mat";
+
 AssetManager &AssetManager::GetInstance()
 {
     static AssetManager instance;
@@ -38,20 +41,24 @@ void AssetManager::Init()
     m_materials.reserve(MAX_MATERIALS);
     m_meshes.reserve(MAX_MESHES);
 
-#pragma region LoadDefaultResource
-    Path defaultTexturePath = "Textures/Default.dds";
-    m_textures.emplace(m_loader->LoadTexture(defaultTexturePath, TextureType::ALBEDO, 0));
-    m_texturePaths[ToEASTLString(defaultTexturePath.string())] = {0, 1};
-    auto defaultTexture = GetTexture(defaultTexturePath);
-
-    Path defaultMaterialPath = "Materials/Default.mat";
-    Material material = Material(defaultMaterialPath, "");
-    material.SetTexture(defaultTexture, TextureType::ALBEDO);
-    m_materialPaths[ToEASTLString(defaultMaterialPath.string())] = {0, 1};
-    m_materials.emplace(eastl::make_shared<Material>(eastl::move(material)));
-    
+    LoadDefaultTextures();
+    LoadDefaultMaterials();
     LoadPrebuiltMeshes();
-#pragma endregion LoadDefaultResource
+}
+
+void AssetManager::LoadDefaultTextures()
+{
+    m_textures.emplace(m_loader->LoadTexture(relativeDefaultDiffuseTexturePath, TextureType::ALBEDO, 0u));
+    m_texturePaths[ToEASTLString(relativeDefaultDiffuseTexturePath.string())] = {0, 1};
+}
+
+void AssetManager::LoadDefaultMaterials()
+{
+    Material material = Material(relativeDefaultMaterialPath, "");
+    material.SetTexture(GetTexture(relativeDefaultDiffuseTexturePath), TextureType::ALBEDO);
+    
+    m_materialPaths[ToEASTLString(relativeDefaultMaterialPath.string())] = {0, 1};
+    m_materials.emplace(eastl::make_shared<Material>(eastl::move(material)));
 }
 
 void AssetManager::LoadPrebuiltMeshes()
@@ -108,9 +115,9 @@ eastl::shared_ptr<MeshHandle> AssetManager::GetMesh(const Path &relativePath)
 }
 
 
-eastl::shared_ptr<MeshHandle> AssetManager::GetDefaultMesh()
+eastl::shared_ptr<MeshHandle> AssetManager::GetDefaultMesh(uint32_t index/* = 0u*/)
 {
-    return eastl::make_shared<MeshHandle>(0);
+    return eastl::make_shared<MeshHandle>(index);
 }
 
 
@@ -337,9 +344,9 @@ void AssetManager::AddMeshWhenLoaded(const Path &relativePath, const unsigned in
 }
 
 
-Texture &AssetManager::GetDefaultTexture()
+Texture &AssetManager::GetDefaultTexture(uint32_t index /*= 0u*/)
 {
-    return *m_textures[0];
+    return *m_textures[index];
 }
 
 
@@ -378,8 +385,8 @@ void AssetManager::IncreaseMeshRefCount(const unsigned int index)
 
 void AssetManager::DecreaseTextureRefCount(const unsigned int index)
 {
-    if (index == 0)
-        return;
+    // 0: default diffuse
+    if (index == 0) return;
 
     for (auto &[key, value] : m_texturePaths)
     {
