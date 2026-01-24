@@ -142,7 +142,7 @@ void transform_widget::LoadTransformValues()
     BlockSignals(true);
     if (!m_position->HasFocus()) m_position->SetValue(transform.GetTranslation());
 
-    if (!m_rotation->HasFocus()) m_rotation->SetValue(transform.GetRotation().ToEuler() / XM_PI * 180.0f);
+    if (!m_rotation->HasFocus()) m_rotation->SetValue(transform.GetRotationEuler() / XM_PI * 180.0f);
 
     if (!m_scale->HasFocus()) m_scale->SetValue(transform.GetScale());
     BlockSignals(false);
