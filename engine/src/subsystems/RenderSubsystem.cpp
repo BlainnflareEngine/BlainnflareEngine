@@ -911,7 +911,7 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
         const auto &_entity = Engine::GetActiveScene()->TryGetEntityWithUUID(entityID.ID);
         if (!_entity.IsValid()) continue;
 
-        if (!entityTransform.IsFramesDirty() && !entityLight.IsFramesDirty()) continue;
+        //if (!entityTransform.IsFramesDirty() && !entityLight.IsFramesDirty()) continue;
 
         PointLightInstanceData m_perInstanceSBData;
 

@@ -723,11 +723,14 @@ Entity Scene::DuplicateEntity(Entity entity)
         }
 
         if (auto comp = src.TryGetComponent<AIControllerComponent>())
-        {
             AISubsystem::GetInstance().CreateAttachAIControllerComponent(newEntity, comp->scriptPath);
-        }
 
         if (auto comp = src.TryGetComponent<SkyboxComponent>()) newEntity.AddComponent<SkyboxComponent>(*comp);
+
+        if (auto comp = src.TryGetComponent<DirectionalLightComponent>())
+            newEntity.AddComponent<DirectionalLightComponent>(*comp);
+
+        if (auto comp = src.TryGetComponent<PointLightComponent>()) newEntity.AddComponent<PointLightComponent>(*comp);
 
         if (auto comp = src.TryGetComponent<NavmeshVolumeComponent>())
             newEntity.AddComponent<NavmeshVolumeComponent>(*comp);
