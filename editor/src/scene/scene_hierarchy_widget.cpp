@@ -87,7 +87,7 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
         [this](Blainn::uuid id)
         {
             BLAINN_PROFILE_SCOPE(QtSceneWidgetPickingCallback);
-            ChangeSelection(id);
+            QMetaObject::invokeMethod(this, [this, id]() { ChangeSelection(id); }, Qt::QueuedConnection);
         });
 }
 
@@ -284,12 +284,41 @@ void scene_hierarchy_widget::OnSelectionChanged(const QItemSelection &selected, 
     if (selectedIndexes.isEmpty())
     {
         Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
+        Blainn::Engine::GetSelectionManager().SelectUUID({});
         return;
     }
 
-    auto entity = SceneItemModel::GetNodeFromIndex(selectedIndexes.first());
+    auto index = selectedIndexes.first();
+    auto entity = SceneItemModel::GetNodeFromIndex(index);
 
     Blainn::Engine::GetSelectionManager().SelectUUID(entity->GetUUID());
+
+    {
+        BLAINN_PROFILE_SCOPE(InvalidIndexReturn0);
+        if (!index.isValid())
+        {
+            Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
+            return;
+        }
+    }
+
+    InspectorFabric fabric;
+    EntityInspectorData data;
+    {
+        BLAINN_PROFILE_SCOPE(GetEntityData);
+        auto entity = SceneItemModel::GetNodeFromIndex(index);
+        data.tag = entity->GetName();
+        data.node = entity;
+    }
+    entity_inspector_content *inspector;
+    {
+        BLAINN_PROFILE_SCOPE(GetEntityInspectorContent);
+        inspector = fabric.GetEntityInspector(data);
+    }
+    {
+        BLAINN_PROFILE_SCOPE(SetItem);
+        Blainn::Editor::GetInstance().GetInspector().SetItem(inspector);
+    }
 }
 
 
@@ -328,11 +357,10 @@ void scene_hierarchy_widget::keyPressEvent(QKeyEvent *event)
 void scene_hierarchy_widget::ChangeSelection(Blainn::uuid id)
 {
     BLAINN_PROFILE_FUNC();
-    static bool s_isChangingSelection = false;
+
 
     QModelIndex index;
     {
-        s_isChangingSelection = true;
         BLAINN_PROFILE_SCOPE(FindIndexByEntity);
         index = SceneItemModel::FindIndexByEntity(m_sceneModel, id);
     }
@@ -342,35 +370,6 @@ void scene_hierarchy_widget::ChangeSelection(Blainn::uuid id)
         setCurrentIndex(index);
     }
 
-    {
-        BLAINN_PROFILE_SCOPE(InvalidIndexReturn0);
-        if (!index.isValid())
-        {
-            Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
-            s_isChangingSelection = false;
-            return;
-        }
-    }
-
-    InspectorFabric fabric;
-    EntityInspectorData data;
-    {
-        BLAINN_PROFILE_SCOPE(GetEntityData);
-        auto entity = SceneItemModel::GetNodeFromIndex(index);
-        data.tag = entity->GetName();
-        data.node = entity;
-    }
-    entity_inspector_content *inspector;
-    {
-        BLAINN_PROFILE_SCOPE(GetEntityInspectorContent);
-        inspector = fabric.GetEntityInspector(data);
-    }
-    {
-        BLAINN_PROFILE_SCOPE(SetItem);
-        Blainn::Editor::GetInstance().GetInspector().SetItem(inspector);
-    }
-
-    s_isChangingSelection = false;
 }
 
 

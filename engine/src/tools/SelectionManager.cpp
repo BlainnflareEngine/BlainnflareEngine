@@ -44,6 +44,7 @@ void SelectionManager::SelectAt(const uint32_t x, const uint32_t y, bool keepSel
     if (newID == m_selectedUUID) return;
     m_selectedUUID = newID;
 
+    m_selectedUUID = newID;
     CallbackList(newID);
 }
 
@@ -52,7 +53,7 @@ void SelectionManager::SelectUUID(uuid id, bool keepSelection)
     if (id == m_selectedUUID) return;
     m_selectedUUID = id;
 
-    CallbackList(id);
+    //CallbackList(id);
 }
 
 void SelectionManager::DeselectAll()
