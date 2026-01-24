@@ -7,14 +7,34 @@ struct DirectionalLight
     float pad;
 };
 
-struct Light
+struct PointLight
 {
-    float3 Strength;
-    float FalloffStart;
-    float3 Direction;
-    float FalloffEnd;
+    float4 Color;     // xyz: color * TempRGB, w: intensity
     float3 Position;
-    float SpotPower;
+    float FalloffStart;
+    float3 TempRGB;   // padding actually 
+    float FalloffEnd; // range
+};
+
+struct SpotLight
+{
+    float4 Color;    // xyz: color * TempRGB, w: intensity
+    float3 Direction;
+    float FalloffStart;
+    float3 Position;
+    float FalloffEnd; // range
+};
+
+struct PointLightInstanceData
+{
+    float4x4 World;
+    PointLight Light;
+};
+
+struct SpotLightInstanceData
+{
+    float4x4 World;
+    SpotLight Light;
 };
 
 struct MaterialData
@@ -75,7 +95,7 @@ float CalcAttenuation(float distance, float falloffStart, float falloffEnd)
     return saturate((falloffEnd - distance) / (falloffEnd - falloffStart));
 }
 
-float3 CalcPointLight(Light L, float3 N, float3 posW, float3 viewDir, Material mat)
+float3 CalcPointLight(PointLight L, float3 N, float3 posW, float3 viewDir, Material mat)
 {
     float3 lightVec = L.Position - posW;
     
@@ -87,12 +107,12 @@ float3 CalcPointLight(Light L, float3 N, float3 posW, float3 viewDir, Material m
     float3 lightDir = lightVec / d;
     float NdotL = max(dot(lightDir, N), 0.0f);
     float attenuation = CalcAttenuation(d, L.FalloffStart, L.FalloffEnd);
-    float3 lightStrength = L.Strength * NdotL * attenuation;
+    float3 lightStrength = L.Color.xyz * L.Color.w * NdotL * attenuation;
     
     return BlinnPhong(lightStrength, lightDir, N, viewDir, mat);
 }
 
-float3 ComputeSpotLight(Light L, Material mat, float3 posW, float3 normal, float3 toEye)
+float3 ComputeSpotLight(SpotLight L, Material mat, float3 posW, float3 normal, float3 toEye)
 {
     // The vector from the surface to the light.
     float3 lightVec = L.Position - posW;
@@ -109,14 +129,14 @@ float3 ComputeSpotLight(Light L, Material mat, float3 posW, float3 normal, float
 
     // Scale light down by Lambert's cosine law.
     float ndotl = max(dot(lightDir, normal), 0.0f);
-    float3 lightStrength = L.Strength * ndotl;
+    float3 lightStrength = L.Color.xyz * ndotl;
 
     // Attenuate light by distance.
     float att = CalcAttenuation(d, L.FalloffStart, L.FalloffEnd);
     lightStrength *= att;
 
     // Scale by spotlight
-    float spotFactor = pow(max(dot(-lightDir, L.Direction), 0.0f), L.SpotPower);
+    float spotFactor = pow(max(dot(-lightDir, L.Direction), 0.0f), L.Color.w);
     lightStrength *= spotFactor;
 
     return BlinnPhong(lightStrength, lightDir, normal, toEye, mat);
@@ -124,47 +144,50 @@ float3 ComputeSpotLight(Light L, Material mat, float3 posW, float3 normal, float
 
 // The idea is to calculate every light object's illumination strength related to it's type specific parameters
 // and to pass it in BlinnPhong model function
-float4 ComputeLight(Light gLights[MaxLights], float3 N, float3 posW, float3 viewDir, Material mat, float shadowFactor)
-{
-    float3 litColor = 0.0f;
-    
-#if NUM_DIR_LIGHTS
-    
-    float3 dirLight = 0.f;
-    
-    [unroll]
-    for (int i = 0; i < NUM_DIR_LIGHTS; i++)
-    {
-        // stuff with shadows supposed to work with only one directional light
-        dirLight += CalcDirLight(gLights[i], N, viewDir, mat, shadowFactor);
-    }
-    litColor += dirLight;
-#endif
-    
-#if NUM_POINT_LIGHTS
-    
-    float3 pointLight = 0.f;
-    
-    [unroll]
-    for (i = NUM_DIR_LIGHTS; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS; i++)
-    {
-        pointLight += CalcPointLight(gLights[i], N, posW, viewDir, mat);
 
-    }
-    litColor += pointLight;
-#endif
+// FORWARD SHADING APPROACH
+
+//float4 ComputeLight(Light gLights[MaxLights], float3 N, float3 posW, float3 viewDir, Material mat, float shadowFactor)
+//{
+//    float3 litColor = 0.0f;
     
-#if NUM_SPOT_LIGHTS
+//#if NUM_DIR_LIGHTS
     
-    float3 spotLight = 0.f;
+//    float3 dirLight = 0.f;
     
-    [unroll]
-    for (i = NUM_DIR_LIGHTS + NUM_POINT_LIGHTS; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS; i++)
-    {
-        spotLight += CalcSpotLight(gLights[i], N, posW, viewDir, mat);
-    }
-    litColor += spotLight;
-#endif
+//    [unroll]
+//    for (int i = 0; i < NUM_DIR_LIGHTS; i++)
+//    {
+//        // stuff with shadows supposed to work with only one directional light
+//        dirLight += CalcDirLight(gLights[i], N, viewDir, mat, shadowFactor);
+//    }
+//    litColor += dirLight;
+//#endif
     
-    return float4(litColor, 0.0f);
-}
+//#if NUM_POINT_LIGHTS
+    
+//    float3 pointLight = 0.f;
+    
+//    [unroll]
+//    for (i = NUM_DIR_LIGHTS; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS; i++)
+//    {
+//        pointLight += CalcPointLight(gLights[i], N, posW, viewDir, mat);
+
+//    }
+//    litColor += pointLight;
+//#endif
+    
+//#if NUM_SPOT_LIGHTS
+    
+//    float3 spotLight = 0.f;
+    
+//    [unroll]
+//    for (i = NUM_DIR_LIGHTS + NUM_POINT_LIGHTS; i < NUM_DIR_LIGHTS + NUM_POINT_LIGHTS + NUM_SPOT_LIGHTS; i++)
+//    {
+//        spotLight += CalcSpotLight(gLights[i], N, posW, viewDir, mat);
+//    }
+//    litColor += spotLight;
+//#endif
+    
+//    return float4(litColor, 0.0f);
+//}

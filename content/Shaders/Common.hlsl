@@ -42,12 +42,6 @@ cbuffer cbPerObject : register(b0)
     uint gObjPad2;
 };
 
-struct InstanceData
-{
-    float4x4 gWorld;
-    Light gLight;
-};
-
 cbuffer cbPerPass : register(b1)
 {
     float4x4 gView;
@@ -74,8 +68,8 @@ cbuffer cbPerPass : register(b1)
 };
 
 StructuredBuffer<MaterialData> gMaterialData : register(t0);
-StructuredBuffer<InstanceData /*Light*/> gPointLights : register(t1);
-StructuredBuffer<InstanceData /*Light*/> gSpotLights : register(t2);
+StructuredBuffer<PointLightInstanceData> gPointLights : register(t1);
+StructuredBuffer<SpotLightInstanceData> gSpotLights : register(t2);
 
 Texture2DArray gShadowMaps : register(t0, space1);
 Texture2D gGBuffer[GBufferSize] : register(t1, space1); // t1, t2, t3, t4, t5 in space1
