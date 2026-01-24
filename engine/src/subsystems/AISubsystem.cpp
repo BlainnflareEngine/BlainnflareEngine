@@ -186,38 +186,32 @@ bool AISubsystem::CreateAIController(Entity entity)
     const sol::table &scriptEnv = componentPtr->aiScript->GetEnvironment();
     
     PerceptionComponent *perception = entity.TryGetComponent<PerceptionComponent>();
-    if (!perception)
+    if (perception)
     {
-        PerceptionSubsystem::GetInstance().CreateAttachPerceptionComponent(entity);
-        perception = entity.TryGetComponent<PerceptionComponent>();
-    }
-
-    StimulusComponent *stimulus = entity.TryGetComponent<StimulusComponent>();
-    if (!stimulus)
-    {
-        PerceptionSubsystem::GetInstance().CreateAttachStimulusComponent(entity);
-        stimulus = entity.TryGetComponent<StimulusComponent>();
-    }
-
-    sol::optional<sol::function> configurePerception = scriptEnv["ConfigurePerception"];
-    if (configurePerception && perception)
-    {
-        auto result = configurePerception.value()(perception);
-        if (!result.valid())
+        sol::optional<sol::function> configurePerception = scriptEnv["ConfigurePerception"];
+        if (configurePerception && perception)
         {
-            sol::error err = result;
-            BF_ERROR("ConfigurePerception failed: " + eastl::string(err.what()));
+            auto result = configurePerception.value()(perception);
+            if (!result.valid())
+            {
+                sol::error err = result;
+                BF_ERROR("ConfigurePerception failed: " + eastl::string(err.what()));
+            }
         }
     }
 
-    sol::optional<sol::function> configureStimulus = scriptEnv["ConfigureStimulus"];
-    if (configureStimulus && stimulus)
+    StimulusComponent *stimulus = entity.TryGetComponent<StimulusComponent>();
+    if (stimulus)
     {
-        auto result = configureStimulus.value()(stimulus);
-        if (!result.valid())
+        sol::optional<sol::function> configureStimulus = scriptEnv["ConfigureStimulus"];
+        if (configureStimulus && stimulus)
         {
-            sol::error err = result;
-            BF_ERROR("ConfigureStimulus failed: " + eastl::string(err.what()));
+            auto result = configureStimulus.value()(stimulus);
+            if (!result.valid())
+            {
+                sol::error err = result;
+                BF_ERROR("ConfigureStimulus failed: " + eastl::string(err.what()));
+            }
         }
     }
 
