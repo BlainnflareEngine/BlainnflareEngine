@@ -94,7 +94,7 @@ void Blainn::Scene::Update()
         {
             m_editorCam = RenderSubsystem::GetInstance().GetEditorCamera();
             RenderSubsystem::GetInstance().SetCamera(&*m_editorCam);
-            BF_ERROR("Could not find main camera, please, select an active camera");
+            Log::TryLogNotFoundMainCamera();
         }
         else
         {

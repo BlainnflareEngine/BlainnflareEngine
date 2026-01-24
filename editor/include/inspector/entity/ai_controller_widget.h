@@ -29,6 +29,9 @@ protected slots:
     float_input_field *m_movementSpeed = nullptr;
     float_input_field *m_stoppingDistance = nullptr;
     float_input_field *m_groundOffset = nullptr;
+
+private:
+    void paintEvent(QPaintEvent *event) override;
 };
 
 } // namespace editor

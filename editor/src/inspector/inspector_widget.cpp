@@ -32,13 +32,50 @@ inspector_widget::~inspector_widget()
 
 void inspector_widget::SetItem(QWidget *item)
 {
+    BLAINN_PROFILE_FUNC();
+
+    setUpdatesEnabled(false);
+
     if (m_locked) return;
 
-    if (widget()) widget()->deleteLater();
+    {
+        BLAINN_PROFILE_SCOPE(DeleteLater);
+        if (widget()) widget()->deleteLater();
+    }
 
     if (!item) return;
 
-    setWidget(item);
+    {
+        BLAINN_PROFILE_SCOPE(SetWidget);
+        setWidget(item);
+    }
+
+    setUpdatesEnabled(true);
+}
+QSize inspector_widget::sizeHint() const
+{
+    BLAINN_PROFILE_FUNC();
+
+    return QScrollArea::sizeHint();
+}
+
+QSize inspector_widget::minimumSizeHint() const
+{
+    BLAINN_PROFILE_FUNC();
+
+    return QScrollArea::minimumSizeHint();
+}
+void inspector_widget::resizeEvent(QResizeEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    QScrollArea::resizeEvent(event);
+}
+
+void inspector_widget::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+    QScrollArea::paintEvent(event);
 }
 
 

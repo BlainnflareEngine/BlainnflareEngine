@@ -40,6 +40,8 @@ private:
     void RebuildScripts();
     void SyncToEntity();
     void ConnectScriptItemSignals(scripting_item_widget *widget);
+
+    void paintEvent(QPaintEvent *event) override;
 };
 
 } // namespace editor

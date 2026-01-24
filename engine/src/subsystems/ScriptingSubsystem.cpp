@@ -10,6 +10,7 @@
 #include "ScriptingSubsystem.h"
 #include "scene/Scene.h"
 #include "scripting/TypeRegistration.h"
+#include "sol_ImGui.h"
 
 using namespace Blainn;
 
@@ -41,7 +42,7 @@ void Blainn::ScriptingSubsystem::LoadAllScripts(Scene &scene)
 {
     for (auto [entity, id, scriptComp] : scene.GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
     {
-        for (auto [path, info] : scriptComp.scriptPaths)
+        for (auto &[path, info] : scriptComp.scriptPaths)
             ScriptingSubsystem::LoadScript(scene.GetEntityWithUUID(id.ID), Path(path.c_str()), info.shouldTriggerStart);
     }
 }
@@ -50,8 +51,17 @@ void Blainn::ScriptingSubsystem::UnloadAllScripts(Scene &scene)
 {
     for (auto [entity, id, scriptComp] : scene.GetAllEntitiesWith<IDComponent, ScriptingComponent>().each())
     {
-        for (auto &[id, _] : scriptComp.scripts)
+        eastl::vector<uuid> scriptUuids;
+        scriptUuids.reserve(scriptComp.scripts.size());
+        for (const auto &[scriptUuid, _] : scriptComp.scripts)
+        {
+            scriptUuids.push_back(scriptUuid);
+        }
+
+        for (const auto &id : scriptUuids)
+        {
             ScriptingSubsystem::UnloadScript(id);
+        }
     }
 }
 
@@ -80,6 +90,7 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
         for (auto &script : scriptingComponent.scripts)
         {
             script.second->OnUpdateCall(deltaTimeMs);
+            script.second->OnDrawUI();
         }
     }
 }
@@ -232,10 +243,13 @@ void Blainn::ScriptingSubsystem::RegisterBlainnTypes()
     RegisterSceneTypes(m_lua);
     RegisterAssetManagerTypes(m_lua);
     RegisterEngineTypes(m_lua);
+    RegisterDebugTypes(m_lua);
     RegisterPhysicsTypes(m_lua);
     RegisterScriptingTypes(m_lua);
     RegisterUUIDType(m_lua);
     RegisterAITypes(m_lua);
     RegisterNavigationTypes(m_lua);
+
+    sol_ImGui::Init(m_lua);
 #endif
 }

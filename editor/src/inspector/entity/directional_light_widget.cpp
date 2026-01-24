@@ -64,4 +64,12 @@ void directional_light_widget::OnColorChanged()
                            ConvertQColorToDXColor(m_lightColor->GetValue().blue())};
     light->Color = color;
 }
+
+
+void directional_light_widget::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    component_widget_base::paintEvent(event);
+}
 } // namespace editor

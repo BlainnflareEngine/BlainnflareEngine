@@ -33,6 +33,7 @@ public:
         SCALE
     } SelectedGizmoMode = GizmoOperationModes::TRANSLATE;
 
+    bool ShouldDrawFrameTime = false;
     bool ShouldDrawWorldGrid = true;
     bool ShouldDrawGizmo = true;
     bool UseSnap = false;

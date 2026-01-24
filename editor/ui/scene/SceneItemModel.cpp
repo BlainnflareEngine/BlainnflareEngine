@@ -209,6 +209,7 @@ editor::EntityNode *editor::SceneItemModel::GetNodeFromIndex(const QModelIndex &
 
 QModelIndex editor::SceneItemModel::FindIndexByEntity(SceneItemModel *model, const Blainn::uuid &id)
 {
+    BLAINN_PROFILE_FUNC();
     // TODO: recursive deletion will have bad performance in future
     // This is future Ivan problem :)
     return FindIndexByIDRecursive(model, QModelIndex(), id);

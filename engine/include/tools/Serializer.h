@@ -349,6 +349,7 @@ public:
         out << YAML::Key << "B" << YAML::Value << light->Color.z;
         out << YAML::Key << "A" << YAML::Value << light->Color.w;
         out << YAML::EndMap;
+        out << YAML::EndMap;
     }
 };
 } // namespace Blainn

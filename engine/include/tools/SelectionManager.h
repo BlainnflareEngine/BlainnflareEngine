@@ -14,6 +14,7 @@ namespace Blainn
 {
 class SelectionManager
 {
+    using CallbackFn = eastl::function<void(uuid)>;
 public:
     SelectionManager();
     ~SelectionManager();
@@ -25,6 +26,9 @@ public:
     uuid GetSelectedUUID() const { return m_selectedUUID; }
 
     eventpp::CallbackList<void(uuid)> CallbackList;
+
+public:
+    bool EnablePicking = true;
 private:
     // TODO
     eastl::vector<uuid> m_selectedUUIDs{20};

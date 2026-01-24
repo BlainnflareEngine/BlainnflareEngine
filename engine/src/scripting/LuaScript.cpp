@@ -67,6 +67,8 @@ bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
             [this](const eastl::shared_ptr<PhysicsEvent> &physicsEvent) { OnCollisionEndedCall(physicsEvent); });
     }
 
+    if (HasFunction(PredefinedFunctions::kOnDrawUI)) m_predefinedFunctions.insert(PredefinedFunctions::kOnDrawUI);
+
     m_isLoaded = true;
     return true;
 }
@@ -162,4 +164,10 @@ void Blainn::LuaScript::RemovePhysicsEventListeners()
     {
         PhysicsSubsystem::RemoveEventListener(PhysicsEventType::CollisionEnded, m_onCollisionEndedHandle);
     }
+}
+
+bool LuaScript::OnDrawUI()
+{
+    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnDrawUI)) return false;
+    return CustomCall(PredefinedFunctions::kOnDrawUI);
 }

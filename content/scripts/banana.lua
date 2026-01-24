@@ -98,6 +98,15 @@ function OnStart()
                 local updater = Physics.GetBodyUpdater(e)
                 updater.AddImpulse(Vec3:new(0.0, JUMP_IMPULSE, 0.0))
             end
+
+            if event.key == Key.G then
+                if (Engine.GetActiveScene():GetName() == "Scene.scene")
+                then
+                    AssetManager.OpenScene("Navmesh.scene")
+                else
+                    AssetManager.OpenScene("Scene.scene")
+                end
+            end
         end
     )
 end
@@ -106,6 +115,16 @@ function OnUpdate(deltaTime)
     savedDeltaTime = deltaTime
 
     local scene = Engine.GetActiveScene()
+    local me = scene:TryGetEntityWithUUID(OwningEntity)
+    if not me:IsValid() then return end
+
+    if me:HasTransformComponent() then
+        local tc = me:GetTransformComponent()
+        local pos = tc:GetTranslation()
+        me:CastRay(pos, Vec3:new(3.0, 0.0, 0.0))
+    end
+
+
     local e = scene:TryGetEntityWithTag("knopka")
     if not e:IsValid() then
         return

@@ -15,15 +15,17 @@ using namespace Blainn;
 SelectionManager::SelectionManager()
 {
     m_lmbInputHandle = Input::AddEventListener(InputEventType::MouseButtonPressed,
-        [this](const InputEventPointer& pEvent){
-            auto event = static_cast<MouseButtonPressedEvent*>(pEvent.get());
+                                               [this](const InputEventPointer &pEvent)
+                                               {
+                                                   auto event = static_cast<MouseButtonPressedEvent *>(pEvent.get());
 
-            if (event->GetMouseButton() == MouseButton::Left)
-            {
-                uint32_t xPos = event->GetX();
-                uint32_t yPos = event->GetY();
-                SelectAt(xPos, yPos);
-            }});
+                                                   if (event->GetMouseButton() == MouseButton::Left)
+                                                   {
+                                                       uint32_t xPos = event->GetX();
+                                                       uint32_t yPos = event->GetY();
+                                                       SelectAt(xPos, yPos);
+                                                   }
+                                               });
 }
 
 SelectionManager::~SelectionManager()
@@ -33,19 +35,25 @@ SelectionManager::~SelectionManager()
 
 void SelectionManager::SelectAt(const uint32_t x, const uint32_t y, bool keepSelection)
 {
-    uuid newID = RenderSubsystem::GetInstance().GetUUIDAt(x, y);
-
-    if (newID == m_selectedUUID)
+    BLAINN_PROFILE_FUNC();
+    if (!EnablePicking)
         return;
 
-    CallbackList(newID);
+    uuid newID = RenderSubsystem::GetInstance().GetUUIDAt(x, y);
+
+    if (newID == m_selectedUUID) return;
     m_selectedUUID = newID;
+
+    m_selectedUUID = newID;
+    CallbackList(newID);
 }
 
 void SelectionManager::SelectUUID(uuid id, bool keepSelection)
 {
-    CallbackList(id);
+    if (id == m_selectedUUID) return;
     m_selectedUUID = id;
+
+    //CallbackList(id);
 }
 
 void SelectionManager::DeselectAll()

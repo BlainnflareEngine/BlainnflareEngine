@@ -28,6 +28,11 @@ public:
 
     void SetItem(QWidget *item);
 
+    QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
+    void resizeEvent(QResizeEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
+
     bool IsLocked() const;
     void SetLocked(bool locked);
 

@@ -11,6 +11,7 @@
 #include "aliases.h"
 #include "Input/MouseEvents.h"
 #include "Navigation/NavigationSubsystem.h"
+#include "Render/UI/UIRenderer.h"
 #include "scene/Scene.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
@@ -127,9 +128,10 @@ void Engine::Destroy()
 void Engine::Update(float deltaTime)
 {
     // this trace doesn't make sense, it exactly matches the frame
-    BLAINN_PROFILE_SCOPE_DYNAMIC("Main loop");
+    BLAINN_PROFILE_SCOPE_DYNAMIC("Engine loop");
 
     s_deltaTime = deltaTime;
+    RenderSubsystem::GetInstance().GetUIRenderer().StartImGuiFrame();
 
     Input::ProcessEvents();
 
@@ -168,20 +170,13 @@ void Engine::StartPlayMode()
 
     s_activeScene->StartPlayMode();
     s_activeScene->SaveScene();
+    s_startPlayModeSceneName = s_activeScene->GetName();
 
     s_playModeTimeline.Reset();
     s_playModeTimeline.Start();
     s_isPlayMode = true;
 
-    PhysicsSubsystem::StartSimulation();
-
-    for (auto [entity, id, aiComp] : s_activeScene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
-    {
-        Entity ent = s_activeScene->GetEntityWithUUID(id.ID);
-        AISubsystem::GetInstance().CreateAIController(ent);
-    }
-
-    ScriptingSubsystem::LoadAllScripts(*s_activeScene);
+    InitScenePlayMode();
 }
 
 void Engine::TogglePausePlayMode()
@@ -203,15 +198,12 @@ void Engine::EscapePlayMode()
     if (s_activeScene)
     {
         s_activeScene->EndPlayMode();
-        AssetManager::GetInstance().OpenScene(s_activeScene->GetName().c_str());
+        AssetManager::GetInstance().OpenScene(s_startPlayModeSceneName.c_str());
     }
 
-
     s_isPlayMode = false;
-
-    PhysicsSubsystem::StopSimulation();
-    ScriptingSubsystem::UnloadAllScripts(*s_activeScene);
     AssetManager::GetInstance().ResetTextures();
+    Log::SetNotFoundMainCameraLogged(false);
 }
 
 
@@ -226,12 +218,24 @@ bool Engine::PlayModePaused()
     return s_playModePaused;
 }
 
+void Blainn::Engine::InitScenePlayMode()
+{
+    PhysicsSubsystem::StartSimulation();
+
+    for (auto [entity, id, aiComp] : s_activeScene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
+    {
+        Entity ent = s_activeScene->GetEntityWithUUID(id.ID);
+        AISubsystem::GetInstance().CreateAIController(ent);
+    }
+
+    ScriptingSubsystem::LoadAllScripts(*s_activeScene);
+}
+
 
 Path &Engine::GetContentDirectory()
 {
     return s_contentDirectory;
 }
-
 
 void Engine::SetContentDirectory(const Path &contentDirectory)
 {

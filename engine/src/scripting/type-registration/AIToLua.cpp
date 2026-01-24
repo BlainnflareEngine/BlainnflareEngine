@@ -112,7 +112,7 @@ void Blainn::RegisterAITypes(sol::state &luaState)
             return bb->Get<Vec2>(key.c_str());
         });
 
-    BlackboardType.set_function("GetVec2",
+    BlackboardType.set_function("GetVec3",
         [](Blackboard *bb, const std::string &key) -> Vec3
         {
             if (!bb) return Vec3();

@@ -35,6 +35,12 @@ void skybox_widget::UpdatePath()
                                    .string());
     m_texture_input->SetPath(path);
 }
+void skybox_widget::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    component_widget_base::paintEvent(event);
+}
 
 void skybox_widget::OnSetNewPath(const QString & oldPath, const QString & newPath)
 {

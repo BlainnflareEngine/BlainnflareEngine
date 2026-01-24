@@ -146,4 +146,10 @@ void mesh_widget::BlockSignals(bool block)
     m_path_input->blockSignals(block);
     m_material_input->blockSignals(block);
 }
+void mesh_widget::paintEvent(QPaintEvent *event)
+{
+    BLAINN_PROFILE_FUNC();
+
+    component_widget_base::paintEvent(event);
+}
 } // namespace editor

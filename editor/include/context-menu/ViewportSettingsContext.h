@@ -26,8 +26,11 @@ public:
     void ShowMenu();
 
 protected:
-    void ShowDebugLines(bool value);
+    void EnablePicking(bool value);
     void EnableVSync(bool value);
+    void ShowDebugLines(bool value);
+    void RenderDebugUI(bool value);
+    void ShowFrameTime(bool value);
     void EnableGizmo(bool value);
     void EnableWorldGrid(bool value);
     void UseSnapping(bool value);
