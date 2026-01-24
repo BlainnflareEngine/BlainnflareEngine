@@ -301,7 +301,7 @@ bool editor::SceneItemModel::dropMimeData(const QMimeData *data, Qt::DropAction 
                 EntityNode *parentNode = static_cast<EntityNode *>(parent.internalPointer());
                 newParent = scene->TryGetEntityWithUUID(parentNode->GetUUID());
             }
-            if (newParent) entity.SetParent(newParent);
+            if (newParent) scene->ParentEntity(entity, newParent);
             else scene->UnparentEntity(entity);
         }
     }
