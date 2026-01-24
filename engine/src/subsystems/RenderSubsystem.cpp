@@ -573,17 +573,12 @@ void Blainn::RenderSubsystem::CreateRootSignature()
     CD3DX12_ROOT_PARAMETER slotRootParameter[RootSignature::ERootParam::NumRootParameters];
 
     // Perfomance TIP: Order from most frequent to least frequent.
-    slotRootParameter[RootSignature::ERootParam::PerObjectDataCB].InitAsConstantBufferView(
-        SHADER_REGISTER(0u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
-    slotRootParameter[RootSignature::ERootParam::PerPassDataCB].InitAsConstantBufferView(
-        SHADER_REGISTER(1u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[RootSignature::ERootParam::PerObjectDataCB].InitAsConstantBufferView(SHADER_REGISTER(0u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[RootSignature::ERootParam::PerPassDataCB].InitAsConstantBufferView(SHADER_REGISTER(1u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
 
-    slotRootParameter[RootSignature::ERootParam::MaterialsDataSB].InitAsShaderResourceView(
-        SHADER_REGISTER(0u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
-    slotRootParameter[RootSignature::ERootParam::PointLightsDataSB].InitAsShaderResourceView(
-        SHADER_REGISTER(1u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
-    slotRootParameter[RootSignature::ERootParam::SpotLightsDataSB].InitAsShaderResourceView(
-        SHADER_REGISTER(2u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[RootSignature::ERootParam::MaterialsDataSB].InitAsShaderResourceView(SHADER_REGISTER(0u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[RootSignature::ERootParam::PointLightsDataSB].InitAsShaderResourceView(SHADER_REGISTER(1u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
+    slotRootParameter[RootSignature::ERootParam::SpotLightsDataSB].InitAsShaderResourceView(SHADER_REGISTER(2u), REGISTER_SPACE_0, D3D12_SHADER_VISIBILITY_ALL);
 
     slotRootParameter[RootSignature::ERootParam::CascadedShadowMaps].InitAsDescriptorTable(1u, &cascadeShadowSrv, D3D12_SHADER_VISIBILITY_PIXEL);
     slotRootParameter[RootSignature::ERootParam::GBufferTextures].InitAsDescriptorTable(1u, &GBufferTable, D3D12_SHADER_VISIBILITY_PIXEL);
