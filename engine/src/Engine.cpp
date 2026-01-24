@@ -203,6 +203,7 @@ void Engine::EscapePlayMode()
 
     s_isPlayMode = false;
     AssetManager::GetInstance().ResetTextures();
+    Log::SetNotFoundMainCameraLogged(false);
 }
 
 
