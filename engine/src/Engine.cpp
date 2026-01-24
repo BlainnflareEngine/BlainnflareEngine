@@ -43,31 +43,19 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     RenderSubsystem::GetInstance().PreInit();
     PhysicsSubsystem::Init(globalTimeline);
 
-    PerceptionSubsystem::GetInstance().Init();
-
-    PerceptionSubsystem::Settings perceptionSettings;
-    perceptionSettings.enableLOD = true;
-    perceptionSettings.lodNearDistance = 1000.0f;
-    perceptionSettings.lodMidDistance = 3000.0f;
-    perceptionSettings.lodFarDistance = 5000.0f;
-    perceptionSettings.lodNearUpdateInterval = 0.0f;
-    perceptionSettings.lodMidUpdateInterval = 0.1f;
-    perceptionSettings.lodFarUpdateInterval = 0.5f;
-    PerceptionSubsystem::GetInstance().SetSettings(perceptionSettings);
-
     AssetManager::GetInstance().Init();
     ScriptingSubsystem::Init();
-    AISubsystem::GetInstance().Init();
+
+    InitAISubsystem();
+}
+
+void Engine::InitAISubsystem()
+{
+    PerceptionSubsystem::Settings perceptionSettings;
+    PerceptionSubsystem::GetInstance().Init(perceptionSettings);
 
     AISubsystem::Settings aiSettings;
-    aiSettings.enableLOD = true;
-    aiSettings.lodNearDistance = 1000.0f;
-    aiSettings.lodMidDistance = 3000.0f;
-    aiSettings.lodFarDistance = 5000.0f;
-    aiSettings.lodNearUpdateInterval = 0.0f;
-    aiSettings.lodMidUpdateInterval = 0.1f;
-    aiSettings.lodFarUpdateInterval = 0.5f;
-    AISubsystem::GetInstance().SetSettings(aiSettings);
+    AISubsystem::GetInstance().Init(aiSettings);
 
     NavigationSubsystem::Init();
     NavigationSubsystem::SetShouldDrawDebug(true);

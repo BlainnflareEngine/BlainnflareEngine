@@ -35,12 +35,6 @@ class PerceptionSubsystem
 public:
     NO_COPY_NO_MOVE(PerceptionSubsystem);
 
-    static PerceptionSubsystem &GetInstance();
-
-    void Init();
-    void Destroy();
-    void Update(float dt);
-
     struct Settings
     {
         float defaultSightRange = 1500.0f;
@@ -53,6 +47,15 @@ public:
         float lodMidUpdateInterval = 0.1f;
         float lodFarUpdateInterval = 0.5f;
     };
+
+    static PerceptionSubsystem &GetInstance();
+
+    void Init();
+    void Init(Settings &settings);
+    void Destroy();
+    void Update(float dt);
+
+
 
     void SetSettings(const Settings &settings)
     {
