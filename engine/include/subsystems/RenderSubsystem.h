@@ -181,7 +181,7 @@ private:
                          D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter);
 
     // For drawing specific meshes
-    void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList, eastl::unique_ptr<struct MeshComponent> &mesh);
+    void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList, const Model &mesh);
     void DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList);
     void DrawInstancedMesh(ID3D12GraphicsCommandList2 *pCommandList, const Model& mesh, const UINT numInstances);
 
