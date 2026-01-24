@@ -86,6 +86,13 @@ void AssetManager::LoadPrebuiltMeshes()
     model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
 #pragma endregion Cone
+#pragma region Grid
+    model = Model{};
+    model.SetMeshes({PrebuiltEngineMeshes::CreateGrid(50.0f, 50.0f, 20u, 20u)});
+    model.CreateBufferResources();
+    model.CreateGPUBuffers();
+    m_meshes.emplace(eastl::make_shared<Model>(model));
+#pragma endregion Grid
 }
 
 void AssetManager::Destroy()

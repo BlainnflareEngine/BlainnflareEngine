@@ -16,6 +16,13 @@ namespace Blainn
 
     struct LightComponent
     {
+    private:
+        inline static const int kNumFramesMarkDirty = 3;
+
+        // dirty flag available between frames
+        int NumFramesDirty = kNumFramesMarkDirty; // NumFrameResources
+
+    public:
         LightComponent()
         {
         }
@@ -28,6 +35,22 @@ namespace Blainn
         LightComponent(LightComponent &&other) noexcept
         {
 
+        }
+
+        // call from qt
+        void MarkFramesDirty()
+        {
+            NumFramesDirty = kNumFramesMarkDirty;
+        };
+
+        bool IsFramesDirty() const
+        {
+            return NumFramesDirty > 0;
+        }
+
+        void FrameResetDirtyFlags()
+        {
+            NumFramesDirty > 0 ? --NumFramesDirty : NumFramesDirty;
         }
 
         XMFLOAT4 Color = {1.0f, 1.0f, 1.0f, 1.0f};

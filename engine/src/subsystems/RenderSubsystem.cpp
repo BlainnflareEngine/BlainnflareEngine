@@ -905,14 +905,14 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
 #pragma region PointLights
     auto currPointLightSB = m_currFrameResource->PointLightSB.get();
 
-    const auto &pointLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, /*MeshComponent,*/ PointLightComponent>();
-    for (const auto &[entity, entityID, entityTransform, /*entityMesh,*/ entityLight] : pointLightEntitiesView.each())
+    const auto &pointLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, PointLightComponent>();
+    for (const auto &[entity, entityID, entityTransform, entityLight] : pointLightEntitiesView.each())
     {
         const auto &_entity = Engine::GetActiveScene()->TryGetEntityWithUUID(entityID.ID);
         if (!_entity.IsValid()) continue;
 
         ++m_pointLightsCount;
-        if (!entityTransform.IsFramesDirty() /*|| !entityLight.IsFramesDirty()*/) continue;
+        if (!entityTransform.IsFramesDirty() && !entityLight.IsFramesDirty()) continue;
 
         PointLightInstanceData m_perInstanceSBData;
 
@@ -924,13 +924,15 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
         m_perInstanceSBData.Light.Position = entityTransform.GetTranslation();
 
         currPointLightSB->CopyData(m_pointLightsCount, m_perInstanceSBData);
+        
         entityTransform.FrameResetDirtyFlags();
+        entityLight.FrameResetDirtyFlags();
     }
 #pragma endregion PointLights
 
 #pragma region SpotLights
-    //const auto &spotLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<TransformComponent, /*MeshComponent,*/ SpotLightComponent>();
-    //for (const auto &[entity, transform, /*entityMesh,*/ entityLight] :
+    //const auto &spotLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<TransformComponent, SpotLightComponent>();
+    //for (const auto &[entity, transform, entityLight] :
     //spotLightEntitiesView.each())
     //{
         //++m_spotLightsCount;
@@ -1295,15 +1297,23 @@ void Blainn::RenderSubsystem::RenderSkyBoxPass(ID3D12GraphicsCommandList2 *pComm
     pCommandList->OMSetRenderTargets(1u, &rtvHandle, TRUE, &dsvHandle);
 
     auto currFramePassCB = m_currFrameResource->PassCB->Get();
-    auto currFrameGPUVirtualAddress = FreyaUtil::GetGPUVirtualAddress(
-        currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DeferredLighting));
+    auto currFrameGPUVirtualAddress = FreyaUtil::GetGPUVirtualAddress(currFramePassCB->GetGPUVirtualAddress(), passCBByteSize, static_cast<UINT>(EPassType::DeferredLighting));
     pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerPassDataCB, currFrameGPUVirtualAddress);
 
     // Bind SkyBox texture
-    pCommandList->SetGraphicsRootDescriptorTable(RootSignature::ERootParam::SkyBox,
-        CD3DX12_GPU_DESCRIPTOR_HANDLE(m_srvHeap->GetGPUDescriptorHandleForHeapStart(), m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
+    pCommandList->SetGraphicsRootDescriptorTable(RootSignature::ERootParam::SkyBox, CD3DX12_GPU_DESCRIPTOR_HANDLE(m_srvHeap->GetGPUDescriptorHandleForHeapStart(), m_skyCubeSrvHeapStartIndex, m_cbvSrvUavDescriptorSize));
     pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::Sky).Get());
-    DrawMesh(pCommandList, skyBox);
+
+    ObjectConstants obj;
+    XMStoreFloat4x4(&obj.World, XMMatrixTranspose(XMMatrixScaling(5000.0f, 5000.0f, 5000.0f)));
+    skyBox->UpdateMeshCB(obj);
+
+    UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
+    auto currFrameObjCB = skyBox->ObjectCB->Get();
+    D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currFrameObjCB->GetGPUVirtualAddress(), objCBByteSize, 0u);
+    pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerObjectDataCB, objCBAddress);
+
+    DrawMesh(pCommandList, AssetManager::GetInstance().GetDefaultModel(static_cast<uint32_t>(EPrebuiltMeshType::BOX)));
 
     ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
@@ -1441,27 +1451,24 @@ void RenderSubsystem::RenderImGuiPass(ID3D12GraphicsCommandList2 *pCommandList)
     ResourceBarrier(pCommandList, m_GBuffer->Get(GBuffer::EGBufferLayer::DEPTH), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 
-void Blainn::RenderSubsystem::DrawMesh(ID3D12GraphicsCommandList2 *pCommandList, eastl::unique_ptr<struct MeshComponent> &meshComponent)
+void Blainn::RenderSubsystem::DrawMesh(ID3D12GraphicsCommandList2 *pCommandList, const Model& mesh)
 {
-    UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
-
-    auto currFrameObjCB = meshComponent->ObjectCB->Get();
-    auto &model = meshComponent->MeshHandle->GetMesh();
-    auto currVBV = model.VertexBufferView();
-    auto currIBV = model.IndexBufferView();
-
-    ObjectConstants obj;
-    XMStoreFloat4x4(&obj.World, XMMatrixTranspose(XMMatrixScaling(5000.0f, 5000.0f, 5000.0f)));
-    meshComponent->UpdateMeshCB(obj);
+    auto currVBV = mesh.VertexBufferView();
+    auto currIBV = mesh.IndexBufferView();
 
     pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
     pCommandList->IASetIndexBuffer(&currIBV);
 
-    D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = FreyaUtil::GetGPUVirtualAddress(currFrameObjCB->GetGPUVirtualAddress(), objCBByteSize, 0u);
-    pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerObjectDataCB, objCBAddress);
-
-    pCommandList->DrawIndexedInstanced(model.GetIndicesCount(), 1u, 0u, 0u, 0u);
+    [[likely]]
+    if (currIBV.SizeInBytes)
+    {
+        pCommandList->DrawIndexedInstanced(mesh.GetIndicesCount(), 1u, 0u, 0u, 0u);
+    }
+    else
+    {
+        pCommandList->DrawInstanced(mesh.GetVerticesCount(), 1u, 0u, 0u);
+    }
 }
 
 void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList)
