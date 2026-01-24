@@ -19,7 +19,7 @@
 #include "entity/add_component_button.h"
 #include "entity/ai_controller_widget.h"
 #include "entity/camera_widget.h"
-#include "entity/directional_light_widget.h"
+#include "../../include/inspector/entity/light/directional_light_widget.h"
 #include "entity/mesh_widget.h"
 #include "entity/navmesh_volume_widget.h"
 #include "entity/physics_widget.h"

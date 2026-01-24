@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "component_widget_base.h"
+#include "../component_widget_base.h"
 
 namespace editor
 {

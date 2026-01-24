@@ -2,7 +2,7 @@
 // Created by gorev on 22.01.2026.
 //
 
-#include "../../../include/inspector/entity/directional_light_widget.h"
+#include "../../../../include/inspector/entity/light/directional_light_widget.h"
 
 #include "Components/LightComponent.h"
 #include "Render/DebugRenderer.h"
