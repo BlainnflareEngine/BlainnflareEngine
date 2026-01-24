@@ -95,9 +95,20 @@ Model::Model()
         }
     }
 
-    void Model::CreateGPUBuffers(ID3D12GraphicsCommandList2 *pCommandList/*, UINT64 frameValue*/)
+    void Model::CreateGPUBuffers()
     {
-        CreateGPUBuffers(pCommandList, allVertices, allIndices);
+        // GPU stuff
+        auto cmdQueue = Device::GetInstance().GetCommandQueue();
+        auto cmdAlloc = cmdQueue->GetCommandAllocator();
+        ThrowIfFailed(cmdAlloc->Reset());
+        auto cmdList = cmdQueue->GetCommandList(cmdAlloc.Get());
+
+        CreateGPUBuffers(cmdList.Get(), allVertices, allIndices);
+
+        cmdQueue->ExecuteCommandList(cmdList.Get());
+        cmdQueue->Flush();
+
+        m_bisLoaded = BuffersCreated();
     }
 
     D3D12_VERTEX_BUFFER_VIEW Model::VertexBufferView() const

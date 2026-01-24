@@ -381,7 +381,7 @@ inline SkyboxComponent GetSkybox(const YAML::Node &node)
     {
         component.textureHandle = AssetManager::GetInstance().HasTexture(relativePath)
                                       ? AssetManager::GetInstance().GetTexture(relativePath)
-                                      : AssetManager::GetInstance().LoadTexture(relativePath, TextureType::ALBEDO);
+                                      : AssetManager::GetInstance().LoadTexture(relativePath, TextureType::CUBEMAP);
     }
 
     return component;

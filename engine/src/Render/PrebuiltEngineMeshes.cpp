@@ -207,65 +207,131 @@ namespace Blainn
         return meshData;
     }
 
-    MeshData<> PrebuiltEngineMeshes::CreateGrid(float width, float depth, UINT m, UINT n)
+    MeshData<> PrebuiltEngineMeshes::CreateCylinder(int baseRadius, int topRadius, int height, int sectorCount)
     {
         MeshData<> meshData;
 
-        UINT vertexCount = m * n;
-        UINT faceCount = (m - 1) * (n - 1) * 2;
+        float x, y, z; // vertex position
+        float radius;  // radius for each stack
 
-        //
-        // Create the vertices.
-        //
+        const float PI = acos(-1);
+        float sectorStep = 2 * PI / sectorCount;
+        float sectorAngle; // radian
 
-        float halfWidth = 0.5f * width;
-        float halfDepth = 0.5f * depth;
+        // compute the normal vector at 0 degree first
+        // tanA = (baseRadius-topRadius) / height
+        float zAngle = atan2(baseRadius - topRadius, height);
+        float x0 = cos(zAngle); // nx
+        float y0 = 0;           // ny
+        float z0 = sin(zAngle); // nz
 
-        float dx = width / (n - 1);
-        float dz = depth / (m - 1);
-
-        float du = 1.0f / (n - 1);
-        float dv = 1.0f / (m - 1);
-
-        meshData.vertices.resize(vertexCount);
-        for (UINT i = 0; i < m; ++i)
+        // rotate (x0,y0,z0) per sector angle
+        std::vector<float> sideNormals;
+        for (int i = 0; i <= sectorCount; ++i)
         {
-            float z = halfDepth - i * dz;
-            for (UINT j = 0; j < n; ++j)
+            sectorAngle = i * sectorStep;
+            sideNormals.push_back(cos(sectorAngle) * x0 - sin(sectorAngle) * y0); // nx
+            sideNormals.push_back(sin(sectorAngle) * x0 + cos(sectorAngle) * y0); // ny
+            sideNormals.push_back(z0);                                            // nz
+        }
+
+        std::vector<float> unitCircleVertices;
+        for (int i = 0; i <= sectorCount; ++i)
+        {
+            sectorAngle = i * sectorStep;
+            unitCircleVertices.push_back(cos(sectorAngle)); // x
+            unitCircleVertices.push_back(sin(sectorAngle)); // y
+            unitCircleVertices.push_back(0);                // z
+        }
+
+        // remember where the base.top vertices start
+        unsigned int baseVertexIndex = (unsigned int)meshData.vertices.size();
+        // TODO: Convert this
+        // put vertices of base of cylinder
+        z = -height * 0.5f;
+        
+        meshData.vertices.push_back(BlainnVertex(0.0f, 0.0f, z, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f));
+
+        for (int i = 0, j = 0; i < sectorCount; ++i, j += 3)
+        {
+            x = unitCircleVertices[j];
+            y = unitCircleVertices[j + 1];
+            meshData.vertices.push_back(BlainnVertex(x * baseRadius, y * baseRadius, z, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -x * 0.5f + 0.5f, -y * 0.5f + 0.5f));
+        }
+
+        // remember where the top vertices start
+        unsigned int topVertexIndex = (unsigned int)meshData.vertices.size();
+        // put vertices of top of cylinder
+        z = height * 0.5f;
+        meshData.vertices.push_back(BlainnVertex(0.0f, 0.0f, z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f));
+        
+        for (int i = 0, j = 0; i < sectorCount; ++i, j += 3)
+        {
+            x = unitCircleVertices[j];
+            y = unitCircleVertices[j + 1];
+            meshData.vertices.push_back(BlainnVertex(x * topRadius, y * topRadius, z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, x * 0.5f + 0.5f, -y * 0.5f + 0.5f));
+        }
+
+        int k1 = 0;               // 1st vertex index at base
+        int k2 = sectorCount + 1; // 1st vertex index at top
+
+        for (int j = 0; j < sectorCount; ++j, ++k1, ++k2)
+        {
+            if (j == 0)
             {
-                float x = -halfWidth + j * dx;
+                // 2 trianles per sector
+                meshData.indices.push_back(k1 + sectorCount);
+                meshData.indices.push_back(k1 + 1);
+                meshData.indices.push_back(k2 + sectorCount);
 
-                meshData.vertices[i * n + j].position = XMFLOAT3(x, 0.0f, z);
-                meshData.vertices[i * n + j].normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
-                meshData.vertices[i * n + j].tangent = XMFLOAT3(1.0f, 0.0f, 0.0f);
+                meshData.indices.push_back(k2 + sectorCount);
+                meshData.indices.push_back(k1 + 1);
+                meshData.indices.push_back(k2 + 1);
+            }
+            else
+            {
+                // 2 trianles per sector
+                meshData.indices.push_back(k1);
+                meshData.indices.push_back(k1 + 1);
+                meshData.indices.push_back(k2);
 
-                // Stretch texture over grid.
-                meshData.vertices[i * n + j].texCoord.x = j * du;
-                meshData.vertices[i * n + j].texCoord.y = i * dv;
+                meshData.indices.push_back(k2);
+                meshData.indices.push_back(k1 + 1);
+                meshData.indices.push_back(k2 + 1);
             }
         }
 
-        //
-        // Create the indices.
-        //
-
-        meshData.indices.resize(faceCount * 3); // 3 indices per face
-
-        // Iterate over each quad and compute indices.
-        UINT k = 0;
-        for (UINT i = 0; i < m - 1; ++i)
+        // put indices for base
+        for (int i = 0, k = baseVertexIndex + 1; i < sectorCount; ++i, ++k)
         {
-            for (UINT j = 0; j < n - 1; ++j)
+            if (i < (sectorCount - 1))
             {
-                meshData.indices[k] = i * n + j;
-                meshData.indices[k + 1] = i * n + j + 1;
-                meshData.indices[k + 2] = (i + 1) * n + j;
+                meshData.indices.push_back(baseVertexIndex);
+                meshData.indices.push_back(k + 1);
+                meshData.indices.push_back(k);
+            }
+            else // last triangle
+            {
+                meshData.indices.push_back(baseVertexIndex);
+                meshData.indices.push_back(baseVertexIndex + 1);
+                meshData.indices.push_back(k);
+            }
+        }
 
-                meshData.indices[k + 3] = (i + 1) * n + j;
-                meshData.indices[k + 4] = i * n + j + 1;
-                meshData.indices[k + 5] = (i + 1) * n + j + 1;
-
-                k += 6; // next quad
+        // put indices for top
+        for (int i = 0, k = topVertexIndex + 1; i < sectorCount; ++i, ++k)
+        {
+            if (i < (sectorCount - 1))
+            {
+                meshData.indices.push_back(topVertexIndex);
+                meshData.indices.push_back(k);
+                meshData.indices.push_back(k + 1);
+            }
+            else
+            {
+                meshData.indices.push_back(topVertexIndex);
+                meshData.indices.push_back(k);
+                meshData.indices.push_back(topVertexIndex + 1);
             }
         }
 

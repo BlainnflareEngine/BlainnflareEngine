@@ -145,6 +145,7 @@ private:
 
 private:
     void UpdateObjectsCB(float deltaTime);
+    void UpdateLightsBuffers(float deltaTime);
     void UpdateMaterialBuffer(float deltaTime);
     void UpdateShadowTransform(float deltaTime);
 
@@ -182,8 +183,7 @@ private:
     // For drawing specific meshes
     void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList, eastl::unique_ptr<struct MeshComponent> &mesh);
     void DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList);
-    void DrawInstancedMeshes(ID3D12GraphicsCommandList2 *pCommandList,
-                             const eastl::vector<MeshData<BlainnVertex, uint32_t>> &meshData);
+    void DrawInstancedMesh(ID3D12GraphicsCommandList2 *pCommandList, const Model& mesh, const UINT numInstances);
 
     void DrawQuad(ID3D12GraphicsCommandList2 *pCommandList);
 
@@ -240,15 +240,13 @@ private:
 
     RenderTarget m_uuidRenderTarget;
 
-    float m_sunPhi = XM_PIDIV4;
-    float m_sunTheta = 1.25f * XM_PI;
-
     PassConstants m_shadowPassCBData;
     PassConstants m_geometryPassCBData;
-    PassConstants m_mainPassCBData; // deferred color(light) pass
-    // PassConstants m_lightingPassCBData;
+    PassConstants m_deferredPassCBData;
     MaterialData m_perMaterialSBData;
-    InstanceData m_perInstanceSBData;
+
+    UINT m_pointLightsCount = 0u;
+    UINT m_spotLightsCount = 0u;
 
     ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
     ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
@@ -274,8 +272,8 @@ private:
 #pragma endregion DeferredShading
 
 #pragma region CascadedShadows
-    eastl::unique_ptr<ShadowMap> m_cascadeShadowMap;
     UINT m_cascadesShadowSrvHeapStartIndex = 0u;
+    eastl::unique_ptr<ShadowMap> m_cascadeShadowMap;
 #pragma endregion CascadedShadows
 
 #pragma region Textures
