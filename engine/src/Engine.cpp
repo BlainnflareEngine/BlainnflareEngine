@@ -69,21 +69,33 @@ void Engine::InitAISubsystem()
 
                                            if (!entity1.IsValid() || !entity2.IsValid()) return;
 
-                                           Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
-                                           Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
-
                                            eastl::string tag1 = "Unknown";
                                            eastl::string tag2 = "Unknown";
 
-                                           if (entity1.HasComponent<StimulusComponent>())
+                                           if (entity1.HasComponent<StimulusComponent>() && entity2.HasComponent<PerceptionComponent>())
+                                           {
+                                               Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
+                                                   Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
+                                               bool touch = entity2.GetComponent<PerceptionComponent>().enableTouch;
+                                               //if (touch == true) // FIXME: enableTouch всегда false
+                                               //{
                                                tag1 = entity1.GetComponent<StimulusComponent>().tag;
-                                           if (entity2.HasComponent<StimulusComponent>())
+                                               PerceptionSubsystem::GetInstance().RegisterStimulus(
+                                                       entity1.GetUUID(), StimulusType::Touch, pos1, 0.0f, tag1);
+                                               //}
+                                           }
+                                           if (entity2.HasComponent<StimulusComponent>() && entity1.HasComponent<PerceptionComponent>())
+                                           {
+                                               Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
+                                               Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
+                                               bool touch = entity1.GetComponent<PerceptionComponent>().enableTouch;
+                                               //if (touch == true)
+                                               //{
                                                tag2 = entity2.GetComponent<StimulusComponent>().tag;
-
-                                           PerceptionSubsystem::GetInstance().RegisterStimulus(
-                                               entity2.GetUUID(), StimulusType::Touch, pos1, 0.0f, tag2);
-                                           PerceptionSubsystem::GetInstance().RegisterStimulus(
-                                               entity1.GetUUID(), StimulusType::Touch, pos2, 0.0f, tag1);
+                                               PerceptionSubsystem::GetInstance().RegisterStimulus(
+                                                       entity2.GetUUID(), StimulusType::Touch, pos2, 0.0f, tag2);
+                                               //}
+                                           }
                                        });
 }
 
