@@ -133,6 +133,8 @@ bool NavigationSubsystem::LoadNavMesh(const Path &relativePath)
     m_navMesh = navMesh;
     m_navQuery->init(m_navMesh, 2048);
 
+    BuildDebugNavMesh();
+
     BF_INFO("NavMesh loaded successfully: {}", absolutePath.string());
     return true;
 }
@@ -200,6 +202,8 @@ bool NavigationSubsystem::BakeNavMesh(Scene &scene, Entity navVolumeEntity, cons
     std::ofstream fout(scenePath);
     fout << sceneNode;
 
+    BuildDebugNavMesh();
+
     BF_INFO("NavMesh baked: {}", absPath.string().c_str());
     return true;
 }
@@ -217,6 +221,9 @@ void NavigationSubsystem::ClearNavMesh()
     {
         m_navQuery->init(nullptr, 0);
     }
+
+    if (!m_debugVertexVector.empty())
+        m_debugVertexVector.clear();
 }
 
 
@@ -315,7 +322,18 @@ std::pair<bool, Vec3> NavigationSubsystem::FindRandomPointOnNavMesh(const Vec3 &
 
 void NavigationSubsystem::DrawDebugMesh()
 {
+    BLAINN_PROFILE_FUNC();
+    if (!m_navMesh || !RenderSubsystem::GetInstance().GetDebugRenderer().IsDebugEnabled()) return;
+
+    RenderSubsystem::GetInstance().GetDebugRenderer().DrawLineList(m_debugVertexVector.begin(), m_debugVertexVector.end());
+}
+
+void NavigationSubsystem::BuildDebugNavMesh()
+{
     if (!m_navMesh) return;
+
+    if (!m_debugVertexVector.empty())
+        m_debugVertexVector.clear();
 
     const dtNavMesh *nav = m_navMesh;
     const int numTiles = nav->getMaxTiles();
@@ -341,7 +359,8 @@ void NavigationSubsystem::DrawDebugMesh()
             {
                 const Vec3 &a = verts[k];
                 const Vec3 &b = verts[(k + 1) % poly->vertCount];
-                RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(a, b, Color(1.0f, 1.0f, 0.0f, 1.0f));
+                m_debugVertexVector.emplace_back(VertexPositionColor{a, Color(1.0f, 1.0f, 0.0f, 1.0f)});
+                m_debugVertexVector.emplace_back(VertexPositionColor{b, Color(1.0f, 1.0f, 0.0f, 1.0f)});
             }
         }
     }

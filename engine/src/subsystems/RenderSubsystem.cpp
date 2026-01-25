@@ -245,6 +245,7 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
 
 void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList)
 {
+    BLAINN_PROFILE_FUNC();
     pCommandList->SetGraphicsRootSignature(m_rootSignature->Get());
 
     // Access for setting and using root descriptor table
@@ -870,6 +871,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
 #pragma region Update
 void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 {
+    BLAINN_PROFILE_FUNC();
     const auto &renderEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
     for (const auto &[entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
     {
@@ -897,6 +899,7 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 
 void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
 {
+    BLAINN_PROFILE_FUNC();
 #pragma region PointLights
     auto currPointLightSB = m_currFrameResource->PointLightSB.get();
 
@@ -938,6 +941,7 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
 
 void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
 {
+    BLAINN_PROFILE_FUNC();
     auto currMaterialDataSB = m_currFrameResource->MaterialSB.get();
 
     auto &materials = AssetManager::GetInstance().m_materials;
@@ -981,7 +985,8 @@ void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
 
 void Blainn::RenderSubsystem::UpdateShadowTransform(float deltaTime)
 {
-    eastl::vector<eastl::pair<XMMATRIX, XMMATRIX>> lightSpaceMatrices;
+    BLAINN_PROFILE_FUNC();
+    static eastl::array<eastl::pair<XMMATRIX, XMMATRIX>, MaxCascades> lightSpaceMatrices;
     GetLightSpaceMatrices(lightSpaceMatrices);
 
     for (UINT i = 0; i < MaxCascades; ++i)
@@ -996,6 +1001,7 @@ void Blainn::RenderSubsystem::UpdateShadowTransform(float deltaTime)
 
 void Blainn::RenderSubsystem::UpdateShadowPassCB(float deltaTime)
 {
+    BLAINN_PROFILE_FUNC();
     XMMATRIX view = XMMatrixIdentity();
     XMMATRIX proj = XMMatrixIdentity();
     XMMATRIX viewProj = XMMatrixMultiply(view, proj);
@@ -1014,6 +1020,7 @@ void Blainn::RenderSubsystem::UpdateShadowPassCB(float deltaTime)
 
 void Blainn::RenderSubsystem::UpdateGeometryPassCB(float deltaTime)
 {
+    BLAINN_PROFILE_FUNC();
     XMMATRIX view = m_camera->GetViewMatrix();
     XMMATRIX proj = m_camera->GetPerspectiveProjectionMatrix();
     XMMATRIX viewProj = XMMatrixMultiply(view, proj);
@@ -1039,6 +1046,7 @@ void Blainn::RenderSubsystem::UpdateGeometryPassCB(float deltaTime)
 
 void Blainn::RenderSubsystem::UpdateDeferredPassCB(float deltaTime)
 {
+    BLAINN_PROFILE_FUNC();
     XMMATRIX view = m_camera->GetViewMatrix();
     XMMATRIX proj = m_camera->GetPerspectiveProjectionMatrix();
     XMMATRIX viewProj = XMMatrixMultiply(view, proj);
@@ -1577,14 +1585,14 @@ eastl::pair<XMMATRIX, XMMATRIX> Blainn::RenderSubsystem::GetLightSpaceMatrix(con
     return eastl::make_pair(lightView, lightProj);
 }
 
-void Blainn::RenderSubsystem::GetLightSpaceMatrices(eastl::vector<eastl::pair<XMMATRIX, XMMATRIX>> &outMatrices)
+void Blainn::RenderSubsystem::GetLightSpaceMatrices(eastl::array<eastl::pair<XMMATRIX, XMMATRIX>, 4>& outMatrices)
 {
     for (UINT i = 0; i < MaxCascades; ++i)
     {
         if (i == 0)
-            outMatrices.push_back(GetLightSpaceMatrix(m_camera->GetNearZ(), m_cascadeShadowMap->GetCascadeLevel(i)));
+            outMatrices[i] = (GetLightSpaceMatrix(m_camera->GetNearZ(), m_cascadeShadowMap->GetCascadeLevel(i)));
         else
-            outMatrices.push_back(GetLightSpaceMatrix(m_cascadeShadowMap->GetCascadeLevel(i - 1), m_cascadeShadowMap->GetCascadeLevel(i)));
+            outMatrices[i] = (GetLightSpaceMatrix(m_cascadeShadowMap->GetCascadeLevel(i - 1), m_cascadeShadowMap->GetCascadeLevel(i)));
     }
 }
 

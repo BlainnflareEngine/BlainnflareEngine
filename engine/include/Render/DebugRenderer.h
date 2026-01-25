@@ -43,9 +43,12 @@ namespace Blainn
 
         void DrawCylinder(Mat4 matrix, float halfHeight, float radius, Color color);
 
+        void DrawLineList(const eastl::vector<VertexPositionColor>::iterator& first, const eastl::vector<VertexPositionColor>::iterator& last);
+
         // this is not working, we didn't yet bother to render text!
         virtual void DrawText3D(JPH::RVec3Arg inPosition, const std::string_view &inString, JPH::ColorArg inColor, float inHeight) override {}
 
+        bool IsDebugEnabled() const {return m_bIsDebugEnabled;}
         void SetDebugEnabled(bool value) {m_bIsDebugEnabled = value;}
         void ClearDebugList() {m_lineListVertices.clear();}
 
