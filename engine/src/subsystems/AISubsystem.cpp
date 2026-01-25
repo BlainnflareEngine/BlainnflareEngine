@@ -24,9 +24,9 @@ void AISubsystem::Init()
 void AISubsystem::Init(Settings &settings)
 {
     settings.enableLOD = true;
-    settings.lodNearDistance = 200.0f;
-    settings.lodMidDistance = 500.0f;
-    settings.lodFarDistance = 1000.0f;
+    settings.lodNearDistance = 20.0f;
+    settings.lodMidDistance = 50.0f;
+    settings.lodFarDistance = 100.0f;
     settings.lodNearUpdateInterval = 0.0f;
     settings.lodMidUpdateInterval = 0.1f;
     settings.lodFarUpdateInterval = 0.5f;

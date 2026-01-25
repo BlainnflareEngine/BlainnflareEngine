@@ -77,24 +77,24 @@ void Engine::InitAISubsystem()
                                                Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
                                                    Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
                                                bool touch = entity2.GetComponent<PerceptionComponent>().enableTouch;
-                                               //if (touch == true) // FIXME: enableTouch всегда false
-                                               //{
-                                               tag1 = entity1.GetComponent<StimulusComponent>().tag;
-                                               PerceptionSubsystem::GetInstance().RegisterStimulus(
+                                               if (touch == true)
+                                               {
+                                                   tag1 = entity1.GetComponent<StimulusComponent>().tag;
+                                                   PerceptionSubsystem::GetInstance().RegisterStimulus(
                                                        entity1.GetUUID(), StimulusType::Touch, pos1, 0.0f, tag1);
-                                               //}
+                                               }
                                            }
                                            if (entity2.HasComponent<StimulusComponent>() && entity1.HasComponent<PerceptionComponent>())
                                            {
                                                Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
                                                Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
                                                bool touch = entity1.GetComponent<PerceptionComponent>().enableTouch;
-                                               //if (touch == true)
-                                               //{
-                                               tag2 = entity2.GetComponent<StimulusComponent>().tag;
-                                               PerceptionSubsystem::GetInstance().RegisterStimulus(
+                                               if (touch == true)
+                                               {
+                                                   tag2 = entity2.GetComponent<StimulusComponent>().tag;
+                                                   PerceptionSubsystem::GetInstance().RegisterStimulus(
                                                        entity2.GetUUID(), StimulusType::Touch, pos2, 0.0f, tag2);
-                                               //}
+                                               }
                                            }
                                        });
 }

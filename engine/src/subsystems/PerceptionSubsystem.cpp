@@ -31,9 +31,9 @@ void PerceptionSubsystem::Init()
 void PerceptionSubsystem::Init(Settings &settings)
 {
     settings.enableLOD = true;
-    settings.lodNearDistance = 200.0f;
-    settings.lodMidDistance = 500.0f;
-    settings.lodFarDistance = 1000.0f;
+    settings.lodNearDistance = 20.0f;
+    settings.lodMidDistance = 50.0f;
+    settings.lodFarDistance = 100.0f;
     settings.lodNearUpdateInterval = 0.0f;
     settings.lodMidUpdateInterval = 0.1f;
     settings.lodFarUpdateInterval = 0.5f;
@@ -120,7 +120,7 @@ void PerceptionSubsystem::ProcessSightStimuli(float dt)
 
                 if (cache.timeSinceLastCheck >= perception.sightLOSCheckInterval)
                 {
-                    cache.hasLineOfSight = CheckLineOfSight(observerPos, sourcePos);
+                    cache.hasLineOfSight = CheckLineOfSight(observerEntity, sourceID.ID, observerPos, sourcePos);
                     cache.timeSinceLastCheck = 0.0f;
                 }
 
@@ -276,7 +276,7 @@ void PerceptionSubsystem::ProcessTouchStimuli()
 
     for (const auto &[observerEntityHandle, observerID, observerTransform, perception] : observers.each())
     {
-        if (!perception.enabled/* || !perception.enableTouch*/) continue; // FIXME: enableTouch всегда false
+        if (!perception.enabled || !perception.enableTouch) continue;
 
         Entity observerEntity = scene.GetEntityWithUUID(observerID.ID);
         Vec3 observerPos = scene.GetWorldSpaceTransform(observerEntity).GetTranslation();
@@ -465,20 +465,21 @@ float PerceptionSubsystem::CalculateUpdateInterval(float distanceToCamera)
     else return 1.0f; // Очень далеко 1 секунда
 }
 
-bool PerceptionSubsystem::CheckLineOfSight(const Vec3 &from, const Vec3 &to)
+bool PerceptionSubsystem::CheckLineOfSight(Entity &ignoreEntity, uuid desiredEntityID,  const Vec3 &from, const Vec3 &to)
 {
     Vec3 direction = to - from;
     float distance = direction.Length();
 
     if (distance < 0.01f) return true;
 
-    eastl::optional<RayCastResult> result = PhysicsSubsystem::CastRay(from, direction); // TODO: убрать попадание в себя
+    //eastl::optional<RayCastResult> result = PhysicsSubsystem::CastRay(from, direction); // TODO: убрать попадание в себя
+    eastl::optional<RayCastResult> result = PhysicsSubsystem::FilteredCastRay(ignoreEntity, from, direction);
 
-    if (!result) return true; // Если ничего не попало то есть видимость
+    if (!result.has_value()) return true; // Если ничего не попало то есть видимость
 
-    // Проверка что попали в цель и не раньше
+    // Проверка что попали в цель
     RayCastResult rayCastResult = result.value();
-    return rayCastResult.distance >= (distance - 0.1f);
+    return rayCastResult.entityId == desiredEntityID;
 }
 
 bool PerceptionSubsystem::IsInFieldOfView(const Vec3 &observerPos, const Quat &observerRotation, const Vec3 &targetPos,
