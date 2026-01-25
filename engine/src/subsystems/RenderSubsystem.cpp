@@ -925,6 +925,7 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
         auto world = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(_entity);
         XMStoreFloat4x4(&m_perInstanceSBData.World, XMMatrixTranspose(world));
         m_perInstanceSBData.Light.Color = entityLight.Color;
+        m_perInstanceSBData.Light.Color.w = entityLight.Intensity;
         m_perInstanceSBData.Light.FalloffEnd = entityLight.FalloffEnd; // range
         m_perInstanceSBData.Light.FalloffStart = entityLight.FalloffStart;
         m_perInstanceSBData.Light.Position = entityTransform.GetTranslation();
@@ -952,7 +953,9 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
         auto world = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(_entity);
         XMStoreFloat4x4(&m_perInstanceSBData.World, XMMatrixTranspose(world));
         m_perInstanceSBData.Light.Color = entityLight.Color;
-        m_perInstanceSBData.Light.FalloffEnd = entityLight.FalloffEnd; // range
+        m_perInstanceSBData.Light.Color.w = entityLight.Intensity;
+        m_perInstanceSBData.Light.Direction = entityTransform.GetForwardVector(); // ? change this if I am wrong
+        m_perInstanceSBData.Light.FalloffEnd = entityLight.FalloffEnd; // range, analogically to point light
         m_perInstanceSBData.Light.FalloffStart = entityLight.FalloffStart;
         m_perInstanceSBData.Light.Position = entityTransform.GetTranslation();
 
@@ -1094,6 +1097,7 @@ void Blainn::RenderSubsystem::UpdateDeferredPassCB(float deltaTime)
     for (const auto &[entity, entityTransform, entityLight] : dirLightEntitiesView.each())
     {
         m_deferredPassCBData.DirLight.Color = entityLight.Color;
+        m_deferredPassCBData.DirLight.Color.w = entityLight.Intensity;
         m_deferredPassCBData.DirLight.Direction = entityTransform.GetForwardVector();
     }
 #pragma endregion DirLight

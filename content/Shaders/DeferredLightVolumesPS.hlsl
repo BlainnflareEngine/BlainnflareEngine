@@ -59,6 +59,6 @@ float4 SpotLightPS(PSInput input) : SV_TARGET
     float3 toEye = gEyePos - posW;
     float3 viewDir = toEye / length(toEye);
 	
-    float3 spotLight = ComputeSpotLight(instData.Light, mat, posW, N, viewDir);
+    float3 spotLight = ComputeSpotLight(instData.Light, N, posW, viewDir, mat);
     return float4(spotLight, 1.0f);
 }

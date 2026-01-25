@@ -54,6 +54,7 @@ namespace Blainn
         }
 
         XMFLOAT4 Color = {1.0f, 1.0f, 1.0f, 1.0f};
+        float Intensity = 1.0f;
     };
 
     struct DirectionalLightComponent : public LightComponent
