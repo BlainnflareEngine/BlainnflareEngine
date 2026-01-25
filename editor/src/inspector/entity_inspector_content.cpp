@@ -19,13 +19,14 @@
 #include "entity/add_component_button.h"
 #include "entity/ai_controller_widget.h"
 #include "entity/camera_widget.h"
-#include "entity/directional_light_widget.h"
+#include "../../include/inspector/entity/light/directional_light_widget.h"
 #include "entity/mesh_widget.h"
 #include "entity/navmesh_volume_widget.h"
 #include "entity/physics_widget.h"
 #include "entity/transform_widget.h"
 #include "entity/skybox_widget.h"
 #include "entity/stimulus_widget.h"
+#include "entity/light/point_light_widget.h"
 
 #include <QScrollArea>
 
@@ -74,6 +75,14 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
         BLAINN_PROFILE_SCOPE(CreateDirectionalLightWidget);
 
         auto dirLight = new directional_light_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(dirLight);
+    }
+
+    if (entity.HasComponent<Blainn::PointLightComponent>())
+    {
+        BLAINN_PROFILE_SCOPE(CreateDirectionalLightWidget);
+
+        auto dirLight = new point_light_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(dirLight);
     }
 

@@ -38,6 +38,7 @@ public slots:
     void OnSkyboxAction();
     void OnCameraAction();
     void OnDirectLightAction();
+    void OnPointLightAction();
 
 private:
     Blainn::Entity m_entity;
@@ -59,6 +60,7 @@ private:
     QAction *m_navmeshVolumeAction = nullptr;
 
     QAction *m_directLightAction = nullptr;
+    QAction *m_pointLightAction = nullptr;
 
     void paintEvent(QPaintEvent *event) override;
 };

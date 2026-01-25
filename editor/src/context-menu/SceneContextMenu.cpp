@@ -65,7 +65,10 @@ void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
     QAction *createEntityAction = menu->addAction(index.isValid() ? "Create child entity" : "Create entity");
     QAction *createCameraAction = menu->addAction("Create camera");
     QAction *createSkyboxAction = menu->addAction("Create skybox");
+
+    menu->addSeparator();
     QAction *createDirectLightAction = menu->addAction("Create directional light");
+    QAction *createPointLightAction = menu->addAction("Create point light");
 
     if (index.isValid())
     {
@@ -87,6 +90,9 @@ void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
 
     if (createDirectLightAction)
         connect(createDirectLightAction, &QAction::triggered, this, [this, index]() { AddDirectionalLight(index); });
+
+    if (createPointLightAction)
+        connect(createPointLightAction, &QAction::triggered, this, [this, index]() { AddPointLight(index); });
 
     if (index.isValid())
     {
@@ -197,6 +203,29 @@ void SceneContextMenu::AddDirectionalLight(const QModelIndex &index)
         auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Directional light", false, true);
         entity.AddComponent<Blainn::TransformComponent>();
         entity.AddComponent<Blainn::DirectionalLightComponent>();
+    }
+}
+
+
+void SceneContextMenu::AddPointLight(const QModelIndex &index)
+{
+    if (index.isValid())
+    {
+        Blainn::Entity parent = SceneItemModel::GetNodeFromIndex(index)->GetEntity();
+
+        if (parent.IsValid())
+        {
+            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Point light", false, true);
+            entity.AddComponent<Blainn::TransformComponent>();
+            entity.AddComponent<Blainn::PointLightComponent>();
+        }
+        else BF_ERROR("Parent entity is invalid.");
+    }
+    else
+    {
+        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Point light", false, true);
+        entity.AddComponent<Blainn::TransformComponent>();
+        entity.AddComponent<Blainn::PointLightComponent>();
     }
 }
 

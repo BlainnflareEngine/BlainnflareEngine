@@ -121,7 +121,7 @@ function OnUpdate(deltaTime)
     if me:HasTransformComponent() then
         local tc = me:GetTransformComponent()
         local pos = tc:GetTranslation()
-        me:CastRay(pos, Vec3:new(3.0, 0.0, 0.0))
+        me:CastRay(pos, Vec3:new(3.0, 0.0, 0.0), {ObjectLayer.SENSOR}, {})
     end
 
 

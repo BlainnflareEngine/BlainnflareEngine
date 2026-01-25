@@ -33,6 +33,7 @@ struct MeshComponent
         , MaterialHandle(other.MaterialHandle)
         , PerObjectCBData(other.PerObjectCBData)
         , IsWalkable(other.IsWalkable)
+        , Enabled(other.Enabled)
     {
         auto &device = Device::GetInstance();
         ObjectCB = eastl::make_unique<UploadBuffer<ObjectConstants>>(device.GetDevice2().Get(),

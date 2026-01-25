@@ -168,13 +168,7 @@ void Engine::StartPlayMode()
     if (s_isPlayMode) return;
     if (!s_activeScene) return;
 
-    s_activeScene->StartPlayMode();
     s_activeScene->SaveScene();
-    s_startPlayModeSceneName = s_activeScene->GetName();
-
-    s_playModeTimeline.Reset();
-    s_playModeTimeline.Start();
-    s_isPlayMode = true;
 
     InitScenePlayMode();
 }
@@ -220,6 +214,15 @@ bool Engine::PlayModePaused()
 
 void Blainn::Engine::InitScenePlayMode()
 {
+    if (!s_activeScene) return;
+    s_activeScene->StartPlayMode();
+
+    s_startPlayModeSceneName = s_activeScene->GetName();
+
+    s_playModeTimeline.Reset();
+    s_playModeTimeline.Start();
+    s_isPlayMode = true;
+
     PhysicsSubsystem::StartSimulation();
 
     for (auto [entity, id, aiComp] : s_activeScene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
