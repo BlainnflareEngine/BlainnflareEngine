@@ -1614,7 +1614,7 @@ eastl::pair<XMMATRIX, XMMATRIX> Blainn::RenderSubsystem::GetLightSpaceMatrix(con
     minZ = (minZ < 0) ? minZ * zMult : minZ / zMult;
     maxZ = (maxZ < 0) ? maxZ / zMult : maxZ * zMult;
 
-    const XMMATRIX lightProj = XMMatrixOrthographicOffCenterLH(minX, maxX, minY, maxY, minZ, maxZ);
+    const XMMATRIX lightProj = XMMatrixOrthographicOffCenterLH(minX + 0.0001f, maxX, minY + 0.0001f, maxY, minZ, maxZ + 0.0001f);
 
     return eastl::make_pair(lightView, lightProj);
 }
