@@ -30,7 +30,7 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index/*, bool IsCu
         cmdQueue->ExecuteCommandList(cmdList);
         cmdQueue->Flush();
 
-        m_bIsLoaded = true;
+        m_bIsLoaded = m_bIsInitialized;
     }
 
     Texture::~Texture()
@@ -168,7 +168,12 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index/*, bool IsCu
 
     void Texture::CreateCubemap(ID3D12GraphicsCommandList2 *cmdList, uint32_t index)
     {
-        assert(m_path.extension() == ".dds");
+        //assert(m_path.extension() == ".dds");
+        if (!(m_path.extension() == ".dds"))
+        {
+            BF_ERROR("Cubemap has to be a dds file");
+            return;
+        }
         // Gpu stuff
         auto& device = Device::GetInstance();
         const auto& comDevice = device.GetDevice2();
@@ -178,9 +183,9 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index/*, bool IsCu
 
         const TexMetadata &metadata = image.GetMetadata();
 
-        if (!(metadata.miscFlags & TEX_MISC_TEXTURECUBE))
+        if (metadata.arraySize != 6)
         {
-            printf("Cubemap must be DDS file!\n");
+            BF_ERROR("Cubemap must have 6 textures!\n");
             return;
         }
 

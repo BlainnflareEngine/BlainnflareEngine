@@ -1279,7 +1279,8 @@ void Blainn::RenderSubsystem::DeferredPointLightPass(ID3D12GraphicsCommandList2 
     // !!! HACK (TO DRAW EVEN IF FRUSTUM INTERSECTS LIGHT VOLUME)
     pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::DeferredPointWithinFrustum).Get());
 
-    DrawInstancedMesh(pCommandList, AssetManager::GetInstance().GetDefaultModel(static_cast<uint32_t>(EPrebuiltMeshType::SPHERE)), m_pointLightsCount);
+    if (m_pointLightsCount)
+        DrawInstancedMesh(pCommandList, AssetManager::GetInstance().GetDefaultModel(static_cast<uint32_t>(EPrebuiltMeshType::SPHERE)), m_pointLightsCount);
     m_pointLightsCount = 0u;
 }
 
@@ -1291,7 +1292,8 @@ void Blainn::RenderSubsystem::DeferredSpotLightPass(ID3D12GraphicsCommandList2 *
     // !!! HACK (TO DRAW EVEN IF FRUSTUM INTERSECTS LIGHT VOLUME)
     pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::DeferredSpotWithinFrustum).Get());
 
-    DrawInstancedMesh(pCommandList, AssetManager::GetInstance().GetDefaultModel(static_cast<uint32_t>(EPrebuiltMeshType::CONE)), m_spotLightsCount);
+    if (m_spotLightsCount)
+        DrawInstancedMesh(pCommandList, AssetManager::GetInstance().GetDefaultModel(static_cast<uint32_t>(EPrebuiltMeshType::CONE)), m_spotLightsCount);
     m_spotLightsCount = 0u;
 }
 
