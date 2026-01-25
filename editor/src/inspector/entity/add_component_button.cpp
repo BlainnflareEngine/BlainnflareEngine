@@ -158,7 +158,7 @@ void add_component_button::OnPerceptionAction()
 {
     if (!m_entity.IsValid()) return;
 
-    if (m_entity.HasComponent<Blainn::AIControllerComponent>()) return;
+    if (m_entity.HasComponent<Blainn::PerceptionComponent>()) return;
 
     m_entity.AddComponent<Blainn::PerceptionComponent>();
     auto aiController = new perception_widget(m_entity, this);
