@@ -29,6 +29,11 @@ VSOutput main(VSInput input)
     output.oPosH = mul(oPosW, gViewProj);
     output.oPosW = oPosW.xyz;
     
+    //float4x4 texTransform = gTexTransform;
+    //texTransform._11 *= gWorld._11;
+    //texTransform._22 *= gWorld._11;
+    //texTransform._33 *= gWorld._11 * gWorld._22;
+    
     output.oNormalW = mul(input.iNormalL, (float3x3) gInvTransposeWorld);
     output.oTangentW = mul(input.iTangentU, (float3x3) gInvTransposeWorld);
     output.oBitangentW = mul(input.iBitangentU, (float3x3) gInvTransposeWorld);
