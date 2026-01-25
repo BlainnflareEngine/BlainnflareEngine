@@ -169,7 +169,7 @@ void Blainn::RegisterAITypes(sol::state &luaState)
 
     AIControllerComponentType.set_function("GetMovementSpeed", [](AIControllerComponent &comp) { return comp.MovementSpeed; });
     AIControllerComponentType.set_function("GetStoppingDistance", [](AIControllerComponent &comp) { return comp.StoppingDistance; });
-        AIControllerComponentType.set_function("SetMovementSpeed", [](AIControllerComponent &comp, float newMovementSpeed) { comp.MovementSpeed = newMovementSpeed; });
+    AIControllerComponentType.set_function("SetMovementSpeed", [](AIControllerComponent &comp, float newMovementSpeed) { comp.MovementSpeed = newMovementSpeed; });
     AIControllerComponentType.set_function("SetStoppingDistance", [](AIControllerComponent &comp, float newStopDist) { comp.StoppingDistance = newStopDist; });
     
     // Expose PerceivedStimulus
