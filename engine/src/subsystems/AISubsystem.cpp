@@ -21,6 +21,20 @@ void AISubsystem::Init()
     BF_INFO("AISubsystem Init");
 }
 
+void AISubsystem::Init(Settings &settings)
+{
+    settings.enableLOD = true;
+    settings.lodNearDistance = 20.0f;
+    settings.lodMidDistance = 50.0f;
+    settings.lodFarDistance = 100.0f;
+    settings.lodNearUpdateInterval = 0.0f;
+    settings.lodMidUpdateInterval = 0.1f;
+    settings.lodFarUpdateInterval = 0.5f;
+
+    SetSettings(settings);
+    BF_INFO("AISubsystem Init");
+}
+
 void AISubsystem::Destroy()
 {
     BF_INFO("AISubsystem Destroy");
@@ -172,38 +186,32 @@ bool AISubsystem::CreateAIController(Entity entity)
     const sol::table &scriptEnv = componentPtr->aiScript->GetEnvironment();
     
     PerceptionComponent *perception = entity.TryGetComponent<PerceptionComponent>();
-    if (!perception)
+    if (perception)
     {
-        PerceptionSubsystem::GetInstance().CreateAttachPerceptionComponent(entity);
-        perception = entity.TryGetComponent<PerceptionComponent>();
-    }
-
-    StimulusComponent *stimulus = entity.TryGetComponent<StimulusComponent>();
-    if (!stimulus)
-    {
-        PerceptionSubsystem::GetInstance().CreateAttachStimulusComponent(entity);
-        stimulus = entity.TryGetComponent<StimulusComponent>();
-    }
-
-    sol::optional<sol::function> configurePerception = scriptEnv["ConfigurePerception"];
-    if (configurePerception && perception)
-    {
-        auto result = configurePerception.value()(perception);
-        if (!result.valid())
+        sol::optional<sol::function> configurePerception = scriptEnv["ConfigurePerception"];
+        if (configurePerception && perception)
         {
-            sol::error err = result;
-            BF_ERROR("ConfigurePerception failed: " + eastl::string(err.what()));
+            auto result = configurePerception.value()(perception);
+            if (!result.valid())
+            {
+                sol::error err = result;
+                BF_ERROR("ConfigurePerception failed: " + eastl::string(err.what()));
+            }
         }
     }
 
-    sol::optional<sol::function> configureStimulus = scriptEnv["ConfigureStimulus"];
-    if (configureStimulus && stimulus)
+    StimulusComponent *stimulus = entity.TryGetComponent<StimulusComponent>();
+    if (stimulus)
     {
-        auto result = configureStimulus.value()(stimulus);
-        if (!result.valid())
+        sol::optional<sol::function> configureStimulus = scriptEnv["ConfigureStimulus"];
+        if (configureStimulus && stimulus)
         {
-            sol::error err = result;
-            BF_ERROR("ConfigureStimulus failed: " + eastl::string(err.what()));
+            auto result = configureStimulus.value()(stimulus);
+            if (!result.valid())
+            {
+                sol::error err = result;
+                BF_ERROR("ConfigureStimulus failed: " + eastl::string(err.what()));
+            }
         }
     }
 

@@ -8,6 +8,7 @@
 #include "components/CameraComponent.h"
 #include "components/PerceptionComponent.h"
 #include "components/StimulusComponent.h"
+#include "components/PhysicsComponent.h"
 #include "ai/PerceptionEvents.h"
 #include "subsystems/PhysicsSubsystem.h"
 #include "physics/RayCastResult.h"
@@ -25,28 +26,20 @@ PerceptionSubsystem &PerceptionSubsystem::GetInstance()
 void PerceptionSubsystem::Init()
 {
     BF_INFO("PerceptionSubsystem Init");
+}
 
-   /* PhysicsSubsystem::AddEventListener(PhysicsEventType::CollisionStarted,
-                                       [this](const eastl::shared_ptr<PhysicsEvent> &physEvent)
-        {
-            Scene &scene = *Engine::GetActiveScene();
-            auto entity1 = scene.GetEntityWithUUID(physEvent->entity1);
-            auto entity2 = scene.GetEntityWithUUID(physEvent->entity2);
+void PerceptionSubsystem::Init(Settings &settings)
+{
+    settings.enableLOD = true;
+    settings.lodNearDistance = 20.0f;
+    settings.lodMidDistance = 50.0f;
+    settings.lodFarDistance = 100.0f;
+    settings.lodNearUpdateInterval = 0.0f;
+    settings.lodMidUpdateInterval = 0.1f;
+    settings.lodFarUpdateInterval = 0.5f;
 
-            if (!entity1.IsValid() || !entity2.IsValid()) return;
-
-            Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
-            Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
-
-            eastl::string tag1 = "Unknown";
-            eastl::string tag2 = "Unknown";
-
-            if (entity1.HasComponent<StimulusComponent>()) tag1 = entity1.GetComponent<StimulusComponent>().tag;
-            if (entity2.HasComponent<StimulusComponent>()) tag2 = entity2.GetComponent<StimulusComponent>().tag;
-
-            GetInstance().RegisterStimulus(entity2.GetUUID(), StimulusType::Touch, pos1, 0.0f, tag2);
-            GetInstance().RegisterStimulus(entity1.GetUUID(), StimulusType::Touch, pos2, 0.0f, tag1);
-        });*/
+    SetSettings(settings);
+    BF_INFO("PerceptionSubsystem Init");
 }
 
 void PerceptionSubsystem::Destroy()
@@ -84,10 +77,10 @@ void PerceptionSubsystem::ProcessSightStimuli(float dt)
 {
     Scene &scene = *Engine::GetActiveScene();
 
-    auto observers = scene.GetAllEntitiesWith<IDComponent, TransformComponent, PerceptionComponent>();
-    auto stimuliSources = scene.GetAllEntitiesWith<IDComponent, TransformComponent, StimulusComponent>();
+    auto observers = scene.GetAllEntitiesWith<IDComponent, TransformComponent, PerceptionComponent, PhysicsComponent>();
+    auto stimuliSources = scene.GetAllEntitiesWith<IDComponent, TransformComponent, StimulusComponent, PhysicsComponent>();
 
-    for (const auto &[observerEntityHandle, observerID, observerTransform, perception] : observers.each())
+    for (const auto &[observerEntityHandle, observerID, observerTransform, perception, observerPhysics] : observers.each())
     {
         if (!perception.enabled || !perception.enableSight) continue;
 
@@ -97,7 +90,7 @@ void PerceptionSubsystem::ProcessSightStimuli(float dt)
         Vec3 observerPos = scene.GetWorldSpaceTransform(observerEntity).GetTranslation();
         Quat observerRot = scene.GetWorldSpaceTransform(observerEntity).GetRotation();
 
-        for (const auto &[sourceEntityHandle, sourceID, sourceTransform, stimulus] : stimuliSources.each())
+        for (const auto &[sourceEntityHandle, sourceID, sourceTransform, stimulus, sourcePhysics] : stimuliSources.each())
         {
             if (observerEntityHandle == sourceEntityHandle) continue;
 
@@ -127,7 +120,7 @@ void PerceptionSubsystem::ProcessSightStimuli(float dt)
 
                 if (cache.timeSinceLastCheck >= perception.sightLOSCheckInterval)
                 {
-                    cache.hasLineOfSight = CheckLineOfSight(observerPos, sourcePos);
+                    cache.hasLineOfSight = CheckLineOfSight(observerEntity, sourceID.ID, observerPos, sourcePos);
                     cache.timeSinceLastCheck = 0.0f;
                 }
 
@@ -278,7 +271,72 @@ void PerceptionSubsystem::ProcessSoundStimuli(float dt)
 
 void PerceptionSubsystem::ProcessTouchStimuli()
 {
-    // Touch стимулы через колбеки джолта
+    Scene &scene = *Engine::GetActiveScene();
+    auto observers = scene.GetAllEntitiesWith<IDComponent, TransformComponent, PerceptionComponent>();
+
+    for (const auto &[observerEntityHandle, observerID, observerTransform, perception] : observers.each())
+    {
+        if (!perception.enabled || !perception.enableTouch) continue;
+
+        Entity observerEntity = scene.GetEntityWithUUID(observerID.ID);
+        Vec3 observerPos = scene.GetWorldSpaceTransform(observerEntity).GetTranslation();
+
+        for (const auto &tempStimulus : m_temporaryStimuli)
+        {
+            if (tempStimulus.type != StimulusType::Touch) continue;
+
+            if (perception.ShouldIgnoreTag(tempStimulus.tag)) continue;
+
+            float distance = (tempStimulus.location - observerPos).Length();
+
+            bool found = false;
+            for (auto &perceived : perception.perceivedStimuli)
+            {
+                if (perceived.type == StimulusType::Touch && perceived.age < 0.1f)
+                {
+                    perceived.location = tempStimulus.location;
+                    perceived.age = 0.0f;
+                    perceived.strength = 1.0f;
+                    perceived.successfullySensed = true;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                PerceivedStimulus newStimulus;
+                newStimulus.sourceEntity = tempStimulus.sourceEntity;
+                newStimulus.type = StimulusType::Touch;
+                newStimulus.location = tempStimulus.location;
+                newStimulus.age = 0.0f;
+                newStimulus.strength = 1.0f;
+                newStimulus.tag = tempStimulus.tag;
+                newStimulus.successfullySensed = true;
+
+                perception.perceivedStimuli.push_back(newStimulus);
+
+                auto event = eastl::make_shared<PerceptionEvent>();
+                event->type = PerceptionEventType::StimulusPerceived;
+                event->observerEntity = observerID.ID;
+                event->stimulusEntity = tempStimulus.sourceEntity;
+                event->stimulusType = StimulusType::Touch;
+                event->location = tempStimulus.location;
+                s_perceptionEventQueue.enqueue(event);
+
+                if (perception.IsPriorityTag(tempStimulus.tag))
+                {
+                    auto priorityEvent = eastl::make_shared<PerceptionEvent>();
+                    priorityEvent->type = PerceptionEventType::EnemySpotted;
+                    priorityEvent->observerEntity = observerID.ID;
+                    priorityEvent->stimulusEntity = tempStimulus.sourceEntity;
+                    priorityEvent->stimulusType = StimulusType::Touch;
+                    priorityEvent->location = tempStimulus.location;
+                    s_perceptionEventQueue.enqueue(priorityEvent);
+                }
+            }
+        }
+    }
 }
 
 void PerceptionSubsystem::TouchListener(const eastl::shared_ptr<PhysicsEvent> &event)
@@ -407,19 +465,21 @@ float PerceptionSubsystem::CalculateUpdateInterval(float distanceToCamera)
     else return 1.0f; // Очень далеко 1 секунда
 }
 
-bool PerceptionSubsystem::CheckLineOfSight(const Vec3 &from, const Vec3 &to)
+bool PerceptionSubsystem::CheckLineOfSight(Entity &ignoreEntity, uuid desiredEntityID,  const Vec3 &from, const Vec3 &to)
 {
     Vec3 direction = to - from;
     float distance = direction.Length();
 
     if (distance < 0.01f) return true;
 
-    eastl::optional<RayCastResult> result = PhysicsSubsystem::CastRay(from, direction);
+    //eastl::optional<RayCastResult> result = PhysicsSubsystem::CastRay(from, direction); // TODO: убрать попадание в себя
+    eastl::optional<RayCastResult> result = PhysicsSubsystem::FilteredCastRay(ignoreEntity, from, direction);
 
     if (!result.has_value()) return true; // Если ничего не попало то есть видимость
 
-    // Проверка что попали в цель и не раньше
-    return result->distance >= (distance - 0.1f);
+    // Проверка что попали в цель
+    RayCastResult rayCastResult = result.value();
+    return rayCastResult.entityId == desiredEntityID;
 }
 
 bool PerceptionSubsystem::IsInFieldOfView(const Vec3 &observerPos, const Quat &observerRotation, const Vec3 &targetPos,

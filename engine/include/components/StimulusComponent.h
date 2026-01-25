@@ -10,9 +10,9 @@ namespace Blainn
 struct StimulusComponent
 {
     bool enableSight = true;
-    bool enableSound = false;
-    bool enableTouch = false;
-    bool enableDamage = false;
+    bool enableSound = true;
+    bool enableTouch = true;
+    bool enableDamage = true;
     
     float sightRadius = 0.0f;
     float soundRadius = 0.0f;

@@ -32,6 +32,7 @@ public:
     static bool IsPlayMode();
     static bool PlayModePaused();
     static void InitScenePlayMode();
+    static void InitAISubsystem();
 
 public:
     static Path &GetContentDirectory();
