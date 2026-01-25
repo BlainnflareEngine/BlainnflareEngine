@@ -284,6 +284,8 @@ void DebugRenderer::DrawCylinder(Mat4 matrix, float halfHeight, float radius, Co
 void DebugRenderer::DrawLineList(const eastl::vector<VertexPositionColor>::iterator &first,
     const eastl::vector<VertexPositionColor>::iterator &last)
 {
+    if (!m_bIsDebugEnabled)
+        return;
     m_lineListVertices.insert(m_lineListVertices.end(), first, last);
 }
 
