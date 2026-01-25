@@ -1236,7 +1236,7 @@ void Blainn::RenderSubsystem::RenderLightingPass(ID3D12GraphicsCommandList2 *pCo
     BLAINN_PROFILE_FUNC();
     DeferredDirectionalLightPass(pCommandList);
     DeferredPointLightPass(pCommandList);
-    // DeferredSpotLightPass(pCommandList);
+    DeferredSpotLightPass(pCommandList);
 }
 
 void Blainn::RenderSubsystem::DeferredDirectionalLightPass(ID3D12GraphicsCommandList2 *pCommandList)
