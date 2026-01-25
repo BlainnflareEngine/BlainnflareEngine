@@ -42,8 +42,9 @@ public:
         NumFramesDirty > 0 ? --NumFramesDirty : NumFramesDirty;
     }
 
-    XMFLOAT4 Color = {1.0f, 1.0f, 1.0f, 1.0f};
-};
+        XMFLOAT4 Color = {1.0f, 1.0f, 1.0f, 1.0f};
+        float Intensity = 1.0f;
+    };
 
 struct DirectionalLightComponent : public LightComponent
 {
@@ -58,9 +59,9 @@ struct PointLightComponent : public LightComponent
     {
     }
 
-    float FalloffEnd = 1; // Range
-    float FalloffStart = 0.1;
-};
+        float FalloffEnd = 1.0f; // Range
+        float FalloffStart = 0.1f;
+    };
 
 struct SpotLightComponent : public LightComponent
 {
@@ -68,10 +69,10 @@ struct SpotLightComponent : public LightComponent
     {
     }
 
-    // XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
-    float Range;
-    float SpotInnerAngle;
-    float SpotOuterAngle;
-};
+        float FalloffEnd = 1.0f; // Range
+        float FalloffStart = 0.1f;
+        float SpotInnerAngle;
+        float SpotOuterAngle;
+    };
 
 } // namespace Blainn

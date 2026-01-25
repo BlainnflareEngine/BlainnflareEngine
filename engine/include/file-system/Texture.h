@@ -42,6 +42,9 @@ namespace Blainn
         Microsoft::WRL::ComPtr<ID3D12Resource> m_resource = nullptr;
         Microsoft::WRL::ComPtr<ID3D12Resource> m_uploadResource = nullptr;
         
+        // cache handle (could be useful for default textures)
+        CD3DX12_CPU_DESCRIPTOR_HANDLE localHandle = {};
+
         TextureType m_type = TextureType::NONE;
         UINT m_descriptorHeapOffset = 0u;
         

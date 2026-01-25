@@ -49,12 +49,12 @@ void skybox_widget::OnSetNewPath(const QString & oldPath, const QString & newPat
     if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::SkyboxComponent>()) destroy();
 
     Blainn::Path path = ToString(newPath);
-    auto &mesh = m_entity.GetComponent<Blainn::SkyboxComponent>();
+    auto &skybox = m_entity.GetComponent<Blainn::SkyboxComponent>();
 
-    if (Blainn::AssetManager::GetInstance().HasMesh(path))
-        mesh.textureHandle = Blainn::AssetManager::GetInstance().GetTexture(path);
+    if (Blainn::AssetManager::GetInstance().HasTexture(path))
+        skybox.textureHandle = Blainn::AssetManager::GetInstance().GetTexture(path);
     else
-        mesh.textureHandle = Blainn::AssetManager::GetInstance().LoadTexture(path, Blainn::TextureType::CUBEMAP);
+        skybox.textureHandle = Blainn::AssetManager::GetInstance().LoadTexture(path, Blainn::TextureType::CUBEMAP);
 }
 
 } // namespace editor

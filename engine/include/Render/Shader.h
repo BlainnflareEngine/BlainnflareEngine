@@ -22,8 +22,11 @@ namespace Blainn
 
             DeferredDirVS,
             DeferredDirPS,
-            DeferredLightVolumesVS,
+
+            DeferredPointVS,
             DeferredPointPS,
+            
+            DeferredSpotVS,
             DeferredSpotPS,
 
             SkyBoxVS,
@@ -32,7 +35,7 @@ namespace Blainn
             UUIDVS,
             UUIDPS,
 
-            NumShaders = 13U
+            NumShaders
         };
 
     public:
