@@ -6,6 +6,9 @@ on:
       tag:
         description: "Git release tag to upload to"
         required: true
+      suffix:
+        description: "suffix of the release artifact"
+        required: false
 
 jobs:
   build-debug:
@@ -48,7 +51,14 @@ jobs:
       - name: Package build
         shell: powershell
         run: |
-          $name = "${{ inputs.tag }}"
+          $tag = "${{ inputs.tag }}"
+          $suffix = "${{ inputs.suffix }}"
+
+          if ([string]::IsNullOrWhiteSpace($suffix)) {
+            $artifactName = "BF_$tag"
+          } else {
+            $artifactName = "BF_${tag}.$suffix"
+          }
 
           $filesToZip = @(
             "build\content"
@@ -67,10 +77,10 @@ jobs:
 
           Compress-Archive `
             -Path $filesToZip `
-            -DestinationPath "build\BF_$name.zip"
+            -DestinationPath "build\BF_$artifactName.zip"
 
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag }}
-          files: build/BF_${{ inputs.tag }}.zip
+          files: build/BF_*.zip
