@@ -381,7 +381,7 @@ inline SkyboxComponent GetSkybox(const YAML::Node &node)
     {
         component.textureHandle = AssetManager::GetInstance().HasTexture(relativePath)
                                       ? AssetManager::GetInstance().GetTexture(relativePath)
-                                      : AssetManager::GetInstance().LoadTexture(relativePath, TextureType::ALBEDO);
+                                      : AssetManager::GetInstance().LoadTexture(relativePath, TextureType::CUBEMAP);
     }
 
     return component;
@@ -546,5 +546,27 @@ inline DirectionalLightComponent GetDirectionalLight(const YAML::Node &node)
                               node["Color"]["B"].as<float>(), node["Color"]["A"].as<float>()};
 
     return directionalLight;
+}
+
+inline bool HasPointLight(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["PointLightComponent"]) return true;
+
+    return false;
+}
+
+inline PointLightComponent GetPointLight(const YAML::Node &node)
+{
+    PointLightComponent pointLight;
+
+    pointLight.Color = {node["Color"]["R"].as<float>(), node["Color"]["G"].as<float>(), node["Color"]["B"].as<float>(),
+                        node["Color"]["A"].as<float>()};
+
+    pointLight.FalloffStart = node["FalloffStart"].as<float>();
+    pointLight.FalloffEnd = node["FalloffEnd"].as<float>();
+
+    return pointLight;
 }
 } // namespace Blainn

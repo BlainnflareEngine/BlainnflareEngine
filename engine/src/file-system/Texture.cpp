@@ -240,8 +240,7 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index/*, bool IsCu
 
         UpdateSubresources(cmdList, m_resource.Get(), m_uploadResource.Get(), (UINT64)0u, 0u, static_cast<UINT>(subresources.size()), subresources.data());
 
-        CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_resource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
         cmdList->ResourceBarrier(1, &barrier);
 

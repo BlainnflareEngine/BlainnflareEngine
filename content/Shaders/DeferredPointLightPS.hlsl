@@ -11,7 +11,7 @@ float4 main(PSInput input) : SV_TARGET
 {
 	float2 texCoord = input.iPosH.xy;
     
-	InstanceData instData = gPointLights[input.iInstanceID];
+	PointLightInstanceData instData = gPointLights[input.iInstanceID];
     
 	float4 diffuseAlbedo = gGBuffer[G_DIFF_ALBEDO].Load(input.iPosH.xyz);
 	float4 ambientOcclusion = gGBuffer[G_AMB_OCCL].Load(input.iPosH.xyz);
@@ -28,6 +28,6 @@ float4 main(PSInput input) : SV_TARGET
 	float3 toEye = gEyePos - posW;
 	float3 viewDir = toEye / length(toEye);
     
-	float3 pointLight = CalcPointLight(instData.gLight, N, posW, viewDir, mat);
+	float3 pointLight = CalcPointLight(instData.Light, N, posW, viewDir, mat);
 	return float4(pointLight, 1.0f);
 }

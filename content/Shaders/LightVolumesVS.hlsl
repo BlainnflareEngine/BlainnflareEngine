@@ -16,9 +16,9 @@ VSOutput main(VSInput input, uint instanceID : SV_InstanceID)
 {
     VSOutput output = (VSOutput) 0;
     
-    InstanceData instData = gPointLights[instanceID];
+    PointLightInstanceData instData = gPointLights[instanceID];
     
-    float4 posW = mul(float4(input.iPosL, 1.0f), instData.gWorld);
+    float4 posW = mul(float4(input.iPosL, 1.0f), instData.World);
     output.oPosH = mul(posW, gViewProj);
     output.oInstanceID = instanceID;
     return output;

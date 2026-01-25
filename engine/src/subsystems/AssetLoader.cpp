@@ -9,13 +9,9 @@
 #include "AssetManager.h"
 #include "Engine.h"
 #include "ImportAssetData.h"
-#include "MeshData.h"
 #include "file-system/Material.h"
 #include "file-system/Model.h"
 #include "file-system/Texture.h"
-
-#include "Render/Device.h"
-#include "Render/CommandQueue.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -67,24 +63,9 @@ eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, cons
 
     // to merge together all meshes of the model
     model.CreateBufferResources();
-    CreateModelGPUResources(model);
+    model.CreateGPUBuffers();
 
     return eastl::make_shared<Model>(model);
-}
-
-void AssetLoader::CreateModelGPUResources(Model &model)
-{
-    // Gpu stuff
-    auto cmdQueue = Device::GetInstance().GetCommandQueue();
-    auto cmdAlloc = cmdQueue->GetCommandAllocator();
-    auto cmdList = cmdQueue->GetCommandList(cmdAlloc.Get());
-
-    model.CreateGPUBuffers(cmdList.Get());
-
-    cmdQueue->ExecuteCommandList(cmdList.Get());
-    cmdQueue->Flush();
-
-    model.m_bisLoaded = model.BuffersCreated();
 }
 
 void AssetLoader::ProcessNode(const Path &path, const aiNode &node, const aiScene &scene, const Mat4 &parentMatrix,

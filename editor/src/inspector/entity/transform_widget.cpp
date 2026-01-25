@@ -55,6 +55,14 @@ void transform_widget::OnRotationChanged()
 {
     if (!m_entity.HasComponent<Blainn::TransformComponent>()) return;
 
+    BlockSignals(true);
+    Blainn::Vec3 result = m_rotation->GetValue();
+    result.x = fmod(result.x, 360.0f);
+    result.y = fmod(result.y, 360.0f);
+    result.z = fmod(result.z, 360.0f);
+    m_rotation->SetValue(result);
+    BlockSignals(true);
+
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
 
     auto quat = Blainn::Quat::CreateFromYawPitchRoll(m_rotation->GetValue() * XM_PI / 180.f);

@@ -32,12 +32,16 @@ public:
     void OpenMenu(const QPoint &pos, const QModelIndex &index = QModelIndex());
 
     void AddEntity(const QModelIndex &index);
+
     void AddCamera(const QModelIndex &index);
     void AddSkybox(const QModelIndex &index);
     void AddDirectionalLight(const QModelIndex &index);
+    void AddPointLight(const QModelIndex &index);
+
     void RenameEntity(const QModelIndex &index) const;
     void DuplicateEntity(const QModelIndex &index) const;
     void DeleteEntity(const QModelIndex &index);
+
     void CopyUUIDToClipboard(const QModelIndex &index);
 
     QKeySequence &GetRenameKey();

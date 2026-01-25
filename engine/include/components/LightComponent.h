@@ -6,61 +6,72 @@
 
 namespace Blainn
 {
-    enum class ELightType
+enum class ELightType
+{
+    Directional,
+    Point,
+    Spot,
+    NumLightTypes
+};
+
+struct LightComponent
+{
+private:
+    inline static const int kNumFramesMarkDirty = 3;
+
+    // dirty flag available between frames
+    int NumFramesDirty = kNumFramesMarkDirty; // NumFrameResources
+
+public:
+    LightComponent()
     {
-        Directional,
-        Point,
-        Spot,
-        NumLightTypes
+    }
+
+    void MarkFramesDirty()
+    {
+        NumFramesDirty = kNumFramesMarkDirty;
     };
 
-    struct LightComponent
+    bool IsFramesDirty() const
     {
-        LightComponent()
-        {
-        }
+        return NumFramesDirty > 0;
+    }
 
-        LightComponent(const LightComponent& other)
-        {
-
-        }
-
-        LightComponent(LightComponent &&other)
-        {
-
-        }
-        XMFLOAT4 Color = {1.0f, 1.0f, 1.0f, 1.0f};
-    };
-
-    struct DirectionalLightComponent : public LightComponent
+    void FrameResetDirtyFlags()
     {
-        DirectionalLightComponent()
-        {
+        NumFramesDirty > 0 ? --NumFramesDirty : NumFramesDirty;
+    }
 
-        }
+    XMFLOAT4 Color = {1.0f, 1.0f, 1.0f, 1.0f};
+};
 
-        //XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
-    };
-
-    struct PointLight : public LightComponent
+struct DirectionalLightComponent : public LightComponent
+{
+    DirectionalLightComponent()
     {
-        PointLight()
-        {
-        }
+    }
+};
 
-        float Range;
-    };
-
-    struct SpotLight : public LightComponent
+struct PointLightComponent : public LightComponent
+{
+    PointLightComponent()
     {
-        SpotLight()
-        {
-        }
+    }
 
-        //XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
-        float Range;
-        float SpotInnerAngle;
-        float SpotOuterAngle;
-    };
+    float FalloffEnd = 1; // Range
+    float FalloffStart = 0.1;
+};
+
+struct SpotLightComponent : public LightComponent
+{
+    SpotLightComponent()
+    {
+    }
+
+    // XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
+    float Range;
+    float SpotInnerAngle;
+    float SpotOuterAngle;
+};
 
 } // namespace Blainn

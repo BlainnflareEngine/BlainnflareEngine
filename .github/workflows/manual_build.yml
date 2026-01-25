@@ -1,0 +1,86 @@
+name: Manual_Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git release tag to upload to"
+        required: true
+      suffix:
+        description: "suffix of the release artifact"
+        required: false
+
+jobs:
+  build-debug:
+    permissions:
+      contents: write
+
+    runs-on: windows-latest
+
+    steps:
+      - name: Clean build directory
+        run: |
+          if (Test-Path build) { Remove-Item -Recurse -Force build }
+
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - uses: jurplel/install-qt-action@v3
+        with:
+          version: 6.9.2
+          arch: win64_msvc2022_64
+          cache: true
+
+      - name: Bootstrap dependencies
+        shell: cmd
+        run: call libs/clone_dependencies.bat
+
+      - name: Configure
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          -DBLAINN_DISABLE_D3D_DEBUG_LAYER=ON
+          -DTRACY_ENABLE=OFF
+
+      - name: Build
+        run: cmake --build build --config Debug
+
+      - name: Package build
+        shell: powershell
+        run: |
+          $tag = "${{ inputs.tag }}"
+          $suffix = "${{ inputs.suffix }}"
+
+          if ([string]::IsNullOrWhiteSpace($suffix)) {
+            $artifactName = "BF_$tag"
+          } else {
+            $artifactName = "BF_${tag}.$suffix"
+          }
+
+          $filesToZip = @(
+            "build\content"
+            "build\editor"
+            "build\engine"
+            "build\lib"
+            "build\libs"
+            "build\plugins"
+            "build\BlainnflareEngine.exe"
+            "build\BlainnflareEngine.lib"
+            "build\Qt6Cored.dll"
+            "build\Qt6Guid.dll"
+            "build\Qt6Svgd.dll"
+            "build\Qt6Widgetsd.dll"
+          )
+
+          Compress-Archive `
+            -Path $filesToZip `
+            -DestinationPath "build\BF_$artifactName.zip"
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          files: build/BF_*.zip

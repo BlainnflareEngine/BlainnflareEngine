@@ -291,24 +291,24 @@ eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 direc
     return eastl::optional<RayCastResult>(eastl::move(rayCastResult));
 }
 
-eastl::optional<RayCastResult> PhysicsSubsystem::FilteredCastRay(Entity entity, Vec3 origin, Vec3 directionAndDistance)
+eastl::optional<RayCastResult> PhysicsSubsystem::FilteredCastRay(eastl::queue<uuid> &entities, Vec3 origin,
+                                                                 Vec3 directionAndDistance,
+                                                                 const eastl::vector<ObjectLayer> &ignoredLayers)
 {
     eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
 
     JPH::IgnoreMultipleBodiesFilter bodyFilter;
-    eastl::queue<uuid> traversalEntityIds;
-    traversalEntityIds.push(entity.GetUUID());
 
-    while (!traversalEntityIds.empty())
+    while (!entities.empty())
     {
-        Entity currentEntity = activeScene->GetEntityWithUUID(traversalEntityIds.front());
+        Entity currentEntity = activeScene->GetEntityWithUUID(entities.front());
 
         RelationshipComponent *relationshipComp = currentEntity.TryGetComponent<RelationshipComponent>();
         if (relationshipComp)
         {
             for (const uuid &childId : relationshipComp->Children)
             {
-                traversalEntityIds.push(childId);
+                entities.push(childId);
             }
         }
 
@@ -318,10 +318,18 @@ eastl::optional<RayCastResult> PhysicsSubsystem::FilteredCastRay(Entity entity, 
             bodyFilter.IgnoreBody(physicsComp->bodyId);
         }
 
-        traversalEntityIds.pop();
+        entities.pop();
     }
 
-    return CastRay(origin, directionAndDistance, {}, {}, bodyFilter);
+    ObjectLayerFilterImpl objectLayerFilter;
+    for (ObjectLayer layer : ignoredLayers)
+    {
+        objectLayerFilter.SetLayerIgnored(layer, true);
+    }
+
+    eastl::optional<RayCastResult> res = CastRay(origin, directionAndDistance, {}, objectLayerFilter, bodyFilter);
+
+    return res;
 }
 
 
