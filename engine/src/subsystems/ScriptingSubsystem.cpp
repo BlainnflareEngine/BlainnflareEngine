@@ -84,13 +84,16 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
     }
 #endif
 
-    auto view = scene.GetAllEntitiesWith<ScriptingComponent>();
-    for (const auto &[entity, scriptingComponent] : view.each())
+    auto view = scene.GetAllEntitiesWith<ScriptingComponent, IDComponent>();
+    for (const auto &[entity, scriptingComponent, idComp] : view.each())
     {
         for (auto &script : scriptingComponent.scripts)
         {
+            uuid id = idComp.ID;
             script.second->OnUpdateCall(deltaTimeMs);
             script.second->OnDrawUI();
+            if (!Engine::GetActiveScene()->TryGetEntityWithUUID(id).IsValid())
+                return;
         }
     }
 }
