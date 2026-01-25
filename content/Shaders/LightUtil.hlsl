@@ -102,7 +102,7 @@ float3 ComputePointLight(PointLight L, float3 N, float3 posW, float3 viewDir, Ma
     float d = length(lightVec);
     
     if (d > L.FalloffEnd)
-        return .0f;
+        return 0.0f.xxx;
     
     float3 lightDir = lightVec / d;
     float NdotL = max(dot(lightDir, N), 0.0f);
@@ -122,7 +122,7 @@ float3 ComputeSpotLight(SpotLight L, Material mat, float3 posW, float3 normal, f
 
     // Range test.
     if (d > L.FalloffEnd)
-        return 0.0f;
+        return 0.0f.xxx;
 
     // Normalize the light vector.
     float3 lightDir = lightVec / d;

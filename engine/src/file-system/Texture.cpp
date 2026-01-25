@@ -154,14 +154,13 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index/*, bool IsCu
         srvDesc.Texture2D.PlaneSlice = 0;
         srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
-        const uint32_t textureSrvHeapStartIndex = 7u;
-        UINT texturePlacementOffset = textureSrvHeapStartIndex /*+ (static_cast<UINT>(m_type) - 1u) * MAX_TEX_OF_TYPE*/ + index;//textureTableOffset;
+        UINT texturePlacementOffset = TextureSrvHeapStartIndex /*+ (static_cast<UINT>(m_type) - 1u) * MAX_TEX_OF_TYPE*/ + index;//textureTableOffset;
         m_descriptorHeapOffset = texturePlacementOffset;
 
         auto srvCpuStart = device.GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
         auto cbvSrvUavDescriptorSize = device.GetDescriptorHandleIncrementSize();
 
-        CD3DX12_CPU_DESCRIPTOR_HANDLE localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, texturePlacementOffset, cbvSrvUavDescriptorSize);
+        localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, texturePlacementOffset, cbvSrvUavDescriptorSize);
         device.CreateShaderResourceView(m_resource.Get(), &srvDesc, localHandle);
 
         m_bIsInitialized = true;
@@ -255,9 +254,7 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index/*, bool IsCu
         auto srvCpuStart = device.GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
         auto cbvSrvUavDescriptorSize = device.GetDescriptorHandleIncrementSize();
 
-        const uint32_t skycubeSrvHeapIndex = 6u;
-
-        CD3DX12_CPU_DESCRIPTOR_HANDLE localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, skycubeSrvHeapIndex, cbvSrvUavDescriptorSize);
+        localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, SkyboxSrvHeapStartIndex, cbvSrvUavDescriptorSize);
         // index for CubeMap is always constant and defined at init time
         device.CreateShaderResourceView(m_resource.Get(), &srvDesc, localHandle);
 
