@@ -77,7 +77,7 @@ jobs:
 
           Compress-Archive `
             -Path $filesToZip `
-            -DestinationPath "build\BF_$artifactName.zip"
+            -DestinationPath "build\$artifactName.zip"
 
       - name: Upload to release
         uses: softprops/action-gh-release@v2
