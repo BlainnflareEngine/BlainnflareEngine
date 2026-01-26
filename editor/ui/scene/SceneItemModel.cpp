@@ -476,6 +476,7 @@ bool editor::SceneItemModel::FullRebuildModel()
 QModelIndex editor::SceneItemModel::FindIndexByIDRecursive(SceneItemModel *model, const QModelIndex &parent,
                                                            const Blainn::uuid &id)
 {
+    BLAINN_PROFILE_FUNC();
     for (int row = 0; row < model->rowCount(parent); ++row)
     {
         QModelIndex currentIndex = model->index(row, 0, parent);

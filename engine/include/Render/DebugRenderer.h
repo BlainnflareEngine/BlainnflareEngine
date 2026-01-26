@@ -56,6 +56,7 @@ namespace Blainn
         void CreateRootSignature();
         void CompileShaders();
         void CreatePSO();
+        ComPtr<ID3D12Resource> CreateBuffer(size_t index, size_t size);
 
     private:
         DXGI_FORMAT BackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -77,6 +78,6 @@ namespace Blainn
         eastl::vector<VertexPositionColor> m_lineListVertices;
 
         uint64_t m_currentFrame = 0;
-        eastl::deque<eastl::pair<uint64_t, ComPtr<ID3D12Resource>>> m_debugRequests;
+        eastl::array<ComPtr<ID3D12Resource>, 4> m_debugRequests;
     };
 }

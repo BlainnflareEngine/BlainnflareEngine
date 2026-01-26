@@ -192,7 +192,7 @@ private:
     // fill it inside function.
     void GetLightSpaceMatrices(eastl::array<eastl::pair<XMMATRIX, XMMATRIX>, 4>& outMatrices);
 
-    eastl::vector<XMVECTOR> GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection);
+    static eastl::array<XMVECTOR, 8> GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection);
 
 private:
     UINT m_dxgiFactoryFlags = 0u;
