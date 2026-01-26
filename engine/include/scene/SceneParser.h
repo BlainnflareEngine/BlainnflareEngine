@@ -566,8 +566,34 @@ inline PointLightComponent GetPointLight(const YAML::Node &node)
 
     pointLight.FalloffStart = node["FalloffStart"].as<float>();
     pointLight.FalloffEnd = node["FalloffEnd"].as<float>();
-    
+
     pointLight.Intensity = node["Intensity"].as<float>(1);
+
+    return pointLight;
+}
+
+inline bool HasSpotLight(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["SpotLightComponent"]) return true;
+
+    return false;
+}
+
+inline SpotLightComponent GetSpotLight(const YAML::Node &node)
+{
+    SpotLightComponent pointLight;
+
+    pointLight.Color = {node["Color"]["R"].as<float>(), node["Color"]["G"].as<float>(), node["Color"]["B"].as<float>(),
+                        node["Color"]["A"].as<float>()};
+
+    pointLight.FalloffStart = node["FalloffStart"].as<float>();
+    pointLight.FalloffEnd = node["FalloffEnd"].as<float>();
+
+    pointLight.Intensity = node["Intensity"].as<float>(1);
+    pointLight.SpotInnerAngle = node["InnerAngle"].as<float>(1);
+    pointLight.SpotOuterAngle = node["OuterAngle"].as<float>(1);
 
     return pointLight;
 }

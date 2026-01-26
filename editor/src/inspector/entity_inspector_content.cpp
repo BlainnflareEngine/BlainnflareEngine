@@ -27,6 +27,7 @@
 #include "entity/skybox_widget.h"
 #include "entity/stimulus_widget.h"
 #include "entity/light/point_light_widget.h"
+#include "entity/light/spot_light_widget.h"
 
 #include <QScrollArea>
 
@@ -80,9 +81,17 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
 
     if (entity.HasComponent<Blainn::PointLightComponent>())
     {
-        BLAINN_PROFILE_SCOPE(CreateDirectionalLightWidget);
+        BLAINN_PROFILE_SCOPE(CreatePointLightWidget);
 
         auto dirLight = new point_light_widget(m_data.node->GetEntity(), this);
+        layout()->addWidget(dirLight);
+    }
+
+    if (entity.HasComponent<Blainn::SpotLightComponent>())
+    {
+        BLAINN_PROFILE_SCOPE(CreateSpotLightWidget);
+
+        auto dirLight = new spot_light_widget(m_data.node->GetEntity(), this);
         layout()->addWidget(dirLight);
     }
 

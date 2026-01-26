@@ -160,6 +160,7 @@ void Scene::SaveScene()
         Serializer::Perception(e, out);
         Serializer::DirectionalLight(e, out);
         Serializer::PointLight(e, out);
+        Serializer::SpotLight(e, out);
 
         out << YAML::EndMap; // end for every entity
     }
@@ -397,6 +398,12 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
         {
             auto point = GetPointLight(entityNode["PointLightComponent"]);
             entity.AddComponent<PointLightComponent>(eastl::move(point));
+        }
+
+        if (HasSpotLight(entityNode))
+        {
+            auto spot = GetSpotLight(entityNode["SpotLightComponent"]);
+            entity.AddComponent<SpotLightComponent>(eastl::move(spot));
         }
     }
 }

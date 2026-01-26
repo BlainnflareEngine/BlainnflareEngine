@@ -171,6 +171,8 @@ set(EDITOR_SOURCES
         include/inspector/input-widgets/slider_input_field.h
         src/inspector/entity/light/point_light_widget.cpp
         include/inspector/entity/light/point_light_widget.h
+        src/inspector/entity/light/spot_light_widget.cpp
+        include/inspector/entity/light/spot_light_widget.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
