@@ -386,6 +386,11 @@ void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool firs
     AISubsystem::GetInstance().DestroyAIControllerComponent(entity);
     PerceptionSubsystem::GetInstance().DestroyPerceptionComponent(entity);
     PerceptionSubsystem::GetInstance().DestroyStimulusComponent(entity);
+    RenderSubsystem::GetInstance().DestroyCameraComponent(entity);
+    RenderSubsystem::GetInstance().DestroyDirectionalLightComponent(entity);
+    RenderSubsystem::GetInstance().DestroyPointLightComponent(entity);
+    RenderSubsystem::GetInstance().DestroySpotLightComponent(entity);
+    RenderSubsystem::GetInstance().DestroySkyboxComponent(entity);
     m_Registry.destroy(entity);
     m_EntityIdMap.erase(id);
 
