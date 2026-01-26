@@ -26,16 +26,24 @@ point_light_widget::point_light_widget(const Blainn::Entity &entity, QWidget *pa
                     ConvertDXColorToQColor(comp->Color.z), ConvertDXColorToQColor(comp->Color.w)};
     m_color = new color_input_field("Color", color, this);
 
+    m_intensity = new float_input_field("Intensity", comp->Intensity, this);
+    m_intensity->SetMinValue(0);
+
     m_range = new float_input_field("Range", comp->FalloffEnd, this);
+    m_range->SetMinValue(0);
+
     m_attenuation = new float_input_field("Attenuation", comp->FalloffStart, this);
+    m_attenuation->SetMinValue(0);
 
     layout()->addWidget(m_color);
+    layout()->addWidget(m_intensity);
     layout()->addWidget(m_range);
     layout()->addWidget(m_attenuation);
 
     connect(m_color, &color_input_field::EditingFinished, this, &point_light_widget::OnColorChanged);
     connect(m_range, &float_input_field::EditingFinished, this, &point_light_widget::OnRangeChanged);
     connect(m_attenuation, &float_input_field::EditingFinished, this, &point_light_widget::OnAttenuationChanged);
+    connect(m_intensity, &float_input_field::EditingFinished, this, &point_light_widget::OnIntensityChanged);
 }
 
 
@@ -72,6 +80,9 @@ void point_light_widget::OnRangeChanged()
     if (!light) deleteLater();
 
     light->FalloffEnd = m_range->GetValue();
+
+    if (light->FalloffStart > light->FalloffEnd) m_attenuation->SetValue(light->FalloffEnd - 0.001);
+
     light->MarkFramesDirty();
 }
 
@@ -82,6 +93,19 @@ void point_light_widget::OnAttenuationChanged()
     if (!light) deleteLater();
 
     light->FalloffStart = m_attenuation->GetValue();
+
+    if (light->FalloffStart > light->FalloffEnd) m_attenuation->SetValue(light->FalloffEnd - 0.001);
+
+    light->MarkFramesDirty();
+}
+
+
+void point_light_widget::OnIntensityChanged()
+{
+    auto light = m_entity.TryGetComponent<Blainn::PointLightComponent>();
+    if (!light) deleteLater();
+
+    light->Intensity = m_intensity->GetValue();
     light->MarkFramesDirty();
 }
 } // namespace editor

@@ -368,6 +368,7 @@ public:
 
         out << YAML::Key << "FalloffStart" << YAML::Value << light->FalloffStart;
         out << YAML::Key << "FalloffEnd" << YAML::Value << light->FalloffEnd;
+        out << YAML::Key << "Intensity" << YAML::Value << light->Intensity;
 
         out << YAML::EndMap;
     }

@@ -28,9 +28,11 @@ protected:
     void OnColorChanged();
     void OnRangeChanged();
     void OnAttenuationChanged();
+    void OnIntensityChanged();
 
 private:
     color_input_field *m_color;
+    float_input_field *m_intensity;
     float_input_field *m_range;
     float_input_field *m_attenuation;
 };

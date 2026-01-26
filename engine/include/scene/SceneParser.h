@@ -566,6 +566,8 @@ inline PointLightComponent GetPointLight(const YAML::Node &node)
 
     pointLight.FalloffStart = node["FalloffStart"].as<float>();
     pointLight.FalloffEnd = node["FalloffEnd"].as<float>();
+    
+    pointLight.Intensity = node["Intensity"].as<float>(1);
 
     return pointLight;
 }
