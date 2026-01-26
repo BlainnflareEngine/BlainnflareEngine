@@ -1752,9 +1752,9 @@ void Blainn::RenderSubsystem::GetLightSpaceMatrices(eastl::array<eastl::pair<XMM
     for (UINT i = 0; i < MaxCascades; ++i)
     {
         if (i == 0)
-            outMatrices.push_back(GetLightSpaceMatrix(m_camera->GetNearZ(), m_camera->GetFrustumCascadesLevel(i)));
+            outMatrices[i] = GetLightSpaceMatrix(m_camera->GetNearZ(), m_camera->GetFrustumCascadesLevel(i));
         else
-            outMatrices.push_back(GetLightSpaceMatrix(m_camera->GetFrustumCascadesLevel(i - 1), m_camera->GetFrustumCascadesLevel(i)));
+            outMatrices[i] = GetLightSpaceMatrix(m_camera->GetFrustumCascadesLevel(i - 1), m_camera->GetFrustumCascadesLevel(i));
     }
 }
 
