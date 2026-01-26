@@ -25,6 +25,7 @@
 #include "Render/RuntimeCamera.h"
 #include "Render/EditorCamera.h"
 #include "subsystems/AISubsystem.h"
+#include "subsystems/PerceptionSubsystem.h"
 
 
 using namespace Blainn;
@@ -100,11 +101,16 @@ void Blainn::Scene::Update()
         }
         else
         {
-            cam->SetPosition(camTransform->GetTranslation());
+            Vec3 scale;
+            Quat rot;
+            Vec3 translation;
 
-            // commented this cause camera ViewMatrix is updated every frame depends on dirty flag and position
+            auto camWorldMat = GetWorldSpaceTransformMatrix(*camEntity);
+            camWorldMat.Decompose(scale, rot, translation);
 
-            Mat4 camViewMat = GetWorldSpaceTransformMatrix(*camEntity).Invert();
+            cam->SetPosition(translation);
+
+            Mat4 camViewMat = (SimpleMath::Matrix::CreateFromQuaternion(rot) * SimpleMath::Matrix::CreateTranslation(translation)).Invert();
             cam->SetViewMatrix(camViewMat);
 
             cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
@@ -148,6 +154,7 @@ void Scene::SaveScene()
         out << YAML::BeginMap; // begin for every entity
 
         Serializer::Default(e, out);
+        Serializer::Tag(e, out);
 
         for (const auto &[typeId, meta] : g_componentRegistry)
         {
@@ -311,7 +318,7 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
     {
         uuid entityID = GetID(entityNode);
         eastl::string tag = GetTag(entityNode);
-        Entity entity = CreateEntityWithID(entityID, tag, false, onSceneChanged);
+        Entity entity = CreateEntityWithID(entityID, "Untagged", false, onSceneChanged);
 
         if (!entity) continue;
 
@@ -382,6 +389,13 @@ void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool firs
     PhysicsSubsystem::DestroyPhysicsComponent(entity);
     ScriptingSubsystem::DestroyScriptingComponent(entity);
     AISubsystem::GetInstance().DestroyAIControllerComponent(entity);
+    PerceptionSubsystem::GetInstance().DestroyPerceptionComponent(entity);
+    PerceptionSubsystem::GetInstance().DestroyStimulusComponent(entity);
+    RenderSubsystem::GetInstance().DestroyCameraComponent(entity);
+    RenderSubsystem::GetInstance().DestroyDirectionalLightComponent(entity);
+    RenderSubsystem::GetInstance().DestroyPointLightComponent(entity);
+    RenderSubsystem::GetInstance().DestroySpotLightComponent(entity);
+    RenderSubsystem::GetInstance().DestroySkyboxComponent(entity);
     m_Registry.destroy(entity);
     m_EntityIdMap.erase(id);
 

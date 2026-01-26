@@ -29,9 +29,11 @@ set(CMAKE_CONFIGURATION_TYPES
         CACHE STRING "" FORCE)
 
 # These definitions apply to all the projects
-add_compile_definitions(
+if(NOT BLAINN_EXCLUDE_EDITOR)
+    add_compile_definitions(
         "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:BLAINN_HAS_CONSOLE>"
-)
+    )
+endif()
 
 if(TRACY_ENABLE)
     add_compile_definitions("TRACY_ENABLE;BLAINN_ENABLE_PROFILING=1")

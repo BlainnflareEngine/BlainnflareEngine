@@ -1,0 +1,65 @@
+name: Build_debug
+
+on:
+  push:
+    tags:
+       - 'v*'
+
+jobs:
+  build-debug:
+    permissions: write-all
+    
+    runs-on: windows-latest
+
+    steps:
+      - name: Clean build directory
+        run: | 
+          if (Test-Path build) { Remove-Item -Recurse -Force build }
+        
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Bootstrap dependencies
+        shell: cmd
+        run: call libs/clone_dependencies.bat
+        working-directory: ${{ github.workspace }}
+
+
+      - name: Configure
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          -DBLAINN_DISABLE_D3D_DEBUG_LAYER=ON
+          -DTRACY_ENABLE=OFF
+          -DBLAINN_EXCLUDE_EDITOR
+
+      - name: Build
+        run: cmake --build build --config Debug
+
+      - name: Package build
+        shell: powershell
+        run: |
+          $ref = $env:GITHUB_REF
+
+          if ($ref -like 'refs/tags/*') {
+            $name = $ref -replace 'refs/tags/', ''
+          } else {
+            $name = $env:GITHUB_SHA.Substring(0, 7)
+          }
+
+          $filesToZip = @(
+            "build\editor"
+            "build\engine"
+            "build\lib"
+            "build\BlainnflareEngine.exe"
+            "build\BlainnflareEngine.lib"
+          )
+          Compress-Archive -Path $filesToZip -DestinationPath "build\BF_$name.NoEditor.zip"
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: "build/BF_*.zip"

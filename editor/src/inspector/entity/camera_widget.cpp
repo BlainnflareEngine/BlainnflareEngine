@@ -75,7 +75,7 @@ void camera_widget::OnFarZChanged()
     auto *cam = m_entity.TryGetComponent<Blainn::CameraComponent>();
     if (cam)
     {
-        cam->camera.SetNearZ(m_farZ->GetValue());
+        cam->camera.SetFarZ(m_farZ->GetValue());
     }
 }
 

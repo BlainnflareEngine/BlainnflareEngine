@@ -7,6 +7,7 @@
 #include <VGJS.h>
 
 #include <semaphore>
+#include <windowsx.h>
 
 #include "Input/InputSubsystem.h"
 #include "Input/KeyboardEvents.h"
@@ -51,6 +52,13 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
     ScriptingSubsystem::Init();
 
     InitAISubsystem();
+
+#if !defined(BLAINN_INCLUDE_EDITOR)
+    if (!AssetManager::SceneExists(s_config.GetDefaultSceneName()))
+        AssetManager::CreateScene(s_config.GetDefaultSceneName());
+
+    AssetManager::OpenScene(s_config.GetDefaultSceneName());
+#endif
 }
 
 void Engine::InitAISubsystem()
@@ -64,43 +72,44 @@ void Engine::InitAISubsystem()
     NavigationSubsystem::Init();
     NavigationSubsystem::SetShouldDrawDebug(true);
 
-    PhysicsSubsystem::AddEventListener(PhysicsEventType::CollisionStarted,
-                                       [](const eastl::shared_ptr<PhysicsEvent> &event)
-                                       {
-                                           Scene &scene = *Engine::GetActiveScene();
-                                           auto entity1 = scene.GetEntityWithUUID(event->entity1);
-                                           auto entity2 = scene.GetEntityWithUUID(event->entity2);
+    PhysicsSubsystem::AddEventListener(
+        PhysicsEventType::CollisionStarted,
+        [](const eastl::shared_ptr<PhysicsEvent> &event)
+        {
+            Scene &scene = *Engine::GetActiveScene();
+            auto entity1 = scene.GetEntityWithUUID(event->entity1);
+            auto entity2 = scene.GetEntityWithUUID(event->entity2);
 
-                                           if (!entity1.IsValid() || !entity2.IsValid()) return;
+            if (!entity1.IsValid() || !entity2.IsValid()) return;
 
-                                           eastl::string tag1 = "Unknown";
-                                           eastl::string tag2 = "Unknown";
+            eastl::string tag1 = "Unknown";
+            eastl::string tag2 = "Unknown";
 
-                                           if (entity1.HasComponent<StimulusComponent>() && entity2.HasComponent<PerceptionComponent>())
-                                           {
-                                               Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
-                                                   Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
-                                               bool touch = entity2.GetComponent<PerceptionComponent>().enableTouch;
-                                               if (touch == true)
-                                               {
-                                                   tag1 = entity1.GetComponent<StimulusComponent>().tag;
-                                                   PerceptionSubsystem::GetInstance().RegisterStimulus(
-                                                       entity1.GetUUID(), StimulusType::Touch, pos1, 0.0f, tag1);
-                                               }
-                                           }
-                                           if (entity2.HasComponent<StimulusComponent>() && entity1.HasComponent<PerceptionComponent>())
-                                           {
-                                               Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
-                                               Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
-                                               bool touch = entity1.GetComponent<PerceptionComponent>().enableTouch;
-                                               if (touch == true)
-                                               {
-                                                   tag2 = entity2.GetComponent<StimulusComponent>().tag;
-                                                   PerceptionSubsystem::GetInstance().RegisterStimulus(
-                                                       entity2.GetUUID(), StimulusType::Touch, pos2, 0.0f, tag2);
-                                               }
-                                           }
-                                       });
+            if (entity1.HasComponent<StimulusComponent>() && entity2.HasComponent<PerceptionComponent>())
+            {
+                Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
+                Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
+                bool touch = entity2.GetComponent<PerceptionComponent>().enableTouch;
+                if (touch == true)
+                {
+                    tag1 = entity1.GetComponent<StimulusComponent>().tag;
+                    PerceptionSubsystem::GetInstance().RegisterStimulus(entity1.GetUUID(), StimulusType::Touch, pos1,
+                                                                        0.0f, tag1);
+                }
+            }
+            if (entity2.HasComponent<StimulusComponent>() && entity1.HasComponent<PerceptionComponent>())
+            {
+                Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
+                Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
+                bool touch = entity1.GetComponent<PerceptionComponent>().enableTouch;
+                if (touch == true)
+                {
+                    tag2 = entity2.GetComponent<StimulusComponent>().tag;
+                    PerceptionSubsystem::GetInstance().RegisterStimulus(entity2.GetUUID(), StimulusType::Touch, pos2,
+                                                                        0.0f, tag2);
+                }
+            }
+        });
 }
 
 void Engine::InitRenderSubsystem(HWND windowHandle)
@@ -256,6 +265,12 @@ void Engine::SetDefaultContentDirectory()
 }
 
 
+EngineConfig &Engine::GetConfig()
+{
+    return s_config;
+}
+
+
 eastl::shared_ptr<Scene> Engine::GetActiveScene()
 {
     return s_activeScene;
@@ -313,9 +328,98 @@ LRESULT CALLBACK Engine::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
     case WM_DESTROY:
         PostQuitMessage(0);
         return 0;
+
     case WM_KEYDOWN:
+        Input::UpdateKeyState(static_cast<KeyCode>(wParam), KeyState::Pressed);
         if (wParam == VK_ESCAPE) PostQuitMessage(0);
         return 0;
+    case WM_KEYUP:
+        Input::UpdateKeyState(static_cast<KeyCode>(wParam), KeyState::Released);
+        return 0;
+
+    case WM_LBUTTONDOWN:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::ResetMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        Input::UpdateButtonState(MouseButton::Left, ButtonState::Pressed);
+        SetCapture(hwnd);
+        return 0;
+    }
+    case WM_LBUTTONUP:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::ResetMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        Input::UpdateButtonState(MouseButton::Left, ButtonState::Released);
+        ReleaseCapture();
+        return 0;
+    }
+    case WM_RBUTTONDOWN:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::ResetMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        Input::UpdateButtonState(MouseButton::Right, ButtonState::Pressed);
+        SetCapture(hwnd);
+        return 0;
+    }
+    case WM_RBUTTONUP:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::ResetMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        Input::UpdateButtonState(MouseButton::Right, ButtonState::Released);
+        ReleaseCapture();
+        return 0;
+    }
+    case WM_MBUTTONDOWN:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::ResetMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        Input::UpdateButtonState(MouseButton::Middle, ButtonState::Pressed);
+        SetCapture(hwnd);
+        return 0;
+    }
+    case WM_MBUTTONUP:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::ResetMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        Input::UpdateButtonState(MouseButton::Middle, ButtonState::Released);
+        ReleaseCapture();
+        return 0;
+    }
+
+    case WM_MOUSEMOVE:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::UpdateMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        return 0;
+    }
+
+    case WM_MOUSEWHEEL:
+    {
+        short wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+        Input::UpdateScrollState(0.0f, static_cast<float>(wheelDelta));
+        return 0;
+    }
+    case WM_MOUSEHWHEEL:
+    {
+        short wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+        Input::UpdateScrollState(static_cast<float>(wheelDelta), 0.0f);
+        return 0;
+    }
+    case WM_SIZE:
+    {
+        UINT width = LOWORD(lParam);
+        UINT height = HIWORD(lParam);
+        RenderSubsystem::GetInstance().OnResize(width, height);
+        return 0;
+    }
+
     default:
         return DefWindowProc(hwnd, msg, wParam, lParam);
     }
