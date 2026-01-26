@@ -484,8 +484,8 @@ QModelIndex editor::SceneItemModel::FindIndexByIDRecursive(SceneItemModel *model
 
         EntityNode *node = GetNodeFromIndex(currentIndex);
 
-        std::string uid = node->GetUUID().bytes();
-        std::string uid2 = id.bytes();
+        std::string uid = node->GetUUID().str();
+        std::string uid2 = id.str();
         if (node && node->GetUUID() == id)
         {
             return currentIndex;
