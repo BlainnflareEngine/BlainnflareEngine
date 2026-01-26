@@ -148,6 +148,7 @@ void Scene::SaveScene()
         out << YAML::BeginMap; // begin for every entity
 
         Serializer::Default(e, out);
+        Serializer::Tag(e, out);
 
         for (const auto &[typeId, meta] : g_componentRegistry)
         {
@@ -311,7 +312,7 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
     {
         uuid entityID = GetID(entityNode);
         eastl::string tag = GetTag(entityNode);
-        Entity entity = CreateEntityWithID(entityID, tag, false, onSceneChanged);
+        Entity entity = CreateEntityWithID(entityID, "Untagged", false, onSceneChanged);
 
         if (!entity) continue;
 
