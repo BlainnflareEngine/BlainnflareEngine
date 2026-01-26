@@ -6,7 +6,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 cmake_policy(SET CMP0074 OLD)
 cmake_policy(SET CMP0169 OLD)
-add_compile_options(/EHsc)
+add_compile_options(/EHsc /arch:AVX2)
 
 option(BLAINN_EXCLUDE_EDITOR "Build the engine without the editor" OFF)
 option(BLAINN_DISABLE_D3D_DEBUG_LAYER "Disable debug layer for better performance" OFF)
@@ -65,6 +65,9 @@ add_executable(${PROJECT_NAME} main.cpp
 
 set (SPDLOG_WCHAR_TO_UTF8_SUPPORT ON)
 add_compile_definitions("SPDLOG_WCHAR_TO_UTF8_SUPPORT")
+
+set(JPH_DEBUG_RENDERER ON)
+add_compile_definitions("JPH_DEBUG_RENDERER")
 
 add_subdirectory(libs/EASTL)
 add_subdirectory(libs/JoltPhysics/Build)
@@ -177,7 +180,7 @@ if(NOT BLAINN_EXCLUDE_EDITOR)
 
     # Qt files deploy for Windows
     if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-        set(DEBUG_SUFFIX "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>,$<CONFIG:Release>>>:d>")
+        set(DEBUG_SUFFIX "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>,$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>>:d>")
         set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
         if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
             set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
