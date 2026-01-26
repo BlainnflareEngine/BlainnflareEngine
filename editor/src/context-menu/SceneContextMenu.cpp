@@ -69,6 +69,7 @@ void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
     menu->addSeparator();
     QAction *createDirectLightAction = menu->addAction("Create directional light");
     QAction *createPointLightAction = menu->addAction("Create point light");
+    QAction *createSpotLightAction = menu->addAction("Create spot light");
 
     if (index.isValid())
     {
@@ -93,6 +94,9 @@ void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
 
     if (createPointLightAction)
         connect(createPointLightAction, &QAction::triggered, this, [this, index]() { AddPointLight(index); });
+
+    if (createSpotLightAction)
+        connect(createSpotLightAction, &QAction::triggered, this, [this, index]() { AddSpotLight(index); });
 
     if (index.isValid())
     {
@@ -226,6 +230,29 @@ void SceneContextMenu::AddPointLight(const QModelIndex &index)
         auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Point light", false, true);
         entity.AddComponent<Blainn::TransformComponent>();
         entity.AddComponent<Blainn::PointLightComponent>();
+    }
+}
+
+
+void SceneContextMenu::AddSpotLight(const QModelIndex &index)
+{
+    if (index.isValid())
+    {
+        Blainn::Entity parent = SceneItemModel::GetNodeFromIndex(index)->GetEntity();
+
+        if (parent.IsValid())
+        {
+            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Spot light", false, true);
+            entity.AddComponent<Blainn::TransformComponent>();
+            entity.AddComponent<Blainn::SpotLightComponent>();
+        }
+        else BF_ERROR("Parent entity is invalid.");
+    }
+    else
+    {
+        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Spot light", false, true);
+        entity.AddComponent<Blainn::TransformComponent>();
+        entity.AddComponent<Blainn::SpotLightComponent>();
     }
 }
 

@@ -39,6 +39,7 @@ public slots:
     void OnCameraAction();
     void OnDirectLightAction();
     void OnPointLightAction();
+    void OnSpotLightAction();
 
 private:
     Blainn::Entity m_entity;
@@ -61,6 +62,7 @@ private:
 
     QAction *m_directLightAction = nullptr;
     QAction *m_pointLightAction = nullptr;
+    QAction *m_spotLightAction = nullptr;
 
     void paintEvent(QPaintEvent *event) override;
 };

@@ -2,8 +2,7 @@
 // Created by gorev on 24.01.2026.
 //
 
-#include "inspector/entity/light/point_light_widget.h"
-
+#include "entity/light/spot_light_widget.h"
 #include "components/LightComponent.h"
 #include "input-widgets/color_input_field.h"
 #include "input-widgets/float_input_field.h"
@@ -12,11 +11,11 @@
 
 namespace editor
 {
-point_light_widget::point_light_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "Point light", parent)
+spot_light_widget::spot_light_widget(const Blainn::Entity &entity, QWidget *parent)
+    : component_widget_base(entity, "Spot light", parent)
 {
-    Blainn::PointLightComponent *comp;
-    if (!m_entity.IsValid() || !(comp = m_entity.TryGetComponent<Blainn::PointLightComponent>()))
+    Blainn::SpotLightComponent *comp;
+    if (!m_entity.IsValid() || !(comp = m_entity.TryGetComponent<Blainn::SpotLightComponent>()))
     {
         deleteLater();
         return;
@@ -35,35 +34,45 @@ point_light_widget::point_light_widget(const Blainn::Entity &entity, QWidget *pa
     m_attenuation = new float_input_field("Attenuation", comp->FalloffStart, this);
     m_attenuation->SetMinValue(0);
 
+    m_innerAngle = new float_input_field("Inner angle", comp->SpotInnerAngle, this);
+    m_innerAngle->SetMinValue(0);
+
+    m_outerAngle = new float_input_field("Outer angle", comp->SpotOuterAngle, this);
+    m_outerAngle->SetMinValue(0);
+
     layout()->addWidget(m_color);
     layout()->addWidget(m_intensity);
     layout()->addWidget(m_range);
     layout()->addWidget(m_attenuation);
+    layout()->addWidget(m_innerAngle);
+    layout()->addWidget(m_outerAngle);
 
-    connect(m_color, &color_input_field::EditingFinished, this, &point_light_widget::OnColorChanged);
-    connect(m_range, &float_input_field::EditingFinished, this, &point_light_widget::OnRangeChanged);
-    connect(m_attenuation, &float_input_field::EditingFinished, this, &point_light_widget::OnAttenuationChanged);
-    connect(m_intensity, &float_input_field::EditingFinished, this, &point_light_widget::OnIntensityChanged);
+    connect(m_color, &color_input_field::EditingFinished, this, &spot_light_widget::OnColorChanged);
+    connect(m_range, &float_input_field::EditingFinished, this, &spot_light_widget::OnRangeChanged);
+    connect(m_attenuation, &float_input_field::EditingFinished, this, &spot_light_widget::OnAttenuationChanged);
+    connect(m_intensity, &float_input_field::EditingFinished, this, &spot_light_widget::OnIntensityChanged);
+    connect(m_innerAngle, &float_input_field::EditingFinished, this, &spot_light_widget::OnInnerAngleChanged);
+    connect(m_outerAngle, &float_input_field::EditingFinished, this, &spot_light_widget::OnOuterAngleChanged);
 }
 
 
-void point_light_widget::DeleteComponent()
+void spot_light_widget::DeleteComponent()
 {
-    if (m_entity.IsValid()) m_entity.RemoveComponentIfExists<Blainn::PointLightComponent>();
+    if (m_entity.IsValid()) m_entity.RemoveComponentIfExists<Blainn::SpotLightComponent>();
 
     deleteLater();
 }
 
 
-void point_light_widget::OnUpdate()
+void spot_light_widget::OnUpdate()
 {
     component_widget_base::OnUpdate();
 }
 
 
-void point_light_widget::OnColorChanged()
+void spot_light_widget::OnColorChanged()
 {
-    auto light = m_entity.TryGetComponent<Blainn::PointLightComponent>();
+    auto light = m_entity.TryGetComponent<Blainn::SpotLightComponent>();
     if (!light) deleteLater();
 
     Blainn::Color newColor = {ConvertQColorToDXColor(m_color->GetValue().red()),
@@ -74,9 +83,9 @@ void point_light_widget::OnColorChanged()
 }
 
 
-void point_light_widget::OnRangeChanged()
+void spot_light_widget::OnRangeChanged()
 {
-    auto light = m_entity.TryGetComponent<Blainn::PointLightComponent>();
+    auto light = m_entity.TryGetComponent<Blainn::SpotLightComponent>();
     if (!light) deleteLater();
 
     light->FalloffEnd = m_range->GetValue();
@@ -87,9 +96,9 @@ void point_light_widget::OnRangeChanged()
 }
 
 
-void point_light_widget::OnAttenuationChanged()
+void spot_light_widget::OnAttenuationChanged()
 {
-    auto light = m_entity.TryGetComponent<Blainn::PointLightComponent>();
+    auto light = m_entity.TryGetComponent<Blainn::SpotLightComponent>();
     if (!light) deleteLater();
 
     light->FalloffStart = m_attenuation->GetValue();
@@ -100,12 +109,22 @@ void point_light_widget::OnAttenuationChanged()
 }
 
 
-void point_light_widget::OnIntensityChanged()
+void spot_light_widget::OnIntensityChanged()
 {
-    auto light = m_entity.TryGetComponent<Blainn::PointLightComponent>();
+    auto light = m_entity.TryGetComponent<Blainn::SpotLightComponent>();
     if (!light) deleteLater();
 
     light->Intensity = m_intensity->GetValue();
     light->MarkFramesDirty();
+}
+
+
+void spot_light_widget::OnInnerAngleChanged()
+{
+}
+
+
+void spot_light_widget::OnOuterAngleChanged()
+{
 }
 } // namespace editor
