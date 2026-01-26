@@ -82,6 +82,26 @@ SamplerState gSamplerAnisotropicWrap : register(s2);
 SamplerState gShadowSamplerLinearBorder : register(s3);
 SamplerComparisonState gShadowSamplerComparisonLinearBorder : register(s4);
 
+struct GBufferPixelData
+{
+    float4 diffuse;
+    float4 ao;
+    float4 normal;
+    float4 specular;
+};
+
+GBufferPixelData FetchGBufferData(float4 posH)
+{
+    GBufferPixelData data = (GBufferPixelData) 0;
+    
+    data.diffuse = gGBuffer[G_DIFF_ALBEDO].Load(posH.xyz);
+    data.ao = gGBuffer[G_AMB_OCCL].Load(posH.xyz);
+    data.normal = gGBuffer[G_NORMAL].Load(posH.xyz);
+    data.specular = gGBuffer[G_SPECULAR].Load(posH.xyz);
+    
+    return data;
+}
+
 // Add in specular reflections (very approximated model)
 float3 ComputeSpecularReflections(float3 toEyeW, float3 normalW, Material mat)
 {

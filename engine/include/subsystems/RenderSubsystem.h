@@ -190,9 +190,9 @@ private:
     eastl::pair<XMMATRIX, XMMATRIX> GetLightSpaceMatrix(const float nearZ, const float farZ);
     // Doubt that't a good idea to return vector of matrices. Should rather pass vector as a parameter probalby and
     // fill it inside function.
-    void GetLightSpaceMatrices(eastl::vector<eastl::pair<XMMATRIX, XMMATRIX>> &outMatrices);
+    void GetLightSpaceMatrices(eastl::array<eastl::pair<XMMATRIX, XMMATRIX>, 4>& outMatrices);
 
-    eastl::vector<XMVECTOR> GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection);
+    static eastl::array<XMVECTOR, 8> GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection);
 
 private:
     UINT m_dxgiFactoryFlags = 0u;

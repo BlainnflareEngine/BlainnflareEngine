@@ -57,10 +57,13 @@ float3 linearToSrgb(float3 c)
 
 float4 main(PSInput input) : SV_TARGET
 {
-    float4 diffuseAlbedo = gGBuffer[G_DIFF_ALBEDO].Load(input.iPosH.xyz);
-    float4 ambientOcclusion = gGBuffer[G_AMB_OCCL].Load(input.iPosH.xyz);
-    float4 normalTex = gGBuffer[G_NORMAL].Load(input.iPosH.xyz);
-    float4 specularTex = gGBuffer[G_SPECULAR].Load(input.iPosH.xyz);
+    GBufferPixelData gBuffer = FetchGBufferData(input.iPosH);
+	
+    float4 diffuseAlbedo = gBuffer.diffuse;
+    float4 ambientOcclusion = gBuffer.ao;
+    float4 normalTex = gBuffer.normal;
+    float4 specularTex = gBuffer.specular;
+    
     float3 posW = ComputeWorldPos(float3(input.iPosH.xy, 0.0f));
     
     float3 fresnelR0 = specularTex.xyz;
@@ -107,7 +110,7 @@ float4 main(PSInput input) : SV_TARGET
 #endif
     
     float shadowFactor = GetShadowFactor(posW, layer);
-    float3 dirLight = CalcDirLight(gDirLight, normalTex.xyz, viewDir, mat, shadowFactor);
+    float3 dirLight = ComputeDirLight(gDirLight, normalTex.xyz, viewDir, mat, shadowFactor);
     litColor += float4(dirLight, 0.0f);
     
     // linear fog

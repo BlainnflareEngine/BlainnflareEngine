@@ -43,9 +43,12 @@ namespace Blainn
 
         void DrawCylinder(Mat4 matrix, float halfHeight, float radius, Color color);
 
+        void DrawLineList(const eastl::vector<VertexPositionColor>::iterator& first, const eastl::vector<VertexPositionColor>::iterator& last);
+
         // this is not working, we didn't yet bother to render text!
         virtual void DrawText3D(JPH::RVec3Arg inPosition, const std::string_view &inString, JPH::ColorArg inColor, float inHeight) override {}
 
+        bool IsDebugEnabled() const {return m_bIsDebugEnabled;}
         void SetDebugEnabled(bool value) {m_bIsDebugEnabled = value;}
         void ClearDebugList() {m_lineListVertices.clear();}
 
@@ -53,6 +56,7 @@ namespace Blainn
         void CreateRootSignature();
         void CompileShaders();
         void CreatePSO();
+        ComPtr<ID3D12Resource> CreateBuffer(size_t index, size_t size);
 
     private:
         DXGI_FORMAT BackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -74,6 +78,6 @@ namespace Blainn
         eastl::vector<VertexPositionColor> m_lineListVertices;
 
         uint64_t m_currentFrame = 0;
-        eastl::deque<eastl::pair<uint64_t, ComPtr<ID3D12Resource>>> m_debugRequests;
+        eastl::array<ComPtr<ID3D12Resource>, 4> m_debugRequests;
     };
 }

@@ -368,6 +368,30 @@ public:
 
         out << YAML::Key << "FalloffStart" << YAML::Value << light->FalloffStart;
         out << YAML::Key << "FalloffEnd" << YAML::Value << light->FalloffEnd;
+        out << YAML::Key << "Intensity" << YAML::Value << light->Intensity;
+
+        out << YAML::EndMap;
+    }
+
+    static void SpotLight(Entity &entity, YAML::Emitter &out)
+    {
+        auto light = entity.TryGetComponent<SpotLightComponent>();
+        if (!light) return;
+
+        out << YAML::Key << "SpotLightComponent" << YAML::Value << YAML::BeginMap;
+
+        out << YAML::Key << "Color" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "R" << YAML::Value << light->Color.x;
+        out << YAML::Key << "G" << YAML::Value << light->Color.y;
+        out << YAML::Key << "B" << YAML::Value << light->Color.z;
+        out << YAML::Key << "A" << YAML::Value << light->Color.w;
+        out << YAML::EndMap;
+
+        out << YAML::Key << "FalloffStart" << YAML::Value << light->FalloffStart;
+        out << YAML::Key << "FalloffEnd" << YAML::Value << light->FalloffEnd;
+        out << YAML::Key << "Intensity" << YAML::Value << light->Intensity;
+        out << YAML::Key << "InnerAngle" << YAML::Value << light->SpotInnerAngle;
+        out << YAML::Key << "OuterAngle" << YAML::Value << light->SpotOuterAngle;
 
         out << YAML::EndMap;
     }
