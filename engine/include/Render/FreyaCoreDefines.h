@@ -41,22 +41,23 @@
 #endif
 
 /*
+ * Graphics features
+ */
+#define MaxPointLights 1024
+#define MaxSpotLights 1024
+
+/*
  * Textures
  */
 
-//#define TextureMapsMaxCount 512
-
-/*
- * Shader resource binding
- */
-
+// Shader resource binding
 #define REGISTER_SPACE_0 0
 #define REGISTER_SPACE_1 1
 
 #define SHADER_REGISTER(x) (x)
 
-/*
- * Graphics features
- */
-#define MaxPointLights 1024
-#define MaxSpotLights 1024
+// Descriptor Heap stuff
+// 
+// unfortunalety hardcoded values
+#define SkyboxSrvHeapStartIndex 6u
+#define TextureSrvHeapStartIndex 7u

@@ -6,83 +6,71 @@
 
 namespace Blainn
 {
-    enum class ELightType
+enum class ELightType
+{
+    Directional,
+    Point,
+    Spot,
+    NumLightTypes
+};
+
+struct LightComponent
+{
+private:
+    inline static const int kNumFramesMarkDirty = 3;
+
+    // dirty flag available between frames
+    int NumFramesDirty = kNumFramesMarkDirty; // NumFrameResources
+
+public:
+    LightComponent()
     {
-        Directional,
-        Point,
-        Spot,
-        NumLightTypes
+    }
+
+    void MarkFramesDirty()
+    {
+        NumFramesDirty = kNumFramesMarkDirty;
     };
 
-    struct LightComponent
+    bool IsFramesDirty() const
     {
-    private:
-        inline static const int kNumFramesMarkDirty = 3;
+        return NumFramesDirty > 0;
+    }
 
-        // dirty flag available between frames
-        int NumFramesDirty = kNumFramesMarkDirty; // NumFrameResources
-
-    public:
-        LightComponent()
-        {
-        }
-
-        LightComponent(const LightComponent& other)
-        {
-
-        }
-
-        LightComponent(LightComponent &&other) noexcept
-        {
-
-        }
-
-        // call from qt
-        void MarkFramesDirty()
-        {
-            NumFramesDirty = kNumFramesMarkDirty;
-        };
-
-        bool IsFramesDirty() const
-        {
-            return NumFramesDirty > 0;
-        }
-
-        void FrameResetDirtyFlags()
-        {
-            NumFramesDirty > 0 ? --NumFramesDirty : NumFramesDirty;
-        }
+    void FrameResetDirtyFlags()
+    {
+        NumFramesDirty > 0 ? --NumFramesDirty : NumFramesDirty;
+    }
 
         XMFLOAT4 Color = {1.0f, 1.0f, 1.0f, 1.0f};
+        float Intensity = 1.0f;
     };
 
-    struct DirectionalLightComponent : public LightComponent
+struct DirectionalLightComponent : public LightComponent
+{
+    DirectionalLightComponent()
     {
-        DirectionalLightComponent()
-        {
+    }
+};
 
-        }
+struct PointLightComponent : public LightComponent
+{
+    PointLightComponent()
+    {
+    }
+
+        float FalloffEnd = 1.0f; // Range
+        float FalloffStart = 0.1f;
     };
 
-    struct PointLightComponent : public LightComponent
+struct SpotLightComponent : public LightComponent
+{
+    SpotLightComponent()
     {
-        PointLightComponent()
-        {
+    }
 
-        }
-
-        float FalloffEnd = 1; // Range
-        float FalloffStart = 0.1;
-    };
-
-    struct SpotLightComponent : public LightComponent
-    {
-        SpotLightComponent()
-        {
-        }
-
-        //XMFLOAT3 Direction = {0.5f, -1.0f, 0.5f};
-        float Range;
+        float FalloffEnd = 1.0f; // Range
+        float FalloffStart = 0.1f;
         float SpotInnerAngle;
         float SpotOuterAngle;
     };

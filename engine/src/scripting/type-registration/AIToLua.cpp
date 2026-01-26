@@ -403,12 +403,12 @@ void Blainn::RegisterAITypes(sol::state &luaState)
     );
     
     luaState.set_function("GetStimuliByTag",
-        [&luaState](Blackboard* bb, const eastl::string& tag) -> sol::table
+        [&luaState](Blackboard* bb, const std::string& tag) -> sol::table
         {
             sol::state_view lua(luaState);
             sol::table result = lua.create_table();
             
-            auto stimuli = GetStimuliByTag(bb, tag);
+            auto stimuli = GetStimuliByTag(bb, tag.c_str());
             
             for (size_t i = 0; i < stimuli.size(); ++i)
             {
@@ -462,28 +462,28 @@ void Blainn::RegisterAITypes(sol::state &luaState)
     );
     
     luaState.set_function("RegisterSoundStimulus",
-        [](uuid entity, const Vec3& loc, float radius, const eastl::string& tag)
+        [](uuid entity, const Vec3& loc, float radius, const std::string& tag)
         {
             PerceptionSubsystem::GetInstance().RegisterStimulus(
-                entity, StimulusType::Sound, loc, radius, tag
+                entity, StimulusType::Sound, loc, radius, tag.c_str()
             );
         }
     );
     
     luaState.set_function("RegisterDamageStimulus",
-        [](uuid entity, const Vec3& loc, const eastl::string& tag)
+        [](uuid entity, const Vec3& loc, const std::string& tag)
         {
             PerceptionSubsystem::GetInstance().RegisterStimulus(
-                entity, StimulusType::Damage, loc, 0.0f, tag
+                entity, StimulusType::Damage, loc, 0.0f, tag.c_str()
             );
         }
     );
     
     luaState.set_function("RegisterTouchStimulus",
-        [](uuid entity, const Vec3& loc, const eastl::string& tag)
+        [](uuid entity, const Vec3& loc, const std::string& tag)
         {
             PerceptionSubsystem::GetInstance().RegisterStimulus(
-                entity, StimulusType::Touch, loc, 0.0f, tag
+                entity, StimulusType::Touch, loc, 0.0f, tag.c_str()
             );
         }
     );

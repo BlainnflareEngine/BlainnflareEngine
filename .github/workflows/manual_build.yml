@@ -1,22 +1,27 @@
-name: Build_debug
+name: Manual_Build
 
 on:
-  push:
-    tags:
-       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git release tag to upload to"
+        required: true
+      suffix:
+        description: "suffix of the release artifact"
+        required: false
 
 jobs:
   build-debug:
-    permissions: write-all
-    
+    permissions:
+      contents: write
+
     runs-on: windows-latest
 
     steps:
       - name: Clean build directory
-        run: | 
+        run: |
           if (Test-Path build) { Remove-Item -Recurse -Force build }
-        
+
       - uses: actions/checkout@v4
 
       - uses: ilammy/msvc-dev-cmd@v1
@@ -30,8 +35,6 @@ jobs:
       - name: Bootstrap dependencies
         shell: cmd
         run: call libs/clone_dependencies.bat
-        working-directory: ${{ github.workspace }}
-
 
       - name: Configure
         run: >
@@ -48,12 +51,13 @@ jobs:
       - name: Package build
         shell: powershell
         run: |
-          $ref = $env:GITHUB_REF
+          $tag = "${{ inputs.tag }}"
+          $suffix = "${{ inputs.suffix }}"
 
-          if ($ref -like 'refs/tags/*') {
-            $name = $ref -replace 'refs/tags/', ''
+          if ([string]::IsNullOrWhiteSpace($suffix)) {
+            $artifactName = "BF_$tag"
           } else {
-            $name = $env:GITHUB_SHA.Substring(0, 7)
+            $artifactName = "BF_${tag}.$suffix"
           }
 
           $filesToZip = @(
@@ -70,10 +74,13 @@ jobs:
             "build\Qt6Svgd.dll"
             "build\Qt6Widgetsd.dll"
           )
-          Compress-Archive -Path $filesToZip -DestinationPath "build\BF_$name.zip"
 
-      - name: Release
+          Compress-Archive `
+            -Path $filesToZip `
+            -DestinationPath "build\$artifactName.zip"
+
+      - name: Upload to release
         uses: softprops/action-gh-release@v2
-        if: github.ref_type == 'tag'
         with:
-          files: "build/BF_*.zip"
+          tag_name: ${{ inputs.tag }}
+          files: build/BF_*.zip

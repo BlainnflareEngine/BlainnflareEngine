@@ -82,7 +82,9 @@ void DebugRenderer::EndDebugRenderPass()
     m_commandList->IASetVertexBuffers(0, 1, &vbView);
     m_commandList->DrawInstanced(m_lineListVertices.size(), 1, 0, 0);
 
+    size_t prevSize = m_lineListVertices.size();
     m_lineListVertices.clear();
+    m_lineListVertices.reserve(prevSize);
 
     m_bIsRenderPassOngoing = false;
 }
@@ -155,16 +157,15 @@ void DebugRenderer::DrawTriangle(Vec3 inV1, Vec3 inV2, Vec3 inV3, Color inColor)
     BLAINN_PROFILE_SCOPE(DrawTriangle);
     if (!m_bIsDebugEnabled)
         return;
-    VertexPositionColor lineVertices[] = {{inV1, inColor}, {inV2, inColor}, {inV3, inColor}, {inV1, inColor}};
-    m_lineListVertices.push_back({inV1, inColor});
-    m_lineListVertices.push_back({inV2, inColor});
-
-    m_lineListVertices.push_back({inV2, inColor});
-    m_lineListVertices.push_back({inV3, inColor});
-
-
-    m_lineListVertices.push_back({inV3, inColor});
-    m_lineListVertices.push_back({inV1, inColor});
+    VertexPositionColor lineVertices[] = {
+        {inV1, inColor}, {inV2, inColor},
+        {inV2, inColor}, {inV3, inColor},
+        {inV3, inColor}, {inV1, inColor}
+    };
+    m_lineListVertices.insert(m_lineListVertices.end(),
+        eastl::begin(lineVertices),
+        eastl::end(lineVertices)
+        );
 }
 
 void DebugRenderer::DrawWireBox(Vec3 min, Vec3 max, Color color)
@@ -278,6 +279,14 @@ void DebugRenderer::DrawCylinder(Mat4 matrix, float halfHeight, float radius, Co
     JPH::Mat44 jphMat{row1, row2, row3, row4};
 
     Super::DrawCylinder(jphMat, halfHeight, radius, col);
+}
+
+void DebugRenderer::DrawLineList(const eastl::vector<VertexPositionColor>::iterator &first,
+    const eastl::vector<VertexPositionColor>::iterator &last)
+{
+    if (!m_bIsDebugEnabled)
+        return;
+    m_lineListVertices.insert(m_lineListVertices.end(), first, last);
 }
 
 void Blainn::DebugRenderer::CreateRootSignature()

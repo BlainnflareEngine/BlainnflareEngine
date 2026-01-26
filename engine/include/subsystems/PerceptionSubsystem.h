@@ -35,12 +35,6 @@ class PerceptionSubsystem
 public:
     NO_COPY_NO_MOVE(PerceptionSubsystem);
 
-    static PerceptionSubsystem &GetInstance();
-
-    void Init();
-    void Destroy();
-    void Update(float dt);
-
     struct Settings
     {
         float defaultSightRange = 1500.0f;
@@ -53,6 +47,15 @@ public:
         float lodMidUpdateInterval = 0.1f;
         float lodFarUpdateInterval = 0.5f;
     };
+
+    static PerceptionSubsystem &GetInstance();
+
+    void Init();
+    void Init(Settings &settings);
+    void Destroy();
+    void Update(float dt);
+
+
 
     void SetSettings(const Settings &settings)
     {
@@ -91,7 +94,7 @@ private:
     void UpdateStimuliAge(float dt);
     void UpdateLOD();
 
-    bool CheckLineOfSight(const Vec3 &from, const Vec3 &to);
+    bool CheckLineOfSight(uuid ignoreEntityID, uuid desiredEntityID, const Vec3 &from, const Vec3 &to);
     bool IsInFieldOfView(const Vec3 &observerPos, const Quat &observerRotation, const Vec3 &targetPos, float fovAngle);
 
     bool ShouldUpdatePerception(PerceptionComponent &perception, float dt);

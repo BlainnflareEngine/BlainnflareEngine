@@ -245,6 +245,7 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
 
 void Blainn::RenderSubsystem::PopulateCommandList(ID3D12GraphicsCommandList2 *pCommandList)
 {
+    BLAINN_PROFILE_FUNC();
     pCommandList->SetGraphicsRootSignature(m_rootSignature->Get());
 
     // Access for setting and using root descriptor table
@@ -618,9 +619,10 @@ void Blainn::RenderSubsystem::CreateShaders()
     m_shaders[Shader::EShaderType::DeferredDirVS] = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredDirectionalLightVS.hlsl", nullptr, "main", "vs_5_1");
     m_shaders[Shader::EShaderType::DeferredDirPS] = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredDirectionalLightPS.hlsl", nullptr, "main", "ps_5_1");
 
-    m_shaders[Shader::EShaderType::DeferredLightVolumesVS] = FreyaUtil::CompileShader(L"./Content/Shaders/LightVolumesVS.hlsl", nullptr, "main", "vs_5_1");
-    m_shaders[Shader::EShaderType::DeferredPointPS] = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredPointLightPS.hlsl", nullptr, "main", "ps_5_1");
-    m_shaders[Shader::EShaderType::DeferredSpotPS] = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredSpotLightPS.hlsl", nullptr, "main", "ps_5_1");
+    m_shaders[Shader::EShaderType::DeferredPointVS] = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredLightVolumesVS.hlsl", nullptr, "PointLightVS", "vs_5_1");
+    m_shaders[Shader::EShaderType::DeferredPointPS] = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredLightVolumesPS.hlsl", nullptr, "PointLightPS", "ps_5_1");
+    m_shaders[Shader::EShaderType::DeferredSpotVS] = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredLightVolumesVS.hlsl", nullptr, "SpotLightVS", "vs_5_1");
+    m_shaders[Shader::EShaderType::DeferredSpotPS] = FreyaUtil::CompileShader(L"./Content/Shaders/DeferredLightVolumesPS.hlsl", nullptr, "SpotLightPS", "ps_5_1");
 #pragma endregion DeferredShading
 
 #pragma region ForwardShading
@@ -639,6 +641,7 @@ void Blainn::RenderSubsystem::CreateShaders()
 void Blainn::RenderSubsystem::CreatePipelineStateObjects()
 {
     // To hold common properties
+#pragma region DefaultPSO
     D3D12_GRAPHICS_PIPELINE_STATE_DESC defaultPsoDesc = {};
     defaultPsoDesc.pRootSignature = m_rootSignature->Get();
     defaultPsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT); // Blend state is disable
@@ -652,6 +655,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     defaultPsoDesc.RTVFormats[0] = BackBufferFormat;
     defaultPsoDesc.DSVFormat = DepthStencilFormat;
     defaultPsoDesc.SampleDesc = {1u, 0u}; // No MSAA. This should match the setting of the render target we are using (check swapChainDesc)
+#pragma endregion DefaultPSO
 
 #pragma region CascadeShadowsDepthPass
     D3D12_GRAPHICS_PIPELINE_STATE_DESC cascadeShadowPsoDesc = defaultPsoDesc;
@@ -696,11 +700,10 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
 #pragma region Wireframe
     D3D12_GRAPHICS_PIPELINE_STATE_DESC opaqueWireframe = GBufferPsoDesc;
     opaqueWireframe.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
-    ThrowIfFailed(m_device.CreateGraphicsPipelineState(opaqueWireframe,
-                                                       m_pipelineStates[PipelineStateObject::EPsoType::Wireframe]));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(opaqueWireframe, m_pipelineStates[PipelineStateObject::EPsoType::Wireframe]));
 #pragma endregion Wireframe
 
-#pragma region DeferredDirectional
+#pragma region DeferredDirectionalLight
     D3D12_GRAPHICS_PIPELINE_STATE_DESC dirLightPsoDesc = defaultPsoDesc;
     dirLightPsoDesc.VS = D3D12_SHADER_BYTECODE(
         {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::DeferredDirVS)->GetBufferPointer()),
@@ -711,7 +714,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     dirLightPsoDesc.InputLayout = SimpleVertex::InputLayout;
     ThrowIfFailed(m_device.CreateGraphicsPipelineState(
         dirLightPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::DeferredDirectional]));
-#pragma endregion DeferredDirectional
+#pragma endregion DeferredDirectionalLight
 
 #pragma region DeferredPointLight
     // Still needs to be configured
@@ -732,8 +735,8 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     RTBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
     pointLightIntersectsFarPlanePsoDesc.VS = D3D12_SHADER_BYTECODE(
-        {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::DeferredLightVolumesVS)->GetBufferPointer()),
-         m_shaders.at(Shader::EShaderType::DeferredLightVolumesVS)->GetBufferSize()});
+        {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::DeferredPointVS)->GetBufferPointer()),
+         m_shaders.at(Shader::EShaderType::DeferredPointVS)->GetBufferSize()});
     pointLightIntersectsFarPlanePsoDesc.PS = D3D12_SHADER_BYTECODE(
         {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::DeferredPointPS)->GetBufferPointer()),
          m_shaders.at(Shader::EShaderType::DeferredPointPS)->GetBufferSize()});
@@ -761,16 +764,26 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
 
 #pragma region DeferredSpotLight
     D3D12_GRAPHICS_PIPELINE_STATE_DESC spotLightIntersectsFarPlanePsoDesc = pointLightIntersectsFarPlanePsoDesc;
+    spotLightIntersectsFarPlanePsoDesc.VS = D3D12_SHADER_BYTECODE(
+        {
+            reinterpret_cast<BYTE*>(m_shaders.at(Shader::EShaderType::DeferredSpotVS)->GetBufferPointer()),
+            m_shaders.at(Shader::EShaderType::DeferredSpotVS)->GetBufferSize()
+        });
     spotLightIntersectsFarPlanePsoDesc.PS = D3D12_SHADER_BYTECODE(
-        {reinterpret_cast<BYTE *>(m_shaders.at(Shader::EShaderType::DeferredSpotPS)->GetBufferPointer()),
-         m_shaders.at(Shader::EShaderType::DeferredSpotPS)->GetBufferSize()});
+        {
+            reinterpret_cast<BYTE*>(m_shaders.at(Shader::EShaderType::DeferredSpotPS)->GetBufferPointer()),
+            m_shaders.at(Shader::EShaderType::DeferredSpotPS)->GetBufferSize()
+        });
     ThrowIfFailed(m_device.CreateGraphicsPipelineState(spotLightIntersectsFarPlanePsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::DeferredSpotIntersectsFarPlane]));
 
-    //spotLightWithinFrustumPsoDesc
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC spotLightWithinFrustumPsoDesc = spotLightIntersectsFarPlanePsoDesc;
+    spotLightWithinFrustumPsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+    spotLightWithinFrustumPsoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(spotLightWithinFrustumPsoDesc, m_pipelineStates[PipelineStateObject::EPsoType::DeferredSpotWithinFrustum]));
+    
     //spotLightFullQuadPsoDesc
 
 #pragma endregion DeferredSpotLight
-
 #pragma endregion DeferredShading
 
 #pragma region Sky
@@ -870,6 +883,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
 #pragma region Update
 void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 {
+    BLAINN_PROFILE_FUNC();
     const auto &renderEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
     for (const auto &[entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
     {
@@ -897,6 +911,7 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 
 void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
 {
+    BLAINN_PROFILE_FUNC();
 #pragma region PointLights
     auto currPointLightSB = m_currFrameResource->PointLightSB.get();
 
@@ -913,31 +928,51 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
         auto world = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(_entity);
         XMStoreFloat4x4(&m_perInstanceSBData.World, XMMatrixTranspose(world));
         m_perInstanceSBData.Light.Color = entityLight.Color;
+        m_perInstanceSBData.Light.Color.w = entityLight.Intensity;
         m_perInstanceSBData.Light.FalloffEnd = entityLight.FalloffEnd; // range
         m_perInstanceSBData.Light.FalloffStart = entityLight.FalloffStart;
         m_perInstanceSBData.Light.Position = entityTransform.GetTranslation();
 
         currPointLightSB->CopyData(m_pointLightsCount++, m_perInstanceSBData);
 
-        entityTransform.FrameResetDirtyFlags();
-        entityLight.FrameResetDirtyFlags();
+        /*entityTransform.FrameResetDirtyFlags();
+        entityLight.FrameResetDirtyFlags();*/
     }
 #pragma endregion PointLights
 
 #pragma region SpotLights
-    //const auto &spotLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<TransformComponent, SpotLightComponent>();
-    //for (const auto &[entity, transform, entityLight] : spotLightEntitiesView.each())
-    //{
-        //++m_spotLightsCount;
-        //if (!entityTransform.IsFramesDirty() /*|| !entityLight.IsFramesDirty()*/) continue;
+    auto currSpotLightSB = m_currFrameResource->SpotLightSB.get();
 
-        //SpotLightInstanceData m_perInstanceSBData;
-    //}
+    const auto &spotLightEntitiesView = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, SpotLightComponent>();
+    for (const auto &[entity, entityID, entityTransform, entityLight] : spotLightEntitiesView.each())
+    {
+        const auto &_entity = Engine::GetActiveScene()->TryGetEntityWithUUID(entityID.ID);
+        if (!_entity.IsValid()) continue;
+
+        //if (!entityTransform.IsFramesDirty() && !entityLight.IsFramesDirty()) continue;
+
+        SpotLightInstanceData m_perInstanceSBData;
+
+        auto world = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(_entity);
+        XMStoreFloat4x4(&m_perInstanceSBData.World, XMMatrixTranspose(world));
+        m_perInstanceSBData.Light.Color = entityLight.Color;
+        m_perInstanceSBData.Light.Color.w = entityLight.Intensity;
+        m_perInstanceSBData.Light.Direction = entityTransform.GetForwardVector(); // ? change this if I am wrong
+        m_perInstanceSBData.Light.FalloffEnd = entityLight.FalloffEnd; // range, analogically to point light
+        m_perInstanceSBData.Light.FalloffStart = entityLight.FalloffStart;
+        m_perInstanceSBData.Light.Position = entityTransform.GetTranslation();
+
+        currSpotLightSB->CopyData(m_spotLightsCount++, m_perInstanceSBData);
+
+        /*entityTransform.FrameResetDirtyFlags();
+        entityLight.FrameResetDirtyFlags();*/
+    }
 #pragma endregion SpotLights
 }
 
 void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
 {
+    BLAINN_PROFILE_FUNC();
     auto currMaterialDataSB = m_currFrameResource->MaterialSB.get();
 
     auto &materials = AssetManager::GetInstance().m_materials;
@@ -981,7 +1016,8 @@ void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
 
 void Blainn::RenderSubsystem::UpdateShadowTransform(float deltaTime)
 {
-    eastl::vector<eastl::pair<XMMATRIX, XMMATRIX>> lightSpaceMatrices;
+    BLAINN_PROFILE_FUNC();
+    static eastl::array<eastl::pair<XMMATRIX, XMMATRIX>, MaxCascades> lightSpaceMatrices;
     GetLightSpaceMatrices(lightSpaceMatrices);
 
     for (UINT i = 0; i < MaxCascades; ++i)
@@ -996,6 +1032,7 @@ void Blainn::RenderSubsystem::UpdateShadowTransform(float deltaTime)
 
 void Blainn::RenderSubsystem::UpdateShadowPassCB(float deltaTime)
 {
+    BLAINN_PROFILE_FUNC();
     XMMATRIX view = XMMatrixIdentity();
     XMMATRIX proj = XMMatrixIdentity();
     XMMATRIX viewProj = XMMatrixMultiply(view, proj);
@@ -1014,6 +1051,7 @@ void Blainn::RenderSubsystem::UpdateShadowPassCB(float deltaTime)
 
 void Blainn::RenderSubsystem::UpdateGeometryPassCB(float deltaTime)
 {
+    BLAINN_PROFILE_FUNC();
     XMMATRIX view = m_camera->GetViewMatrix();
     XMMATRIX proj = m_camera->GetPerspectiveProjectionMatrix();
     XMMATRIX viewProj = XMMatrixMultiply(view, proj);
@@ -1039,6 +1077,7 @@ void Blainn::RenderSubsystem::UpdateGeometryPassCB(float deltaTime)
 
 void Blainn::RenderSubsystem::UpdateDeferredPassCB(float deltaTime)
 {
+    BLAINN_PROFILE_FUNC();
     XMMATRIX view = m_camera->GetViewMatrix();
     XMMATRIX proj = m_camera->GetPerspectiveProjectionMatrix();
     XMMATRIX viewProj = XMMatrixMultiply(view, proj);
@@ -1066,6 +1105,7 @@ void Blainn::RenderSubsystem::UpdateDeferredPassCB(float deltaTime)
     for (const auto &[entity, entityTransform, entityLight] : dirLightEntitiesView.each())
     {
         m_deferredPassCBData.DirLight.Color = entityLight.Color;
+        m_deferredPassCBData.DirLight.Color.w = entityLight.Intensity;
         m_deferredPassCBData.DirLight.Direction = entityTransform.GetForwardVector();
     }
 #pragma endregion DirLight
@@ -1196,7 +1236,7 @@ void Blainn::RenderSubsystem::RenderLightingPass(ID3D12GraphicsCommandList2 *pCo
     BLAINN_PROFILE_FUNC();
     DeferredDirectionalLightPass(pCommandList);
     DeferredPointLightPass(pCommandList);
-    // DeferredSpotLightPass(pCommandList);
+    DeferredSpotLightPass(pCommandList);
 }
 
 void Blainn::RenderSubsystem::DeferredDirectionalLightPass(ID3D12GraphicsCommandList2 *pCommandList)
@@ -1251,7 +1291,8 @@ void Blainn::RenderSubsystem::DeferredPointLightPass(ID3D12GraphicsCommandList2 
     // !!! HACK (TO DRAW EVEN IF FRUSTUM INTERSECTS LIGHT VOLUME)
     pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::DeferredPointWithinFrustum).Get());
 
-    DrawInstancedMesh(pCommandList, AssetManager::GetInstance().GetDefaultModel(static_cast<uint32_t>(EPrebuiltMeshType::SPHERE)), m_pointLightsCount);
+    if (m_pointLightsCount)
+        DrawInstancedMesh(pCommandList, AssetManager::GetInstance().GetDefaultModel(static_cast<uint32_t>(EPrebuiltMeshType::SPHERE)), m_pointLightsCount);
     m_pointLightsCount = 0u;
 }
 
@@ -1263,7 +1304,8 @@ void Blainn::RenderSubsystem::DeferredSpotLightPass(ID3D12GraphicsCommandList2 *
     // !!! HACK (TO DRAW EVEN IF FRUSTUM INTERSECTS LIGHT VOLUME)
     pCommandList->SetPipelineState(m_pipelineStates.at(PipelineStateObject::EPsoType::DeferredSpotWithinFrustum).Get());
 
-    DrawInstancedMesh(pCommandList, AssetManager::GetInstance().GetDefaultModel(static_cast<uint32_t>(EPrebuiltMeshType::CONE)), m_spotLightsCount);
+    if (m_spotLightsCount)
+        DrawInstancedMesh(pCommandList, AssetManager::GetInstance().GetDefaultModel(static_cast<uint32_t>(EPrebuiltMeshType::CONE)), m_spotLightsCount);
     m_spotLightsCount = 0u;
 }
 
@@ -1572,19 +1614,19 @@ eastl::pair<XMMATRIX, XMMATRIX> Blainn::RenderSubsystem::GetLightSpaceMatrix(con
     minZ = (minZ < 0) ? minZ * zMult : minZ / zMult;
     maxZ = (maxZ < 0) ? maxZ / zMult : maxZ * zMult;
 
-    const XMMATRIX lightProj = XMMatrixOrthographicOffCenterLH(minX, maxX, minY, maxY, minZ, maxZ);
+    const XMMATRIX lightProj = XMMatrixOrthographicOffCenterLH(minX + 0.0001f, maxX, minY + 0.0001f, maxY, minZ, maxZ + 0.0001f);
 
     return eastl::make_pair(lightView, lightProj);
 }
 
-void Blainn::RenderSubsystem::GetLightSpaceMatrices(eastl::vector<eastl::pair<XMMATRIX, XMMATRIX>> &outMatrices)
+void Blainn::RenderSubsystem::GetLightSpaceMatrices(eastl::array<eastl::pair<XMMATRIX, XMMATRIX>, 4>& outMatrices)
 {
     for (UINT i = 0; i < MaxCascades; ++i)
     {
         if (i == 0)
-            outMatrices.push_back(GetLightSpaceMatrix(m_camera->GetNearZ(), m_cascadeShadowMap->GetCascadeLevel(i)));
+            outMatrices[i] = (GetLightSpaceMatrix(m_camera->GetNearZ(), m_cascadeShadowMap->GetCascadeLevel(i)));
         else
-            outMatrices.push_back(GetLightSpaceMatrix(m_cascadeShadowMap->GetCascadeLevel(i - 1), m_cascadeShadowMap->GetCascadeLevel(i)));
+            outMatrices[i] = (GetLightSpaceMatrix(m_cascadeShadowMap->GetCascadeLevel(i - 1), m_cascadeShadowMap->GetCascadeLevel(i)));
     }
 }
 
