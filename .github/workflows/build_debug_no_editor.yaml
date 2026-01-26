@@ -50,7 +50,6 @@ jobs:
           }
 
           $filesToZip = @(
-            "build\editor"
             "build\engine"
             "build\lib"
             "build\BlainnflareEngine.exe"
