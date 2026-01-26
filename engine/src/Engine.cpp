@@ -412,6 +412,13 @@ LRESULT CALLBACK Engine::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
         Input::UpdateScrollState(static_cast<float>(wheelDelta), 0.0f);
         return 0;
     }
+    case WM_SIZE:
+    {
+        UINT width = LOWORD(lParam);
+        UINT height = HIWORD(lParam);
+        RenderSubsystem::GetInstance().OnResize(width, height);
+        return 0;
+    }
 
     default:
         return DefWindowProc(hwnd, msg, wParam, lParam);
