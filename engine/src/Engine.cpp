@@ -7,6 +7,7 @@
 #include <VGJS.h>
 
 #include <semaphore>
+#include <windowsx.h>
 
 #include "Input/InputSubsystem.h"
 #include "Input/KeyboardEvents.h"
@@ -327,9 +328,91 @@ LRESULT CALLBACK Engine::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
     case WM_DESTROY:
         PostQuitMessage(0);
         return 0;
+
     case WM_KEYDOWN:
+        Input::UpdateKeyState(static_cast<KeyCode>(wParam), KeyState::Pressed);
         if (wParam == VK_ESCAPE) PostQuitMessage(0);
         return 0;
+    case WM_KEYUP:
+        Input::UpdateKeyState(static_cast<KeyCode>(wParam), KeyState::Released);
+        return 0;
+
+    case WM_LBUTTONDOWN:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::ResetMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        Input::UpdateButtonState(MouseButton::Left, ButtonState::Pressed);
+        SetCapture(hwnd);
+        return 0;
+    }
+    case WM_LBUTTONUP:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::ResetMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        Input::UpdateButtonState(MouseButton::Left, ButtonState::Released);
+        ReleaseCapture();
+        return 0;
+    }
+    case WM_RBUTTONDOWN:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::ResetMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        Input::UpdateButtonState(MouseButton::Right, ButtonState::Pressed);
+        SetCapture(hwnd);
+        return 0;
+    }
+    case WM_RBUTTONUP:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::ResetMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        Input::UpdateButtonState(MouseButton::Right, ButtonState::Released);
+        ReleaseCapture();
+        return 0;
+    }
+    case WM_MBUTTONDOWN:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::ResetMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        Input::UpdateButtonState(MouseButton::Middle, ButtonState::Pressed);
+        SetCapture(hwnd);
+        return 0;
+    }
+    case WM_MBUTTONUP:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::ResetMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        Input::UpdateButtonState(MouseButton::Middle, ButtonState::Released);
+        ReleaseCapture();
+        return 0;
+    }
+
+    case WM_MOUSEMOVE:
+    {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+        Input::UpdateMousePosition(static_cast<float>(mouseX), static_cast<float>(mouseY));
+        return 0;
+    }
+
+    case WM_MOUSEWHEEL:
+    {
+        short wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+        Input::UpdateScrollState(0.0f, static_cast<float>(wheelDelta));
+        return 0;
+    }
+    case WM_MOUSEHWHEEL:
+    {
+        short wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+        Input::UpdateScrollState(static_cast<float>(wheelDelta), 0.0f);
+        return 0;
+    }
+
     default:
         return DefWindowProc(hwnd, msg, wParam, lParam);
     }
