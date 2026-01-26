@@ -54,9 +54,16 @@ inline TransformComponent GetTransform(const YAML::Node &node)
         return transform;
     }
 
-    if (node["Translation"])
+    auto &transformNode = node["TransformComponent"];
+    if (!transformNode)
     {
-        auto translationNode = node["Translation"];
+        BF_ERROR("Failed to parse transform component. Not found in .scene!");
+        return transform;
+    }
+
+    if (transformNode["Translation"])
+    {
+        auto translationNode = transformNode["Translation"];
         if (translationNode["x"] && translationNode["y"] && translationNode["z"])
         {
             Vec3 translation(translationNode["x"].as<float>(), translationNode["y"].as<float>(),
@@ -64,9 +71,9 @@ inline TransformComponent GetTransform(const YAML::Node &node)
             transform.SetTranslation(translation);
         }
     }
-    if (node["Rotation"])
+    if (transformNode["Rotation"])
     {
-        auto rotationNode = node["Rotation"];
+        auto rotationNode = transformNode["Rotation"];
         if (rotationNode["x"] && rotationNode["y"] && rotationNode["z"])
         {
             float x = rotationNode["x"].as<float>();
@@ -76,9 +83,9 @@ inline TransformComponent GetTransform(const YAML::Node &node)
         }
     }
 
-    if (node["Scale"])
+    if (transformNode["Scale"])
     {
-        auto scaleNode = node["Scale"];
+        auto scaleNode = transformNode["Scale"];
         if (scaleNode["x"] && scaleNode["y"] && scaleNode["z"])
         {
             Vec3 scale(scaleNode["x"].as<float>(), scaleNode["y"].as<float>(), scaleNode["z"].as<float>());
@@ -109,27 +116,34 @@ inline MeshComponent GetMesh(const YAML::Node &node)
         return mesh;
     }
 
+    auto &meshNode = node["MeshComponent"];
+    if (!meshNode)
+    {
+        BF_ERROR("Failed to parse mesh component. Not found in .scene!");
+        return mesh;
+    }
+
     Path relativeMeshPath;
     Path absolutMeshPath;
     Path relativeMaterialPath;
     Path absolutMaterialPath;
 
-    if (node["Enabled"]) mesh.Enabled = node["Enabled"].as<bool>();
+    if (meshNode["Enabled"]) mesh.Enabled = meshNode["Enabled"].as<bool>();
     else mesh.Enabled = true;
 
-    if (node["IsWalkable"]) mesh.IsWalkable = node["IsWalkable"].as<bool>();
+    if (meshNode["IsWalkable"]) mesh.IsWalkable = meshNode["IsWalkable"].as<bool>();
     else mesh.IsWalkable = false;
 
 
-    if (node["Material"])
+    if (meshNode["Material"])
     {
-        relativeMaterialPath = node["Material"].as<std::string>();
+        relativeMaterialPath = meshNode["Material"].as<std::string>();
         absolutMaterialPath = Engine::GetContentDirectory() / relativeMaterialPath;
     }
 
-    if (node["Path"])
+    if (meshNode["Path"])
     {
-        relativeMeshPath = node["Path"].as<std::string>();
+        relativeMeshPath = meshNode["Path"].as<std::string>();
         absolutMeshPath = Engine::GetContentDirectory() / relativeMeshPath;
     }
 
@@ -178,13 +192,20 @@ inline RelationshipComponent GetRelationship(const YAML::Node &node)
         return relationship;
     }
 
-    if (node["Parent"])
+    auto &relNode = node["RelationshipComponent"];
+    if (!relNode)
     {
-        std::string parentIdStr = node["Parent"].as<std::string>();
+        BF_ERROR("Failed to parse relationship component. Not found in .scene!");
+        return relationship;
+    }
+
+    if (relNode["Parent"])
+    {
+        std::string parentIdStr = relNode["Parent"].as<std::string>();
         relationship.ParentHandle = uuid::fromStrFactory(parentIdStr);
     }
 
-    if (const YAML::Node &childrenNode = node["Children"])
+    if (const YAML::Node &childrenNode = relNode["Children"])
     {
         if (childrenNode.IsSequence())
         {
@@ -214,11 +235,18 @@ inline ScriptingComponent GetScripting(const YAML::Node &node)
 
     if (!node || node.IsNull() || !node.IsMap())
     {
-        BF_WARN("Scripting component not found or invalid in .scene file.");
+        BF_ERROR("Scripting component not found or invalid in .scene file.");
         return component;
     }
 
-    const YAML::Node &scriptsNode = node["Scripts"];
+    auto& scriptingNode = node["ScriptingComponent"];
+    if (!scriptingNode)
+    {
+        BF_ERROR("Failed to parse script component. Not found in .scene!");
+        return component;
+    }
+
+    const auto &scriptsNode = scriptingNode["Scripts"];
     if (!scriptsNode || !scriptsNode.IsSequence()) return component;
 
     for (const auto &scriptNode : scriptsNode)
@@ -251,21 +279,30 @@ inline bool HasPhysics(const YAML::Node &node)
 
 inline void GetPhysics(const YAML::Node &node, const Entity &entity)
 {
-    ComponentShapeType shapeType = static_cast<ComponentShapeType>(node["ShapeType"].as<int>());
-    PhysicsComponentMotionType motionType = static_cast<PhysicsComponentMotionType>(node["MotionType"].as<int>());
-    float gravityFactor = node["GravityFactor"].as<float>();
-    bool isTrigger = node["IsTrigger"].as<bool>();
-    ObjectLayer layer = static_cast<ObjectLayer>(node["ObjectLayer"].as<int>());
+    if (!node || node.IsNull()) return;
+
+    auto &physNode = node["PhysicsComponent"];
+    if (!physNode)
+    {
+        BF_ERROR("Failed to parse physics component. Not found in .scene!");
+        return;
+    }
+
+    ComponentShapeType shapeType = static_cast<ComponentShapeType>(physNode["ShapeType"].as<int>());
+    PhysicsComponentMotionType motionType = static_cast<PhysicsComponentMotionType>(physNode["MotionType"].as<int>());
+    float gravityFactor = physNode["GravityFactor"].as<float>();
+    bool isTrigger = physNode["IsTrigger"].as<bool>();
+    ObjectLayer layer = static_cast<ObjectLayer>(physNode["ObjectLayer"].as<int>());
     uint8_t constraints = static_cast<uint8_t>(AllowedDOFs::All);
 
-    if (node["Constraints"])
+    if (physNode["Constraints"])
     {
-        constraints = static_cast<uint8_t>(node["Constraints"].as<int>());
+        constraints = static_cast<uint8_t>(physNode["Constraints"].as<int>());
     }
 
     ShapeCreationSettings shapeSettings(shapeType);
 
-    if (auto &shapeSettingsNode = node["ShapeSettings"])
+    if (auto &shapeSettingsNode = physNode["ShapeSettings"])
     {
         if (shapeSettingsNode["HalfHeight"])
         {
@@ -309,16 +346,23 @@ inline void GetAIController(const YAML::Node &node, const Entity &entity)
 {
     if (!node || node.IsNull() || !node.IsMap())
     {
-        BF_WARN("AIController component not found or invalid in .scene file.");
+        BF_ERROR("AIController component not found or invalid in .scene file.");
         return;
     }
 
-    std::string path = node["Path"].as<std::string>("");
-    float movementSpeed = node["MovementSpeed"].as<float>();
-    float stoppingDistance = node["StoppingDistance"].as<float>();
+    auto &aiControllerNode = node["AIControllerComponent"];
+    if (!aiControllerNode)
+    {
+        BF_ERROR("Failed to parse AI controller component. Not found in .scene!");
+        return;
+    }
+
+    std::string path = aiControllerNode["Path"].as<std::string>("");
+    float movementSpeed = aiControllerNode["MovementSpeed"].as<float>();
+    float stoppingDistance = aiControllerNode["StoppingDistance"].as<float>();
     float groundOffset = 0.5;
 
-    if (node["GroundOffset"]) groundOffset = node["GroundOffset"].as<float>();
+    if (aiControllerNode["GroundOffset"]) groundOffset = aiControllerNode["GroundOffset"].as<float>();
 
     AISubsystem::GetInstance().CreateAttachAIControllerComponent(entity, path);
     auto &comp = entity.GetComponent<AIControllerComponent>();
@@ -341,13 +385,21 @@ inline CameraComponent GetCamera(const YAML::Node &node)
     CameraComponent camera;
     if (!node || node.IsNull() || !node.IsMap())
     {
-        BF_WARN("Camera component not found or invalid in .scene file.");
+        BF_ERROR("Camera component not found or invalid in .scene file.");
         return camera;
     }
-    if (node["Priority"]) camera.CameraPriority = node["Priority"].as<int32_t>(0);
+
+    auto &camNode = node["CameraComponent"];
+    if (!camNode)
+    {
+        BF_ERROR("Camera component not found.");
+        return camera;
+    }
+
+    if (camNode["Priority"]) camera.CameraPriority = camNode["Priority"].as<int32_t>(0);
     camera.camera.Reset(75.f, 16.f / 9.f, 0.01, 1000);
 
-    if (auto &settings = node["CameraSettings"])
+    if (auto &settings = camNode["CameraSettings"])
     {
         camera.camera.SetFovDegrees(settings["FOV"].as<float>());
         camera.camera.SetNearZ(settings["NearZ"].as<float>());
@@ -372,14 +424,21 @@ inline SkyboxComponent GetSkybox(const YAML::Node &node)
 
     if (!node || node.IsNull() || !node.IsMap())
     {
-        BF_WARN("Skybox component not found or invalid in .scene file.");
+        BF_ERROR("Skybox component not found or invalid in .scene file.");
+        return component;
+    }
+
+    auto &skyboxNode = node["SkyboxComponent"];
+    if (!skyboxNode)
+    {
+        BF_ERROR("Skybox component not found or invalid in .scene file.");
         return component;
     }
 
     Path relativePath;
     Path absolutPath;
 
-    relativePath = node["Path"].as<std::string>();
+    relativePath = skyboxNode["Path"].as<std::string>();
     absolutPath = Engine::GetContentDirectory() / relativePath;
 
     if (std::filesystem::is_regular_file(absolutPath))
@@ -407,19 +466,26 @@ inline NavmeshVolumeComponent GetNavMeshVolume(const YAML::Node &node)
 
     if (!node || node.IsNull())
     {
-        BF_WARN("Navmesh Volume component not found or invalid in .scene file.");
+        BF_ERROR("Navmesh Volume component not found or invalid in .scene file.");
         return component;
     }
 
-    Vec3 extents = {node["Extent"]["X"].as<float>(), node["Extent"]["Y"].as<float>(), node["Extent"]["Z"].as<float>()};
+    auto& volumeNode = node["NavmeshVolumeComponent"];
+    if (!volumeNode)
+    {
+        BF_ERROR("Navmesh Volume component not found or invalid in .scene file.");
+        return component;
+    }
+
+    Vec3 extents = {volumeNode["Extent"]["X"].as<float>(), volumeNode["Extent"]["Y"].as<float>(), volumeNode["Extent"]["Z"].as<float>()};
     component.LocalBounds =
         JPH::AABox::sFromTwoPoints({-extents.x, -extents.y, -extents.z}, {extents.x, extents.y, extents.z});
-    component.IsEnabled = node["IsEnabled"].as<bool>(true);
-    component.CellSize = node["CellSize"].as<float>();
-    component.AgentHeight = node["AgentHeight"].as<float>();
-    component.AgentRadius = node["AgentRadius"].as<float>();
-    component.AgentMaxClimb = node["AgentMaxClimb"].as<float>();
-    component.AgentMaxSlope = node["AgentMaxSlope"].as<float>();
+    component.IsEnabled = volumeNode["IsEnabled"].as<bool>(true);
+    component.CellSize = volumeNode["CellSize"].as<float>();
+    component.AgentHeight = volumeNode["AgentHeight"].as<float>();
+    component.AgentRadius = volumeNode["AgentRadius"].as<float>();
+    component.AgentMaxClimb = volumeNode["AgentMaxClimb"].as<float>();
+    component.AgentMaxSlope = volumeNode["AgentMaxSlope"].as<float>();
     return component;
 }
 
@@ -447,19 +513,26 @@ inline StimulusComponent GetStimulus(const YAML::Node &node)
 
     if (!node || node.IsNull() || !node.IsMap())
     {
-        BF_WARN("Stimulus component not found or invalid in .scene file.");
+        BF_ERROR("Stimulus component not found or invalid in .scene file.");
         return component;
     }
 
-    component.enableSight = node["EnableSight"].as<bool>();
-    component.enableSound = node["EnableSound"].as<bool>();
-    component.enableTouch = node["EnableTouch"].as<bool>();
-    component.enableDamage = node["EnableDamage"].as<bool>();
+    auto& stimulusNode = node["StimulusComponent"];
+    if (!stimulusNode)
+    {
+        BF_ERROR("Stimulus component not found in .scene file.");
+        return component;
+    }
 
-    component.sightRadius = node["SightRadius"].as<float>();
-    component.soundRadius = node["SoundRadius"].as<float>();
-    component.tag = node["Tag"].as<std::string>("").c_str();
-    component.enabled = node["Enabled"].as<bool>();
+    component.enableSight = stimulusNode["EnableSight"].as<bool>();
+    component.enableSound = stimulusNode["EnableSound"].as<bool>();
+    component.enableTouch = stimulusNode["EnableTouch"].as<bool>();
+    component.enableDamage = stimulusNode["EnableDamage"].as<bool>();
+
+    component.sightRadius = stimulusNode["SightRadius"].as<float>();
+    component.soundRadius = stimulusNode["SoundRadius"].as<float>();
+    component.tag = stimulusNode["Tag"].as<std::string>("").c_str();
+    component.enabled = stimulusNode["Enabled"].as<bool>();
 
     return component;
 }
@@ -483,29 +556,36 @@ inline PerceptionComponent GetPerception(const YAML::Node &node)
         return perception;
     }
 
-    if (node["EnableSight"]) perception.enableSight = node["EnableSight"].as<bool>();
-    if (node["SightRange"]) perception.sightRange = node["SightRange"].as<float>();
-    if (node["SightFOV"]) perception.sightFOV = node["SightFOV"].as<float>();
-    if (node["SightForgetTime"]) perception.sightForgetTime = node["SightForgetTime"].as<float>();
-    if (node["SightLOSCheckInterval"]) perception.sightLOSCheckInterval = node["SightLOSCheckInterval"].as<float>();
-    if (node["SightRequireLOS"]) perception.sightRequireLOS = node["SightRequireLOS"].as<bool>();
+    auto& perceptionNode = node["PerceptionComponent"];
+    if (!perceptionNode)
+    {
+        BF_ERROR("Perception component not found in .scene!");
+        return perception;
+    }
 
-    if (node["EnableSound"]) perception.enableSound = node["EnableSound"].as<bool>();
-    if (node["SoundRange"]) perception.soundRange = node["SoundRange"].as<float>();
-    if (node["SoundForgetTime"]) perception.soundForgetTime = node["SoundForgetTime"].as<float>();
-    if (node["SoundMinStrength"]) perception.soundMinStrength = node["SoundMinStrength"].as<float>();
+    if (perceptionNode["EnableSight"]) perception.enableSight = perceptionNode["EnableSight"].as<bool>();
+    if (perceptionNode["SightRange"]) perception.sightRange = perceptionNode["SightRange"].as<float>();
+    if (perceptionNode["SightFOV"]) perception.sightFOV = perceptionNode["SightFOV"].as<float>();
+    if (perceptionNode["SightForgetTime"]) perception.sightForgetTime = perceptionNode["SightForgetTime"].as<float>();
+    if (perceptionNode["SightLOSCheckInterval"]) perception.sightLOSCheckInterval = perceptionNode["SightLOSCheckInterval"].as<float>();
+    if (perceptionNode["SightRequireLOS"]) perception.sightRequireLOS = perceptionNode["SightRequireLOS"].as<bool>();
 
-    if (node["EnableTouch"]) perception.enableTouch = node["EnableTouch"].as<bool>();
-    if (node["TouchForgetTime"]) perception.touchForgetTime = node["TouchForgetTime"].as<float>();
+    if (perceptionNode["EnableSound"]) perception.enableSound = perceptionNode["EnableSound"].as<bool>();
+    if (perceptionNode["SoundRange"]) perception.soundRange = perceptionNode["SoundRange"].as<float>();
+    if (perceptionNode["SoundForgetTime"]) perception.soundForgetTime = perceptionNode["SoundForgetTime"].as<float>();
+    if (perceptionNode["SoundMinStrength"]) perception.soundMinStrength = perceptionNode["SoundMinStrength"].as<float>();
 
-    if (node["EnableDamage"]) perception.enableDamage = node["EnableDamage"].as<bool>();
-    if (node["DamageForgetTime"]) perception.damageForgetTime = node["DamageForgetTime"].as<float>();
+    if (perceptionNode["EnableTouch"]) perception.enableTouch = perceptionNode["EnableTouch"].as<bool>();
+    if (perceptionNode["TouchForgetTime"]) perception.touchForgetTime = perceptionNode["TouchForgetTime"].as<float>();
 
-    if (node["UpdateInterval"]) perception.updateInterval = node["UpdateInterval"].as<float>();
-    if (node["MaxUpdateDistance"]) perception.maxUpdateDistance = node["MaxUpdateDistance"].as<float>();
-    if (node["Enabled"]) perception.enabled = node["Enabled"].as<bool>();
+    if (perceptionNode["EnableDamage"]) perception.enableDamage = perceptionNode["EnableDamage"].as<bool>();
+    if (perceptionNode["DamageForgetTime"]) perception.damageForgetTime = perceptionNode["DamageForgetTime"].as<float>();
 
-    if (const YAML::Node &ignoreTagsNode = node["IgnoreTags"])
+    if (perceptionNode["UpdateInterval"]) perception.updateInterval = perceptionNode["UpdateInterval"].as<float>();
+    if (perceptionNode["MaxUpdateDistance"]) perception.maxUpdateDistance = perceptionNode["MaxUpdateDistance"].as<float>();
+    if (perceptionNode["Enabled"]) perception.enabled = perceptionNode["Enabled"].as<bool>();
+
+    if (const YAML::Node &ignoreTagsNode = perceptionNode["IgnoreTags"])
     {
         if (ignoreTagsNode.IsSequence())
         {
@@ -518,7 +598,7 @@ inline PerceptionComponent GetPerception(const YAML::Node &node)
         }
     }
 
-    if (const YAML::Node &priorityTagsNode = node["PriorityTags"])
+    if (const YAML::Node &priorityTagsNode = perceptionNode["PriorityTags"])
     {
         if (priorityTagsNode.IsSequence())
         {
@@ -547,8 +627,15 @@ inline DirectionalLightComponent GetDirectionalLight(const YAML::Node &node)
 {
     DirectionalLightComponent directionalLight;
 
-    directionalLight.Color = {node["Color"]["R"].as<float>(), node["Color"]["G"].as<float>(),
-                              node["Color"]["B"].as<float>(), node["Color"]["A"].as<float>()};
+    auto &lightNode = node["DirectionalLightComponent"];
+    if (!lightNode)
+    {
+        BF_ERROR("Failed to parse directional light component. Not found in .scene!");
+        return directionalLight;
+    }
+
+    directionalLight.Color = {lightNode["Color"]["R"].as<float>(), lightNode["Color"]["G"].as<float>(),
+                              lightNode["Color"]["B"].as<float>(), lightNode["Color"]["A"].as<float>()};
 
     return directionalLight;
 }
@@ -566,13 +653,20 @@ inline PointLightComponent GetPointLight(const YAML::Node &node)
 {
     PointLightComponent pointLight;
 
-    pointLight.Color = {node["Color"]["R"].as<float>(), node["Color"]["G"].as<float>(), node["Color"]["B"].as<float>(),
-                        node["Color"]["A"].as<float>()};
+    auto &lightNode = node["PointLightComponent"];
+    if (!lightNode)
+    {
+        BF_ERROR("Failed to parse point light component. Not found in .scene!");
+        return pointLight;
+    }
 
-    pointLight.FalloffStart = node["FalloffStart"].as<float>();
-    pointLight.FalloffEnd = node["FalloffEnd"].as<float>();
+    pointLight.Color = {lightNode["Color"]["R"].as<float>(), lightNode["Color"]["G"].as<float>(),
+                        lightNode["Color"]["B"].as<float>(), lightNode["Color"]["A"].as<float>()};
 
-    pointLight.Intensity = node["Intensity"].as<float>(1);
+    pointLight.FalloffStart = lightNode["FalloffStart"].as<float>();
+    pointLight.FalloffEnd = lightNode["FalloffEnd"].as<float>();
+
+    pointLight.Intensity = lightNode["Intensity"].as<float>(1);
 
     return pointLight;
 }
@@ -590,15 +684,22 @@ inline SpotLightComponent GetSpotLight(const YAML::Node &node)
 {
     SpotLightComponent pointLight;
 
-    pointLight.Color = {node["Color"]["R"].as<float>(), node["Color"]["G"].as<float>(), node["Color"]["B"].as<float>(),
-                        node["Color"]["A"].as<float>()};
+    auto &lightNode = node["SpotLightComponent"];
+    if (!lightNode)
+    {
+        BF_ERROR("Failed to parse spotlight component. Not found in .scene!");
+        return pointLight;
+    }
 
-    pointLight.FalloffStart = node["FalloffStart"].as<float>();
-    pointLight.FalloffEnd = node["FalloffEnd"].as<float>();
+    pointLight.Color = {lightNode["Color"]["R"].as<float>(), lightNode["Color"]["G"].as<float>(),
+                        lightNode["Color"]["B"].as<float>(), lightNode["Color"]["A"].as<float>()};
 
-    pointLight.Intensity = node["Intensity"].as<float>(1);
-    pointLight.SpotInnerAngle = node["InnerAngle"].as<float>(1);
-    pointLight.SpotOuterAngle = node["OuterAngle"].as<float>(1);
+    pointLight.FalloffStart = lightNode["FalloffStart"].as<float>();
+    pointLight.FalloffEnd = lightNode["FalloffEnd"].as<float>();
+
+    pointLight.Intensity = lightNode["Intensity"].as<float>(1);
+    pointLight.SpotInnerAngle = lightNode["InnerAngle"].as<float>(1);
+    pointLight.SpotOuterAngle = lightNode["OuterAngle"].as<float>(1);
 
     return pointLight;
 }
