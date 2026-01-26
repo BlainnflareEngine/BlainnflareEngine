@@ -98,11 +98,16 @@ void Blainn::Scene::Update()
         }
         else
         {
-            cam->SetPosition(camTransform->GetTranslation());
+            Vec3 scale;
+            Quat rot;
+            Vec3 translation;
 
-            // commented this cause camera ViewMatrix is updated every frame depends on dirty flag and position
+            auto camWorldMat = GetWorldSpaceTransformMatrix(*camEntity);
+            camWorldMat.Decompose(scale, rot, translation);
 
-            Mat4 camViewMat = GetWorldSpaceTransformMatrix(*camEntity).Invert();
+            cam->SetPosition(translation);
+
+            Mat4 camViewMat = (SimpleMath::Matrix::CreateFromQuaternion(rot) * SimpleMath::Matrix::CreateTranslation(translation)).Invert();
             cam->SetViewMatrix(camViewMat);
 
             cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
