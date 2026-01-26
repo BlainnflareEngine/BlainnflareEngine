@@ -42,6 +42,7 @@ void AISubsystem::Destroy()
 
 void AISubsystem::Update(float dt)
 {
+    BLAINN_PROFILE_FUNC();
     Scene &scene = *Engine::GetActiveScene();
     
     if (m_settings.enableLOD)
@@ -52,6 +53,8 @@ void AISubsystem::Update(float dt)
     const auto& view = scene.GetAllEntitiesWith<IDComponent, AIControllerComponent>();
     for (const auto &[entityHandle, idComp, aiControllerComponent] : view.each())
     {
+        eastl::string name = scene.GetEntityWithUUID(idComp.ID).GetComponent<TagComponent>().Tag;
+        BLAINN_PROFILE_SCOPE_DYNAMIC(name.c_str());
         aiControllerComponent.aiController.Update(dt);
     }
 }

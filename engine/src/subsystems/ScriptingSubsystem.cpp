@@ -89,6 +89,8 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
     {
         for (auto &script : scriptingComponent.scripts)
         {
+            std::string name = script.second->GetScriptPath().string();
+            BLAINN_PROFILE_SCOPE_DYNAMIC(name.c_str());
             uuid id = idComp.ID;
             script.second->OnUpdateCall(deltaTimeMs);
             script.second->OnDrawUI();
