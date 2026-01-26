@@ -82,6 +82,8 @@ public:
     template <typename T> bool HasComponent();
     template <typename T> bool HasComponent() const;
 
+    bool HasComponent(entt::id_type typeId);
+
     template <typename... T> bool HasAny();
     template <typename... T> bool HasAny() const;
 

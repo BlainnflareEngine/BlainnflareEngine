@@ -50,6 +50,9 @@ public:
     }
 
 private:
+    static void BuildDebugNavMesh();
+
+private:
     inline static dtNavMesh *m_navMesh = nullptr;
     inline static dtNavMeshQuery *m_navQuery = nullptr;
     inline static dtQueryFilter *m_filter = nullptr;
@@ -63,6 +66,8 @@ private:
 
     inline static std::mt19937 m_randomGenerator;
     inline static std::uniform_real_distribution<float> m_uniformDist{0.0f, 1.0f};
+
+    inline static eastl::vector<VertexPositionColor> m_debugVertexVector;
 
     static float RandomFloatCallback();
 };

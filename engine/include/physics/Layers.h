@@ -31,18 +31,51 @@ public:
         case Layers::UNUSED4:
             return false;
         case Layers::NON_MOVING:
+        {
             return inObject2 == Layers::MOVING || inObject2 == Layers::DEBRIS;
+        }
         case Layers::MOVING:
+        {
             return inObject2 == Layers::NON_MOVING || inObject2 == Layers::MOVING || inObject2 == Layers::SENSOR;
+        }
         case Layers::DEBRIS:
+        {
             return inObject2 == Layers::NON_MOVING;
+        }
         case Layers::SENSOR:
+        {
             return inObject2 == Layers::MOVING;
+        }
         default:
-            JPH_ASSERT(false);
+        {
+            BF_ERROR("Wrong collision layer");
             return false;
         }
+        }
     }
+};
+
+// used in raycast
+class ObjectLayerFilterImpl : public JPH::ObjectLayerFilter
+{
+public:
+    virtual bool ShouldCollide(JPH::ObjectLayer inObject) const override
+    {
+        if (ignoreLayers[inObject])
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    void SetLayerIgnored(JPH::ObjectLayer layer, bool isIgnored)
+    {
+        ignoreLayers[layer] = isIgnored;
+    };
+
+private:
+    eastl::array<JPH::ObjectLayer, Layers::NUM_LAYERS> ignoreLayers = {false};
 };
 
 /// Broadphase layers

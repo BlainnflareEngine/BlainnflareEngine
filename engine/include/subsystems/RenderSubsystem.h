@@ -43,6 +43,12 @@ public:
     void OnResize(UINT newWidth, UINT newHeight);
     void Destroy();
 
+    void DestroyCameraComponent(Entity entity);
+    void DestroyDirectionalLightComponent(Entity entity);
+    void DestroyPointLightComponent(Entity entity);
+    void DestroySpotLightComponent(Entity entity);
+    void DestroySkyboxComponent(Entity entity);
+
 public:
     void ToggleVSync()
     {
@@ -183,16 +189,16 @@ private:
     // For drawing specific meshes
     void DrawMesh(ID3D12GraphicsCommandList2 *pCommandList, const Model &mesh);
     void DrawMeshes(ID3D12GraphicsCommandList2 *pCommandList);
-    void DrawInstancedMesh(ID3D12GraphicsCommandList2 *pCommandList, const Model& mesh, const UINT numInstances);
+    void DrawInstancedMesh(ID3D12GraphicsCommandList2 *pCommandList, const Model &mesh, const UINT numInstances);
 
     void DrawQuad(ID3D12GraphicsCommandList2 *pCommandList);
 
     eastl::pair<XMMATRIX, XMMATRIX> GetLightSpaceMatrix(const float nearZ, const float farZ);
     // Doubt that't a good idea to return vector of matrices. Should rather pass vector as a parameter probalby and
     // fill it inside function.
-    void GetLightSpaceMatrices(eastl::vector<eastl::pair<XMMATRIX, XMMATRIX>> &outMatrices);
+    void GetLightSpaceMatrices(eastl::array<eastl::pair<XMMATRIX, XMMATRIX>, 4> &outMatrices);
 
-    eastl::vector<XMVECTOR> GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection);
+    static eastl::array<XMVECTOR, 8> GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection);
 
 private:
     UINT m_dxgiFactoryFlags = 0u;

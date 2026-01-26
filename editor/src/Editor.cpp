@@ -5,6 +5,7 @@
 #include "Editor.h"
 
 #include "AssetManager.h"
+#include "EditorRegistry.h"
 #include "Engine.h"
 #include "FileSystemUtils.h"
 #include "ui_editor_main.h"
@@ -29,6 +30,8 @@ void Editor::Init(int argc, char **argv)
 {
     using namespace std::filesystem;
     m_app = new QApplication(argc, argv);
+
+    editor::InitializeEditorWidgets();
 
     QList<QByteArray> formats = QImageReader::supportedImageFormats();
     qRegisterMetaType<editor::LogMessage>("LogMessage");
@@ -56,10 +59,10 @@ void Editor::Init(int argc, char **argv)
     if (config["DebugLines"]) RenderSubsystem::GetInstance().SetEnableDebug(config["DebugLines"].as<bool>());
     if (config["VSync"]) RenderSubsystem::GetInstance().SetVSyncEnabled(config["VSync"].as<bool>());
 
-    std::string defaultScene = config["DefaultScenePath"].as<std::string>();
+    /*std::string defaultScene = config["DefaultScenePath"].as<std::string>();
     if (!AssetManager::SceneExists(defaultScene)) AssetManager::CreateScene(defaultScene);
 
-    AssetManager::OpenScene(defaultScene);
+    AssetManager::OpenScene(defaultScene);*/
 
     m_editorMain = new editor::editor_main();
     m_editorMain->setWindowIcon(QIcon(":/icons/logo.png"));

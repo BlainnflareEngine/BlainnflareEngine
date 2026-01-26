@@ -4,6 +4,7 @@
 
 #include "entity_inspector_content.h"
 
+#include "EditorRegistry.h"
 #include "entity/scripting/scripting_widget.h"
 #include "LabelsUtils.h"
 #include "../../include/inspector/entity/perception_widget.h"
@@ -27,6 +28,7 @@
 #include "entity/skybox_widget.h"
 #include "entity/stimulus_widget.h"
 #include "entity/light/point_light_widget.h"
+#include "entity/light/spot_light_widget.h"
 
 #include <QScrollArea>
 
@@ -51,117 +53,32 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
 
     m_tag = new QLabel(ToHeader2(m_data.tag), this);
     m_tag->setTextFormat(Qt::MarkdownText);
+    m_tag->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     mainLayout->addWidget(m_tag);
 
     auto separator = new QFrame(this);
     separator->setFrameShape(QFrame::HLine);
+    separator->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     mainLayout->addWidget(separator);
 
     auto addButton = new add_component_button(entity, mainLayout, this);
+    addButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     mainLayout->addWidget(addButton);
 
     connect(m_data.node, &EntityNode::OnTagChanged, this, &entity_inspector_content::SetTag);
 
-    if (entity.HasComponent<Blainn::TransformComponent>())
+    for (const auto &[typeId, factory] : g_widgetRegistry)
     {
-        BLAINN_PROFILE_SCOPE(CreateTransformWidget);
+        BLAINN_PROFILE_FUNC(typeId);
 
-        auto transform = new transform_widget(m_data.node->GetEntity(), this);
-        layout()->addWidget(transform);
+        if (entity.HasComponent(typeId))
+        {
+            auto *widget = factory(entity, this);
+            mainLayout->addWidget(widget);
+        }
     }
 
-    if (entity.HasComponent<Blainn::DirectionalLightComponent>())
-    {
-        BLAINN_PROFILE_SCOPE(CreateDirectionalLightWidget);
-
-        auto dirLight = new directional_light_widget(m_data.node->GetEntity(), this);
-        layout()->addWidget(dirLight);
-    }
-
-    if (entity.HasComponent<Blainn::PointLightComponent>())
-    {
-        BLAINN_PROFILE_SCOPE(CreateDirectionalLightWidget);
-
-        auto dirLight = new point_light_widget(m_data.node->GetEntity(), this);
-        layout()->addWidget(dirLight);
-    }
-
-    if (entity.HasComponent<Blainn::PhysicsComponent>())
-    {
-        BLAINN_PROFILE_SCOPE(CreatePhysicsWidget);
-
-        auto physics = new physics_widget(m_data.node->GetEntity(), this);
-        layout()->addWidget(physics);
-    }
-
-    if (entity.HasComponent<Blainn::ScriptingComponent>())
-    {
-        BLAINN_PROFILE_SCOPE(CreateScriptingWidget);
-
-        auto scripting = new scripting_widget(m_data.node->GetEntity(), this);
-        layout()->addWidget(scripting);
-    }
-
-    if (entity.HasComponent<Blainn::AIControllerComponent>())
-    {
-        BLAINN_PROFILE_SCOPE(CreateAIControllerWidget);
-
-        auto aiController = new ai_controller_widget(m_data.node->GetEntity(), this);
-        layout()->addWidget(aiController);
-    }
-
-    if (entity.HasComponent<Blainn::StimulusComponent>())
-    {
-        BLAINN_PROFILE_SCOPE(CreateStimulusWidget);
-
-        auto stimulus = new stimulus_widget(m_data.node->GetEntity(), this);
-        layout()->addWidget(stimulus);
-    }
-
-    if (entity.HasComponent<Blainn::PerceptionComponent>())
-    {
-        BLAINN_PROFILE_SCOPE(CreatePerceptionWidget);
-
-        auto perception = new perception_widget(m_data.node->GetEntity(), this);
-        layout()->addWidget(perception);
-    }
-
-    if (entity.HasComponent<Blainn::MeshComponent>())
-    {
-        BLAINN_PROFILE_SCOPE(CreateMeshWidget);
-
-        auto mesh = new mesh_widget(m_data.node->GetEntity(), this);
-        layout()->addWidget(mesh);
-    }
-
-    if (entity.HasComponent<Blainn::SkyboxComponent>())
-    {
-        BLAINN_PROFILE_SCOPE(CreateSkyboxWidget);
-
-        auto skybox = new skybox_widget(m_data.node->GetEntity(), this);
-        layout()->addWidget(skybox);
-    }
-
-    if (entity.HasComponent<Blainn::CameraComponent>())
-    {
-        BLAINN_PROFILE_SCOPE(CreateCameraWidget);
-
-        auto camera = new camera_widget(m_data.node->GetEntity(), this);
-        layout()->addWidget(camera);
-    }
-
-    if (entity.HasComponent<Blainn::NavmeshVolumeComponent>())
-    {
-        BLAINN_PROFILE_SCOPE(CreateNavmeshVolumeWidget);
-
-        auto navmeshVolume = new navmesh_volume_widget(m_data.node->GetEntity(), this);
-        layout()->addWidget(navmeshVolume);
-    }
-
-    {
-        BLAINN_PROFILE_SCOPE(AddStretch);
-        mainLayout->addStretch(1);
-    }
+    mainLayout->addStretch(1);
 }
 
 

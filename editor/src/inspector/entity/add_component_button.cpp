@@ -30,6 +30,7 @@
 #include "../../../include/inspector/entity/light/directional_light_widget.h"
 #include "entity/stimulus_widget.h"
 #include "entity/light/point_light_widget.h"
+#include "entity/light/spot_light_widget.h"
 
 
 namespace editor
@@ -62,6 +63,7 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
     m_renderMenu->addSeparator();
     m_directLightAction = m_renderMenu->addAction("Direct light");
     m_pointLightAction = m_renderMenu->addAction("Point light");
+    m_spotLightAction = m_renderMenu->addAction("Spot light");
 
     setText("Add component");
 
@@ -84,6 +86,7 @@ add_component_button::add_component_button(const Blainn::Entity &entity, QBoxLay
     connect(m_skyboxAction, &QAction::triggered, this, &add_component_button::OnSkyboxAction);
     connect(m_directLightAction, &QAction::triggered, this, &add_component_button::OnDirectLightAction);
     connect(m_pointLightAction, &QAction::triggered, this, &add_component_button::OnPointLightAction);
+    connect(m_spotLightAction, &QAction::triggered, this, &add_component_button::OnSpotLightAction);
 }
 
 
@@ -158,7 +161,7 @@ void add_component_button::OnPerceptionAction()
 {
     if (!m_entity.IsValid()) return;
 
-    if (m_entity.HasComponent<Blainn::AIControllerComponent>()) return;
+    if (m_entity.HasComponent<Blainn::PerceptionComponent>()) return;
 
     m_entity.AddComponent<Blainn::PerceptionComponent>();
     auto aiController = new perception_widget(m_entity, this);
@@ -213,6 +216,19 @@ void add_component_button::OnPointLightAction()
     m_entity.AddComponent<Blainn::PointLightComponent>();
 
     auto point = new point_light_widget(m_entity, this);
+    m_layout->insertWidget(m_layout->count() - 1, point);
+}
+
+
+void add_component_button::OnSpotLightAction()
+{
+    if (!m_entity.IsValid()) return;
+
+    if (m_entity.HasComponent<Blainn::SpotLightComponent>()) return;
+
+    m_entity.AddComponent<Blainn::SpotLightComponent>();
+
+    auto point = new spot_light_widget(m_entity, this);
     m_layout->insertWidget(m_layout->count() - 1, point);
 }
 

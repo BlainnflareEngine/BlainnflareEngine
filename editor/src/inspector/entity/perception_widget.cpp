@@ -73,7 +73,7 @@ perception_widget::perception_widget(const Blainn::Entity &entity, QWidget *pare
 
     // Touch Group
     m_touchGroup = new collapsible_group("Touch", THIRD, this);
-    m_touchEnabled = new bool_input_field("Enable Touch", comp.touchForgetTime, this);
+    m_touchEnabled = new bool_input_field("Enable Touch", comp.enableTouch, this);
     m_touchForgetTime = new float_input_field("Forget Time (s)", comp.touchForgetTime, this);
     m_touchForgetTime->SetMinValue(0.1f);
 
@@ -138,37 +138,6 @@ void perception_widget::paintEvent(QPaintEvent *event)
     component_widget_base::paintEvent(event);
 }
 
-
-/*void perception_widget::LoadValues()
-{
-    if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PerceptionComponent>()) return;
-
-    const auto &comp = m_entity.GetComponent<Blainn::PerceptionComponent>();
-
-    // Sight
-    m_sightEnabled->setChecked(comp.enableSight);
-    m_sightRange->SetValue(comp.sightRange);
-    m_sightFOV->SetValue(comp.sightFOV);
-    m_sightForgetTime->SetValue(comp.sightForgetTime);
-    m_sightLOSCheckInterval->SetValue(comp.sightLOSCheckInterval);
-    m_sightRequireLOS->setChecked(comp.sightRequireLOS);
-
-    // Sound
-    m_soundEnabled->setChecked(comp.enableSound);
-    m_soundRange->SetValue(comp.soundRange);
-    m_soundMinStrength->SetValue(comp.soundMinStrength);
-    m_soundForgetTime->SetValue(comp.soundForgetTime);
-
-    // Touch
-    m_touchEnabled->setChecked(comp.enableTouch);
-    m_touchForgetTime->SetValue(comp.touchForgetTime);
-
-    // Damage
-    m_damageEnabled->setChecked(comp.enableDamage);
-    m_damageForgetTime->SetValue(comp.damageForgetTime);
-
-
-}*/
 
 void perception_widget::OnSightEnabledChanged()
 {

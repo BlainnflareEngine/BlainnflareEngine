@@ -1,5 +1,8 @@
 #pragma once
 
+#include "EngineConfig.h"
+
+
 #include <Windows.h>
 #include "Render/Device.h"
 #include "Scene/Scene.h"
@@ -32,12 +35,14 @@ public:
     static bool IsPlayMode();
     static bool PlayModePaused();
     static void InitScenePlayMode();
+    static void InitAISubsystem();
 
 public:
     static Path &GetContentDirectory();
     static void SetContentDirectory(const Path &contentDirectory);
     static void SetDefaultContentDirectory();
 
+    static EngineConfig& GetConfig();
 public:
     static eastl::shared_ptr<Scene> GetActiveScene();
     static void SetActiveScene(const eastl::shared_ptr<Scene> &scene);
@@ -64,5 +69,6 @@ private:
     static inline bool s_playModePaused = false;
     static inline float s_deltaTime = 0.0f;
     static inline eastl::string s_startPlayModeSceneName;
+    static inline EngineConfig s_config;
 };
 } // namespace Blainn

@@ -3,6 +3,8 @@
 #include "scene/EntityTemplates.h"
 #include "scene/Scene.h"
 
+#include "ComponentRegistry.h"
+
 #include <fstream>
 
 #include "Engine.h"
@@ -23,6 +25,7 @@
 #include "Render/RuntimeCamera.h"
 #include "Render/EditorCamera.h"
 #include "subsystems/AISubsystem.h"
+#include "subsystems/PerceptionSubsystem.h"
 
 
 using namespace Blainn;
@@ -152,19 +155,14 @@ void Scene::SaveScene()
 
         Serializer::Default(e, out);
         Serializer::Tag(e, out);
-        Serializer::Transform(e, out);
-        Serializer::Relationship(e, out);
-        Serializer::Scripting(e, out);
-        Serializer::Mesh(e, out);
-        Serializer::Camera(e, out);
-        Serializer::Physics(e, out);
-        Serializer::Skybox(e, out);
-        Serializer::NavMeshVolume(e, out);
-        Serializer::AIController(e, out);
-        Serializer::Stimulus(e, out);
-        Serializer::Perception(e, out);
-        Serializer::DirectionalLight(e, out);
-        Serializer::PointLight(e, out);
+
+        for (const auto &[typeId, meta] : g_componentRegistry)
+        {
+            if (e.HasComponent(typeId))
+            {
+                meta.serializer(e, out);
+            }
+        }
 
         out << YAML::EndMap; // end for every entity
     }
@@ -320,88 +318,16 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
     {
         uuid entityID = GetID(entityNode);
         eastl::string tag = GetTag(entityNode);
+        Entity entity = CreateEntityWithID(entityID, "Untagged", false, onSceneChanged);
 
-        Entity entity = CreateEntityWithID(entityID, tag, false, onSceneChanged);
+        if (!entity) continue;
 
-        if (HasTransform(entityNode))
+        for (const auto &[typeId, meta] : g_componentRegistry)
         {
-            entity.AddComponent<TransformComponent>(eastl::move(GetTransform(entityNode["TransformComponent"])));
-        }
-
-        if (HasScripting(entityNode))
-        {
-            entity.AddComponent<ScriptingComponent>(eastl::move(GetScripting(entityNode["ScriptingComponent"])));
-        }
-
-        if (HasMesh(entityNode))
-        {
-            entity.AddComponent<MeshComponent>(eastl::move(GetMesh(entityNode["MeshComponent"])));
-        }
-
-        if (HasRelationship(entityNode))
-        {
-            auto component = GetRelationship(entityNode["RelationshipComponent"]);
-            if (auto relations = entity.TryGetComponent<RelationshipComponent>())
+            if (meta.hasComponent(entityNode))
             {
-                entity.SetParentUUID(component.ParentHandle);
-                relations->Children = component.Children;
+                meta.deserializer(entity, entityNode);
             }
-            else
-            {
-                entity.AddComponent<RelationshipComponent>(eastl::move(component));
-            }
-        }
-
-        if (HasCamera(entityNode))
-        {
-            auto camera = GetCamera(entityNode["CameraComponent"]);
-            entity.AddComponent<CameraComponent>(eastl::move(camera));
-        }
-
-        if (HasPhysics(entityNode))
-        {
-            GetPhysics(entityNode["PhysicsComponent"], entity);
-        }
-
-        if (HasAIController(entityNode))
-        {
-            GetAIController(entityNode["AIControllerComponent"], entity);
-        }
-
-        if (HasSkybox(entityNode))
-        {
-            auto skybox = GetSkybox(entityNode["SkyboxComponent"]);
-            entity.AddComponent<SkyboxComponent>(eastl::move(skybox));
-        }
-
-        if (HasNavMeshVolume(entityNode))
-        {
-            auto navMeshVolume = GetNavMeshVolume(entityNode["NavmeshVolumeComponent"]);
-            entity.AddComponent<NavmeshVolumeComponent>(eastl::move(navMeshVolume));
-        }
-
-        if (HasStimulus(entityNode))
-        {
-            auto stimulus = GetStimulus(entityNode["StimulusComponent"]);
-            entity.AddComponent<StimulusComponent>(eastl::move(stimulus));
-        }
-
-        if (HasPerception(entityNode))
-        {
-            auto perception = GetPerception(entityNode["PerceptionComponent"]);
-            entity.AddComponent<PerceptionComponent>(eastl::move(perception));
-        }
-
-        if (HasDirectionalLight(entityNode))
-        {
-            auto light = GetDirectionalLight(entityNode["DirectionalLightComponent"]);
-            entity.AddComponent<DirectionalLightComponent>(eastl::move(light));
-        }
-
-        if (HasPointLight(entityNode))
-        {
-            auto point = GetPointLight(entityNode["PointLightComponent"]);
-            entity.AddComponent<PointLightComponent>(eastl::move(point));
         }
     }
 }
@@ -463,6 +389,13 @@ void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool firs
     PhysicsSubsystem::DestroyPhysicsComponent(entity);
     ScriptingSubsystem::DestroyScriptingComponent(entity);
     AISubsystem::GetInstance().DestroyAIControllerComponent(entity);
+    PerceptionSubsystem::GetInstance().DestroyPerceptionComponent(entity);
+    PerceptionSubsystem::GetInstance().DestroyStimulusComponent(entity);
+    RenderSubsystem::GetInstance().DestroyCameraComponent(entity);
+    RenderSubsystem::GetInstance().DestroyDirectionalLightComponent(entity);
+    RenderSubsystem::GetInstance().DestroyPointLightComponent(entity);
+    RenderSubsystem::GetInstance().DestroySpotLightComponent(entity);
+    RenderSubsystem::GetInstance().DestroySkyboxComponent(entity);
     m_Registry.destroy(entity);
     m_EntityIdMap.erase(id);
 

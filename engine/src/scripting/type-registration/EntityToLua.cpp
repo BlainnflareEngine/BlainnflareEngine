@@ -4,6 +4,7 @@
 
 #include "scripting/TypeRegistration.h"
 
+#include "Engine.h"
 #include "components/MeshComponent.h"
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
@@ -90,20 +91,109 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
     EntityType.set_function("GetPhysicsComponent",
                             [](Entity &e) -> PhysicsComponent * { return e.TryGetComponent<PhysicsComponent>(); });
 
-    EntityType.set_function("CastRay",
-                            [&luaState](Entity &e, const Vec3 &origin, const Vec3 &dir)
-                            {
-                                auto res = PhysicsSubsystem::FilteredCastRay(e, origin, dir);
-                                sol::state_view lua(luaState);
-                                if (!res) return sol::object(sol::nil);
-                                sol::table t = luaState.create_table();
-                                RayCastResult rayCastResult = res.value();
-                                t["entityId"] = rayCastResult.entityId.str();
-                                t["distance"] = rayCastResult.distance;
-                                t["hitNormal"] = rayCastResult.hitNormal;
-                                t["hitPoint"] = rayCastResult.hitPoint;
-                                return sol::object(t);
-                            });
+    auto table_to_layers = [](const sol::table &tbl)
+    {
+        eastl::vector<ObjectLayer> layers;
+        for (auto &kv : tbl)
+        {
+            sol::object o = kv.second;
+            if (o.is<int>())
+            {
+                layers.push_back(static_cast<ObjectLayer>(o.as<int>()));
+            }
+            else if (o.is<unsigned int>())
+            {
+                layers.push_back(static_cast<ObjectLayer>(o.as<unsigned int>()));
+            }
+            else
+            {
+                try
+                {
+                    layers.push_back(o.as<ObjectLayer>());
+                }
+                catch (...)
+                {
+                }
+            }
+        }
+        return layers;
+    };
+
+    auto table_to_entity_queue = [](const sol::table &tbl)
+    {
+        eastl::queue<uuid> entities;
+        for (auto &kv : tbl)
+        {
+            sol::object o = kv.second;
+            if (o.is<std::string>())
+            {
+                uuid id(o.as<std::string>());
+                entities.push(id);
+            }
+        }
+        return entities;
+    };
+
+    EntityType.set_function(
+        "CastRay",
+        sol::overload(
+            [&luaState](Entity &e, const Vec3 &origin, const Vec3 &dir)
+            {
+                eastl::shared_ptr<Scene> scene = Engine::GetActiveScene();
+                eastl::queue<uuid> entities = {e.GetUUID()};
+                eastl::vector<ObjectLayer> layers;
+                auto res = PhysicsSubsystem::FilteredCastRay(entities, origin, dir, layers);
+                sol::state_view lua(luaState);
+                if (!res) return sol::object(sol::nil);
+                sol::table t = lua.create_table();
+                RayCastResult rayCastResult = res.value();
+                t["entityId"] = rayCastResult.entityId.str();
+                t["distance"] = rayCastResult.distance;
+                t["hitNormal"] = rayCastResult.hitNormal;
+                t["hitPoint"] = rayCastResult.hitPoint;
+                return sol::object(t);
+            },
+            [&luaState, table_to_layers](Entity &e, const Vec3 &origin, const Vec3 &dir, sol::table ignoredLayersTbl)
+            {
+                eastl::shared_ptr<Scene> scene = Engine::GetActiveScene();
+                eastl::queue<uuid> entities = {e.GetUUID()};
+                auto layers = table_to_layers(ignoredLayersTbl);
+                auto res = PhysicsSubsystem::FilteredCastRay(entities, origin, dir, layers);
+                sol::state_view lua(luaState);
+                if (!res) return sol::object(sol::nil);
+                sol::table t = lua.create_table();
+                RayCastResult rayCastResult = res.value();
+                t["entityId"] = rayCastResult.entityId.str();
+                t["distance"] = rayCastResult.distance;
+                t["hitNormal"] = rayCastResult.hitNormal;
+                t["hitPoint"] = rayCastResult.hitPoint;
+                return sol::object(t);
+            },
+            [&luaState, table_to_layers, table_to_entity_queue](Entity &e, const Vec3 &origin, const Vec3 &dir,
+                                                                sol::table ignoredLayersTbl,
+                                                                sol::table ignoredEntityIdsTbl)
+            {
+                eastl::shared_ptr<Scene> scene = Engine::GetActiveScene();
+                eastl::queue<uuid> entities = {e.GetUUID()};
+                // append additional ignored entity ids
+                auto extra = table_to_entity_queue(ignoredEntityIdsTbl);
+                while (!extra.empty())
+                {
+                    entities.push(extra.front());
+                    extra.pop();
+                }
+                auto layers = table_to_layers(ignoredLayersTbl);
+                auto res = PhysicsSubsystem::FilteredCastRay(entities, origin, dir, layers);
+                sol::state_view lua(luaState);
+                if (!res) return sol::object(sol::nil);
+                sol::table t = lua.create_table();
+                RayCastResult rayCastResult = res.value();
+                t["entityId"] = rayCastResult.entityId.str();
+                t["distance"] = rayCastResult.distance;
+                t["hitNormal"] = rayCastResult.hitNormal;
+                t["hitPoint"] = rayCastResult.hitPoint;
+                return sol::object(t);
+            }));
 }
 
 #endif
