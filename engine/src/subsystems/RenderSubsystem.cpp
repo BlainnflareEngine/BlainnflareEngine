@@ -1630,15 +1630,14 @@ void Blainn::RenderSubsystem::GetLightSpaceMatrices(eastl::array<eastl::pair<XMM
     }
 }
 
-eastl::vector<XMVECTOR> Blainn::RenderSubsystem::GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection)
+eastl::array<XMVECTOR, 8> Blainn::RenderSubsystem::GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection)
 {
     const auto viewProj = view * projection;
 
     XMVECTOR det = XMMatrixDeterminant(viewProj);
     const auto invViewProj = XMMatrixInverse(&det, viewProj);
 
-    eastl::vector<XMVECTOR> frustumCorners;
-    frustumCorners.reserve(8);
+    eastl::array<XMVECTOR, 8> frustumCorners;
 
     for (UINT x = 0; x < 2; ++x)
     {
@@ -1648,7 +1647,7 @@ eastl::vector<XMVECTOR> Blainn::RenderSubsystem::GetFrustumCornersWorldSpace(con
             {
                 // translate NDC coords to world space
                 const XMVECTOR pt = XMVector4Transform(XMVectorSet(2.0f * x - 1.0f, 2.0f * y - 1.0f, (float)z, 1.0f), invViewProj);
-                frustumCorners.push_back(pt / XMVectorGetW(pt));
+                frustumCorners[x * 4 + y * 2 + z] = (pt / XMVectorGetW(pt));
             }
         }
     }

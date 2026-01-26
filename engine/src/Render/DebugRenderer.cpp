@@ -45,35 +45,25 @@ void DebugRenderer::EndDebugRenderPass()
 {
     BLAINN_PROFILE_SCOPE(EndDebugRenderPass);
 
-    while (!m_debugRequests.empty() && m_currentFrame > m_debugRequests.front().first)
-        m_debugRequests.pop_front();
-
     if (m_lineListVertices.empty()) return;
 
+    auto currentFrameBuffer = m_debugRequests[m_currentFrame % 4];
     UINT vertexBufferSize = m_lineListVertices.size() * sizeof(VertexPositionColor);
-    Microsoft::WRL::ComPtr<ID3D12Resource> lineVertexBuffer;
 
-    const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-    const auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-    if (auto hr = m_device.GetDevice2()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resDesc,
-                                                                 D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-                                                                 IID_PPV_ARGS(lineVertexBuffer.GetAddressOf()));
-        FAILED(hr))
-    {
-        BF_ERROR("Could not create vertex buffer for debug rendering!");
+    if (currentFrameBuffer == nullptr || currentFrameBuffer.Get()->GetDesc().Width < vertexBufferSize)
+        currentFrameBuffer = CreateBuffer(m_currentFrame % 4, vertexBufferSize);
+    if (currentFrameBuffer == nullptr)
         return;
-    }
-    m_debugRequests.push_back({m_currentFrame + 3, lineVertexBuffer});
-    lineVertexBuffer->SetName(L"Debug Vertex Buffer");
+
 
     UINT8 *pVertexDataBegin;
     CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
-    ThrowIfFailed(lineVertexBuffer->Map(0, &readRange, reinterpret_cast<void **>(&pVertexDataBegin)));
+    ThrowIfFailed(currentFrameBuffer->Map(0, &readRange, reinterpret_cast<void **>(&pVertexDataBegin)));
     memcpy(pVertexDataBegin, m_lineListVertices.data(), vertexBufferSize);
-    lineVertexBuffer->Unmap(0, nullptr);
+    currentFrameBuffer->Unmap(0, nullptr);
 
     D3D12_VERTEX_BUFFER_VIEW vbView = {};
-    vbView.BufferLocation = lineVertexBuffer->GetGPUVirtualAddress();
+    vbView.BufferLocation = currentFrameBuffer->GetGPUVirtualAddress();
     vbView.StrideInBytes = sizeof(VertexPositionColor);
     vbView.SizeInBytes = vertexBufferSize;
 
@@ -349,4 +339,23 @@ void Blainn::DebugRenderer::CreatePSO()
     debugPSODesc.SampleDesc = {1u, 0u};
 
     ThrowIfFailed(m_device.CreateGraphicsPipelineState(debugPSODesc, m_debugPipelineState));
+}
+
+ComPtr<ID3D12Resource> DebugRenderer::CreateBuffer(size_t index, size_t size)
+{
+    Microsoft::WRL::ComPtr<ID3D12Resource> lineVertexBuffer;
+
+    const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+    const auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(size);
+    if (auto hr = m_device.GetDevice2()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resDesc,
+                                                                 D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+                                                                 IID_PPV_ARGS(lineVertexBuffer.GetAddressOf()));
+        FAILED(hr))
+    {
+        BF_ERROR("Could not create vertex buffer for debug rendering!");
+        return nullptr;
+    }
+    m_debugRequests[index] = lineVertexBuffer;
+    lineVertexBuffer->SetName(L"Debug Vertex Buffer");
+    return lineVertexBuffer;
 }
