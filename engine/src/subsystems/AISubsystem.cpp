@@ -158,7 +158,7 @@ void AISubsystem::CreateAttachAIControllerComponent(Entity entity, const Path &a
     AIControllerComponent *componentPtr = entity.TryGetComponent<AIControllerComponent>();
     if (componentPtr)
     {
-        BF_ERROR("AI controller error: entity " + entity.GetUUID().str() + " already has AI controller component");
+        BF_ERROR("AI controller error: entity " + entity.GetUUID().bytes() + " already has AI controller component");
         return;
     }
     AIControllerComponent &component = entity.AddComponent<AIControllerComponent>();
@@ -170,7 +170,7 @@ bool AISubsystem::CreateAIController(Entity entity)
     AIControllerComponent *componentPtr = entity.TryGetComponent<AIControllerComponent>();
     if (!componentPtr)
     {
-        BF_ERROR("AI controller error: entity " + entity.GetUUID().str() + " does not have AI controller component");
+        BF_ERROR("AI controller error: entity " + entity.GetUUID().bytes() + " does not have AI controller component");
         return false;
     }
 
@@ -179,7 +179,7 @@ bool AISubsystem::CreateAIController(Entity entity)
     componentPtr->aiScript = ScriptingSubsystem::LoadAiScript(entity, componentPtr->scriptPath);
     if (!componentPtr->aiScript)
     {
-        BF_ERROR("AI controller error: failed to load AI script for entity " + entity.GetUUID().str());
+        BF_ERROR("AI controller error: failed to load AI script for entity " + entity.GetUUID().bytes());
         entity.RemoveComponent<AIControllerComponent>();
         return false;
     }
@@ -233,7 +233,7 @@ bool AISubsystem::CreateAIController(Entity entity)
 
     componentPtr->aiController.Init(eastl::move(trees), eastl::move(utility), eastl::move(bb));
     
-    BF_INFO("AI Controller created for entity: " + entity.GetUUID().str());
+    BF_INFO("AI Controller created for entity: " + entity.GetUUID().bytes());
     
     return true;
 }

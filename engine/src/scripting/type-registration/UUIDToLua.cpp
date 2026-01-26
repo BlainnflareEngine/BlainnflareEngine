@@ -13,8 +13,8 @@ void RegisterUUIDType(sol::state &luaState)
     luaState.new_usertype<uuid>(
         "__UUID_internal", sol::meta_function::equal_to, [](const uuid &a, const uuid &b) { return a == b; },
         sol::meta_function::less_than, [](const uuid &a, const uuid &b) { return a < b; }, "String",
-        [](const uuid &self) -> std::string { return self.str(); }, sol::meta_function::to_string,
-        [](const uuid &self) -> std::string { return self.str(); });
+        [](const uuid &self) -> std::string { return self.bytes(); }, sol::meta_function::to_string,
+        [](const uuid &self) -> std::string { return self.bytes(); });
 
     luaState["UUID"] = luaState.create_table_with(
         "New", [](const std::string &s) -> uuid { return uuid(s); },

@@ -103,7 +103,7 @@ void Blainn::ScriptingSubsystem::CreateAttachScriptingComponent(Entity entity)
     ScriptingComponent *component = entity.TryGetComponent<ScriptingComponent>();
     if (component)
     {
-        BF_ERROR("Entity " + entity.GetUUID().str() + " already has ScriptingComponent");
+        BF_ERROR("Entity " + entity.GetUUID().bytes() + " already has ScriptingComponent");
         return;
     }
     entity.AddComponent<ScriptingComponent>();
@@ -169,7 +169,7 @@ eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const Path &
     ScriptingComponent *component = entity.TryGetComponent<ScriptingComponent>();
     if (!component)
     {
-        BF_ERROR("Script load error: entity " + entity.GetUUID().str() + "does not have scripting component");
+        BF_ERROR("Script load error: entity " + entity.GetUUID().bytes() + "does not have scripting component");
         return eastl::nullopt;
     }
 
@@ -185,7 +185,7 @@ eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const Path &
     if (!luaScript->Load(scriptLoadPath, entity)) return eastl::nullopt;
     if (callOnStart) luaScript->OnStartCall();
 
-    // BF_WARN("Loaded script " + scriptLoadPath.string() + " for entity " + entity.GetUUID().str());
+    // BF_WARN("Loaded script " + scriptLoadPath.string() + " for entity " + entity.GetUUID().bytes());
 
     uuid scriptUuid = luaScript->GetId();
     scripts[scriptUuid] = eastl::move(luaScript);
@@ -214,12 +214,12 @@ void ScriptingSubsystem::UnloadScript(const uuid &scriptUuid)
     ScriptingComponent *component = m_scriptEntityConnections.at(scriptUuid).TryGetComponent<ScriptingComponent>();
     if (!component)
     {
-        BF_ERROR("Script" + scriptUuid.str() + " unload error - component not exist");
+        BF_ERROR("Script" + scriptUuid.bytes() + " unload error - component not exist");
         return;
     }
 
-    // BF_WARN("Unloaded script " + scriptUuid.str() + " for entity "
-    //         + m_scriptEntityConnections.at(scriptUuid).GetUUID().str());
+    // BF_WARN("Unloaded script " + scriptUuid.bytes() + " for entity "
+    //         + m_scriptEntityConnections.at(scriptUuid).GetUUID().bytes());
 
     m_scriptEntityConnections.erase(scriptUuid);
     eastl::unordered_map<uuid, eastl::shared_ptr<LuaScript>> &scripts = component->scripts;
@@ -231,7 +231,7 @@ void ScriptingSubsystem::UnloadScript(const uuid &scriptUuid)
     }
     else
     {
-        BF_ERROR("Script" + scriptUuid.str() + " unload error - not found");
+        BF_ERROR("Script" + scriptUuid.bytes() + " unload error - not found");
     }
 }
 

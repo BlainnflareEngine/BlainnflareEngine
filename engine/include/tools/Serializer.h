@@ -80,11 +80,11 @@ public:
         out << YAML::Key << "RelationshipComponent" << YAML::Value << YAML::BeginMap;
 
         uuid parentUUID = entity.GetParentUUID();
-        out << YAML::Key << "Parent" << YAML::Value << parentUUID.str();
+        out << YAML::Key << "Parent" << YAML::Value << parentUUID.bytes();
 
         out << YAML::Key << "Children" << YAML::Value << YAML::BeginSeq;
         for (const auto &childID : relationship.Children)
-            out << childID.str();
+            out << childID.bytes();
 
         out << YAML::EndSeq;
         out << YAML::EndMap;
@@ -147,7 +147,7 @@ public:
         auto &physics = entity.GetComponent<PhysicsComponent>();
 
         out << YAML::Key << "PhysicsComponent" << YAML::Value << YAML::BeginMap;
-        out << YAML::Key << "ParentID" << YAML::Value << physics.parentId.str();
+        out << YAML::Key << "ParentID" << YAML::Value << physics.parentId.bytes();
         out << YAML::Key << "ShapeType" << YAML::Value << static_cast<int>(physics.GetShapeType());
         out << YAML::Key << "ControlParentTransform" << YAML::Value << physics.controlParentTransform;
 

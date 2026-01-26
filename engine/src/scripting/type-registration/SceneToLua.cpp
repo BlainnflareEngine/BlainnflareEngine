@@ -41,7 +41,7 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
     sol::usertype<EntityEvent> EntityEventType = luaState.new_usertype<EntityEvent>(
         "EntityEvent", sol::no_constructor, sol::base_classes, sol::bases<SceneEvent>());
     EntityEventType.set_function("GetEntity", &EntityEvent::GetEntity);
-    EntityEventType.set_function("GetUUID", [](EntityEvent &e) { return e.GetUUID().str(); });
+    EntityEventType.set_function("GetUUID", [](EntityEvent &e) { return e.GetUUID().bytes(); });
     EntityEventType.set_function("IsSceneChanged", &EntityEvent::IsSceneChanged);
 
     sol::usertype<EntityCreatedEvent> EntityCreatedEventType = luaState.new_usertype<EntityCreatedEvent>(

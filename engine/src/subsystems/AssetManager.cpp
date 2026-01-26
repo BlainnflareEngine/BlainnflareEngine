@@ -288,7 +288,7 @@ void AssetManager::CreateScene(const Path &relativePath)
     }
 
     scene["SceneName"] = relativePath.string();
-    scene["SceneID"] = Rand::getRandomUUID().str();
+    scene["SceneID"] = Rand::getRandomUUID().bytes();
     std::ofstream fout(absolute_path);
     fout << scene;
 }

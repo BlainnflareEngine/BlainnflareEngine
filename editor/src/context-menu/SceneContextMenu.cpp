@@ -261,7 +261,7 @@ void SceneContextMenu::CopyUUIDToClipboard(const QModelIndex &index)
     auto sceneModel = SceneItemModel::GetNodeFromIndex(index);
     if (!sceneModel) return;
 
-    QGuiApplication::clipboard()->setText(sceneModel->GetUUID().str().c_str());
+    QGuiApplication::clipboard()->setText(sceneModel->GetUUID().bytes().c_str());
 }
 
 

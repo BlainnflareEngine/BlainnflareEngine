@@ -42,7 +42,7 @@ void SceneMeta::AddEntity(Blainn::Entity &entity, int position)
     Blainn::uuid ID = entity.GetUUID();
 
     auto it = eastl::find_if(m_entityNodes.begin(), m_entityNodes.end(),
-                             [ID](const YAML::Node &node) { return node["ID"].as<std::string>() == ID.str(); });
+                             [ID](const YAML::Node &node) { return node["ID"].as<std::string>() == ID.bytes(); });
 
     if (it != m_entityNodes.end())
     {
@@ -52,7 +52,7 @@ void SceneMeta::AddEntity(Blainn::Entity &entity, int position)
     }
 
     YAML::Node entityNode;
-    entityNode["ID"] = ID.str();
+    entityNode["ID"] = ID.bytes();
     entityNode["Position"] = position;
     // TODO: components
 
@@ -65,7 +65,7 @@ void SceneMeta::AddEntity(Blainn::Entity &entity, int position)
 void SceneMeta::RemoveEntity(Blainn::uuid ID)
 {
     auto it = eastl::find_if(m_entityNodes.begin(), m_entityNodes.end(),
-                             [ID](const YAML::Node &node) { return node["ID"].as<std::string>() == ID.str(); });
+                             [ID](const YAML::Node &node) { return node["ID"].as<std::string>() == ID.bytes(); });
 
     if (it != m_entityNodes.end())
     {
@@ -123,7 +123,7 @@ int SceneMeta::GetPositionInEditorOrder(const Blainn::uuid &entityID) const
 {
     Blainn::uuid ID = entity.GetUUID();
     auto it = eastl::find_if(m_entityNodes.begin(), m_entityNodes.end(),
-                             [ID](const YAML::Node &node) { return node["ID"].as<std::string>() == ID.str(); });
+                             [ID](const YAML::Node &node) { return node["ID"].as<std::string>() == ID.bytes(); });
 
     if (it != m_entityNodes.end())
     {

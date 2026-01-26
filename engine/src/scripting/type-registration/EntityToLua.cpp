@@ -25,10 +25,10 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
     sol::usertype<Entity> EntityType = luaState.new_usertype<Entity>("Entity", sol::no_constructor);
 
     EntityType.set_function("IsValid", &Entity::IsValid);
-    EntityType.set_function("GetUUID", [](Entity &e) { return e.GetUUID().str(); });
+    EntityType.set_function("GetUUID", [](Entity &e) { return e.GetUUID().bytes(); });
     EntityType.set_function("GetName", [](Entity &e) { return std::string(e.Name().c_str()); });
 
-    EntityType.set_function("GetParentUUID", [](Entity &e) { return e.GetParentUUID().str(); });
+    EntityType.set_function("GetParentUUID", [](Entity &e) { return e.GetParentUUID().bytes(); });
     EntityType.set_function("SetParent", [](Entity &e, Entity parent) { e.SetParent(parent); });
 
     EntityType.set_function("Children",
@@ -37,7 +37,7 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
                                 sol::table tbl = luaState.create_table();
                                 int idx = 1;
                                 for (const auto &child : e.Children())
-                                    tbl[idx++] = child.str();
+                                    tbl[idx++] = child.bytes();
                                 return tbl;
                             });
 
@@ -147,7 +147,7 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
                 if (!res) return sol::object(sol::nil);
                 sol::table t = lua.create_table();
                 RayCastResult rayCastResult = res.value();
-                t["entityId"] = rayCastResult.entityId.str();
+                t["entityId"] = rayCastResult.entityId.bytes();
                 t["distance"] = rayCastResult.distance;
                 t["hitNormal"] = rayCastResult.hitNormal;
                 t["hitPoint"] = rayCastResult.hitPoint;
@@ -163,7 +163,7 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
                 if (!res) return sol::object(sol::nil);
                 sol::table t = lua.create_table();
                 RayCastResult rayCastResult = res.value();
-                t["entityId"] = rayCastResult.entityId.str();
+                t["entityId"] = rayCastResult.entityId.bytes();
                 t["distance"] = rayCastResult.distance;
                 t["hitNormal"] = rayCastResult.hitNormal;
                 t["hitPoint"] = rayCastResult.hitPoint;
@@ -188,7 +188,7 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
                 if (!res) return sol::object(sol::nil);
                 sol::table t = lua.create_table();
                 RayCastResult rayCastResult = res.value();
-                t["entityId"] = rayCastResult.entityId.str();
+                t["entityId"] = rayCastResult.entityId.bytes();
                 t["distance"] = rayCastResult.distance;
                 t["hitNormal"] = rayCastResult.hitNormal;
                 t["hitPoint"] = rayCastResult.hitPoint;

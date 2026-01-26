@@ -135,8 +135,8 @@ bool Blainn::LuaScript::OnCollisionStartedCall(const eastl::shared_ptr<PhysicsEv
     sol::state_view sv(lua);
     sol::table tbl = sv.create_table();
     tbl["eventType"] = static_cast<int>(physicsEvent->eventType);
-    tbl["entity1"] = physicsEvent->entity1.str();
-    tbl["entity2"] = physicsEvent->entity2.str();
+    tbl["entity1"] = physicsEvent->entity1.bytes();
+    tbl["entity2"] = physicsEvent->entity2.bytes();
     return CustomCall(PredefinedFunctions::kOnCollisionStarted, tbl);
 }
 
@@ -148,8 +148,8 @@ bool Blainn::LuaScript::OnCollisionEndedCall(const eastl::shared_ptr<PhysicsEven
     sol::state_view sv(lua);
     sol::table tbl = sv.create_table();
     tbl["eventType"] = static_cast<int>(physicsEvent->eventType);
-    tbl["entity1"] = physicsEvent->entity1.str();
-    tbl["entity2"] = physicsEvent->entity2.str();
+    tbl["entity1"] = physicsEvent->entity1.bytes();
+    tbl["entity2"] = physicsEvent->entity2.bytes();
     return CustomCall(PredefinedFunctions::kOnCollisionEnded, tbl);
 }
 

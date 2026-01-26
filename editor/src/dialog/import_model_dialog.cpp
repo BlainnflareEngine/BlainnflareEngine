@@ -52,7 +52,7 @@ void import_model_dialog::OnConfirm()
 {
     QDir dir(Blainn::Engine::GetContentDirectory());
     YAML::Node meta;
-    meta["ID"] = Blainn::Rand::getRandomUUID().str();
+    meta["ID"] = Blainn::Rand::getRandomUUID().bytes();
     meta["ModelPath"] = ToString(dir.relativeFilePath(m_info.destinationPath));
     meta["ConvertToLH"] = m_importData.convertToLH;
     meta["CreateMaterials"] = m_importData.createMaterials;

@@ -17,6 +17,22 @@
       }
     },
     {
+      "name": "release_no_tracy",
+      "displayName": "Release NoTracy",
+      "generator": "Visual Studio 17 2022",
+      "toolset": "host=x64",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/install/${presetName}",
+        "CMAKE_PREFIX_PATH": "C:/Qt/6.9.2/msvc2022_64",
+        "CMAKE_POLICY_VERSION_MINIMUM": "3.5",
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe",
+        "TRACY_ENABLE": "OFF"
+      }
+    },
+    {
       "name": "Visual Studio Community 2022 Release - amd64",
       "displayName": "Visual Studio Community 2022 Release - amd64",
       "description": "Using compilers for Visual Studio 17 2022 (x64 architecture)",
@@ -47,6 +63,13 @@
     }
   ],
   "buildPresets": [
+    {
+      "name": "ReleaseNoTracy",
+      "displayName": "Release NoTracy",
+      "configurePreset": "release_no_tracy",
+      "configuration": "Release",
+      "jobs": 18
+    },
     {
       "name": "default build",
       "displayName": "Build VS 2022 Debug",
