@@ -17,8 +17,9 @@ void RegisterUUIDType(sol::state &luaState)
         [](const uuid &self) -> std::string { return self.str(); });
 
     luaState["UUID"] = luaState.create_table_with(
-        "New", [](const std::string &s) -> uuid { return uuid::fromStrFactory(s); }, "Nil", []() -> uuid
-        { return uuid(); }, "FromString", [](const std::string &s) -> uuid { return uuid::fromStrFactory(s); });
+        "New", [](const std::string &s) -> uuid { return uuid(s); },
+        "Nil", []() -> uuid{ return uuid(); },
+        "FromString", [](const std::string &s) -> uuid { return uuid(s); });
 }
 
 } // namespace Blainn

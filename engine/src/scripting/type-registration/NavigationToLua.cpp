@@ -44,7 +44,7 @@ void Blainn::RegisterNavigationTypes(sol::state &luaState)
     luaState.set_function("GetAIController",
                           [](const std::string &idStr) -> AIController *
                           {
-                              uuid entityId = uuid::fromStrFactory(idStr);
+                              uuid entityId = uuid(idStr);
                               Scene *scene = Engine::GetActiveScene().get();
                               if (!scene)
                               {
@@ -69,7 +69,7 @@ void Blainn::RegisterNavigationTypes(sol::state &luaState)
     AIControllerType.set_function("Possess",
                                   [](AIController *controller, const std::string &idStr) -> bool
                                   {
-                                      uuid entityId = uuid::fromStrFactory(idStr);
+                                      uuid entityId = uuid(idStr);
                                       Scene *scene = Engine::GetActiveScene().get();
                                       if (!scene)
                                       {

@@ -32,7 +32,7 @@ void Blainn::RegisterAssetLoaderTypes(sol::state &luaState)
         [](ImportMeshData &d, const std::string &p) { d.path = Path(p); });
     ImportMeshDataType["id"] =
         sol::property([](const ImportMeshData &d) { return d.id.str(); },
-                      [](ImportMeshData &d, const std::string &idStr) { d.id = uuid::fromStrFactory(idStr); });
+                      [](ImportMeshData &d, const std::string &idStr) { d.id = uuid(idStr); });
     ImportMeshDataType["convertToLH"] = &ImportMeshData::convertToLH;
     ImportMeshDataType["createMaterials"] = &ImportMeshData::createMaterials;
 

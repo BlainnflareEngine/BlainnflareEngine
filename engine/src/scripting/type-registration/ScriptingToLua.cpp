@@ -31,7 +31,7 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
                              });
 
     scriptTable.set_function("UnloadScript", [](const std::string &idStr)
-                             { ScriptingSubsystem::UnloadScript(uuid::fromStrFactory(idStr)); });
+                             { ScriptingSubsystem::UnloadScript(uuid(idStr)); });
 
     // Helper to list scripts on an entity
     scriptTable.set_function("ListScripts",
@@ -51,13 +51,13 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
                              [&luaState](const std::string &idStr, const std::string &valueName)
                              {
                                  return ScriptingSubsystem::GetValueFromScript(
-                                     uuid::fromStrFactory(idStr), eastl::string(valueName.c_str()));                                  
+                                     uuid(idStr), eastl::string(valueName.c_str()));
                              });
 
     scriptTable.set_function("SetValueInScript",
                              [](const std::string &idStr, const std::string &valueName, sol::object value)
                              {
-                                 ScriptingSubsystem::SetValueInScript(uuid::fromStrFactory(idStr),
+                                 ScriptingSubsystem::SetValueInScript(uuid(idStr),
                                                                       eastl::string(valueName.c_str()), value);
                              });
 

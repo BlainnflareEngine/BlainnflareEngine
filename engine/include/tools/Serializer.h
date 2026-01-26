@@ -28,7 +28,7 @@ public:
     static void Default(Entity &entity, YAML::Emitter &out)
     {
         out << YAML::Key << "Name" << YAML::Value << entity.Name().c_str();
-        out << YAML::Key << "EntityID" << YAML::Value << entity.GetUUID().str();
+        out << YAML::Key << "EntityID" << YAML::Value << entity.GetUUID().bytes();
     }
 
     static void Tag(Entity &entity, YAML::Emitter &out)

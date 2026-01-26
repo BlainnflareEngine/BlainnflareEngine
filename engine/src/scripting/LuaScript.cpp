@@ -26,7 +26,7 @@ bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
 
     m_environment = sol::environment(lua, sol::create, lua.globals());
     m_owningEntityId = owningEntity.GetUUID();
-    m_environment["OwningEntity"] = m_owningEntityId.str();
+    m_environment["OwningEntity"] = m_owningEntityId.bytes();
 
     sol::load_result script = lua.load_file(scriptPath.string());
     if (!script.valid())

@@ -18,7 +18,7 @@ namespace Blainn
 {
 inline uuid GetID(const YAML::Node &node)
 {
-    return uuid::fromStrFactory(node["EntityID"].as<std::string>().c_str());
+    return uuid(node["EntityID"].as<std::string>());
 }
 
 inline eastl::string GetTag(const YAML::Node &node)
@@ -176,7 +176,7 @@ inline RelationshipComponent GetRelationship(const YAML::Node &node)
     if (node["Parent"])
     {
         std::string parentIdStr = node["Parent"].as<std::string>();
-        relationship.ParentHandle = uuid::fromStrFactory(parentIdStr);
+        relationship.ParentHandle = uuid(parentIdStr);
     }
 
     if (const YAML::Node &childrenNode = node["Children"])
@@ -186,7 +186,7 @@ inline RelationshipComponent GetRelationship(const YAML::Node &node)
             for (const auto &childNode : childrenNode)
             {
                 std::string childIdStr = childNode.as<std::string>("");
-                relationship.Children.push_back(uuid::fromStrFactory(childIdStr));
+                relationship.Children.push_back(uuid(childIdStr));
             }
         }
     }

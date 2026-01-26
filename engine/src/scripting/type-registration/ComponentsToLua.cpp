@@ -33,7 +33,7 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
         "RelationshipComponent", sol::constructors<RelationshipComponent()>());
     RelationshipComponentType["ParentHandle"] = sol::property(
         [](const RelationshipComponent &r) { return r.ParentHandle.str(); },
-        [](RelationshipComponent &r, const std::string &id) { r.ParentHandle = uuid::fromStrFactory(id); });
+        [](RelationshipComponent &r, const std::string &id) { r.ParentHandle = uuid(id); });
     RelationshipComponentType.set_function("Children",
                                            [&luaState](RelationshipComponent &r)
                                            {

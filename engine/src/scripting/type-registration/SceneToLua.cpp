@@ -73,7 +73,7 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
         "CreateEntityWithID",
         [](Scene &scene, const std::string &idStr, const std::string &name, bool shouldSort, bool onSceneChanged)
         {
-            uuid id = uuid::fromStrFactory(idStr);
+            uuid id = uuid(idStr);
             return scene.CreateEntityWithID(id, eastl::string(name.c_str()), shouldSort, onSceneChanged);
         });
 
@@ -97,7 +97,7 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
     SceneType.set_function("DestroyEntity", [](Scene &scene, Entity entity) { scene.SubmitToDestroyEntity(entity); });
 
     SceneType.set_function("TryGetEntityWithUUID", [](Scene &scene, const std::string &idStr)
-                           { return scene.TryGetEntityWithUUID(uuid::fromStrFactory(idStr)); });
+                           { return scene.TryGetEntityWithUUID(uuid(idStr)); });
 
     SceneType.set_function("TryGetEntityWithTag", [](Scene &scene, const std::string &tag)
                            { return scene.TryGetEntityWithTag(eastl::string(tag.c_str())); });
