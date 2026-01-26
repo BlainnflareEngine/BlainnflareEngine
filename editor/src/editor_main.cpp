@@ -7,6 +7,7 @@
 #include "Editor.h"
 #include "EditorSink.h"
 #include "Engine.h"
+#include "FileSystemUtils.h"
 #include "SettingsData.h"
 #include "editor_settings.h"
 #include "folder_content_widget.h"
@@ -77,6 +78,7 @@ editor_main::editor_main(QWidget *parent)
     connect(ui->actionEditor_settings, &QAction::triggered, this, &editor_main::OnOpenSettings);
     connect(ui->actionSave, &QAction::triggered, this, &editor_main::OnSaveScene);
     connect(ui->actionBuildNavmesh, &QAction::triggered, this, &editor_main::OnBuildNavMesh);
+    connect(ui->actionBuildGame, &QAction::triggered, this, &editor_main::StartGameBuild);
 
     auto docAction = ui->menuHelp->addAction("Documentation");
     auto supportAction = ui->menuHelp->addAction("Support");
@@ -223,6 +225,69 @@ void editor_main::OnStartPlayMode()
 void editor_main::OnStopPlayModeToggle()
 {
     Blainn::Engine::TogglePausePlayMode();
+}
+
+
+void editor_main::StartGameBuild()
+{
+    if (m_buildProcess && m_buildProcess->state() == QProcess::Running)
+    {
+        BF_WARN("Build already in progress");
+        return;
+    }
+
+    QString appDir = QApplication::applicationDirPath();
+    QString scriptPath = appDir + "/build/build.bat";
+
+    if (!QFile::exists(scriptPath))
+    {
+        BF_ERROR("Build script not found: {}", scriptPath.toStdString());
+        return;
+    }
+
+    m_buildProcess = new QProcess(this);
+    m_buildProcess->setWorkingDirectory(QDir::currentPath());
+
+    connect(m_buildProcess, &QProcess::finished, this, &editor_main::OnBuildFinished);
+    connect(m_buildProcess, qOverload<QProcess::ProcessError>(&QProcess::errorOccurred), this,
+            [](QProcess::ProcessError error) { BF_ERROR("Build process error: {}", static_cast<int>(error)); });
+
+    connect(m_buildProcess, &QProcess::readyReadStandardOutput, this, &editor_main::OnBuildOutputAvailable);
+    connect(m_buildProcess, &QProcess::readyReadStandardError, this, &editor_main::OnBuildErrorAvailable);
+
+    m_buildProcess->start("cmd", QStringList() << "/c" << scriptPath);
+
+    BF_DEBUG("Build started: {}", ToString(scriptPath));
+}
+
+
+void editor_main::OnBuildFinished(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    if (exitCode == 0 && exitStatus == QProcess::NormalExit)
+    {
+        BF_DEBUG("Build succeeded!");
+    }
+    else
+    {
+        BF_ERROR("Build failed with code: {}", exitCode);
+    }
+
+    m_buildProcess->deleteLater();
+    m_buildProcess = nullptr;
+}
+
+
+void editor_main::OnBuildOutputAvailable()
+{
+    QByteArray output = m_buildProcess->readAllStandardOutput();
+    BF_DEBUG("BUILD OUT: {}", ToString(output));
+}
+
+
+void editor_main::OnBuildErrorAvailable()
+{
+    QByteArray error = m_buildProcess->readAllStandardError();
+    BF_ERROR("BUILD ERR: {}", ToString(error));
 }
 
 } // namespace editor

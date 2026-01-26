@@ -4,6 +4,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+
 cmake_policy(SET CMP0074 OLD)
 cmake_policy(SET CMP0169 OLD)
 add_compile_options(/EHsc /arch:AVX2)
@@ -228,4 +229,10 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_SOURCE_DIR}/content"
         "$<TARGET_FILE_DIR:${PROJECT_NAME}>/content"
+)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/editor/build"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/build"
 )
