@@ -7,6 +7,10 @@
 
 
 #include "editor/include/Editor.h"
+#else
+
+#include "Render/UI/UIRenderer.h"
+
 #endif
 
 #include "engine/include/Engine.h"
@@ -60,6 +64,11 @@ int main(int argc, char **argv)
 
 #if defined(BLAINN_INCLUDE_EDITOR)
     Blainn::Editor::GetInstance().PostInit();
+#else
+    Blainn::RenderSubsystem::GetInstance().SetEnableDebug(false);
+    Blainn::RenderSubsystem::GetInstance().GetUIRenderer().ShouldRenderDebugUI = false;;
+    Blainn::RenderSubsystem::GetInstance().OnResize(WindowHeight, WindowWidth);
+    Blainn::Engine::StartPlayMode();
 #endif
 
     MSG msg = {0};
