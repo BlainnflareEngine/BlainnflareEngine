@@ -173,6 +173,8 @@ set(EDITOR_SOURCES
         include/inspector/entity/light/point_light_widget.h
         src/inspector/entity/light/spot_light_widget.cpp
         include/inspector/entity/light/spot_light_widget.h
+        include/EditorRegistry.h
+        src/EditorRegistry.cpp
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

@@ -5,6 +5,7 @@
 #include "Editor.h"
 
 #include "AssetManager.h"
+#include "EditorRegistry.h"
 #include "Engine.h"
 #include "FileSystemUtils.h"
 #include "ui_editor_main.h"
@@ -29,6 +30,8 @@ void Editor::Init(int argc, char **argv)
 {
     using namespace std::filesystem;
     m_app = new QApplication(argc, argv);
+
+    editor::InitializeEditorWidgets();
 
     QList<QByteArray> formats = QImageReader::supportedImageFormats();
     qRegisterMetaType<editor::LogMessage>("LogMessage");

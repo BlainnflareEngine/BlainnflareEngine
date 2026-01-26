@@ -26,6 +26,17 @@ uuid Entity::GetSceneUUID() const
 }
 
 
+bool Entity::HasComponent(entt::id_type typeId)
+{
+    if (!m_Scene || !m_Scene->m_Registry.valid(m_EntityHandle)) return false;
+
+    const auto *storage = m_Scene->m_Registry.storage(typeId);
+    if (!storage) return false;
+
+    return storage->contains(m_EntityHandle);
+}
+
+
 Entity Entity::GetParent() const
 {
     return m_Scene->TryGetEntityWithUUID(GetParentUUID());
