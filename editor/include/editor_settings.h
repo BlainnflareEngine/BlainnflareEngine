@@ -13,6 +13,7 @@
 struct SettingsData;
 namespace editor
 {
+class path_input_field;
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
@@ -33,7 +34,9 @@ private:
 
     SettingsData data;
 
+    path_input_field *m_defaultSceneInput = nullptr;
+
 private slots:
-    void OnSetDirectoryPressed();
+    void OnDefaultScenePathChanged(const QString &oldPath, const QString &newPath);
 };
 } // namespace editor
