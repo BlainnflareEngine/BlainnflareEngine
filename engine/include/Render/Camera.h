@@ -60,8 +60,14 @@ public:
     void SetPosition(float x, float y, float z);
     void SetPosition(const XMFLOAT3 &v);
 
+    FORCEINLINE float GetFrustumCascadesLevel(UINT level) const
+    {
+        return m_frustumCascadesLevels[level];
+    }
+
 protected:
     void UpdateProjectionMatrices();
+    void UpdateCameraFrustumCascadesSplits();
 
 protected:
     XMFLOAT3 m_position = {0.0f, 0.0f, 0.0f};
@@ -89,5 +95,7 @@ protected:
     XMMATRIX m_view = XMMatrixIdentity();
     XMMATRIX m_persProj = XMMatrixIdentity();
     XMMATRIX m_orthProj = XMMatrixIdentity();
+
+    float m_frustumCascadesLevels[MaxCascades] = {0.0f, 0.0f, 0.0f, 0.0f};
 };
 } // namespace Blainn

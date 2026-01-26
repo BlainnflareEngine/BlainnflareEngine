@@ -431,11 +431,10 @@ void Blainn::RenderSubsystem::LoadPipeline()
 void Blainn::RenderSubsystem::LoadGraphicsFeatures()
 {
     m_editorCamera = eastl::make_shared<EditorCamera>();
-    // m_camera = m_editorCamera.;
     m_camera = m_editorCamera.get();
+    m_camera->Reset(75.0f, m_aspectRatio, 0.1f, 250.0f);
 
     m_cascadeShadowMap = eastl::make_unique<CascadeShadowMap>(m_device.GetDevice2().Get(), 2048u, 2048u, MaxCascades);
-    m_cascadeShadowMap->CreateShadowCascadeSplits(m_camera->GetNearZ(), m_camera->GetFarZ());
 
     m_GBuffer = eastl::make_unique<GBuffer>(m_device.GetDevice2().Get(), m_width, m_height);
 
@@ -454,9 +453,6 @@ void Blainn::RenderSubsystem::LoadGraphicsFeatures()
     uuidTexture->SetName(L"UUID Render Target");
     m_uuidRenderTarget.AttachTexture(AttachmentPoint::Color0, std::move(uuidTexture));
 
-    // Explicitly reset all window params dependent features
-    // ResetGraphicsFeatures();
-    m_camera->Reset(75.0f, m_aspectRatio, 0.1f, 250.0f);
     m_areGraphicsFeaturesLoaded = true;
 }
 
@@ -1021,7 +1017,7 @@ void Blainn::RenderSubsystem::UpdateShadowTransform(float deltaTime)
         m_shadowPassCBData.Cascades.CascadeViewProj[i] = XMMatrixTranspose(shadowTransform);
 
         m_deferredPassCBData.Cascades.CascadeViewProj[i] = XMMatrixTranspose(shadowTransform);
-        m_deferredPassCBData.Cascades.Distances[i] = m_cascadeShadowMap->GetCascadeLevel(i);
+        m_deferredPassCBData.Cascades.Distances[i] = m_camera->GetFrustumCascadesLevel(i);
     }
 }
 
@@ -1616,9 +1612,9 @@ void Blainn::RenderSubsystem::GetLightSpaceMatrices(eastl::vector<eastl::pair<XM
     for (UINT i = 0; i < MaxCascades; ++i)
     {
         if (i == 0)
-            outMatrices.push_back(GetLightSpaceMatrix(m_camera->GetNearZ(), m_cascadeShadowMap->GetCascadeLevel(i)));
+            outMatrices.push_back(GetLightSpaceMatrix(m_camera->GetNearZ(), m_camera->GetFrustumCascadesLevel(i)));
         else
-            outMatrices.push_back(GetLightSpaceMatrix(m_cascadeShadowMap->GetCascadeLevel(i - 1), m_cascadeShadowMap->GetCascadeLevel(i)));
+            outMatrices.push_back(GetLightSpaceMatrix(m_camera->GetFrustumCascadesLevel(i - 1), m_camera->GetFrustumCascadesLevel(i)));
     }
 }
 
