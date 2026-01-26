@@ -188,6 +188,7 @@ set(ENGINE_SOURCES
         include/Render/UI/DebugUIRenderer.h
         src/Render/UI/UIRenderer.cpp
         src/Render/UI/DebugUIRenderer.cpp
+        include/tools/ComponentRegistry.h
 )
 
 file(GLOB IMGUI_SOURCES

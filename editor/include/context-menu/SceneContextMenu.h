@@ -37,6 +37,7 @@ public:
     void AddSkybox(const QModelIndex &index);
     void AddDirectionalLight(const QModelIndex &index);
     void AddPointLight(const QModelIndex &index);
+    void AddSpotLight(const QModelIndex &index);
 
     void RenameEntity(const QModelIndex &index) const;
     void DuplicateEntity(const QModelIndex &index) const;

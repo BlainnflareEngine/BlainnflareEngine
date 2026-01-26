@@ -46,6 +46,7 @@ template <typename T> bool Entity::HasComponent() const
     return m_Scene->m_Registry.all_of<T>(m_EntityHandle);
 }
 
+
 template <typename... T> bool Entity::HasAny()
 {
     assert(IsValid());
