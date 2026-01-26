@@ -2,6 +2,8 @@
 
 #include "Engine.h"
 
+#include "ComponentRegistry.h"
+
 #include <VGJS.h>
 
 #include <semaphore>
@@ -26,6 +28,8 @@ using namespace Blainn;
 
 void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
 {
+    InitializeComponentRegistry();
+
 #if (defined(DEBUG) || defined(_DEBUG)) && !defined(BLAINN_DISABLE_D3D_DEBUG_LAYER)
     // Enable the debug layer (requires the Graphics Tools "optional feature").
     // NOTE: Enabling the debug layer after device creation will invalidate the active device.

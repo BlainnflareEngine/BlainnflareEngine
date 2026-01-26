@@ -39,6 +39,11 @@ inline bool HasTransform(const YAML::Node &node)
     return false;
 }
 
+inline bool HasTag(const YAML::Node &node)
+{
+    return node["TagComponent"] && node["TagComponent"]["Tag"];
+}
+
 inline TransformComponent GetTransform(const YAML::Node &node)
 {
     TransformComponent transform;
