@@ -6,8 +6,12 @@
 #include "editor_settings.h"
 
 #include "Editor.h"
+#include "Engine.h"
+#include "FileSystemUtils.h"
 #include "ui_editor_settings.h"
+#include "input-widgets/path_input_field.h"
 
+#include <QLabel>
 #include <QFileDialog>
 
 namespace editor
@@ -20,9 +24,21 @@ editor_settings::editor_settings(const SettingsData &data, QWidget *parent)
 {
     ui->setupUi(this);
 
-    ui->ContentFolderPath->setText(QString::fromStdString(data.m_contentDirectory.string()));
+    auto defaultSceneLabel = new QLabel("Default Scene:", this);
+    defaultSceneLabel->setStyleSheet("font-weight: bold;");
 
-    connect(ui->PickContentButton, &QPushButton::clicked, this, &editor_settings::OnSetDirectoryPressed);
+    m_defaultSceneInput = new path_input_field("Scene", {formats::sceneFormat}, this);
+    m_defaultSceneInput->SetPath(QString::fromStdString(Blainn::Engine::GetConfig().GetDefaultSceneName().string()));
+
+    if (auto settingsLayout = qobject_cast<QVBoxLayout *>(ui->SettingsArea->layout()))
+    {
+        settingsLayout->addWidget(defaultSceneLabel);
+        settingsLayout->addWidget(m_defaultSceneInput);
+    }
+
+    connect(m_defaultSceneInput, &path_input_field::PathChanged, this, &editor_settings::OnDefaultScenePathChanged);
+
+    // ui->SettingsArea->layout()->addWidget(ui->ContentFolderPath);
 }
 
 
@@ -32,30 +48,9 @@ editor_settings::~editor_settings()
 }
 
 
-void editor_settings::OnSetDirectoryPressed()
+void editor_settings::OnDefaultScenePathChanged(const QString &oldPath, const QString &newPath)
 {
-    QFileDialog *dialog = new QFileDialog(this);
-    dialog->setFileMode(QFileDialog::Directory);
-    dialog->setOption(QFileDialog::ShowDirsOnly, true);
-    dialog->setOption(QFileDialog::DontResolveSymlinks, true);
-    dialog->setWindowTitle(tr("Set directory"));
-
-    QString currentDir = ui->ContentFolderPath->text();
-    if (!currentDir.isEmpty() && QDir(currentDir).exists()) dialog->setDirectory(currentDir);
-
-    connect(dialog, &QFileDialog::finished, this,
-            [this, dialog](int result)
-            {
-                if (result == Accepted && !dialog->selectedFiles().isEmpty())
-                {
-                    QString dir = dialog->selectedFiles().first();
-                    ui->ContentFolderPath->setText(dir);
-                    Blainn::Editor::GetInstance().SetContentDirectory(dir.toStdString());
-                }
-
-                dialog->deleteLater();
-            });
-
-    dialog->open();
+    Blainn::Engine::GetConfig().SetDefaultScene(ToEASTLString(newPath));
+    Blainn::Engine::GetConfig().SaveConfig();
 }
 } // namespace editor
