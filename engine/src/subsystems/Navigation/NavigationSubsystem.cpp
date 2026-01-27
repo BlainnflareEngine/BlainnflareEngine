@@ -61,7 +61,10 @@ void NavigationSubsystem::Update(float deltaTime)
             Vec3 moveDir;
             if (controller.GetDesiredDirection(moveDir, controllerComp.StoppingDistance, controllerComp.GroundOffset))
             {
-                transform.SetTranslation(transform.GetTranslation() + moveDir * deltaTime * controllerComp.MovementSpeed);
+                transform.SetTranslation(transform.GetTranslation()
+                                         + moveDir * deltaTime * controllerComp.MovementSpeed);
+
+                if (controllerComp.FaceMovementDirection) controller.RotateControlledPawnLerp(moveDir);
             }
         }
     }
@@ -222,8 +225,7 @@ void NavigationSubsystem::ClearNavMesh()
         m_navQuery->init(nullptr, 0);
     }
 
-    if (!m_debugVertexVector.empty())
-        m_debugVertexVector.clear();
+    if (!m_debugVertexVector.empty()) m_debugVertexVector.clear();
 }
 
 
@@ -325,15 +327,15 @@ void NavigationSubsystem::DrawDebugMesh()
     BLAINN_PROFILE_FUNC();
     if (!m_navMesh || !RenderSubsystem::GetInstance().GetDebugRenderer().IsDebugEnabled()) return;
 
-    RenderSubsystem::GetInstance().GetDebugRenderer().DrawLineList(m_debugVertexVector.begin(), m_debugVertexVector.end());
+    RenderSubsystem::GetInstance().GetDebugRenderer().DrawLineList(m_debugVertexVector.begin(),
+                                                                   m_debugVertexVector.end());
 }
 
 void NavigationSubsystem::BuildDebugNavMesh()
 {
     if (!m_navMesh) return;
 
-    if (!m_debugVertexVector.empty())
-        m_debugVertexVector.clear();
+    if (!m_debugVertexVector.empty()) m_debugVertexVector.clear();
 
     const dtNavMesh *nav = m_navMesh;
     const int numTiles = nav->getMaxTiles();

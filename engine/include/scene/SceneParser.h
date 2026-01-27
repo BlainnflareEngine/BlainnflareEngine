@@ -363,11 +363,20 @@ inline void GetAIController(const YAML::Node &node, const Entity &entity)
 
     if (aiControllerNode["GroundOffset"]) groundOffset = aiControllerNode["GroundOffset"].as<float>();
 
+    bool faceDirection = true;
+    if (aiControllerNode["FaceMovementDirection"])
+        faceDirection = aiControllerNode["FaceMovementDirection"].as<bool>(true);
+
+    float rotationSpeed = 0.5f;
+    if (aiControllerNode["RotationSpeed"]) rotationSpeed = aiControllerNode["RotationSpeed"].as<float>(0.5f);
+
     AISubsystem::GetInstance().CreateAttachAIControllerComponent(entity, path);
     auto &comp = entity.GetComponent<AIControllerComponent>();
     comp.MovementSpeed = movementSpeed;
     comp.StoppingDistance = stoppingDistance;
     comp.GroundOffset = groundOffset;
+    comp.FaceMovementDirection = faceDirection;
+    comp.RotationSpeed = rotationSpeed;
 }
 
 inline bool HasCamera(const YAML::Node &node)

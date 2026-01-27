@@ -1,7 +1,9 @@
 ﻿#include <pch.h>
 #include "ai/AIController.h"
 
+#include "Engine.h"
 #include "Navigation/NavigationSubsystem.h"
+#include "components/AIControllerComponent.h"
 
 
 namespace Blainn
@@ -217,6 +219,42 @@ bool AIController::GetDesiredDirection(Vec3 &outDirection, float stoppingDistanc
     m_moveDirection.Normalize();
     outDirection = m_moveDirection;
     return true;
+}
+
+
+void AIController::RotateControlledPawn(const Vec3 &LookTo)
+{
+    Vec3 flatDir(LookTo.x, 0.0f, LookTo.z);
+    if (flatDir.LengthSquared() > 1e-6f)
+    {
+        flatDir.Normalize();
+        float angle = atan2f(flatDir.x, flatDir.z);
+        Quat rot = Quat::CreateFromYawPitchRoll(angle, 0.0f, 0.0f);
+        if (auto comp = m_controlledEntity.TryGetComponent<TransformComponent>()) comp->SetRotation(rot);
+    }
+}
+
+
+void AIController::RotateControlledPawnLerp(const Vec3 &LookTo)
+{
+    TransformComponent *transform = m_controlledEntity.TryGetComponent<TransformComponent>();
+    AIControllerComponent *aiControllerComp = m_controlledEntity.TryGetComponent<AIControllerComponent>();
+
+    if (!transform || !aiControllerComp) return;
+
+    Vec3 flatDir(LookTo.x, 0.0f, LookTo.z);
+    if (flatDir.LengthSquared() > 1e-6f)
+    {
+        flatDir.Normalize();
+        float angle = atan2f(flatDir.x, flatDir.z);
+        Quat currentRot = transform->GetRotation();
+        Quat targetRot = Quat::CreateFromYawPitchRoll(angle, 0.0f, 0.0f);
+        Quat newRot =
+            Quat::Slerp(currentRot, targetRot,
+                        eastl::min(1.0f, aiControllerComp->RotationSpeed * (XM_PI / 180.0f) * Engine::GetDeltaTime()));
+
+        if (auto comp = m_controlledEntity.TryGetComponent<TransformComponent>()) comp->SetRotation(newRot);
+    }
 }
 
 void AIController::ActivateDecision(const eastl::string &decision)

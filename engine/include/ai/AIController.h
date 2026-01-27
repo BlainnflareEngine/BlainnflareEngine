@@ -30,6 +30,8 @@ public:
     void StartMoving();
     bool IsMoving() const;
     bool GetDesiredDirection(Vec3 &outDirection, float stoppingDistance, float offset = 0.5f);
+    void RotateControlledPawn(const Vec3 &LookTo);
+    void RotateControlledPawnLerp(const Vec3 &LookTo);
 
     void SetUpdateInterval(float interval)
     {
