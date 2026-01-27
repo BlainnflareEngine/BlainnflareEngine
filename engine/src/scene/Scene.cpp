@@ -110,7 +110,9 @@ void Blainn::Scene::Update()
 
             cam->SetPosition(translation);
 
-            Mat4 camViewMat = (SimpleMath::Matrix::CreateFromQuaternion(rot) * SimpleMath::Matrix::CreateTranslation(translation)).Invert();
+            Mat4 camViewMat =
+                (SimpleMath::Matrix::CreateFromQuaternion(rot) * SimpleMath::Matrix::CreateTranslation(translation))
+                    .Invert();
             cam->SetViewMatrix(camViewMat);
 
             cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
@@ -125,9 +127,6 @@ void Blainn::Scene::Update()
             transformComponent.FrameResetDirtyFlags();
         }
     }
-
-
-    ProcessEvents();
 }
 
 void Scene::SaveScene()
@@ -154,7 +153,6 @@ void Scene::SaveScene()
         out << YAML::BeginMap; // begin for every entity
 
         Serializer::Default(e, out);
-        Serializer::Tag(e, out);
 
         for (const auto &[typeId, meta] : g_componentRegistry)
         {

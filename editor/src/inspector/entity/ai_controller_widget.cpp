@@ -7,6 +7,7 @@
 #include "FileSystemUtils.h"
 #include "Render/DebugRenderer.h"
 #include "components/AIControllerComponent.h"
+#include "input-widgets/bool_input_field.h"
 #include "input-widgets/float_input_field.h"
 #include "input-widgets/path_input_field.h"
 #include "scene/EntityTemplates.h"
@@ -43,16 +44,26 @@ ai_controller_widget::ai_controller_widget(const Blainn::Entity &entity, QWidget
     m_groundOffset->SetDecimals(2);
     m_groundOffset->SetSingleStep(0.05);
 
+    m_faceDirection = new bool_input_field("Face movement direction", comp->FaceMovementDirection, this);
+
+    m_rotationSpeed = new float_input_field("Rotation speed", comp->RotationSpeed, this);
+    m_groundOffset->SetMinValue(0.0f);
+    m_groundOffset->SetSingleStep(0.01);
+
     layout()->addWidget(m_path_input);
     layout()->addWidget(m_movementSpeed);
     layout()->addWidget(m_stoppingDistance);
     layout()->addWidget(m_groundOffset);
+    layout()->addWidget(m_faceDirection);
+    layout()->addWidget(m_rotationSpeed);
 
     connect(m_path_input, &path_input_field::PathChanged, this, &ai_controller_widget::OnPathChanged);
     connect(m_movementSpeed, &float_input_field::EditingFinished, this, &ai_controller_widget::OnMovementSpeedChanged);
     connect(m_stoppingDistance, &float_input_field::EditingFinished, this,
             &ai_controller_widget::OnStoppingDistanceChanged);
     connect(m_groundOffset, &float_input_field::EditingFinished, this, &ai_controller_widget::OnGroundOffsetChanged);
+    connect(m_faceDirection, &bool_input_field::toggled, this, &ai_controller_widget::OnFaceMovementDirectionChanged);
+    connect(m_rotationSpeed, &float_input_field::EditingFinished, this, &ai_controller_widget::OnRotationSpeedChanged);
 }
 
 
@@ -126,6 +137,28 @@ void ai_controller_widget::OnGroundOffsetChanged()
     if (!comp) return;
 
     comp->GroundOffset = m_groundOffset->GetValue();
+}
+
+
+void ai_controller_widget::OnFaceMovementDirectionChanged(bool value)
+{
+    if (!m_entity.IsValid()) return;
+
+    auto comp = m_entity.TryGetComponent<Blainn::AIControllerComponent>();
+    if (!comp) return;
+
+    comp->GroundOffset = value;
+}
+
+
+void ai_controller_widget::OnRotationSpeedChanged()
+{
+    if (!m_entity.IsValid()) return;
+
+    auto comp = m_entity.TryGetComponent<Blainn::AIControllerComponent>();
+    if (!comp) return;
+
+    comp->RotationSpeed = m_rotationSpeed->GetValue();
 }
 
 

@@ -18,6 +18,8 @@ struct AIControllerComponent
     float MovementSpeed = 2;
     float StoppingDistance = 0.5;
     float GroundOffset = 0.5;
+    bool FaceMovementDirection = true;
+    float RotationSpeed = 0.5f;
 };
 
 } // namespace Blainn

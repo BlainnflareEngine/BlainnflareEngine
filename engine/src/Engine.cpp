@@ -159,7 +159,9 @@ void Engine::Update(float deltaTime)
         AISubsystem::GetInstance().Update(playModeDelta);
     }
 
-    s_activeScene->Update();
+    if (s_activeScene) s_activeScene->Update();
+
+    Scene::ProcessEvents();
 
     if (NavigationSubsystem::ShouldDrawDebug()) NavigationSubsystem::DrawDebugMesh();
 

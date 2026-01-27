@@ -56,7 +56,7 @@ void AssetManager::LoadDefaultMaterials()
 {
     Material material = Material(relativeDefaultMaterialPath, "");
     material.SetTexture(GetTexture(relativeDefaultDiffuseTexturePath), TextureType::ALBEDO);
-    
+
     m_materialPaths[ToEASTLString(relativeDefaultMaterialPath.string())] = {0, 1};
     m_materials.emplace(eastl::make_shared<Material>(eastl::move(material)));
 }
@@ -122,7 +122,7 @@ eastl::shared_ptr<MeshHandle> AssetManager::GetMesh(const Path &relativePath)
 }
 
 
-eastl::shared_ptr<MeshHandle> AssetManager::GetDefaultMesh(uint32_t index/* = 0u*/)
+eastl::shared_ptr<MeshHandle> AssetManager::GetDefaultMesh(uint32_t index /* = 0u*/)
 {
     return eastl::make_shared<MeshHandle>(index);
 }
@@ -260,20 +260,29 @@ bool AssetManager::SceneExists(const Path &relativePath)
 }
 
 
-void AssetManager::OpenScene(const Path &relativePath)
+void AssetManager::OpenScene(Path relativePath)
 {
-    NavigationSubsystem::ClearNavMesh();
+    Engine::GetActiveScene()->SubmitPostUpdateFunc(
+        [relativePath]()
+        {
+            NavigationSubsystem::ClearNavMesh();
 
-    YAML::Node scene;
-    Path absolute_path(Engine::GetContentDirectory() / relativePath);
+            YAML::Node scene;
+            Path absolute_path(Engine::GetContentDirectory() / relativePath);
 
-    if (exists(absolute_path))
-    {
-        scene = YAML::LoadFile(absolute_path.string());
-    }
+            if (exists(absolute_path))
+            {
+                scene = YAML::LoadFile(absolute_path.string());
+            }
 
-    Engine::ClearActiveScene();
-    Engine::SetActiveScene(eastl::make_shared<Scene>(scene));
+            bool wasPlayMode = Engine::IsPlayMode();
+
+            Engine::ClearActiveScene();
+            Engine::SetActiveScene(eastl::make_shared<Scene>(scene));
+
+            if (wasPlayMode)
+                Engine::InitScenePlayMode();
+        });
 }
 
 
@@ -415,8 +424,7 @@ void AssetManager::DecreaseTextureRefCount(const unsigned int index)
 
 void AssetManager::DecreaseMaterialRefCount(const unsigned int index)
 {
-    if (index == 0)
-        return;
+    if (index == 0) return;
 
     for (auto &[key, value] : m_materialPaths)
     {
@@ -437,8 +445,7 @@ void AssetManager::DecreaseMaterialRefCount(const unsigned int index)
 
 void AssetManager::DecreaseMeshRefCount(const unsigned int index)
 {
-    if (index == 0)
-        return;
+    if (index == 0) return;
 
     for (auto &[key, value] : m_meshPaths)
     {
