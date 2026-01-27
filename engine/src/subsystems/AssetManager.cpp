@@ -275,8 +275,13 @@ void AssetManager::OpenScene(Path relativePath)
                 scene = YAML::LoadFile(absolute_path.string());
             }
 
+            bool wasPlayMode = Engine::IsPlayMode();
+
             Engine::ClearActiveScene();
             Engine::SetActiveScene(eastl::make_shared<Scene>(scene));
+
+            if (wasPlayMode)
+                Engine::InitScenePlayMode();
         });
 }
 
