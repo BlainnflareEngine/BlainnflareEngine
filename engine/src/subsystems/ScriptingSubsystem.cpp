@@ -20,6 +20,7 @@ void ScriptingSubsystem::Init()
                          sol::lib::os, sol::lib::io);
 
     RegisterBlainnTypes();
+    m_lua.stop_gc();
 
     m_isInitialized = true;
 }
@@ -92,10 +93,10 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
             uuid id = idComp.ID;
             script.second->OnUpdateCall(deltaTimeMs);
             script.second->OnDrawUI();
-            if (!Engine::GetActiveScene()->TryGetEntityWithUUID(id).IsValid())
-                return;
+            if (!Engine::GetActiveScene()->TryGetEntityWithUUID(id).IsValid()) return;
         }
     }
+    m_lua.step_gc(4);
 }
 
 void Blainn::ScriptingSubsystem::CreateAttachScriptingComponent(Entity entity)
