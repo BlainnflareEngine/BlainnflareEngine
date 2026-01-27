@@ -9,6 +9,7 @@
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
 #include "components/CameraComponent.h"
+#include "components/AIControllerComponent.h"
 #include "handles/Handle.h"
 #include "scene/BasicComponents.h"
 #include "scene/Entity.h"
@@ -90,6 +91,9 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
                             });
     EntityType.set_function("GetPhysicsComponent",
                             [](Entity &e) -> PhysicsComponent * { return e.TryGetComponent<PhysicsComponent>(); });
+
+    EntityType.set_function("GetAIControllerComponent", [](Entity &e) -> AIControllerComponent *
+                            { return e.TryGetComponent<AIControllerComponent>(); });
 
     auto table_to_layers = [](const sol::table &tbl)
     {
