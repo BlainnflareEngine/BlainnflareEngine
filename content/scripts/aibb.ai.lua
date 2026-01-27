@@ -19,7 +19,7 @@ local tc = e:GetTransformComponent()
 
 Blackboard =
 {
-    target_point = { 1.0, 2.0, 1.0 },
+    target_point = Vec3:new( 1.0, 2.0, 1.0 ),
     cooldown = 0.5,
     enemy_visible = false,
     playerTag = "Player",

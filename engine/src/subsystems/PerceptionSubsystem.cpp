@@ -77,10 +77,10 @@ void PerceptionSubsystem::ProcessSightStimuli(float dt)
 {
     Scene &scene = *Engine::GetActiveScene();
 
-    auto observers = scene.GetAllEntitiesWith<IDComponent, TransformComponent, PerceptionComponent, PhysicsComponent>();
-    auto stimuliSources = scene.GetAllEntitiesWith<IDComponent, TransformComponent, StimulusComponent, PhysicsComponent>();
+    auto observers = scene.GetAllEntitiesWith<IDComponent, TransformComponent, PerceptionComponent>();
+    auto stimuliSources = scene.GetAllEntitiesWith<IDComponent, TransformComponent, StimulusComponent>();
 
-    for (const auto &[observerEntityHandle, observerID, observerTransform, perception, observerPhysics] : observers.each())
+    for (const auto &[observerEntityHandle, observerID, observerTransform, perception] : observers.each())
     {
         if (!perception.enabled || !perception.enableSight) continue;
 
@@ -90,7 +90,7 @@ void PerceptionSubsystem::ProcessSightStimuli(float dt)
         Vec3 observerPos = scene.GetWorldSpaceTransform(observerEntity).GetTranslation();
         Quat observerRot = scene.GetWorldSpaceTransform(observerEntity).GetRotation();
 
-        for (const auto &[sourceEntityHandle, sourceID, sourceTransform, stimulus, sourcePhysics] : stimuliSources.each())
+        for (const auto &[sourceEntityHandle, sourceID, sourceTransform, stimulus] : stimuliSources.each())
         {
             if (observerEntityHandle == sourceEntityHandle) continue;
 
@@ -367,12 +367,13 @@ void PerceptionSubsystem::UpdateStimuliAge(float dt)
 
     for (const auto &[entityHandle, idComp, perception] : view.each())
     {
-        for (auto it = perception.perceivedStimuli.begin(); it != perception.perceivedStimuli.end();)
+        for (int i = 0; i < perception.perceivedStimuli.size();)
         {
-            it->age += dt;
+            auto& it = perception.perceivedStimuli[i];
+            it.age += dt;
 
             float forgetTime = 5.0f;
-            switch (it->type)
+            switch (it.type)
             {
             case StimulusType::Sight:
                 forgetTime = perception.sightForgetTime;
@@ -390,21 +391,21 @@ void PerceptionSubsystem::UpdateStimuliAge(float dt)
                 break;
             }
 
-            if (it->age >= forgetTime)
+            if (it.age >= forgetTime)
             {
                 auto event = eastl::make_shared<PerceptionEvent>();
                 event->type = PerceptionEventType::StimulusForgotten;
                 event->observerEntity = idComp.ID;
-                event->stimulusEntity = it->sourceEntity;
-                event->stimulusType = it->type;
-                event->location = it->location;
+                event->stimulusEntity = it.sourceEntity;
+                event->stimulusType = it.type;
+                event->location = it.location;
                 s_perceptionEventQueue.enqueue(event);
 
-                it = perception.perceivedStimuli.erase(it);
+                perception.perceivedStimuli.erase(perception.perceivedStimuli.begin() + i); // TODO: чекнуть erase_unsorted
                 continue;
             }
 
-            ++it;
+            ++i;
         }
     }
 }
@@ -413,18 +414,18 @@ void PerceptionSubsystem::UpdateLOD()
 {
     Scene &scene = *Engine::GetActiveScene();
 
-    Vec3 cameraPos{0.0f};
-    auto cameras = scene.GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
+    Vec3 cameraPos = RenderSubsystem::GetInstance().GetCamera() -> GetPosition();
+    //auto cameras = scene.GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
 
-    for (const auto &[entityHandle, idComp, transform, camera] : cameras.each())
-    {
-        if (camera.CameraPriority == 0)
-        {
-            Entity cameraEntity = scene.GetEntityWithUUID(idComp.ID);
-            cameraPos = scene.GetWorldSpaceTransform(cameraEntity).GetTranslation();
-            break;
-        }
-    }
+    //for (const auto &[entityHandle, idComp, transform, camera] : cameras.each())
+    //{
+    //    if (camera.CameraPriority )
+    //    {
+    //        Entity cameraEntity = scene.GetEntityWithUUID(idComp.ID);
+    //        cameraPos = scene.GetWorldSpaceTransform(cameraEntity).GetTranslation();
+    //        break;
+    //    }
+    //}
 
     auto view = scene.GetAllEntitiesWith<IDComponent, TransformComponent, PerceptionComponent>();
 

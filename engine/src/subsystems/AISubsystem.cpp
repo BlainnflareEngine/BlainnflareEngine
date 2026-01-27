@@ -60,18 +60,22 @@ void AISubsystem::UpdateLOD()
 {
     Scene& scene = *Engine::GetActiveScene();
     
-    Vec3 cameraPos{0.0f};
+    Vec3 cameraPos = RenderSubsystem::GetInstance().GetCamera()->GetPosition();
     auto cameras = scene.GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
     
-    for (const auto& [entityHandle, idComp, transform, camera] : cameras.each())
-    {
-        if (camera.CameraPriority == 0)
-        {
-            Entity cameraEntity = scene.GetEntityWithUUID(idComp.ID);
-            cameraPos = scene.GetWorldSpaceTransform(cameraEntity).GetTranslation();
-            break;
-        }
-    }
+
+    //int32_t highestCamPriority = INT_MIN;
+
+    //for (const auto& [entityHandle, idComp, transform, camera] : cameras.each())
+    //{
+    //    if (camera.CameraPriority > highestCamPriority)
+    //    {
+    //        highestCamPriority = camera.CameraPriority;
+    //        Entity cameraEntity = scene.GetEntityWithUUID(idComp.ID);
+    //        cameraPos = scene.GetWorldSpaceTransform(cameraEntity).GetTranslation();
+    //        //break;
+    //    }
+    //}
     
     auto view = scene.GetAllEntitiesWith<IDComponent, TransformComponent, AIControllerComponent>();
     
