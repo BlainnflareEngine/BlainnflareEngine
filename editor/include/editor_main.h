@@ -11,12 +11,14 @@
 
 #include <QMainWindow>
 #include <qdir.h>
+#include <QProcess>
+
 
 namespace editor
 {
 class ViewportSettingsContext;
 class console_messages_widget;
-}
+} // namespace editor
 namespace editor
 {
 QT_BEGIN_NAMESPACE
@@ -51,11 +53,13 @@ private:
 
     inspector_widget *m_inspector = nullptr;
     QString m_contentPath;
-    ViewportSettingsContext* m_viewportSettingsContext;
+    ViewportSettingsContext *m_viewportSettingsContext;
 
     void OpenAddToScene() const;
 
     eastl::vector<eastl::pair<Blainn::Scene::EventHandle, Blainn::SceneEventType>> m_sceneEvents;
+
+    QProcess *m_buildProcess = nullptr;
 
 private slots:
     void OnOpenSettings();
@@ -65,6 +69,12 @@ private slots:
 
     void OnStartPlayMode();
     void OnStopPlayModeToggle();
+
+    void StartGameBuild();
+
+    void OnBuildFinished(int exitCode, QProcess::ExitStatus exitStatus);
+    void OnBuildOutputAvailable();
+    void OnBuildErrorAvailable();
 };
 
 } // namespace editor

@@ -807,6 +807,7 @@
      <string>Build</string>
     </property>
     <addaction name="actionBuildNavmesh"/>
+    <addaction name="actionBuildGame"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -826,7 +827,12 @@
   </action>
   <action name="actionBuildNavmesh">
    <property name="text">
-    <string>Navmesh</string>
+    <string>Bake navmesh</string>
+   </property>
+  </action>
+  <action name="actionBuildGame">
+   <property name="text">
+    <string>Build game</string>
    </property>
   </action>
  </widget>

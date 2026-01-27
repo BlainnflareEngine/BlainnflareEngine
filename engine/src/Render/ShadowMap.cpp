@@ -33,8 +33,7 @@ ID3D12Resource *ShadowMap::Get()
     return m_shadowMap.Get();
 }
 
-void ShadowMap::CreateDescriptors(CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuSrv, CD3DX12_GPU_DESCRIPTOR_HANDLE hGpuSrv,
-                                  CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuDsv)
+void ShadowMap::CreateDescriptors(CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuSrv, CD3DX12_GPU_DESCRIPTOR_HANDLE hGpuSrv, CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuDsv)
 {
     m_hCpuSrv = hCpuSrv;
     m_hGpuSrv = hGpuSrv;
@@ -54,24 +53,6 @@ void ShadowMap::OnResize(UINT newWidth, UINT newHeight)
 
         // New resource, so we need new descriptors to that resource.
         CreateDescriptors();
-    }
-}
-
-void ShadowMap::CreateShadowCascadeSplits(float nearZ, float farZ)
-{
-    const float minZ = nearZ;
-    const float maxZ = farZ;
-
-    const float range = maxZ - minZ;
-    const float ratio = maxZ / minZ;
-
-    for (int i = 0; i < MaxCascades; i++)
-    {
-        float p = (i + 1) / (float)(MaxCascades);
-        float log = (float)(minZ * pow(ratio, p));
-        float uniform = minZ + range * p;
-        float d = 0.95f * (log - uniform) + uniform; // 0.95f - idk, just magic value
-        m_shadowCascadeLevels[i] = ((d - minZ) / range) * maxZ;
     }
 }
 

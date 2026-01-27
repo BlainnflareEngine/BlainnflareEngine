@@ -1,10 +1,9 @@
-name: Build_debug
+name: Build_debug_no_editor
 
 on:
   push:
     tags:
        - 'v*'
-  workflow_dispatch:
 
 jobs:
   build-debug:
@@ -21,12 +20,6 @@ jobs:
 
       - uses: ilammy/msvc-dev-cmd@v1
 
-      - uses: jurplel/install-qt-action@v3
-        with:
-          version: 6.9.2
-          arch: win64_msvc2022_64
-          cache: true
-
       - name: Bootstrap dependencies
         shell: cmd
         run: call libs/clone_dependencies.bat
@@ -37,10 +30,10 @@ jobs:
         run: >
           cmake -S . -B build -G Ninja
           -DCMAKE_BUILD_TYPE=Debug
-          -DCMAKE_PREFIX_PATH="${{ env.Qt6_DIR }}"
           -DCMAKE_POLICY_VERSION_MINIMUM=3.5
           -DBLAINN_DISABLE_D3D_DEBUG_LAYER=ON
           -DTRACY_ENABLE=OFF
+          -DBLAINN_EXCLUDE_EDITOR=ON
 
       - name: Build
         run: cmake --build build --config Debug
@@ -57,17 +50,11 @@ jobs:
           }
 
           $filesToZip = @(
-            "build\content"
             "build\lib"
-            "build\plugins"
             "build\BlainnflareEngine.exe"
             "build\BlainnflareEngine.lib"
-            "build\Qt6Cored.dll"
-            "build\Qt6Guid.dll"
-            "build\Qt6Svgd.dll"
-            "build\Qt6Widgetsd.dll"
           )
-          Compress-Archive -Path $filesToZip -DestinationPath "build\BF_$name.zip"
+          Compress-Archive -Path $filesToZip -DestinationPath "build\BF_$name.NoEditor.zip"
 
       - name: Release
         uses: softprops/action-gh-release@v2

@@ -53,6 +53,8 @@ path_input_field::path_input_field(const QString &name, const QStringList &accep
     m_delete->setIcon(QIcon(QPixmap(":/icons/delete.png")));
     connect(m_delete, &QPushButton::clicked, this, &path_input_field::OnDelete);
     layout()->addWidget(m_delete);
+
+    connect(m_input, &QLineEdit::editingFinished, this, [this]() { emit PathChanged("", m_input->text()); });
 }
 
 
