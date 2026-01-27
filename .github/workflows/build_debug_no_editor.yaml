@@ -1,4 +1,4 @@
-name: Build_debug
+name: Build_debug_no_editor
 
 on:
   push:
@@ -33,7 +33,7 @@ jobs:
           -DCMAKE_POLICY_VERSION_MINIMUM=3.5
           -DBLAINN_DISABLE_D3D_DEBUG_LAYER=ON
           -DTRACY_ENABLE=OFF
-          -DBLAINN_EXCLUDE_EDITOR
+          -DBLAINN_EXCLUDE_EDITOR=ON
 
       - name: Build
         run: cmake --build build --config Debug
@@ -50,7 +50,6 @@ jobs:
           }
 
           $filesToZip = @(
-            "build\editor"
             "build\engine"
             "build\lib"
             "build\BlainnflareEngine.exe"
