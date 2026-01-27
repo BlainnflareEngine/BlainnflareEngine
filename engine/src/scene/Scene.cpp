@@ -154,7 +154,6 @@ void Scene::SaveScene()
         out << YAML::BeginMap; // begin for every entity
 
         Serializer::Default(e, out);
-        Serializer::Tag(e, out);
 
         for (const auto &[typeId, meta] : g_componentRegistry)
         {
