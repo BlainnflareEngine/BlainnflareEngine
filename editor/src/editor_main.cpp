@@ -237,7 +237,7 @@ void editor_main::StartGameBuild()
     }
 
     QString appDir = QApplication::applicationDirPath();
-    QString scriptPath = appDir + "/build/build.bat";
+    QString scriptPath = appDir + "/GameBuild/GameBuild.bat";
 
     if (!QFile::exists(scriptPath))
     {
@@ -266,6 +266,10 @@ void editor_main::OnBuildFinished(int exitCode, QProcess::ExitStatus exitStatus)
     if (exitCode == 0 && exitStatus == QProcess::NormalExit)
     {
         BF_DEBUG("Build succeeded!");
+
+        QString appDir = QApplication::applicationDirPath();
+        QString buildPath = appDir + "/EngineSource/build/Release";
+        OpenFolderExplorer(buildPath);
     }
     else
     {
