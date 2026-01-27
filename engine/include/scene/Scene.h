@@ -19,6 +19,7 @@
 namespace Blainn
 {
 class MeshComponent;
+class AssetManager;
 
 using EntityMap = eastl::unordered_map<uuid, Entity>;
 class Scene
@@ -29,8 +30,14 @@ public:
     Scene(const YAML::Node &config);
     ~Scene();
 
-    void StartPlayMode() { m_bPlayMode = true; }
-    void EndPlayMode() { m_bPlayMode = false; }
+    void StartPlayMode()
+    {
+        m_bPlayMode = true;
+    }
+    void EndPlayMode()
+    {
+        m_bPlayMode = false;
+    }
 
     // I'm not sure we need to copy or move scenes so if needed add these functions
     Scene(Scene &other) = delete;
@@ -68,7 +75,7 @@ public:
     Entity CreateChildEntityWithID(Entity parent, const uuid &id, const eastl::string &name = "",
                                    bool shouldSort = true, bool onSceneChanged = false, bool createdByEditor = false);
     void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false, bool createdByEditor = false);
-    void LoadNavMeshData(const YAML::Node& node);
+    void LoadNavMeshData(const YAML::Node &node);
     void SubmitToDestroyEntity(Entity entity);
 
 
@@ -100,6 +107,8 @@ public:
     // prefabs would be cool
     // Entity CreatePrefabEntity(Entity entity, Entity parent /* and so on */);
 
+    static void ProcessEvents();
+
 private:
     void DestroyEntityInternal(Entity entity, bool excludeChildren = false, bool first = true);
     void DestroyEntityInternal(const uuid &entityID, bool excludeChildren = false, bool first = true);
@@ -113,7 +122,6 @@ private:
 
     void ReportEntityReparent(Entity entity);
 
-    void ProcessEvents();
 
 private:
     uuid m_SceneID;
@@ -131,10 +139,11 @@ private:
     inline static eventpp::EventQueue<SceneEventType, void(const SceneEventPointer &), SceneEventPolicy>
         s_sceneEventQueue;
 
-    bool m_bPlayMode{false};
+    inline static bool m_bPlayMode{false};
     eastl::shared_ptr<Camera> m_editorCam;
 
     friend class Entity;
+    friend class AssetManager;
 };
 } // namespace Blainn
 

@@ -16,16 +16,16 @@ struct MeshHandle;
 struct ImportMeshData;
 
 #ifndef MAX_TEX_OF_TYPE
-    #define MAX_TEX_OF_TYPE 128
+#define MAX_TEX_OF_TYPE 128
 #endif
 #ifndef MAX_TEXTURES
-    #define MAX_TEXTURES 512 // 128 for diff, normal, metallic and roughness (skip AO for now)
+#define MAX_TEXTURES 512 // 128 for diff, normal, metallic and roughness (skip AO for now)
 #endif
 #ifndef MAX_MATERIALS
-    #define MAX_MATERIALS 64
+#define MAX_MATERIALS 64
 #endif
 #ifndef MAX_MESHES
-    #define MAX_MESHES 128
+#define MAX_MESHES 128
 #endif
 
 class AssetManager
@@ -65,7 +65,7 @@ public:
     eastl::shared_ptr<TextureHandle> LoadTexture(const Path &relativePath, const TextureType type);
     Texture &GetTextureByIndex(unsigned int index);
     Texture &GetTextureByHandle(const TextureHandle &handle);
-    Path GetTexturePath(const TextureHandle& handle);
+    Path GetTexturePath(const TextureHandle &handle);
 
     bool HasMaterial(const Path &relativePath);
     eastl::shared_ptr<MaterialHandle> GetMaterial(const Path &path);
@@ -78,7 +78,7 @@ public:
 
     void ResetTextures();
     static bool SceneExists(const Path &relativePath);
-    static void OpenScene(const Path &relativePath);
+    static void OpenScene(Path relativePath);
     static void CreateScene(const Path &relativePath);
 
 private:
