@@ -147,7 +147,7 @@ void ai_controller_widget::OnFaceMovementDirectionChanged(bool value)
     auto comp = m_entity.TryGetComponent<Blainn::AIControllerComponent>();
     if (!comp) return;
 
-    comp->GroundOffset = value;
+    comp->FaceMovementDirection = value;
 }
 
 
