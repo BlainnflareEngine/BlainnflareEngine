@@ -177,11 +177,6 @@ bool NavigationSubsystem::BakeNavMesh(Scene &scene, Entity navVolumeEntity, cons
     }
 
     BF_INFO("Navmesh build SUCCESS. Size: {} bytes", result.navDataSize);
-    if (result.navDataSize >= 4)
-    {
-        BF_INFO("First 4 bytes: {:02X} {:02X} {:02X} {:02X}", result.navData[0], result.navData[1], result.navData[2],
-                result.navData[3]);
-    }
 
     Path absPath = Engine::GetContentDirectory() / outputRelativePath;
     std::filesystem::create_directories(absPath.parent_path());
@@ -242,18 +237,18 @@ bool NavigationSubsystem::FindPath(const Vec3 &start, const Vec3 &end, eastl::ve
     }
 
     float straightPath[MAX_POLYS * 3];
-    int nstraight = 0;
-    m_navQuery->findStraightPath(&start.x, &end.x, polys, npolys, straightPath, nullptr, nullptr, &nstraight, MAX_POLYS,
+    int straightPathCount = 0;
+    m_navQuery->findStraightPath(&start.x, &end.x, polys, npolys, straightPath, nullptr, nullptr, &straightPathCount, MAX_POLYS,
                                  DT_STRAIGHTPATH_ALL_CROSSINGS);
 
-    if (nstraight == 0)
+    if (straightPathCount == 0)
     {
         outPath.clear();
         return false;
     }
 
-    outPath.resize(nstraight);
-    for (int i = 0; i < nstraight; ++i)
+    outPath.resize(straightPathCount);
+    for (int i = 0; i < straightPathCount; ++i)
     {
         outPath[i] = Vec3(straightPath[i * 3 + 0], straightPath[i * 3 + 1], straightPath[i * 3 + 2]);
     }
