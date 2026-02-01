@@ -19,8 +19,9 @@
 namespace Blainn
 {
 class MeshComponent;
-
+class SceneManager;
 using EntityMap = eastl::unordered_map<uuid, Entity>;
+
 class Scene
 {
 public:
@@ -29,8 +30,14 @@ public:
     Scene(const YAML::Node &config);
     ~Scene();
 
-    void StartPlayMode() { m_bPlayMode = true; }
-    void EndPlayMode() { m_bPlayMode = false; }
+    void StartPlayMode()
+    {
+        m_bPlayMode = true;
+    }
+    void EndPlayMode()
+    {
+        m_bPlayMode = false;
+    }
 
     // I'm not sure we need to copy or move scenes so if needed add these functions
     Scene(Scene &other) = delete;
@@ -68,7 +75,7 @@ public:
     Entity CreateChildEntityWithID(Entity parent, const uuid &id, const eastl::string &name = "",
                                    bool shouldSort = true, bool onSceneChanged = false, bool createdByEditor = false);
     void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false, bool createdByEditor = false);
-    void LoadNavMeshData(const YAML::Node& node);
+    void LoadNavMeshData(const YAML::Node &node);
     void SubmitToDestroyEntity(Entity entity);
 
 
@@ -97,6 +104,10 @@ public:
     void SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTransform);
     TransformComponent GetWorldSpaceTransform(Entity entity);
 
+    uuid &GetID()
+    {
+        return m_SceneID;
+    }
     // prefabs would be cool
     // Entity CreatePrefabEntity(Entity entity, Entity parent /* and so on */);
 
@@ -115,26 +126,29 @@ private:
 
     void ProcessEvents();
 
+    static void ProcessStaticEvents();
+
 private:
     uuid m_SceneID;
-    entt::entity m_SceneEntity{entt::null};
     entt::registry m_Registry;
-
     eastl::string m_Name;
     bool m_IsEditorScene{false};
     uint32_t m_ViewportWidth{0}, m_ViewportHeight{0};
 
+    // TODO: remove this trash
     EntityMap m_EntityIdMap;
 
-    inline static moodycamel::ConcurrentQueue<eastl::function<void()>> s_postUpdateQueue;
+    moodycamel::ConcurrentQueue<eastl::function<void()>> s_postUpdateQueue;
 
     inline static eventpp::EventQueue<SceneEventType, void(const SceneEventPointer &), SceneEventPolicy>
         s_sceneEventQueue;
 
     bool m_bPlayMode{false};
+
     eastl::shared_ptr<Camera> m_editorCam;
 
     friend class Entity;
+    friend class SceneManager;
 };
 } // namespace Blainn
 

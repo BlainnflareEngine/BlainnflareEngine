@@ -190,6 +190,8 @@ set(ENGINE_SOURCES
         src/Render/UI/DebugUIRenderer.cpp
         include/tools/ComponentRegistry.h
         include/EngineConfig.h
+        src/scene/SceneManager.cpp
+        include/scene/SceneManager.h
 )
 
 file(GLOB IMGUI_SOURCES

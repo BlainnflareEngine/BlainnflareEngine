@@ -68,8 +68,8 @@ Scene::~Scene()
         fn();
     }
 
-    s_sceneEventQueue.process();
-    s_sceneEventQueue.clearEvents();
+    /*s_sceneEventQueue.process();
+    s_sceneEventQueue.clearEvents();*/
 }
 
 
@@ -110,7 +110,9 @@ void Blainn::Scene::Update()
 
             cam->SetPosition(translation);
 
-            Mat4 camViewMat = (SimpleMath::Matrix::CreateFromQuaternion(rot) * SimpleMath::Matrix::CreateTranslation(translation)).Invert();
+            Mat4 camViewMat =
+                (SimpleMath::Matrix::CreateFromQuaternion(rot) * SimpleMath::Matrix::CreateTranslation(translation))
+                    .Invert();
             cam->SetViewMatrix(camViewMat);
 
             cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
@@ -198,7 +200,11 @@ void Scene::ProcessEvents()
     {
         fn();
     }
+}
 
+
+void Scene::ProcessStaticEvents()
+{
     s_sceneEventQueue.process();
 }
 
