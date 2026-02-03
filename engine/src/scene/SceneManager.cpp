@@ -15,7 +15,6 @@ namespace Blainn
 void SceneManager::CloseScenes()
 {
     if (m_activeScene) CloseScene(m_activeScene->GetSceneID());
-    m_allScenes.clear();
 }
 
 
@@ -138,6 +137,7 @@ void SceneManager::CloseScene(const uuid &id)
         m_activeScene.reset();
         // SetActiveScene(m_additiveScenes.begin()->first);
         m_additiveScenes.clear();
+        m_allScenes.clear();
         return;
     }
 
