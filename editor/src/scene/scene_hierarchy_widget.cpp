@@ -237,14 +237,16 @@ void scene_hierarchy_widget::OnSceneChanged(const Blainn::SceneEventPointer &eve
     auto sceneEvent = static_cast<SceneChangedEvent *>(event.get());
     m_sceneMeta = eastl::make_shared<SceneMeta>(QString::fromStdString(sceneEvent->GetName().c_str()));
 
+    // TODO: somehow add additive scenes
     eastl::vector<Entity> entities = {};
-    Engine::GetActiveScene()->GetEntitiesInHierarchy(entities);
+    Engine::GetSceneManager().GetActiveScene()->GetEntitiesInHierarchy(entities);
 
     for (auto &entity : entities)
     {
         CreateEntityInHierarchy(entity, true);
     }
 }
+
 void scene_hierarchy_widget::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();

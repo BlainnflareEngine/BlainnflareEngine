@@ -289,21 +289,18 @@ bool editor::SceneItemModel::dropMimeData(const QMimeData *data, Qt::DropAction 
     Blainn::uuid uuid;
     memcpy(&uuid, encoded.constData(), sizeof(uuid));
 
-    auto scene = Blainn::Engine::GetActiveScene();
-    if (scene)
+    auto &sceneManager = Blainn::Engine::GetSceneManager();
+    Blainn::Entity entity = sceneManager.TryGetEntityWithUUID(uuid);
+    if (entity.IsValid())
     {
-        Blainn::Entity entity = scene->TryGetEntityWithUUID(uuid);
-        if (entity.IsValid())
+        Blainn::Entity newParent;
+        if (parent.isValid())
         {
-            Blainn::Entity newParent;
-            if (parent.isValid())
-            {
-                EntityNode *parentNode = static_cast<EntityNode *>(parent.internalPointer());
-                newParent = scene->TryGetEntityWithUUID(parentNode->GetUUID());
-            }
-            if (newParent) scene->ParentEntity(entity, newParent);
-            else scene->UnparentEntity(entity);
+            EntityNode *parentNode = static_cast<EntityNode *>(parent.internalPointer());
+            newParent = sceneManager.TryGetEntityWithUUID(parentNode->GetUUID());
         }
+        if (newParent) sceneManager.ParentEntity(entity, newParent);
+        else sceneManager.UnparentEntity(entity);
     }
 
     beginResetModel();
@@ -418,53 +415,50 @@ bool editor::SceneItemModel::FullRebuildModel()
     qDeleteAll(m_rootNodes);
     m_rootNodes.clear();
 
-    auto scene = Blainn::Engine::GetActiveScene();
-    if (!scene)
+
+    for (auto &scene : Blainn::Engine::GetSceneManager().GetActiveScenes())
     {
-        endResetModel();
-        return false;
-    }
+        eastl::unordered_map<Blainn::uuid, EntityNode *> nodeMap;
+        auto view = scene->GetAllEntitiesWith<Blainn::IDComponent, Blainn::RelationshipComponent>();
+        eastl::vector<Blainn::Entity> rootEntities;
 
-    auto view = scene->GetAllEntitiesWith<Blainn::IDComponent, Blainn::RelationshipComponent>();
-    eastl::vector<Blainn::Entity> rootEntities;
-    eastl::unordered_map<Blainn::uuid, EntityNode *> nodeMap;
-
-    for (auto [entityHandle, idComp, relationshipComp] : view.each())
-    {
-        Blainn::Entity entity(entityHandle, scene.get());
-        EntityNode *node = new EntityNode(entity.GetUUID(), nullptr);
-        nodeMap[entity.GetUUID()] = node;
-    }
-
-    for (auto &pair : nodeMap)
-    {
-        Blainn::Entity entity = scene->TryGetEntityWithUUID(pair.first);
-        if (!entity.IsValid()) continue;
-
-        pair.second->SetName(ToQString(entity.Name()));
-
-        Blainn::Entity parent = entity.GetParent();
-        if (parent.IsValid())
+        for (auto [entityHandle, idComp, relationshipComp] : view.each())
         {
-            auto parentIt = nodeMap.find(parent.GetUUID());
-            if (parentIt != nodeMap.end())
+            Blainn::Entity entity(entityHandle, scene.get());
+            EntityNode *node = new EntityNode(entity.GetUUID(), nullptr);
+            nodeMap[entity.GetUUID()] = node;
+        }
+
+        for (auto &pair : nodeMap)
+        {
+            Blainn::Entity entity = scene->TryGetEntityWithUUID(pair.first);
+            if (!entity.IsValid()) continue;
+
+            pair.second->SetName(ToQString(entity.Name()));
+
+            Blainn::Entity parent = entity.GetParent();
+            if (parent.IsValid())
             {
-                pair.second->m_parent = parentIt->second;
-                parentIt->second->children.append(pair.second);
+                auto parentIt = nodeMap.find(parent.GetUUID());
+                if (parentIt != nodeMap.end())
+                {
+                    pair.second->m_parent = parentIt->second;
+                    parentIt->second->children.append(pair.second);
+                }
+            }
+            else
+            {
+                rootEntities.push_back(entity);
             }
         }
-        else
-        {
-            rootEntities.push_back(entity);
-        }
-    }
 
-    for (auto &entity : rootEntities)
-    {
-        auto it = nodeMap.find(entity.GetUUID());
-        if (it != nodeMap.end())
+        for (auto &entity : rootEntities)
         {
-            m_rootNodes.append(it->second);
+            auto it = nodeMap.find(entity.GetUUID());
+            if (it != nodeMap.end())
+            {
+                m_rootNodes.append(it->second);
+            }
         }
     }
 

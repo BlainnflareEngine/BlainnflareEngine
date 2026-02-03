@@ -192,6 +192,7 @@ set(ENGINE_SOURCES
         include/EngineConfig.h
         src/scene/SceneManager.cpp
         include/scene/SceneManager.h
+        include/scene/SceneManagerTemplates.h
 )
 
 file(GLOB IMGUI_SOURCES

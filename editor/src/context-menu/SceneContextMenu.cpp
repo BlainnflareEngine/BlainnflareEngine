@@ -132,12 +132,12 @@ void SceneContextMenu::AddEntity(const QModelIndex &index)
     {
         Blainn::Entity parent = SceneItemModel::GetNodeFromIndex(index)->GetEntity();
 
-        if (parent.IsValid()) Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Entity", false, true);
+        if (parent.IsValid()) Blainn::Engine::GetSceneManager().CreateChildEntity(parent, "Entity", false, true);
         else BF_ERROR("Parent entity is invalid.");
     }
     else
     {
-        Blainn::Engine::GetActiveScene()->CreateEntity("Entity", false, true);
+        Blainn::Engine::GetSceneManager().CreateEntity("Entity", false, true);
     }
 }
 
@@ -150,7 +150,7 @@ void SceneContextMenu::AddCamera(const QModelIndex &index)
 
         if (parent.IsValid())
         {
-            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Camera", false, true);
+            auto entity = Blainn::Engine::GetSceneManager().CreateChildEntity(parent, "Camera", false, true);
             entity.AddComponent<Blainn::TransformComponent>();
             auto &cam = entity.AddComponent<Blainn::CameraComponent>();
             cam.camera.Reset(75.0f, 16 / 9, 0.1, 1000);
@@ -159,7 +159,7 @@ void SceneContextMenu::AddCamera(const QModelIndex &index)
     }
     else
     {
-        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Camera", false, true);
+        auto entity = Blainn::Engine::GetSceneManager().CreateEntity("Camera", false, true);
         entity.AddComponent<Blainn::TransformComponent>();
         auto &cam = entity.AddComponent<Blainn::CameraComponent>();
         cam.camera.Reset(75.0f, 16 / 9, 0.1, 1000);
@@ -175,14 +175,14 @@ void SceneContextMenu::AddSkybox(const QModelIndex &index)
 
         if (parent.IsValid())
         {
-            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Skybox", false, true);
+            auto entity = Blainn::Engine::GetSceneManager().CreateChildEntity(parent, "Skybox", false, true);
             entity.AddComponent<Blainn::SkyboxComponent>();
         }
         else BF_ERROR("Parent entity is invalid.");
     }
     else
     {
-        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Skybox", false, true);
+        auto entity = Blainn::Engine::GetSceneManager().CreateEntity("Skybox", false, true);
         entity.AddComponent<Blainn::SkyboxComponent>();
     }
 }
@@ -196,7 +196,7 @@ void SceneContextMenu::AddDirectionalLight(const QModelIndex &index)
 
         if (parent.IsValid())
         {
-            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Directional light", false, true);
+            auto entity = Blainn::Engine::GetSceneManager().CreateChildEntity(parent, "Directional light", false, true);
             entity.AddComponent<Blainn::TransformComponent>();
             entity.AddComponent<Blainn::DirectionalLightComponent>();
         }
@@ -204,7 +204,7 @@ void SceneContextMenu::AddDirectionalLight(const QModelIndex &index)
     }
     else
     {
-        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Directional light", false, true);
+        auto entity = Blainn::Engine::GetSceneManager().CreateEntity("Directional light", false, true);
         entity.AddComponent<Blainn::TransformComponent>();
         entity.AddComponent<Blainn::DirectionalLightComponent>();
     }
@@ -219,7 +219,7 @@ void SceneContextMenu::AddPointLight(const QModelIndex &index)
 
         if (parent.IsValid())
         {
-            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Point light", false, true);
+            auto entity = Blainn::Engine::GetSceneManager().CreateChildEntity(parent, "Point light", false, true);
             entity.AddComponent<Blainn::TransformComponent>();
             entity.AddComponent<Blainn::PointLightComponent>();
         }
@@ -227,7 +227,7 @@ void SceneContextMenu::AddPointLight(const QModelIndex &index)
     }
     else
     {
-        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Point light", false, true);
+        auto entity = Blainn::Engine::GetSceneManager().CreateEntity("Point light", false, true);
         entity.AddComponent<Blainn::TransformComponent>();
         entity.AddComponent<Blainn::PointLightComponent>();
     }
@@ -242,7 +242,7 @@ void SceneContextMenu::AddSpotLight(const QModelIndex &index)
 
         if (parent.IsValid())
         {
-            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Spot light", false, true);
+            auto entity = Blainn::Engine::GetSceneManager().CreateChildEntity(parent, "Spot light", false, true);
             entity.AddComponent<Blainn::TransformComponent>();
             entity.AddComponent<Blainn::SpotLightComponent>();
         }
@@ -250,7 +250,7 @@ void SceneContextMenu::AddSpotLight(const QModelIndex &index)
     }
     else
     {
-        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Spot light", false, true);
+        auto entity = Blainn::Engine::GetSceneManager().CreateEntity("Spot light", false, true);
         entity.AddComponent<Blainn::TransformComponent>();
         entity.AddComponent<Blainn::SpotLightComponent>();
     }
@@ -269,7 +269,7 @@ void SceneContextMenu::DuplicateEntity(const QModelIndex &index) const
 
     if (!sceneModel) return;
 
-    Blainn::Engine::GetActiveScene()->DuplicateEntity(sceneModel->GetEntity());
+    Blainn::Engine::GetSceneManager().DuplicateEntity(sceneModel->GetEntity());
 }
 
 
@@ -279,7 +279,7 @@ void SceneContextMenu::DeleteEntity(const QModelIndex &index)
 
     if (!sceneModel) return;
 
-    Blainn::Engine::GetActiveScene()->SubmitToDestroyEntity(sceneModel->GetEntity());
+    Blainn::Engine::GetSceneManager().SubmitToDestroyEntity(sceneModel->GetEntity());
 }
 
 

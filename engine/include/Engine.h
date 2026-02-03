@@ -10,6 +10,7 @@
 #include <functional>
 
 #include "SelectionManager.h"
+#include "scene/SceneManager.h"
 
 namespace vgjs
 {
@@ -42,11 +43,7 @@ public:
     static void SetContentDirectory(const Path &contentDirectory);
     static void SetDefaultContentDirectory();
 
-    static EngineConfig& GetConfig();
-public:
-    static eastl::shared_ptr<Scene> GetActiveScene();
-    static void SetActiveScene(const eastl::shared_ptr<Scene> &scene);
-    static void ClearActiveScene();
+    static EngineConfig &GetConfig();
 
 public:
     static HWND CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle,
@@ -55,14 +52,20 @@ public:
 
     static SelectionManager &GetSelectionManager()
     {
-        return m_selectionManager;
+        return s_selectionManager;
+    }
+
+    static SceneManager &GetSceneManager()
+    {
+        return s_sceneManager;
     }
 
 private:
-    static inline SelectionManager m_selectionManager = SelectionManager();
-    static inline eastl::function<void(float)> m_renderFunc = nullptr;
+    static inline SelectionManager s_selectionManager = SelectionManager();
+    static inline eastl::function<void(float)> s_renderFunc = nullptr;
     static inline eastl::shared_ptr<vgjs::JobSystem> s_JobSystemPtr = nullptr;
-    static inline eastl::shared_ptr<Scene> s_activeScene{};
+    // static inline eastl::shared_ptr<Scene> s_activeScene{};
+    static inline SceneManager s_sceneManager = SceneManager();
     static inline Path s_contentDirectory;
     static inline Timeline<eastl::chrono::milliseconds> s_playModeTimeline{nullptr};
     static inline bool s_isPlayMode = false;

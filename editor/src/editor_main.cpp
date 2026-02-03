@@ -187,15 +187,14 @@ void editor_main::OnOpenSettings()
 
 void editor_main::OnSaveScene()
 {
-    Blainn::Engine::GetActiveScene()->SaveScene();
+    Blainn::Engine::GetSceneManager().SaveCurrentScene();
     ui->Entities->SaveCurrentMeta();
 }
 
 
 void editor_main::OnBuildNavMesh()
 {
-    auto scene = Blainn::Engine::GetActiveScene();
-    if (!scene) return;
+    const auto& scene = Blainn::Engine::GetSceneManager().GetActiveScene();
 
     for (const auto &[entity, volume] : scene->GetAllEntitiesWith<Blainn::NavmeshVolumeComponent>().each())
     {

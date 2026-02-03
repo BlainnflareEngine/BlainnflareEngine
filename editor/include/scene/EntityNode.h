@@ -55,9 +55,7 @@ public:
 
     Blainn::Entity GetEntity() const
     {
-        auto scene = Blainn::Engine::GetActiveScene();
-        if (!scene) return Blainn::Entity{};
-        return scene->TryGetEntityWithUUID(m_entityID);
+        return Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(m_entityID);
     }
 
     Blainn::uuid& GetUUID()

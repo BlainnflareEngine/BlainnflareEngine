@@ -10,7 +10,7 @@
 #include "File-System/Model.h"
 #include "File-System/Material.h"
 #include "Handles/Handle.h"
-#include "Scene/Scene.h"
+
 
 #include "Render/CommandQueue.h"
 #include "Render/DebugRenderer.h"
@@ -26,11 +26,20 @@
 #include "Render/UI/UIRenderer.h"
 #include "Render/GTexture.h"
 
+#include <entt/entt.hpp>
+
+#include "scene/SceneManagerTemplates.h"
+#include "scene/SceneManager.h"
+
 #include "PhysicsSubsystem.h"
 #include "Components/PhysicsComponent.h"
 #include "Components/LightComponent.h"
 #include "Components/CameraComponent.h"
 #include "Components/SkyboxComponent.h"
+#include "scene/BasicComponents.h"
+#include "scene/TransformComponent.h"
+#include "Components/MeshComponent.h"
+#include "scene/Entity.h"
 
 #include <cassert>
 
@@ -955,29 +964,33 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
 void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 {
     BLAINN_PROFILE_FUNC();
-    const auto &renderEntitiesView =
-        Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
-    for (const auto &[entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
+
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        const auto &_entity = Engine::GetActiveScene()->TryGetEntityWithUUID(entityID.ID);
-        if (!_entity.IsValid()) continue;
+        const auto &view = scene->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
 
-        if (entityTransform.IsFramesDirty() || entityMesh.MaterialHandle->GetMaterial().IsFramesDirty())
+        for (const auto &[entity, entityID, entityTransform, entityMesh] : view.each())
         {
-            ObjectConstants objConstants;
+            const auto &_entity = Engine::GetSceneManager().TryGetEntityWithUUID(entityID.ID);
+            if (!_entity.IsValid()) continue;
 
-            auto world = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(_entity);
-            auto transposeWorld = world.Transpose();
-            auto invTransposeWorld = transposeWorld.Invert();
+            if (entityTransform.IsFramesDirty() || entityMesh.MaterialHandle->GetMaterial().IsFramesDirty())
+            {
+                ObjectConstants objConstants;
 
-            XMStoreFloat4x4(&objConstants.World, transposeWorld);
-            XMStoreFloat4x4(&objConstants.InvTransposeWorld, XMMatrixTranspose(invTransposeWorld));
-            XMStoreFloat4x4(&objConstants.TexTransform,
-                            XMMatrixTranspose(entityMesh.MeshHandle->GetMesh().GetTextureTransform()));
-            objConstants.MaterialIndex = entityMesh.MaterialHandle->GetIndex();
+                auto world = Engine::GetSceneManager().GetWorldSpaceTransformMatrix(_entity);
+                auto transposeWorld = world.Transpose();
+                auto invTransposeWorld = transposeWorld.Invert();
 
-            entityMesh.UpdateMeshCB(objConstants);
-            entityTransform.FrameResetDirtyFlags();
+                XMStoreFloat4x4(&objConstants.World, transposeWorld);
+                XMStoreFloat4x4(&objConstants.InvTransposeWorld, XMMatrixTranspose(invTransposeWorld));
+                XMStoreFloat4x4(&objConstants.TexTransform,
+                                XMMatrixTranspose(entityMesh.MeshHandle->GetMesh().GetTextureTransform()));
+                objConstants.MaterialIndex = entityMesh.MaterialHandle->GetIndex();
+
+                entityMesh.UpdateMeshCB(objConstants);
+                entityTransform.FrameResetDirtyFlags();
+            }
         }
     }
 }
@@ -988,59 +1001,68 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
 #pragma region PointLights
     auto currPointLightSB = m_currFrameResource->PointLightSB.get();
 
-    const auto &pointLightEntitiesView =
-        Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, PointLightComponent>();
-    for (const auto &[entity, entityID, entityTransform, entityLight] : pointLightEntitiesView.each())
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        const auto &_entity = Engine::GetActiveScene()->TryGetEntityWithUUID(entityID.ID);
-        if (!_entity.IsValid()) continue;
+        const auto &pointLightEntitiesView =
+            scene->GetAllEntitiesWith<IDComponent, TransformComponent, PointLightComponent>();
 
-        // if (!entityTransform.IsFramesDirty() && !entityLight.IsFramesDirty()) continue;
+        for (const auto &[entity, entityID, entityTransform, entityLight] : pointLightEntitiesView.each())
+        {
+            const auto &_entity = Engine::GetSceneManager().TryGetEntityWithUUID(entityID.ID);
+            if (!_entity.IsValid()) continue;
 
-        PointLightInstanceData m_perInstanceSBData;
+            // if (!entityTransform.IsFramesDirty() && !entityLight.IsFramesDirty()) continue;
 
-        auto world = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(_entity);
-        XMStoreFloat4x4(&m_perInstanceSBData.World, XMMatrixTranspose(world));
-        m_perInstanceSBData.Light.Color = entityLight.Color;
-        m_perInstanceSBData.Light.Color.w = entityLight.Intensity;
-        m_perInstanceSBData.Light.FalloffEnd = entityLight.FalloffEnd; // range
-        m_perInstanceSBData.Light.FalloffStart = entityLight.FalloffStart;
-        m_perInstanceSBData.Light.Position = entityTransform.GetTranslation();
+            PointLightInstanceData m_perInstanceSBData;
 
-        currPointLightSB->CopyData(m_pointLightsCount++, m_perInstanceSBData);
+            auto world = Engine::GetSceneManager().GetWorldSpaceTransformMatrix(_entity);
+            XMStoreFloat4x4(&m_perInstanceSBData.World, XMMatrixTranspose(world));
+            m_perInstanceSBData.Light.Color = entityLight.Color;
+            m_perInstanceSBData.Light.Color.w = entityLight.Intensity;
+            m_perInstanceSBData.Light.FalloffEnd = entityLight.FalloffEnd; // range
+            m_perInstanceSBData.Light.FalloffStart = entityLight.FalloffStart;
+            m_perInstanceSBData.Light.Position = entityTransform.GetTranslation();
 
-        /*entityTransform.FrameResetDirtyFlags();
-        entityLight.FrameResetDirtyFlags();*/
+            currPointLightSB->CopyData(m_pointLightsCount++, m_perInstanceSBData);
+
+            /*entityTransform.FrameResetDirtyFlags();
+            entityLight.FrameResetDirtyFlags();*/
+        }
     }
+
 #pragma endregion PointLights
 
 #pragma region SpotLights
     auto currSpotLightSB = m_currFrameResource->SpotLightSB.get();
 
-    const auto &spotLightEntitiesView =
-        Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, SpotLightComponent>();
-    for (const auto &[entity, entityID, entityTransform, entityLight] : spotLightEntitiesView.each())
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        const auto &_entity = Engine::GetActiveScene()->TryGetEntityWithUUID(entityID.ID);
-        if (!_entity.IsValid()) continue;
+        const auto &spotLightEntitiesView =
+            scene->GetAllEntitiesWith<IDComponent, TransformComponent, SpotLightComponent>();
 
-        // if (!entityTransform.IsFramesDirty() && !entityLight.IsFramesDirty()) continue;
+        for (const auto &[entity, entityID, entityTransform, entityLight] : spotLightEntitiesView.each())
+        {
+            const auto &_entity = Engine::GetSceneManager().TryGetEntityWithUUID(entityID.ID);
+            if (!_entity.IsValid()) continue;
 
-        SpotLightInstanceData m_perInstanceSBData;
+            // if (!entityTransform.IsFramesDirty() && !entityLight.IsFramesDirty()) continue;
 
-        auto world = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(_entity);
-        XMStoreFloat4x4(&m_perInstanceSBData.World, XMMatrixTranspose(world));
-        m_perInstanceSBData.Light.Color = entityLight.Color;
-        m_perInstanceSBData.Light.Color.w = entityLight.Intensity;
-        m_perInstanceSBData.Light.Direction = entityTransform.GetForwardVector(); // ? change this if I am wrong
-        m_perInstanceSBData.Light.FalloffEnd = entityLight.FalloffEnd;            // range, analogically to point light
-        m_perInstanceSBData.Light.FalloffStart = entityLight.FalloffStart;
-        m_perInstanceSBData.Light.Position = entityTransform.GetTranslation();
+            SpotLightInstanceData m_perInstanceSBData;
 
-        currSpotLightSB->CopyData(m_spotLightsCount++, m_perInstanceSBData);
+            auto world = Engine::GetSceneManager().GetWorldSpaceTransformMatrix(_entity);
+            XMStoreFloat4x4(&m_perInstanceSBData.World, XMMatrixTranspose(world));
+            m_perInstanceSBData.Light.Color = entityLight.Color;
+            m_perInstanceSBData.Light.Color.w = entityLight.Intensity;
+            m_perInstanceSBData.Light.Direction = entityTransform.GetForwardVector(); // ? change this if I am wrong
+            m_perInstanceSBData.Light.FalloffEnd = entityLight.FalloffEnd; // range, analogically to point light
+            m_perInstanceSBData.Light.FalloffStart = entityLight.FalloffStart;
+            m_perInstanceSBData.Light.Position = entityTransform.GetTranslation();
 
-        /*entityTransform.FrameResetDirtyFlags();
-        entityLight.FrameResetDirtyFlags();*/
+            currSpotLightSB->CopyData(m_spotLightsCount++, m_perInstanceSBData);
+
+            /*entityTransform.FrameResetDirtyFlags();
+            entityLight.FrameResetDirtyFlags();*/
+        }
     }
 #pragma endregion SpotLights
 }
@@ -1177,14 +1199,19 @@ void Blainn::RenderSubsystem::UpdateDeferredPassCB(float deltaTime)
 
 #pragma region DirLight
     // Invert sign because other way light would be pointing up
-    const auto &dirLightEntitiesView =
-        Engine::GetActiveScene()->GetAllEntitiesWith<TransformComponent, DirectionalLightComponent>();
-    for (const auto &[entity, entityTransform, entityLight] : dirLightEntitiesView.each())
+
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        m_deferredPassCBData.DirLight.Color = entityLight.Color;
-        m_deferredPassCBData.DirLight.Color.w = entityLight.Intensity;
-        m_deferredPassCBData.DirLight.Direction = entityTransform.GetForwardVector();
+        const auto &dirLightEntitiesView = scene->GetAllEntitiesWith<TransformComponent, DirectionalLightComponent>();
+
+        for (const auto &[entity, entityTransform, entityLight] : dirLightEntitiesView.each())
+        {
+            m_deferredPassCBData.DirLight.Color = entityLight.Color;
+            m_deferredPassCBData.DirLight.Color.w = entityLight.Intensity;
+            m_deferredPassCBData.DirLight.Direction = entityTransform.GetForwardVector();
+        }
     }
+
 #pragma endregion DirLight
 
     auto currPassCB = m_currFrameResource->PassCB.get();
@@ -1477,53 +1504,61 @@ void RenderSubsystem::RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList)
     m_debugRenderer->BeginDebugRenderPass(pCommandList, GetRTV(), m_GBuffer->GetDsv(GBuffer::EGBufferLayer::DEPTH));
     m_debugRenderer->SetViewProjMatrix(m_deferredPassCBData.ViewProj);
 
-    auto view = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, PhysicsComponent>();
-    for (const auto &[_, id, physicsComponent] : view.each())
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        Entity entity = Engine::GetActiveScene()->GetEntityWithUUID(id.ID);
-        auto bodyGetter = PhysicsSubsystem::GetBodyGetter(entity);
+        auto view = scene->GetAllEntitiesWith<IDComponent, PhysicsComponent>();
 
-        switch (physicsComponent.GetShapeType())
+        for (const auto &[_, id, physicsComponent] : view.each())
         {
-        case ComponentShapeType::Box:
-        {
-            auto min = bodyGetter.GetBoxShapeHalfExtents().value();
-            Mat4 transformMatrix = Mat4::CreateFromQuaternion(bodyGetter.GetRotation())
-                                   * Mat4::CreateTranslation(bodyGetter.GetPosition());
+            Entity entity = Engine::GetSceneManager().TryGetEntityWithUUID(id.ID);
 
-            m_debugRenderer->DrawWireBox(transformMatrix, min, -min, {0, 1, 0, 1});
-            break;
-        }
-        case ComponentShapeType::Sphere:
-        {
-            float sphereRadius = bodyGetter.GetSphereShapeRadius().value();
-            m_debugRenderer->DrawWireSphere(bodyGetter.GetPosition(), sphereRadius, {0, 1, 0, 1});
-            break;
-        }
-        case ComponentShapeType::Capsule:
-        {
-            auto capsuleHalfHeightAndRadius = bodyGetter.GetCapsuleShapeHalfHeightAndRadius().value();
-            Mat4 transformMatrix = Mat4::CreateFromQuaternion(bodyGetter.GetRotation())
-                                   * Mat4::CreateTranslation(bodyGetter.GetPosition());
+            if (!entity.IsValid()) continue;
 
-            m_debugRenderer->DrawCapsule(transformMatrix, capsuleHalfHeightAndRadius.first,
-                                         capsuleHalfHeightAndRadius.second, {0, 1, 0, 1});
-            break;
-        }
-        case ComponentShapeType::Cylinder:
-        {
-            auto cylinderHalfHeightAndRadius = bodyGetter.GetCylinderShapeHalfHeightAndRadius().value();
-            Mat4 transformMatrix = Mat4::CreateFromQuaternion(bodyGetter.GetRotation())
-                                   * Mat4::CreateTranslation(bodyGetter.GetPosition());
+            auto bodyGetter = PhysicsSubsystem::GetBodyGetter(entity);
 
-            m_debugRenderer->DrawCylinder(transformMatrix, cylinderHalfHeightAndRadius.first,
-                                          cylinderHalfHeightAndRadius.second, {0, 1, 0, 1});
-            break;
-        }
-        default:
-            BF_ERROR("Unknown shape type");
+            switch (physicsComponent.GetShapeType())
+            {
+            case ComponentShapeType::Box:
+            {
+                auto min = bodyGetter.GetBoxShapeHalfExtents().value();
+                Mat4 transformMatrix = Mat4::CreateFromQuaternion(bodyGetter.GetRotation())
+                                       * Mat4::CreateTranslation(bodyGetter.GetPosition());
+
+                m_debugRenderer->DrawWireBox(transformMatrix, min, -min, {0, 1, 0, 1});
+                break;
+            }
+            case ComponentShapeType::Sphere:
+            {
+                float sphereRadius = bodyGetter.GetSphereShapeRadius().value();
+                m_debugRenderer->DrawWireSphere(bodyGetter.GetPosition(), sphereRadius, {0, 1, 0, 1});
+                break;
+            }
+            case ComponentShapeType::Capsule:
+            {
+                auto capsuleHalfHeightAndRadius = bodyGetter.GetCapsuleShapeHalfHeightAndRadius().value();
+                Mat4 transformMatrix = Mat4::CreateFromQuaternion(bodyGetter.GetRotation())
+                                       * Mat4::CreateTranslation(bodyGetter.GetPosition());
+
+                m_debugRenderer->DrawCapsule(transformMatrix, capsuleHalfHeightAndRadius.first,
+                                             capsuleHalfHeightAndRadius.second, {0, 1, 0, 1});
+                break;
+            }
+            case ComponentShapeType::Cylinder:
+            {
+                auto cylinderHalfHeightAndRadius = bodyGetter.GetCylinderShapeHalfHeightAndRadius().value();
+                Mat4 transformMatrix = Mat4::CreateFromQuaternion(bodyGetter.GetRotation())
+                                       * Mat4::CreateTranslation(bodyGetter.GetPosition());
+
+                m_debugRenderer->DrawCylinder(transformMatrix, cylinderHalfHeightAndRadius.first,
+                                              cylinderHalfHeightAndRadius.second, {0, 1, 0, 1});
+                break;
+            }
+            default:
+                BF_ERROR("Unknown shape type");
+            }
         }
     }
+
 
     m_debugRenderer->EndDebugRenderPass();
     ResourceBarrier(pCommandList, m_swapChain->GetBackBuffer(), D3D12_RESOURCE_STATE_RENDER_TARGET,
@@ -1556,39 +1591,45 @@ void RenderSubsystem::RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList)
     pCommandList->SetGraphicsRoot32BitConstants(1, 16, &ViewProjMat, 0);
 
     pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    auto view = Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
-    for (const auto &[entity, idComponent, transformComponent, meshComponent] : view.each())
+
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        struct Data
+        auto view = scene->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
+
+        for (const auto &[entity, idComponent, transformComponent, meshComponent] : view.each())
         {
-            Mat4 world;
-            char id[16];
-        } objData;
-        Entity ent = Engine::GetActiveScene()->GetEntityWithUUID(idComponent.ID);
-        objData.world = Engine::GetActiveScene()
-                            ->GetWorldSpaceTransformMatrix(ent)
-                            .Transpose(); // transformComponent.GetTransform().Transpose();
-        idComponent.ID.bytes(objData.id);
+            struct Data
+            {
+                Mat4 world;
+                char id[16];
+            } objData;
+            Entity ent = Engine::GetSceneManager().TryGetEntityWithUUID(idComponent.ID);
+            objData.world = Engine::GetSceneManager()
+                                .GetWorldSpaceTransformMatrix(ent)
+                                .Transpose(); // transformComponent.GetTransform().Transpose();
+            idComponent.ID.bytes(objData.id);
 
-        pCommandList->SetGraphicsRoot32BitConstants(0, 20, &objData, 0);
+            pCommandList->SetGraphicsRoot32BitConstants(0, 20, &objData, 0);
 
-        auto &model = meshComponent.MeshHandle->GetMesh();
-        auto currVBV = model.VertexBufferView();
-        auto currIBV = model.IndexBufferView();
+            auto &model = meshComponent.MeshHandle->GetMesh();
+            auto currVBV = model.VertexBufferView();
+            auto currIBV = model.IndexBufferView();
 
-        pCommandList->IASetVertexBuffers(0, 1, &currVBV);
-        pCommandList->IASetIndexBuffer(&currIBV);
+            pCommandList->IASetVertexBuffers(0, 1, &currVBV);
+            pCommandList->IASetIndexBuffer(&currIBV);
 
-        [[likely]]
-        if (currIBV.SizeInBytes)
-        {
-            pCommandList->DrawIndexedInstanced(model.GetIndicesCount(), 1u, 0u, 0u, 0u);
-        }
-        else
-        {
-            pCommandList->DrawInstanced(model.GetVerticesCount(), 1u, 0u, 0u);
+            [[likely]]
+            if (currIBV.SizeInBytes)
+            {
+                pCommandList->DrawIndexedInstanced(model.GetIndicesCount(), 1u, 0u, 0u, 0u);
+            }
+            else
+            {
+                pCommandList->DrawInstanced(model.GetVerticesCount(), 1u, 0u, 0u);
+            }
         }
     }
+
 
     ResourceBarrier(pCommandList, m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetD3D12Resource().Get(),
                     D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
@@ -1638,35 +1679,38 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
 
     UINT objCBByteSize = (UINT)FreyaUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
 
-    const auto &renderEntitiesView =
-        Engine::GetActiveScene()->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
-    for (const auto &[entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        if (!entityMesh.Enabled) continue;
+        const auto &renderEntitiesView = scene->GetAllEntitiesWith<IDComponent, TransformComponent, MeshComponent>();
 
-        auto currObjectCB = entityMesh.ObjectCB->Get();
-
-        auto &model = entityMesh.MeshHandle->GetMesh();
-
-        auto currVBV = model.VertexBufferView();
-        auto currIBV = model.IndexBufferView();
-
-        pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
-        pCommandList->IASetIndexBuffer(&currIBV);
-
-        D3D12_GPU_VIRTUAL_ADDRESS objCBAddress =
-            FreyaUtil::GetGPUVirtualAddress(currObjectCB->GetGPUVirtualAddress(), objCBByteSize, 0u);
-        pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerObjectDataCB, objCBAddress);
-
-        [[likely]]
-        if (currIBV.SizeInBytes)
+        for (const auto &[entity, entityID, entityTransform, entityMesh] : renderEntitiesView.each())
         {
-            pCommandList->DrawIndexedInstanced(model.GetIndicesCount(), 1u, 0u, 0u, 0u);
-        }
-        else
-        {
-            pCommandList->DrawInstanced(model.GetVerticesCount(), 1u, 0u, 0u);
+            if (!entityMesh.Enabled) continue;
+
+            auto currObjectCB = entityMesh.ObjectCB->Get();
+
+            auto &model = entityMesh.MeshHandle->GetMesh();
+
+            auto currVBV = model.VertexBufferView();
+            auto currIBV = model.IndexBufferView();
+
+            pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            pCommandList->IASetVertexBuffers(0u, 1u, &currVBV);
+            pCommandList->IASetIndexBuffer(&currIBV);
+
+            D3D12_GPU_VIRTUAL_ADDRESS objCBAddress =
+                FreyaUtil::GetGPUVirtualAddress(currObjectCB->GetGPUVirtualAddress(), objCBByteSize, 0u);
+            pCommandList->SetGraphicsRootConstantBufferView(RootSignature::ERootParam::PerObjectDataCB, objCBAddress);
+
+            [[likely]]
+            if (currIBV.SizeInBytes)
+            {
+                pCommandList->DrawIndexedInstanced(model.GetIndicesCount(), 1u, 0u, 0u, 0u);
+            }
+            else
+            {
+                pCommandList->DrawInstanced(model.GetVerticesCount(), 1u, 0u, 0u);
+            }
         }
     }
 }
@@ -1751,10 +1795,10 @@ void Blainn::RenderSubsystem::GetLightSpaceMatrices(eastl::array<eastl::pair<XMM
 {
     for (UINT i = 0; i < MaxCascades; ++i)
     {
-        if (i == 0)
-            outMatrices[i] = GetLightSpaceMatrix(m_camera->GetNearZ(), m_camera->GetFrustumCascadesLevel(i));
+        if (i == 0) outMatrices[i] = GetLightSpaceMatrix(m_camera->GetNearZ(), m_camera->GetFrustumCascadesLevel(i));
         else
-            outMatrices[i] = GetLightSpaceMatrix(m_camera->GetFrustumCascadesLevel(i - 1), m_camera->GetFrustumCascadesLevel(i));
+            outMatrices[i] =
+                GetLightSpaceMatrix(m_camera->GetFrustumCascadesLevel(i - 1), m_camera->GetFrustumCascadesLevel(i));
     }
 }
 

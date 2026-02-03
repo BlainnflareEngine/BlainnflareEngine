@@ -11,6 +11,16 @@
 
 namespace Blainn
 {
+
+void SceneManager::CloseScenes()
+{
+    for (auto &[id, scene] : m_additiveScenes)
+        CloseScene(id);
+
+    if (m_activeScene) CloseScene(m_activeScene->GetSceneID());
+}
+
+
 eastl::shared_ptr<Scene> SceneManager::GetScene(const eastl::string &sceneName)
 {
     if (m_activeScene && m_activeScene->GetName() == sceneName) return m_activeScene;
@@ -25,13 +35,22 @@ eastl::shared_ptr<Scene> SceneManager::GetScene(const eastl::string &sceneName)
 
 eastl::shared_ptr<Scene> SceneManager::GetScene(const uuid &id)
 {
-    if (m_activeScene && m_activeScene->GetID() == id) return m_activeScene;
+    if (m_activeScene && m_activeScene->GetSceneID() == id) return m_activeScene;
 
     if (m_additiveScenes.contains(id)) return m_additiveScenes[id];
 
 
     BF_WARN("Not found scene with ID {}", id.str());
     return nullptr;
+}
+
+
+eastl::shared_ptr<Scene> SceneManager::OpenScene(const YAML::Node &config, SceneLoadType loadType)
+{
+    auto scenePtr = eastl::make_shared<Scene>(config);
+    HandleLoadType(loadType, scenePtr);
+    RebuildAllScenesList();
+    return scenePtr;
 }
 
 
@@ -44,10 +63,12 @@ void SceneManager::HandleLoadType(SceneLoadType loadType, eastl::shared_ptr<Scen
         m_additiveScenes.clear();
         break;
     case Additive:
-        m_additiveScenes[scenePtr->GetID()] = scenePtr;
+        m_additiveScenes[scenePtr->GetSceneID()] = scenePtr;
         break;
     }
 }
+
+
 eastl::shared_ptr<Scene> SceneManager::OpenScene(const Path &relativePath, SceneLoadType loadType)
 {
     std::string absolutePath = (Engine::GetContentDirectory() / relativePath).string();
@@ -57,6 +78,7 @@ eastl::shared_ptr<Scene> SceneManager::OpenScene(const Path &relativePath, Scene
     {
         auto scenePtr = eastl::make_shared<Scene>(scene);
         HandleLoadType(loadType, scenePtr);
+        RebuildAllScenesList();
         return scenePtr;
     }
 
@@ -91,12 +113,43 @@ void SceneManager::ProcessStaticEvents()
 
 void SceneManager::CloseScene(const eastl::string &sceneName)
 {
+    if (m_activeScene && m_activeScene->GetName() == sceneName)
+    {
+        CloseScene(m_activeScene->GetSceneID());
+        return;
+    }
 
+    for (auto &[id, scene] : m_additiveScenes)
+    {
+        if (scene->GetName() == sceneName)
+        {
+            CloseScene(scene->GetSceneID());
+            return;
+        }
+    }
+
+    BF_WARN("Not found scene with name {}", sceneName.c_str());
 }
 
 
 void SceneManager::CloseScene(const uuid &id)
 {
+    if (m_activeScene && m_activeScene->GetSceneID() == id)
+    {
+        m_activeScene = nullptr;
+        //SetActiveScene(m_additiveScenes.begin()->first);
+        m_additiveScenes.clear();
+        return;
+    }
+
+    if (m_additiveScenes.contains(id))
+    {
+        m_additiveScenes.erase(id);
+        RebuildAllScenesList();
+        return;
+    }
+
+    BF_WARN("Not found scene with name {}", id.str());
 }
 
 
@@ -124,6 +177,12 @@ eastl::unordered_map<uuid, eastl::shared_ptr<Scene>> &SceneManager::GetAdditiveS
 }
 
 
+eastl::vector<eastl::shared_ptr<Scene>> &SceneManager::GetActiveScenes()
+{
+    return m_allScenes;
+}
+
+
 /**
  * Sets main scene from additive scenes pool
  */
@@ -133,7 +192,7 @@ void SceneManager::SetActiveScene(const eastl::string &sceneName)
     {
         if (scene->GetName() == sceneName)
         {
-            SetActiveScene(scene->GetID());
+            SetActiveScene(scene->GetSceneID());
             return;
         }
     }
@@ -152,10 +211,11 @@ void SceneManager::SetActiveScene(const uuid &id)
         return;
     }
 
-    if (m_activeScene) m_additiveScenes[m_activeScene->GetID()] = m_activeScene;
+    if (m_activeScene) m_additiveScenes[m_activeScene->GetSceneID()] = m_activeScene;
 
     m_activeScene = m_additiveScenes[id];
     m_additiveScenes.erase(id);
+    RebuildAllScenesList();
 }
 
 /**
@@ -163,7 +223,7 @@ void SceneManager::SetActiveScene(const uuid &id)
  */
 void SceneManager::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
 {
-    SetActiveScene(scene->GetID());
+    SetActiveScene(scene->GetSceneID());
 }
 
 
@@ -177,5 +237,163 @@ SceneManager::SceneEventHandle SceneManager::AddEventListener(const SceneEventTy
 void SceneManager::RemoveEventListener(const SceneEventType eventType, const SceneEventHandle &handle)
 {
     Scene::RemoveEventListener(eventType, handle);
+}
+
+
+Entity SceneManager::TryGetEntityWithUUID(const uuid &id) const
+{
+    BLAINN_PROFILE_FUNC();
+
+    Entity entity = Entity();
+
+    if (m_activeScene) entity = m_activeScene->TryGetEntityWithUUID(id);
+
+    if (entity.IsValid()) return entity;
+
+    for (auto &[uuid, scene] : m_additiveScenes)
+    {
+        entity = scene->TryGetEntityWithUUID(id);
+        if (entity.IsValid()) return entity;
+    }
+
+    return entity;
+}
+
+
+Entity SceneManager::TryGetEntityWithTag(const eastl::string &tag)
+{
+    BLAINN_PROFILE_FUNC();
+
+    Entity entity = Entity();
+
+    if (m_activeScene) entity = m_activeScene->TryGetEntityWithTag(tag);
+
+    if (entity.IsValid()) return entity;
+
+    for (auto &[id, scene] : m_additiveScenes)
+    {
+        entity = scene->TryGetEntityWithTag(tag);
+        if (entity.IsValid()) return entity;
+    }
+
+    return entity;
+}
+
+
+Entity SceneManager::TryGetDescendantEntityWithTag(Entity entity, const eastl::string &tag) const
+{
+    BLAINN_PROFILE_FUNC();
+
+    Entity e = Entity();
+
+    if (m_activeScene) e = m_activeScene->TryGetDescendantEntityWithTag(entity, tag);
+
+    if (e.IsValid()) return e;
+
+    for (auto &[id, scene] : m_additiveScenes)
+    {
+        e = scene->TryGetDescendantEntityWithTag(entity, tag);
+        if (e.IsValid()) return e;
+    }
+
+    return e;
+}
+
+
+void SceneManager::ParentEntity(Entity entity, Entity parent)
+{
+    GetScene(entity.GetSceneUUID())->ParentEntity(entity, parent);
+}
+
+
+void SceneManager::UnparentEntity(Entity entity, bool convertToWorldSpace)
+{
+    GetScene(entity.GetSceneUUID())->UnparentEntity(entity, convertToWorldSpace);
+}
+
+
+Entity SceneManager::DuplicateEntity(Entity entity)
+{
+    return GetScene(entity.GetSceneUUID())->DuplicateEntity(entity);
+}
+
+
+Entity SceneManager::CreateEntity(const eastl::string &name, bool onSceneChanged, bool createdByEditor)
+{
+    BLAINN_PROFILE_FUNC();
+    return GetActiveScene()->CreateEntity(name, onSceneChanged, createdByEditor);
+}
+
+
+Entity SceneManager::CreateChildEntity(Entity parent, const eastl::string &name, bool onSceneChanged,
+                                       bool createdByEditor)
+{
+    BLAINN_PROFILE_FUNC();
+    return GetScene(parent.GetSceneUUID())->CreateChildEntity(parent, name, onSceneChanged, createdByEditor);
+}
+
+
+Entity SceneManager::CreateEntityWithID(const uuid &id, const eastl::string &name, bool shouldSort, bool onSceneChanged,
+                                        bool createdByEditor)
+{
+    return GetActiveScene()->CreateEntityWithID(id, name, shouldSort, onSceneChanged, createdByEditor);
+}
+
+
+Entity SceneManager::CreateChildEntityWithID(Entity parent, const uuid &id, const eastl::string &name, bool shouldSort,
+                                             bool onSceneChanged, bool createdByEditor)
+{
+    return GetScene(parent.GetSceneUUID())
+        ->CreateChildEntityWithID(parent, id, name, shouldSort, onSceneChanged, createdByEditor);
+}
+
+
+void SceneManager::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, bool createdByEditor)
+{
+    GetActiveScene()->CreateEntities(entitiesNode, onSceneChanged, createdByEditor);
+}
+
+
+void SceneManager::SubmitToDestroyEntity(Entity entity)
+{
+    GetScene(entity.GetSceneUUID())->SubmitToDestroyEntity(entity);
+}
+
+
+Mat4 SceneManager::GetWorldSpaceTransformMatrix(Entity entity)
+{
+    return GetScene(entity.GetSceneUUID())->GetWorldSpaceTransformMatrix(entity);
+}
+
+
+TransformComponent SceneManager::GetWorldSpaceTransform(Entity entity)
+{
+    return GetScene(entity.GetSceneUUID())->GetWorldSpaceTransform(entity);
+}
+
+
+void SceneManager::SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTransform)
+{
+    return GetScene(entity.GetSceneUUID())->SetFromWorldSpaceTransformMatrix(entity, worldTransform);
+}
+
+
+void SceneManager::RebuildAllScenesList()
+{
+    m_allScenes.clear();
+    m_allScenes.reserve(m_additiveScenes.size() + 1);
+
+    if (m_activeScene)
+    {
+        m_allScenes.push_back(m_activeScene);
+    }
+
+    for (const auto &[id, scene] : m_additiveScenes)
+    {
+        if (scene)
+        {
+            m_allScenes.push_back(scene);
+        }
+    }
 }
 } // namespace Blainn

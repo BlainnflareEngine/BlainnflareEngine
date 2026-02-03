@@ -99,7 +99,7 @@ void DebugUIRenderer::DrawGizmo()
 {
     m_isGizmoHovered = false;
     auto selectedUuid = Engine::GetSelectionManager().GetSelectedUUID();
-    Entity selectedEntity = Engine::GetActiveScene()->TryGetEntityWithUUID(selectedUuid);
+    Entity selectedEntity = Engine::GetSceneManager().TryGetEntityWithUUID(selectedUuid);
 
     if (ShouldDrawGizmo && selectedEntity.IsValid() && selectedEntity.HasComponent<TransformComponent>())
     {
@@ -131,7 +131,7 @@ void DebugUIRenderer::DrawGizmo()
         auto camera = RenderSubsystem::GetInstance().GetCamera();
         Mat4 cameraView = camera->GetViewMatrix();
         Mat4 cameraProjection = camera->GetPerspectiveProjectionMatrix();
-        Mat4 matrix = Engine::GetActiveScene()->GetWorldSpaceTransformMatrix(selectedEntity);
+        Mat4 matrix = Engine::GetSceneManager().GetWorldSpaceTransformMatrix(selectedEntity);
         ImGuizmo::Manipulate(
             reinterpret_cast<float*>(&cameraView.m),
             reinterpret_cast<float*>(&cameraProjection.m),
@@ -141,7 +141,7 @@ void DebugUIRenderer::DrawGizmo()
             NULL,
             UseSnap ? reinterpret_cast<float*>(&snapValue) : nullptr
             );
-        Engine::GetActiveScene()->SetFromWorldSpaceTransformMatrix(selectedEntity, matrix);
+        Engine::GetSceneManager().SetFromWorldSpaceTransformMatrix(selectedEntity, matrix);
 
         m_isGizmoHovered = ImGuizmo::IsOver();
     }

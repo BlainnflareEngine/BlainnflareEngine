@@ -104,7 +104,7 @@ public:
     void SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTransform);
     TransformComponent GetWorldSpaceTransform(Entity entity);
 
-    uuid &GetID()
+    uuid &GetSceneID()
     {
         return m_SceneID;
     }

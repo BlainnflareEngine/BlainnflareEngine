@@ -51,7 +51,7 @@ void NavigationSubsystem::Destroy()
 
 void NavigationSubsystem::Update(float deltaTime)
 {
-    if (auto scene = Engine::GetActiveScene())
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
         for (const auto &[entity, transform, controllerComp] :
              scene->GetAllEntitiesWith<TransformComponent, AIControllerComponent>().each())
@@ -238,8 +238,8 @@ bool NavigationSubsystem::FindPath(const Vec3 &start, const Vec3 &end, eastl::ve
 
     float straightPath[MAX_POLYS * 3];
     int straightPathCount = 0;
-    m_navQuery->findStraightPath(&start.x, &end.x, polys, npolys, straightPath, nullptr, nullptr, &straightPathCount, MAX_POLYS,
-                                 DT_STRAIGHTPATH_ALL_CROSSINGS);
+    m_navQuery->findStraightPath(&start.x, &end.x, polys, npolys, straightPath, nullptr, nullptr, &straightPathCount,
+                                 MAX_POLYS, DT_STRAIGHTPATH_ALL_CROSSINGS);
 
     if (straightPathCount == 0)
     {
