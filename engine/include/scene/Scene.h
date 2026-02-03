@@ -76,7 +76,7 @@ public:
                                    bool shouldSort = true, bool onSceneChanged = false, bool createdByEditor = false);
     void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false, bool createdByEditor = false);
     void LoadNavMeshData(const YAML::Node &node);
-    void SubmitToDestroyEntity(Entity entity);
+    void SubmitToDestroyEntity(Entity entity, bool sceneChanged = false);
 
 
     Entity GetEntityWithUUID(const uuid &id) const;
@@ -112,14 +112,14 @@ public:
     // Entity CreatePrefabEntity(Entity entity, Entity parent /* and so on */);
 
 private:
-    void DestroyEntityInternal(Entity entity, bool excludeChildren = false, bool first = true);
-    void DestroyEntityInternal(const uuid &entityID, bool excludeChildren = false, bool first = true);
+    void DestroyEntityInternal(Entity entity, bool sceneChanged = false, bool excludeChildren = false, bool first = true);
+    void DestroyEntityInternal(const uuid &entityID, bool sceneChanged = false, bool excludeChildren = false, bool first = true);
 
     void SortEntities();
 
     template <typename Fn> void SubmitPostUpdateFunc(Fn &&func)
     {
-        s_postUpdateQueue.enqueue(func);
+        m_postUpdateQueue.enqueue(func);
     }
 
     void ReportEntityReparent(Entity entity);
@@ -138,7 +138,7 @@ private:
     // TODO: remove this trash
     EntityMap m_EntityIdMap;
 
-    moodycamel::ConcurrentQueue<eastl::function<void()>> s_postUpdateQueue;
+    moodycamel::ConcurrentQueue<eastl::function<void()>> m_postUpdateQueue;
 
     inline static eventpp::EventQueue<SceneEventType, void(const SceneEventPointer &), SceneEventPolicy>
         s_sceneEventQueue;

@@ -52,33 +52,21 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
                                                                [this](const Blainn::SceneEventPointer &event)
                                                                {
                                                                    BLAINN_PROFILE_SCOPE(QT_OnEntityCreated);
-                                                                   QMetaObject::invokeMethod(
-                                                                       this, [this, event]()
-                                                                       { this->OnEntityCreated(event); });
+                                                                   this->OnEntityCreated(event);
                                                                }),
                                Blainn::SceneEventType::EntityCreated);
     m_sceneEvents.emplace_back(Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityDestroyed,
                                                                [this](const Blainn::SceneEventPointer &event)
                                                                {
-                                                                   QMetaObject::invokeMethod(
-                                                                       this,
-                                                                       [this, event]()
-                                                                       {
-                                                                           BLAINN_PROFILE_SCOPE(QT_OnEntityDestroyed);
-                                                                           this->OnEntityDestroyed(event);
-                                                                       });
+                                                                   BLAINN_PROFILE_SCOPE(QT_OnEntityDestroyed);
+                                                                   this->OnEntityDestroyed(event);
                                                                }),
                                Blainn::SceneEventType::EntityDestroyed);
     m_sceneEvents.emplace_back(Blainn::Scene::AddEventListener(Blainn::SceneEventType::SceneChanged,
                                                                [this](const Blainn::SceneEventPointer &event)
                                                                {
-                                                                   QMetaObject::invokeMethod(
-                                                                       this,
-                                                                       [this, event]()
-                                                                       {
-                                                                           BLAINN_PROFILE_SCOPE(QT_OnSceneChanged);
-                                                                           this->OnSceneChanged(event);
-                                                                       });
+                                                                   BLAINN_PROFILE_SCOPE(QT_OnSceneChanged);
+                                                                   this->OnSceneChanged(event);
                                                                }),
                                Blainn::SceneEventType::SceneChanged);
 
@@ -192,7 +180,7 @@ void scene_hierarchy_widget::OnEntityCreated(const Blainn::SceneEventPointer &ev
 
     const auto entityEvent = static_cast<const EntityCreatedEvent *>(event.get());
 
-    if (entityEvent->IsSceneChanged()) return;
+    //if (entityEvent->IsSceneChanged()) return;
     if (!entityEvent->GetEntity().IsValid()) return;
 
     CreateEntityInHierarchy(entityEvent->GetEntity(), entityEvent->IsSceneChanged(), entityEvent->CreatedByEditor());
@@ -204,6 +192,7 @@ void scene_hierarchy_widget::OnEntityDestroyed(const Blainn::SceneEventPointer &
     using namespace Blainn;
 
     const auto entityEvent = static_cast<const EntityDestroyedEvent *>(event.get());
+    if (entityEvent->IsSceneChanged()) return;
     Entity destroyedEntity = entityEvent->GetEntity();
 
     SceneItemModel *model = qobject_cast<SceneItemModel *>(this->model());
@@ -234,6 +223,7 @@ void scene_hierarchy_widget::OnSceneChanged(const Blainn::SceneEventPointer &eve
 {
     using namespace Blainn;
 
+    return;
     auto sceneEvent = static_cast<SceneChangedEvent *>(event.get());
     m_sceneMeta = eastl::make_shared<SceneMeta>(QString::fromStdString(sceneEvent->GetName().c_str()));
 
@@ -371,7 +361,6 @@ void scene_hierarchy_widget::ChangeSelection(Blainn::uuid id)
         BLAINN_PROFILE_SCOPE(SetCurrentIndex);
         setCurrentIndex(index);
     }
-
 }
 
 

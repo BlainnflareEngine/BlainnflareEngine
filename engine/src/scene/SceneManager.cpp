@@ -14,10 +14,8 @@ namespace Blainn
 
 void SceneManager::CloseScenes()
 {
-    for (auto &[id, scene] : m_additiveScenes)
-        CloseScene(id);
-
     if (m_activeScene) CloseScene(m_activeScene->GetSceneID());
+    m_allScenes.clear();
 }
 
 
@@ -60,6 +58,7 @@ void SceneManager::HandleLoadType(SceneLoadType loadType, eastl::shared_ptr<Scen
     {
     case Single:
         m_activeScene = scenePtr;
+        // TODO: load additive scenes from main scene
         m_additiveScenes.clear();
         break;
     case Additive:
@@ -136,8 +135,8 @@ void SceneManager::CloseScene(const uuid &id)
 {
     if (m_activeScene && m_activeScene->GetSceneID() == id)
     {
-        m_activeScene = nullptr;
-        //SetActiveScene(m_additiveScenes.begin()->first);
+        m_activeScene.reset();
+        // SetActiveScene(m_additiveScenes.begin()->first);
         m_additiveScenes.clear();
         return;
     }

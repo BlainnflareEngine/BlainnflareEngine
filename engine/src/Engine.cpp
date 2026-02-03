@@ -76,7 +76,7 @@ void Engine::InitAISubsystem()
         PhysicsEventType::CollisionStarted,
         [](const eastl::shared_ptr<PhysicsEvent> &event)
         {
-            auto& sceneManager = GetSceneManager();
+            auto &sceneManager = GetSceneManager();
             auto entity1 = sceneManager.TryGetEntityWithUUID(event->entity1);
             auto entity2 = sceneManager.TryGetEntityWithUUID(event->entity2);
 
@@ -165,6 +165,7 @@ void Engine::Update(float deltaTime)
     }
 
     s_sceneManager.UpdateScenes();
+    s_sceneManager.ProcessLocalEvents();
     SceneManager::ProcessStaticEvents();
 
     if (NavigationSubsystem::ShouldDrawDebug()) NavigationSubsystem::DrawDebugMesh();
@@ -212,8 +213,9 @@ void Engine::EscapePlayMode()
     if (s_sceneManager.GetActiveScene())
     {
         s_sceneManager.GetActiveScene()->EndPlayMode();
-        AssetManager::GetInstance().OpenScene(s_startPlayModeSceneName.c_str());
     }
+
+    AssetManager::GetInstance().OpenScene(s_startPlayModeSceneName.c_str());
 
     s_isPlayMode = false;
     AssetManager::GetInstance().ResetTextures();
