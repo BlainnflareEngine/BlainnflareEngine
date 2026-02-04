@@ -188,7 +188,7 @@ void editor_main::OnOpenSettings()
 void editor_main::OnSaveScene()
 {
     Blainn::Engine::GetSceneManager().SaveCurrentScene();
-    ui->Entities->SaveCurrentMeta();
+    //ui->Entities->SaveCurrentMeta();
 }
 
 

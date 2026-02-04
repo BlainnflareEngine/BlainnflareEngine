@@ -11,9 +11,9 @@
 
 namespace editor
 {
-struct EntityInspectorData
+/*struct EntityInspectorData
 {
     QString tag;
     EntityNode *node;
-};
+};*/
 } // namespace editor
