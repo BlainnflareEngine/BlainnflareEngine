@@ -36,7 +36,7 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
 
     m_addToSceneMenu = new SceneContextMenu(*this, this);
 
-    connect(this, &QTreeWidget::customContextMenuRequested, this, &scene_hierarchy_widget::OpenContextMenu);
+    connect(this, &QTreeWidget::customContextMenuRequested, this, &scene_hierarchy_widget::OpenChildContextMenu);
     connect(this, &QTreeWidget::itemSelectionChanged, this, &scene_hierarchy_widget::OnItemSelectionChanged);
     connect(this, &QTreeWidget::itemChanged, this, &scene_hierarchy_widget::OnItemChanged);
     connect(this, &QTreeWidget::itemDoubleClicked, this, &scene_hierarchy_widget::OnItemDoubleClicked);
@@ -604,13 +604,19 @@ void scene_hierarchy_widget::startDrag(Qt::DropActions supportedActions)
 
 void scene_hierarchy_widget::OpenContextMenu(const QPoint &position)
 {
-    auto *item = itemAt(position);
+    m_addToSceneMenu->OpenMenu(position);
+}
+
+
+void scene_hierarchy_widget::OpenChildContextMenu(const QPoint &pos)
+{
+    auto *item = itemAt(pos);
     if (item)
     {
         setCurrentItem(item);
     }
 
-    m_addToSceneMenu->OpenMenu(mapToGlobal(position));
+    m_addToSceneMenu->OnContextMenu(pos);
 }
 
 } // namespace editor

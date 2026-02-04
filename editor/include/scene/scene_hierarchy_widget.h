@@ -26,6 +26,7 @@ public:
     ~scene_hierarchy_widget() override;
 
     void OpenContextMenu(const QPoint &position);
+    void OpenChildContextMenu(const QPoint &pos);
 
     void OnEntityCreated(const Blainn::SceneEventPointer &event);
     void OnEntityDestroyed(const Blainn::SceneEventPointer &event);
