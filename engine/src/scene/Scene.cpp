@@ -25,6 +25,7 @@
 #include "Render/RuntimeCamera.h"
 #include "Render/EditorCamera.h"
 #include "subsystems/AISubsystem.h"
+#include "subsystems/PerceptionSubsystem.h"
 
 
 using namespace Blainn;
@@ -59,16 +60,10 @@ Scene::~Scene()
 
     for (auto entity : m_EntityIdMap)
     {
-        SubmitToDestroyEntity(entity.second);
+        SubmitToDestroyEntity(entity.second, true);
     }
 
-    while (s_postUpdateQueue.try_dequeue(fn))
-    {
-        fn();
-    }
-
-    s_sceneEventQueue.process();
-    s_sceneEventQueue.clearEvents();
+    ProcessEvents();
 }
 
 
@@ -100,11 +95,18 @@ void Blainn::Scene::Update()
         }
         else
         {
-            cam->SetPosition(camTransform->GetTranslation());
+            Vec3 scale;
+            Quat rot;
+            Vec3 translation;
 
-            // commented this cause camera ViewMatrix is updated every frame depends on dirty flag and position
+            auto camWorldMat = GetWorldSpaceTransformMatrix(*camEntity);
+            camWorldMat.Decompose(scale, rot, translation);
 
-            Mat4 camViewMat = GetWorldSpaceTransformMatrix(*camEntity).Invert();
+            cam->SetPosition(translation);
+
+            Mat4 camViewMat =
+                (SimpleMath::Matrix::CreateFromQuaternion(rot) * SimpleMath::Matrix::CreateTranslation(translation))
+                    .Invert();
             cam->SetViewMatrix(camViewMat);
 
             cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
@@ -188,11 +190,15 @@ eastl::string Scene::GetName() const
 void Scene::ProcessEvents()
 {
     eastl::function<void()> fn;
-    while (s_postUpdateQueue.try_dequeue(fn))
+    while (m_postUpdateQueue.try_dequeue(fn))
     {
         fn();
     }
+}
 
+
+void Scene::ProcessStaticEvents()
+{
     s_sceneEventQueue.process();
 }
 
@@ -311,7 +317,7 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
     {
         uuid entityID = GetID(entityNode);
         eastl::string tag = GetTag(entityNode);
-        Entity entity = CreateEntityWithID(entityID, tag, false, onSceneChanged);
+        Entity entity = CreateEntityWithID(entityID, "Untagged", false, onSceneChanged);
 
         if (!entity) continue;
 
@@ -335,7 +341,7 @@ void Scene::LoadNavMeshData(const YAML::Node &node)
 }
 
 
-void Scene::SubmitToDestroyEntity(Entity entity)
+void Scene::SubmitToDestroyEntity(Entity entity, bool sceneChanged)
 {
     bool isValid = entity.IsValid();
     if (!isValid)
@@ -344,10 +350,10 @@ void Scene::SubmitToDestroyEntity(Entity entity)
         return;
     }
 
-    SubmitPostUpdateFunc([entity]() { entity.m_Scene->DestroyEntityInternal(entity); });
+    SubmitPostUpdateFunc([entity, sceneChanged]() { entity.m_Scene->DestroyEntityInternal(entity, sceneChanged); });
 }
 
-void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool first)
+void Scene::DestroyEntityInternal(Entity entity, bool sceneChanged, bool excludeChildren, bool first)
 {
     BLAINN_PROFILE_FUNC();
 
@@ -377,23 +383,31 @@ void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool firs
     }
 
     // before actually destroying remove components that might require ID of the entity
+    // if (!sceneChanged)
     s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity, id));
 
     PhysicsSubsystem::DestroyPhysicsComponent(entity);
     ScriptingSubsystem::DestroyScriptingComponent(entity);
     AISubsystem::GetInstance().DestroyAIControllerComponent(entity);
+    PerceptionSubsystem::GetInstance().DestroyPerceptionComponent(entity);
+    PerceptionSubsystem::GetInstance().DestroyStimulusComponent(entity);
+    RenderSubsystem::GetInstance().DestroyCameraComponent(entity);
+    RenderSubsystem::GetInstance().DestroyDirectionalLightComponent(entity);
+    RenderSubsystem::GetInstance().DestroyPointLightComponent(entity);
+    RenderSubsystem::GetInstance().DestroySpotLightComponent(entity);
+    RenderSubsystem::GetInstance().DestroySkyboxComponent(entity);
     m_Registry.destroy(entity);
     m_EntityIdMap.erase(id);
 
     SortEntities();
 }
 
-void Scene::DestroyEntityInternal(const uuid &entityID, bool excludeChildren, bool first)
+void Scene::DestroyEntityInternal(const uuid &entityID, bool sceneChanged, bool excludeChildren, bool first)
 {
     const auto it = m_EntityIdMap.find(entityID);
     if (it == m_EntityIdMap.end()) return;
 
-    DestroyEntityInternal(it->second, excludeChildren, first);
+    DestroyEntityInternal(it->second, sceneChanged, excludeChildren, first);
 }
 
 Entity Scene::GetEntityWithUUID(const uuid &id) const
@@ -734,7 +748,7 @@ void Blainn::Scene::SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTr
 
     if (entity.HasComponent<PhysicsComponent>())
     {
-        PhysicsSubsystem::UpdateBodyInJolt(*this, entity.GetUUID());
+        PhysicsSubsystem::UpdateBodyInJolt(entity.GetUUID());
     }
 }
 

@@ -51,7 +51,7 @@ void NavigationSubsystem::Destroy()
 
 void NavigationSubsystem::Update(float deltaTime)
 {
-    if (auto scene = Engine::GetActiveScene())
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
         for (const auto &[entity, transform, controllerComp] :
              scene->GetAllEntitiesWith<TransformComponent, AIControllerComponent>().each())
@@ -61,7 +61,10 @@ void NavigationSubsystem::Update(float deltaTime)
             Vec3 moveDir;
             if (controller.GetDesiredDirection(moveDir, controllerComp.StoppingDistance, controllerComp.GroundOffset))
             {
-                transform.SetTranslation(transform.GetTranslation() + moveDir * deltaTime * controllerComp.MovementSpeed);
+                transform.SetTranslation(transform.GetTranslation()
+                                         + moveDir * deltaTime * controllerComp.MovementSpeed);
+
+                if (controllerComp.FaceMovementDirection) controller.RotateControlledPawnLerp(moveDir);
             }
         }
     }
@@ -174,11 +177,6 @@ bool NavigationSubsystem::BakeNavMesh(Scene &scene, Entity navVolumeEntity, cons
     }
 
     BF_INFO("Navmesh build SUCCESS. Size: {} bytes", result.navDataSize);
-    if (result.navDataSize >= 4)
-    {
-        BF_INFO("First 4 bytes: {:02X} {:02X} {:02X} {:02X}", result.navData[0], result.navData[1], result.navData[2],
-                result.navData[3]);
-    }
 
     Path absPath = Engine::GetContentDirectory() / outputRelativePath;
     std::filesystem::create_directories(absPath.parent_path());
@@ -222,8 +220,7 @@ void NavigationSubsystem::ClearNavMesh()
         m_navQuery->init(nullptr, 0);
     }
 
-    if (!m_debugVertexVector.empty())
-        m_debugVertexVector.clear();
+    if (!m_debugVertexVector.empty()) m_debugVertexVector.clear();
 }
 
 
@@ -240,18 +237,18 @@ bool NavigationSubsystem::FindPath(const Vec3 &start, const Vec3 &end, eastl::ve
     }
 
     float straightPath[MAX_POLYS * 3];
-    int nstraight = 0;
-    m_navQuery->findStraightPath(&start.x, &end.x, polys, npolys, straightPath, nullptr, nullptr, &nstraight, MAX_POLYS,
-                                 DT_STRAIGHTPATH_ALL_CROSSINGS);
+    int straightPathCount = 0;
+    m_navQuery->findStraightPath(&start.x, &end.x, polys, npolys, straightPath, nullptr, nullptr, &straightPathCount,
+                                 MAX_POLYS, DT_STRAIGHTPATH_ALL_CROSSINGS);
 
-    if (nstraight == 0)
+    if (straightPathCount == 0)
     {
         outPath.clear();
         return false;
     }
 
-    outPath.resize(nstraight);
-    for (int i = 0; i < nstraight; ++i)
+    outPath.resize(straightPathCount);
+    for (int i = 0; i < straightPathCount; ++i)
     {
         outPath[i] = Vec3(straightPath[i * 3 + 0], straightPath[i * 3 + 1], straightPath[i * 3 + 2]);
     }
@@ -325,15 +322,15 @@ void NavigationSubsystem::DrawDebugMesh()
     BLAINN_PROFILE_FUNC();
     if (!m_navMesh || !RenderSubsystem::GetInstance().GetDebugRenderer().IsDebugEnabled()) return;
 
-    RenderSubsystem::GetInstance().GetDebugRenderer().DrawLineList(m_debugVertexVector.begin(), m_debugVertexVector.end());
+    RenderSubsystem::GetInstance().GetDebugRenderer().DrawLineList(m_debugVertexVector.begin(),
+                                                                   m_debugVertexVector.end());
 }
 
 void NavigationSubsystem::BuildDebugNavMesh()
 {
     if (!m_navMesh) return;
 
-    if (!m_debugVertexVector.empty())
-        m_debugVertexVector.clear();
+    if (!m_debugVertexVector.empty()) m_debugVertexVector.clear();
 
     const dtNavMesh *nav = m_navMesh;
     const int numTiles = nav->getMaxTiles();

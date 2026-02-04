@@ -169,7 +169,7 @@ void Blainn::RegisterAITypes(sol::state &luaState)
 
     AIControllerComponentType.set_function("GetMovementSpeed", [](AIControllerComponent &comp) { return comp.MovementSpeed; });
     AIControllerComponentType.set_function("GetStoppingDistance", [](AIControllerComponent &comp) { return comp.StoppingDistance; });
-        AIControllerComponentType.set_function("SetMovementSpeed", [](AIControllerComponent &comp, float newMovementSpeed) { comp.MovementSpeed = newMovementSpeed; });
+    AIControllerComponentType.set_function("SetMovementSpeed", [](AIControllerComponent &comp, float newMovementSpeed) { comp.MovementSpeed = newMovementSpeed; });
     AIControllerComponentType.set_function("SetStoppingDistance", [](AIControllerComponent &comp, float newStopDist) { comp.StoppingDistance = newStopDist; });
     
     // Expose PerceivedStimulus
@@ -495,13 +495,11 @@ void Blainn::RegisterAITypes(sol::state &luaState)
                               if (!perception) return sol::nil;
 
                               uuid selfEntity = bb->Get<uuid>("selfEntity");
-                              Scene *scene = Engine::GetActiveScene().get();
-                              if (!scene) return sol::nil;
 
-                              Entity self = scene->GetEntityWithUUID(selfEntity);
+                              Entity self = Engine::GetSceneManager().TryGetEntityWithUUID(selfEntity);
                               if (!self.IsValid()) return sol::nil;
 
-                              Vec3 selfPos = scene->GetWorldSpaceTransform(self).GetTranslation();
+                              Vec3 selfPos = Engine::GetSceneManager().GetWorldSpaceTransform(self).GetTranslation();
 
                               PerceivedStimulus *closest = nullptr;
                               float minDistance = FLT_MAX;
@@ -535,13 +533,11 @@ void Blainn::RegisterAITypes(sol::state &luaState)
                               if (!perception) return result;
 
                               uuid selfEntity = bb->Get<uuid>("selfEntity");
-                              Scene *scene = Engine::GetActiveScene().get();
-                              if (!scene) return result;
 
-                              Entity self = scene->GetEntityWithUUID(selfEntity);
+                              Entity self = Engine::GetSceneManager().TryGetEntityWithUUID(selfEntity);
                               if (!self.IsValid()) return result;
 
-                              Vec3 selfPos = scene->GetWorldSpaceTransform(self).GetTranslation();
+                              Vec3 selfPos = Engine::GetSceneManager().GetWorldSpaceTransform(self).GetTranslation();
 
                               auto stimuli = GetStimuliByType(bb, type);
                               int idx = 1;

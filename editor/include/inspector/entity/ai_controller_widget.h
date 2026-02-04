@@ -7,6 +7,10 @@
 
 namespace editor
 {
+class bool_input_field;
+}
+namespace editor
+{
 class float_input_field;
 class path_input_field;
 
@@ -24,11 +28,15 @@ protected slots:
     void OnMovementSpeedChanged();
     void OnStoppingDistanceChanged();
     void OnGroundOffsetChanged();
+    void OnFaceMovementDirectionChanged(bool value);
+    void OnRotationSpeedChanged();
 
     path_input_field *m_path_input = nullptr;
     float_input_field *m_movementSpeed = nullptr;
     float_input_field *m_stoppingDistance = nullptr;
     float_input_field *m_groundOffset = nullptr;
+    bool_input_field* m_faceDirection = nullptr;
+    float_input_field *m_rotationSpeed = nullptr;
 
 private:
     void paintEvent(QPaintEvent *event) override;

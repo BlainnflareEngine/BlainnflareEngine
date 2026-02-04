@@ -42,61 +42,64 @@ void AISubsystem::Destroy()
 
 void AISubsystem::Update(float dt)
 {
-    Scene &scene = *Engine::GetActiveScene();
-    
     if (m_settings.enableLOD)
     {
         UpdateLOD();
     }
-    
-    const auto& view = scene.GetAllEntitiesWith<IDComponent, AIControllerComponent>();
-    for (const auto &[entityHandle, idComp, aiControllerComponent] : view.each())
+
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        aiControllerComponent.aiController.Update(dt);
+        const auto &view = scene->GetAllEntitiesWith<IDComponent, AIControllerComponent>();
+        for (const auto &[entityHandle, idComp, aiControllerComponent] : view.each())
+        {
+            aiControllerComponent.aiController.Update(dt);
+        }
     }
 }
 
 void AISubsystem::UpdateLOD()
 {
-    Scene& scene = *Engine::GetActiveScene();
-    
-    Vec3 cameraPos{0.0f};
-    auto cameras = scene.GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
-    
-    for (const auto& [entityHandle, idComp, transform, camera] : cameras.each())
+    Vec3 cameraPos = RenderSubsystem::GetInstance().GetCamera()->GetPosition();
+
+    // auto cameras = scene.GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
+
+
+    // int32_t highestCamPriority = INT_MIN;
+
+    // for (const auto& [entityHandle, idComp, transform, camera] : cameras.each())
+    //{
+    //     if (camera.CameraPriority > highestCamPriority)
+    //     {
+    //         highestCamPriority = camera.CameraPriority;
+    //         Entity cameraEntity = scene.GetEntityWithUUID(idComp.ID);
+    //         cameraPos = scene.GetWorldSpaceTransform(cameraEntity).GetTranslation();
+    //         //break;
+    //     }
+    // }
+
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        if (camera.CameraPriority == 0)
+        const auto &view = scene->GetAllEntitiesWith<IDComponent, TransformComponent, AIControllerComponent>();
+
+        for (const auto &[entityHandle, idComp, transform, aiComp] : view.each())
         {
-            Entity cameraEntity = scene.GetEntityWithUUID(idComp.ID);
-            cameraPos = scene.GetWorldSpaceTransform(cameraEntity).GetTranslation();
-            break;
+            Entity entity = scene->GetEntityWithUUID(idComp.ID);
+            Vec3 entityPos = scene->GetWorldSpaceTransform(entity).GetTranslation();
+
+            float distance = (entityPos - cameraPos).Length();
+
+            float updateInterval = CalculateUpdateInterval(distance);
+            aiComp.aiController.SetUpdateInterval(updateInterval);
         }
-    }
-    
-    auto view = scene.GetAllEntitiesWith<IDComponent, TransformComponent, AIControllerComponent>();
-    
-    for (const auto& [entityHandle, idComp, transform, aiComp] : view.each())
-    {
-        Entity entity = scene.GetEntityWithUUID(idComp.ID);
-        Vec3 entityPos = scene.GetWorldSpaceTransform(entity).GetTranslation();
-        
-        float distance = (entityPos - cameraPos).Length();
-        
-        float updateInterval = CalculateUpdateInterval(distance);
-        aiComp.aiController.SetUpdateInterval(updateInterval);
     }
 }
 
 float AISubsystem::CalculateUpdateInterval(float distanceToCamera)
 {
-    if (distanceToCamera < m_settings.lodNearDistance)
-        return m_settings.lodNearUpdateInterval;
-    else if (distanceToCamera < m_settings.lodMidDistance)
-        return m_settings.lodMidUpdateInterval;
-    else if (distanceToCamera < m_settings.lodFarDistance)
-        return m_settings.lodFarUpdateInterval;
-    else
-        return 1.0f; // Если далеко то раз в секунду
+    if (distanceToCamera < m_settings.lodNearDistance) return m_settings.lodNearUpdateInterval;
+    else if (distanceToCamera < m_settings.lodMidDistance) return m_settings.lodMidUpdateInterval;
+    else if (distanceToCamera < m_settings.lodFarDistance) return m_settings.lodFarUpdateInterval;
+    else return 1.0f; // Если далеко то раз в секунду
 }
 
 void AISubsystem::LoadBlackboard(const sol::table &scriptEnvironment, eastl::unique_ptr<Blackboard> &blackboard)
@@ -184,7 +187,7 @@ bool AISubsystem::CreateAIController(Entity entity)
         return false;
     }
     const sol::table &scriptEnv = componentPtr->aiScript->GetEnvironment();
-    
+
     PerceptionComponent *perception = entity.TryGetComponent<PerceptionComponent>();
     if (perception)
     {
@@ -217,12 +220,12 @@ bool AISubsystem::CreateAIController(Entity entity)
 
     eastl::unique_ptr<Blackboard> bb = eastl::make_unique<Blackboard>();
     LoadBlackboard(scriptEnv, bb);
-    
+
     if (perception)
     {
         bb->Set("_perception", perception);
     }
-    
+
     bb->Set("selfEntity", entity.GetUUID());
 
     BTMap trees;
@@ -232,9 +235,9 @@ bool AISubsystem::CreateAIController(Entity entity)
     LoadUtility(scriptEnv, utility);
 
     componentPtr->aiController.Init(eastl::move(trees), eastl::move(utility), eastl::move(bb));
-    
+
     BF_INFO("AI Controller created for entity: " + entity.GetUUID().str());
-    
+
     return true;
 }
 

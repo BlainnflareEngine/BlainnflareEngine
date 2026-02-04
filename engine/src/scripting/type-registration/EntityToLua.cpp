@@ -9,6 +9,7 @@
 #include "components/PhysicsComponent.h"
 #include "components/ScriptingComponent.h"
 #include "components/CameraComponent.h"
+#include "components/AIControllerComponent.h"
 #include "handles/Handle.h"
 #include "scene/BasicComponents.h"
 #include "scene/Entity.h"
@@ -91,6 +92,9 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
     EntityType.set_function("GetPhysicsComponent",
                             [](Entity &e) -> PhysicsComponent * { return e.TryGetComponent<PhysicsComponent>(); });
 
+    EntityType.set_function("GetAIControllerComponent", [](Entity &e) -> AIControllerComponent *
+                            { return e.TryGetComponent<AIControllerComponent>(); });
+
     auto table_to_layers = [](const sol::table &tbl)
     {
         eastl::vector<ObjectLayer> layers;
@@ -139,7 +143,7 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
         sol::overload(
             [&luaState](Entity &e, const Vec3 &origin, const Vec3 &dir)
             {
-                eastl::shared_ptr<Scene> scene = Engine::GetActiveScene();
+                //eastl::shared_ptr<Scene> scene = Engine::GetActiveScene();
                 eastl::queue<uuid> entities = {e.GetUUID()};
                 eastl::vector<ObjectLayer> layers;
                 auto res = PhysicsSubsystem::FilteredCastRay(entities, origin, dir, layers);
@@ -155,7 +159,7 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
             },
             [&luaState, table_to_layers](Entity &e, const Vec3 &origin, const Vec3 &dir, sol::table ignoredLayersTbl)
             {
-                eastl::shared_ptr<Scene> scene = Engine::GetActiveScene();
+                //eastl::shared_ptr<Scene> scene = Engine::GetActiveScene();
                 eastl::queue<uuid> entities = {e.GetUUID()};
                 auto layers = table_to_layers(ignoredLayersTbl);
                 auto res = PhysicsSubsystem::FilteredCastRay(entities, origin, dir, layers);
@@ -173,7 +177,7 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
                                                                 sol::table ignoredLayersTbl,
                                                                 sol::table ignoredEntityIdsTbl)
             {
-                eastl::shared_ptr<Scene> scene = Engine::GetActiveScene();
+                //eastl::shared_ptr<Scene> scene = Engine::GetActiveScene();
                 eastl::queue<uuid> entities = {e.GetUUID()};
                 // append additional ignored entity ids
                 auto extra = table_to_entity_queue(ignoredEntityIdsTbl);

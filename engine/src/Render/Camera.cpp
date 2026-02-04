@@ -51,6 +51,7 @@ void Blainn::Camera::Reset(float fovAngleYDegrees, float aspectRatio, float near
     m_farWindowHeight = 2.0f * tanf(0.5f * m_fovYRad) * m_farZ;
 
     UpdateProjectionMatrices();
+    UpdateCameraFrustumCascadesSplits();
 
 	// For frustum culling
 	//BoundingFrustum::CreateFromMatrix(m_frustum, m_persProj);
@@ -84,6 +85,7 @@ void Camera::SetNearZ(float value)
     m_nearWindowHeight = 2.0f * tanf(0.5f * m_fovYRad) * m_nearZ;
 
     UpdateProjectionMatrices();
+    UpdateCameraFrustumCascadesSplits();
 }
 
 void Camera::SetFarZ(float value)
@@ -92,6 +94,7 @@ void Camera::SetFarZ(float value)
     m_farWindowHeight = 2.0f * tanf(0.5f * m_fovYRad) * m_farZ;
     
     UpdateProjectionMatrices();
+    UpdateCameraFrustumCascadesSplits();
 }
 
 float Blainn::Camera::GetFovYRad() const
@@ -111,6 +114,12 @@ float Camera::GetFovDegrees() const
 
 void Camera::SetFovDegrees(float value)
 {
+    if (value <= 0.001f)
+    {
+        BF_ERROR("The field of view (FOV) cannot be zero. The FOV value is set to 1.");
+        value = 1.0f;
+    }
+
     m_fovYRad = (value / 180.0f) * XM_PI;
 
     UpdateProjectionMatrices();
@@ -142,6 +151,25 @@ void Camera::UpdateProjectionMatrices()
 {
     m_persProj = XMMatrixPerspectiveFovLH(m_fovYRad, m_aspectRatio, m_nearZ, m_farZ);
     m_orthProj = XMMatrixOrthographicLH(GetNearWindowWidth(), GetNearWindowHeight(), m_nearZ, m_farZ);
+}
+
+void Camera::UpdateCameraFrustumCascadesSplits()
+{
+    // logarithmic partition
+    const float minZ = m_nearZ;
+    const float maxZ = m_farZ;
+
+    const float range = maxZ - minZ;
+    const float ratio = maxZ / minZ;
+
+    for (int i = 0; i < MaxCascades; i++)
+    {
+        float p = (i + 1) / (float)(MaxCascades);
+        float log = (float)(minZ * pow(ratio, p));
+        float uniform = minZ + range * p;
+        float d = 0.95f * (log - uniform) + uniform; // 0.95f - idk, just magic value
+        m_frustumCascadesLevels[i] = ((d - minZ) / range) * maxZ;
+    }
 }
 
 } // namespace Blainn

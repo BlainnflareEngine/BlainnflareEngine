@@ -24,8 +24,7 @@ inline uuid GetID(const YAML::Node &node)
 inline eastl::string GetTag(const YAML::Node &node)
 {
     eastl::string tag = eastl::string();
-    if (node["TagComponent"] && node["TagComponent"]["Tag"])
-        tag = node["TagComponent"]["Tag"].as<std::string>().c_str();
+    if (node && node["Tag"]) tag = node["Tag"].as<std::string>().c_str();
 
     return tag;
 }
@@ -239,7 +238,7 @@ inline ScriptingComponent GetScripting(const YAML::Node &node)
         return component;
     }
 
-    auto& scriptingNode = node["ScriptingComponent"];
+    auto &scriptingNode = node["ScriptingComponent"];
     if (!scriptingNode)
     {
         BF_ERROR("Failed to parse script component. Not found in .scene!");
@@ -364,11 +363,20 @@ inline void GetAIController(const YAML::Node &node, const Entity &entity)
 
     if (aiControllerNode["GroundOffset"]) groundOffset = aiControllerNode["GroundOffset"].as<float>();
 
+    bool faceDirection = true;
+    if (aiControllerNode["FaceMovementDirection"])
+        faceDirection = aiControllerNode["FaceMovementDirection"].as<bool>(true);
+
+    float rotationSpeed = 0.5f;
+    if (aiControllerNode["RotationSpeed"]) rotationSpeed = aiControllerNode["RotationSpeed"].as<float>(0.5f);
+
     AISubsystem::GetInstance().CreateAttachAIControllerComponent(entity, path);
     auto &comp = entity.GetComponent<AIControllerComponent>();
     comp.MovementSpeed = movementSpeed;
     comp.StoppingDistance = stoppingDistance;
     comp.GroundOffset = groundOffset;
+    comp.FaceMovementDirection = faceDirection;
+    comp.RotationSpeed = rotationSpeed;
 }
 
 inline bool HasCamera(const YAML::Node &node)
@@ -470,14 +478,15 @@ inline NavmeshVolumeComponent GetNavMeshVolume(const YAML::Node &node)
         return component;
     }
 
-    auto& volumeNode = node["NavmeshVolumeComponent"];
+    auto &volumeNode = node["NavmeshVolumeComponent"];
     if (!volumeNode)
     {
         BF_ERROR("Navmesh Volume component not found or invalid in .scene file.");
         return component;
     }
 
-    Vec3 extents = {volumeNode["Extent"]["X"].as<float>(), volumeNode["Extent"]["Y"].as<float>(), volumeNode["Extent"]["Z"].as<float>()};
+    Vec3 extents = {volumeNode["Extent"]["X"].as<float>(), volumeNode["Extent"]["Y"].as<float>(),
+                    volumeNode["Extent"]["Z"].as<float>()};
     component.LocalBounds =
         JPH::AABox::sFromTwoPoints({-extents.x, -extents.y, -extents.z}, {extents.x, extents.y, extents.z});
     component.IsEnabled = volumeNode["IsEnabled"].as<bool>(true);
@@ -517,7 +526,7 @@ inline StimulusComponent GetStimulus(const YAML::Node &node)
         return component;
     }
 
-    auto& stimulusNode = node["StimulusComponent"];
+    auto &stimulusNode = node["StimulusComponent"];
     if (!stimulusNode)
     {
         BF_ERROR("Stimulus component not found in .scene file.");
@@ -556,7 +565,7 @@ inline PerceptionComponent GetPerception(const YAML::Node &node)
         return perception;
     }
 
-    auto& perceptionNode = node["PerceptionComponent"];
+    auto &perceptionNode = node["PerceptionComponent"];
     if (!perceptionNode)
     {
         BF_ERROR("Perception component not found in .scene!");
@@ -567,22 +576,26 @@ inline PerceptionComponent GetPerception(const YAML::Node &node)
     if (perceptionNode["SightRange"]) perception.sightRange = perceptionNode["SightRange"].as<float>();
     if (perceptionNode["SightFOV"]) perception.sightFOV = perceptionNode["SightFOV"].as<float>();
     if (perceptionNode["SightForgetTime"]) perception.sightForgetTime = perceptionNode["SightForgetTime"].as<float>();
-    if (perceptionNode["SightLOSCheckInterval"]) perception.sightLOSCheckInterval = perceptionNode["SightLOSCheckInterval"].as<float>();
+    if (perceptionNode["SightLOSCheckInterval"])
+        perception.sightLOSCheckInterval = perceptionNode["SightLOSCheckInterval"].as<float>();
     if (perceptionNode["SightRequireLOS"]) perception.sightRequireLOS = perceptionNode["SightRequireLOS"].as<bool>();
 
     if (perceptionNode["EnableSound"]) perception.enableSound = perceptionNode["EnableSound"].as<bool>();
     if (perceptionNode["SoundRange"]) perception.soundRange = perceptionNode["SoundRange"].as<float>();
     if (perceptionNode["SoundForgetTime"]) perception.soundForgetTime = perceptionNode["SoundForgetTime"].as<float>();
-    if (perceptionNode["SoundMinStrength"]) perception.soundMinStrength = perceptionNode["SoundMinStrength"].as<float>();
+    if (perceptionNode["SoundMinStrength"])
+        perception.soundMinStrength = perceptionNode["SoundMinStrength"].as<float>();
 
     if (perceptionNode["EnableTouch"]) perception.enableTouch = perceptionNode["EnableTouch"].as<bool>();
     if (perceptionNode["TouchForgetTime"]) perception.touchForgetTime = perceptionNode["TouchForgetTime"].as<float>();
 
     if (perceptionNode["EnableDamage"]) perception.enableDamage = perceptionNode["EnableDamage"].as<bool>();
-    if (perceptionNode["DamageForgetTime"]) perception.damageForgetTime = perceptionNode["DamageForgetTime"].as<float>();
+    if (perceptionNode["DamageForgetTime"])
+        perception.damageForgetTime = perceptionNode["DamageForgetTime"].as<float>();
 
     if (perceptionNode["UpdateInterval"]) perception.updateInterval = perceptionNode["UpdateInterval"].as<float>();
-    if (perceptionNode["MaxUpdateDistance"]) perception.maxUpdateDistance = perceptionNode["MaxUpdateDistance"].as<float>();
+    if (perceptionNode["MaxUpdateDistance"])
+        perception.maxUpdateDistance = perceptionNode["MaxUpdateDistance"].as<float>();
     if (perceptionNode["Enabled"]) perception.enabled = perceptionNode["Enabled"].as<bool>();
 
     if (const YAML::Node &ignoreTagsNode = perceptionNode["IgnoreTags"])

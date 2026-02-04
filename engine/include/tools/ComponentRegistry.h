@@ -33,6 +33,10 @@ void RegisterComponent(const char *name, eastl::function<bool(const YAML::Node &
 
 inline void InitializeComponentRegistry()
 {
+    RegisterComponent<TagComponent>(
+        "TagComponent", HasTag, [](Entity &e, const YAML::Node &node)
+        { e.GetComponent<TagComponent>().Tag = eastl::move(GetTag(node["TagComponent"])); },
+        [](Entity &e, YAML::Emitter &out) { Serializer::Tag(e, out); });
     RegisterComponent<TransformComponent>(
         "TransformComponent", HasTransform,
         [](Entity &e, const YAML::Node &node) { e.AddComponent<TransformComponent>(eastl::move(GetTransform(node))); },

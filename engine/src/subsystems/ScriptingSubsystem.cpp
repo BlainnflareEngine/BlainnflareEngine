@@ -92,8 +92,9 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
             uuid id = idComp.ID;
             script.second->OnUpdateCall(deltaTimeMs);
             script.second->OnDrawUI();
-            if (!Engine::GetActiveScene()->TryGetEntityWithUUID(id).IsValid())
-                return;
+
+            // TODO: don't understand why this line exists
+            if (!Engine::GetSceneManager().TryGetEntityWithUUID(id).IsValid()) return;
         }
     }
 }

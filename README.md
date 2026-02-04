@@ -1,4 +1,5 @@
 # BlainnflareEngine
+[Documentation](https://github.com/BlainnflareEngine/BlainnflareEngine/wiki)
 
 ## Building the engine
 

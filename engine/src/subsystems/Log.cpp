@@ -19,14 +19,15 @@ void Log::Init()
     if (!std::filesystem::exists(logsDirectory)) std::filesystem::create_directory(logsDirectory);
 
 
-    std::vector<spdlog::sink_ptr> sinks{std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/BLAINN.log", true),
+    std::vector<spdlog::sink_ptr> sinks{
 #ifdef BLAINN_HAS_CONSOLE
-                                        std::make_shared<spdlog::sinks::stdout_color_sink_mt>()
+        //std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/BLAINN.log", true),
+        std::make_shared<spdlog::sinks::stdout_color_sink_mt>()
 #endif
     };
-    sinks[0]->set_pattern("%^[%Y-%m-%d %H:%M:%S.%e] %v%$");
 #ifdef BLAINN_HAS_CONSOLE
-    sinks[1]->set_pattern("%^[%Y-%m-%d %H:%M:%S.%e] %v%$");
+    //sinks[0]->set_pattern("%^[%Y-%m-%d %H:%M:%S.%e] %v%$");
+    sinks[0]->set_pattern("%^[%Y-%m-%d %H:%M:%S.%e] %v%$");
 #endif
 
     s_Logger = std::make_shared<spdlog::logger>("BLAINN", sinks.begin(), sinks.end());

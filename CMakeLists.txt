@@ -4,6 +4,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+
 cmake_policy(SET CMP0074 OLD)
 cmake_policy(SET CMP0169 OLD)
 add_compile_options(/EHsc /arch:AVX2)
@@ -29,9 +30,11 @@ set(CMAKE_CONFIGURATION_TYPES
         CACHE STRING "" FORCE)
 
 # These definitions apply to all the projects
-add_compile_definitions(
+if(NOT BLAINN_EXCLUDE_EDITOR)
+    add_compile_definitions(
         "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:BLAINN_HAS_CONSOLE>"
-)
+    )
+endif()
 
 if(TRACY_ENABLE)
     add_compile_definitions("TRACY_ENABLE;BLAINN_ENABLE_PROFILING=1")
@@ -228,4 +231,10 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_SOURCE_DIR}/content"
         "$<TARGET_FILE_DIR:${PROJECT_NAME}>/content"
+)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/editor/GameBuild"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/GameBuild"
 )

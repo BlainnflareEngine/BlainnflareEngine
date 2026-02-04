@@ -121,6 +121,8 @@ public:
         out << YAML::Key << "MovementSpeed" << aiController.MovementSpeed;
         out << YAML::Key << "StoppingDistance" << aiController.StoppingDistance;
         out << YAML::Key << "GroundOffset" << aiController.GroundOffset;
+        out << YAML::Key << "FaceMovementDirection" << aiController.FaceMovementDirection;
+        out << YAML::Key << "RotationSpeed" << aiController.RotationSpeed;
 
         out << YAML::EndMap;
     }

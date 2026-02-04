@@ -23,10 +23,10 @@ void Blainn::RegisterEngineTypes(sol::state &luaState)
     engineTbl.set_function("GetActiveScene",
                            []() -> Scene *
                            {
-                               auto s = Engine::GetActiveScene();
+                               auto s = Engine::GetSceneManager().GetActiveScene();
                                return s ? s.get() : nullptr;
                            });
-    engineTbl.set_function("ClearActiveScene", []() { Engine::ClearActiveScene(); });
+    engineTbl.set_function("ClearActiveScene", []() { Engine::GetSceneManager().CloseScenes(); });
 
     luaState["Engine"] = engineTbl;
 }

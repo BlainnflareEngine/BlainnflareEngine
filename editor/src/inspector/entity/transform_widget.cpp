@@ -33,11 +33,6 @@ void transform_widget::OnPositionChanged()
 {
     if (!m_entity.HasComponent<Blainn::TransformComponent>()) return;
 
-    const auto &scene = Blainn::Engine::GetActiveScene();
-    if (!scene)
-    {
-        return;
-    }
     // scene->ConvertToLocalSpace(m_entity);
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
@@ -46,7 +41,7 @@ void transform_widget::OnPositionChanged()
 
     if (m_entity.HasComponent<Blainn::PhysicsComponent>())
     {
-        Blainn::PhysicsSubsystem::UpdateBodyInJolt(*scene, m_entity.GetUUID());
+        Blainn::PhysicsSubsystem::UpdateBodyInJolt(m_entity.GetUUID());
     }
 }
 
@@ -68,15 +63,9 @@ void transform_widget::OnRotationChanged()
     auto quat = Blainn::Quat::CreateFromYawPitchRoll(m_rotation->GetValue() * XM_PI / 180.f);
     transform.SetRotation(quat);
 
-    const auto &scene = Blainn::Engine::GetActiveScene();
-    if (!scene)
-    {
-        return;
-    }
-
     if (m_entity.HasComponent<Blainn::PhysicsComponent>())
     {
-        Blainn::PhysicsSubsystem::UpdateBodyInJolt(*scene, m_entity.GetUUID());
+        Blainn::PhysicsSubsystem::UpdateBodyInJolt(m_entity.GetUUID());
     }
 }
 
@@ -134,9 +123,6 @@ void transform_widget::LoadTransformValues()
     if (!m_entity.HasComponent<Blainn::TransformComponent>()) return;
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
-    const auto &scene = Blainn::Engine::GetActiveScene();
-    if (!scene) return;
-
     // scene->ConvertToLocalSpace(m_entity);
 
     BlockSignals(true);
