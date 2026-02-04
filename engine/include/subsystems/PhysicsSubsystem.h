@@ -36,7 +36,7 @@ public:
 
     static void StartSimulation();
     /// @brief copies transform component values to jolt
-    static void UpdateBodyInJolt(Blainn::Scene &activeScene, const uuid &entityUuid);
+    static void UpdateBodyInJolt(const uuid &entityUuid);
     static void StopSimulation();
 
     /// @brief recreates physics component if already exists

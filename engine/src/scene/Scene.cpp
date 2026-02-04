@@ -60,16 +60,10 @@ Scene::~Scene()
 
     for (auto entity : m_EntityIdMap)
     {
-        SubmitToDestroyEntity(entity.second);
+        SubmitToDestroyEntity(entity.second, true);
     }
 
-    while (s_postUpdateQueue.try_dequeue(fn))
-    {
-        fn();
-    }
-
-    s_sceneEventQueue.process();
-    s_sceneEventQueue.clearEvents();
+    ProcessEvents();
 }
 
 
@@ -110,7 +104,9 @@ void Blainn::Scene::Update()
 
             cam->SetPosition(translation);
 
-            Mat4 camViewMat = (SimpleMath::Matrix::CreateFromQuaternion(rot) * SimpleMath::Matrix::CreateTranslation(translation)).Invert();
+            Mat4 camViewMat =
+                (SimpleMath::Matrix::CreateFromQuaternion(rot) * SimpleMath::Matrix::CreateTranslation(translation))
+                    .Invert();
             cam->SetViewMatrix(camViewMat);
 
             cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
@@ -194,11 +190,15 @@ eastl::string Scene::GetName() const
 void Scene::ProcessEvents()
 {
     eastl::function<void()> fn;
-    while (s_postUpdateQueue.try_dequeue(fn))
+    while (m_postUpdateQueue.try_dequeue(fn))
     {
         fn();
     }
+}
 
+
+void Scene::ProcessStaticEvents()
+{
     s_sceneEventQueue.process();
 }
 
@@ -341,7 +341,7 @@ void Scene::LoadNavMeshData(const YAML::Node &node)
 }
 
 
-void Scene::SubmitToDestroyEntity(Entity entity)
+void Scene::SubmitToDestroyEntity(Entity entity, bool sceneChanged)
 {
     bool isValid = entity.IsValid();
     if (!isValid)
@@ -350,10 +350,10 @@ void Scene::SubmitToDestroyEntity(Entity entity)
         return;
     }
 
-    SubmitPostUpdateFunc([entity]() { entity.m_Scene->DestroyEntityInternal(entity); });
+    SubmitPostUpdateFunc([entity, sceneChanged]() { entity.m_Scene->DestroyEntityInternal(entity, sceneChanged); });
 }
 
-void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool first)
+void Scene::DestroyEntityInternal(Entity entity, bool sceneChanged, bool excludeChildren, bool first)
 {
     BLAINN_PROFILE_FUNC();
 
@@ -383,6 +383,7 @@ void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool firs
     }
 
     // before actually destroying remove components that might require ID of the entity
+    // if (!sceneChanged)
     s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity, id));
 
     PhysicsSubsystem::DestroyPhysicsComponent(entity);
@@ -401,12 +402,12 @@ void Scene::DestroyEntityInternal(Entity entity, bool excludeChildren, bool firs
     SortEntities();
 }
 
-void Scene::DestroyEntityInternal(const uuid &entityID, bool excludeChildren, bool first)
+void Scene::DestroyEntityInternal(const uuid &entityID, bool sceneChanged, bool excludeChildren, bool first)
 {
     const auto it = m_EntityIdMap.find(entityID);
     if (it == m_EntityIdMap.end()) return;
 
-    DestroyEntityInternal(it->second, excludeChildren, first);
+    DestroyEntityInternal(it->second, sceneChanged, excludeChildren, first);
 }
 
 Entity Scene::GetEntityWithUUID(const uuid &id) const
@@ -747,7 +748,7 @@ void Blainn::Scene::SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTr
 
     if (entity.HasComponent<PhysicsComponent>())
     {
-        PhysicsSubsystem::UpdateBodyInJolt(*this, entity.GetUUID());
+        PhysicsSubsystem::UpdateBodyInJolt(entity.GetUUID());
     }
 }
 

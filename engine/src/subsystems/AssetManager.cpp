@@ -15,6 +15,10 @@
 
 #include "Navigation/NavigationSubsystem.h"
 
+#include "scene/SceneManager.h"
+#include "scene/SceneManagerTemplates.h"
+#include "scene/Scene.h"
+
 namespace Blainn
 {
 const Path relativeDefaultDiffuseTexturePath = "Textures/Default.dds";
@@ -56,7 +60,7 @@ void AssetManager::LoadDefaultMaterials()
 {
     Material material = Material(relativeDefaultMaterialPath, "");
     material.SetTexture(GetTexture(relativeDefaultDiffuseTexturePath), TextureType::ALBEDO);
-    
+
     m_materialPaths[ToEASTLString(relativeDefaultMaterialPath.string())] = {0, 1};
     m_materials.emplace(eastl::make_shared<Material>(eastl::move(material)));
 }
@@ -122,7 +126,7 @@ eastl::shared_ptr<MeshHandle> AssetManager::GetMesh(const Path &relativePath)
 }
 
 
-eastl::shared_ptr<MeshHandle> AssetManager::GetDefaultMesh(uint32_t index/* = 0u*/)
+eastl::shared_ptr<MeshHandle> AssetManager::GetDefaultMesh(uint32_t index /* = 0u*/)
 {
     return eastl::make_shared<MeshHandle>(index);
 }
@@ -272,8 +276,8 @@ void AssetManager::OpenScene(const Path &relativePath)
         scene = YAML::LoadFile(absolute_path.string());
     }
 
-    Engine::ClearActiveScene();
-    Engine::SetActiveScene(eastl::make_shared<Scene>(scene));
+    Engine::GetSceneManager().CloseScenes();
+    Engine::GetSceneManager().OpenScene(scene, Single);
 }
 
 
@@ -415,8 +419,7 @@ void AssetManager::DecreaseTextureRefCount(const unsigned int index)
 
 void AssetManager::DecreaseMaterialRefCount(const unsigned int index)
 {
-    if (index == 0)
-        return;
+    if (index == 0) return;
 
     for (auto &[key, value] : m_materialPaths)
     {
@@ -437,8 +440,7 @@ void AssetManager::DecreaseMaterialRefCount(const unsigned int index)
 
 void AssetManager::DecreaseMeshRefCount(const unsigned int index)
 {
-    if (index == 0)
-        return;
+    if (index == 0) return;
 
     for (auto &[key, value] : m_meshPaths)
     {

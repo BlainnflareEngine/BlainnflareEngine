@@ -76,9 +76,9 @@ void Engine::InitAISubsystem()
         PhysicsEventType::CollisionStarted,
         [](const eastl::shared_ptr<PhysicsEvent> &event)
         {
-            Scene &scene = *Engine::GetActiveScene();
-            auto entity1 = scene.GetEntityWithUUID(event->entity1);
-            auto entity2 = scene.GetEntityWithUUID(event->entity2);
+            auto &sceneManager = GetSceneManager();
+            auto entity1 = sceneManager.TryGetEntityWithUUID(event->entity1);
+            auto entity2 = sceneManager.TryGetEntityWithUUID(event->entity2);
 
             if (!entity1.IsValid() || !entity2.IsValid()) return;
 
@@ -87,8 +87,8 @@ void Engine::InitAISubsystem()
 
             if (entity1.HasComponent<StimulusComponent>() && entity2.HasComponent<PerceptionComponent>())
             {
-                Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
-                Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
+                Vec3 pos1 = sceneManager.GetWorldSpaceTransform(entity1).GetTranslation();
+                Vec3 pos2 = sceneManager.GetWorldSpaceTransform(entity2).GetTranslation();
                 bool touch = entity2.GetComponent<PerceptionComponent>().enableTouch;
                 if (touch == true)
                 {
@@ -99,8 +99,8 @@ void Engine::InitAISubsystem()
             }
             if (entity2.HasComponent<StimulusComponent>() && entity1.HasComponent<PerceptionComponent>())
             {
-                Vec3 pos1 = scene.GetWorldSpaceTransform(entity1).GetTranslation();
-                Vec3 pos2 = scene.GetWorldSpaceTransform(entity2).GetTranslation();
+                Vec3 pos1 = sceneManager.GetWorldSpaceTransform(entity1).GetTranslation();
+                Vec3 pos2 = sceneManager.GetWorldSpaceTransform(entity2).GetTranslation();
                 bool touch = entity1.GetComponent<PerceptionComponent>().enableTouch;
                 if (touch == true)
                 {
@@ -116,13 +116,11 @@ void Engine::InitRenderSubsystem(HWND windowHandle)
 {
     auto &renderInst = RenderSubsystem::GetInstance();
     renderInst.Init(windowHandle);
-    m_renderFunc = std::bind(&RenderSubsystem::Render, &renderInst, std::placeholders::_1);
+    s_renderFunc = std::bind(&RenderSubsystem::Render, &renderInst, std::placeholders::_1);
 }
 
 void Engine::Destroy()
 {
-    s_activeScene = nullptr;
-
     NavigationSubsystem::Destroy();
     AISubsystem::GetInstance().Destroy();
     PerceptionSubsystem::GetInstance().Destroy();
@@ -136,6 +134,8 @@ void Engine::Destroy()
     Device::GetInstance().Destroy();
 
     s_JobSystemPtr->terminate();
+
+    s_sceneManager.CloseScenes();
 }
 
 void Engine::Update(float deltaTime)
@@ -152,14 +152,21 @@ void Engine::Update(float deltaTime)
 
     if (s_isPlayMode && !s_playModePaused)
     {
-        ScriptingSubsystem::Update(*s_activeScene, playModeDelta);
+        if (s_sceneManager.GetActiveScene())
+            ScriptingSubsystem::Update(*s_sceneManager.GetActiveScene(), playModeDelta);
+
+        for (auto &[id, scene] : s_sceneManager.GetAdditiveScenes())
+            ScriptingSubsystem::Update(*scene, playModeDelta);
+
         PhysicsSubsystem::Update(playModeDelta);
         PerceptionSubsystem::GetInstance().Update(playModeDelta);
         NavigationSubsystem::Update(playModeDelta);
         AISubsystem::GetInstance().Update(playModeDelta);
     }
 
-    s_activeScene->Update();
+    s_sceneManager.UpdateScenes();
+    s_sceneManager.ProcessLocalEvents();
+    SceneManager::ProcessStaticEvents();
 
     if (NavigationSubsystem::ShouldDrawDebug()) NavigationSubsystem::DrawDebugMesh();
 
@@ -179,9 +186,9 @@ float Engine::GetDeltaTime()
 void Engine::StartPlayMode()
 {
     if (s_isPlayMode) return;
-    if (!s_activeScene) return;
+    if (!s_sceneManager.GetActiveScene()) return;
 
-    s_activeScene->SaveScene();
+    s_sceneManager.GetActiveScene()->SaveScene();
 
     InitScenePlayMode();
 }
@@ -202,11 +209,13 @@ void Engine::TogglePausePlayMode()
 void Engine::EscapePlayMode()
 {
     if (!s_isPlayMode) return;
-    if (s_activeScene)
+
+    if (s_sceneManager.GetActiveScene())
     {
-        s_activeScene->EndPlayMode();
-        AssetManager::GetInstance().OpenScene(s_startPlayModeSceneName.c_str());
+        s_sceneManager.GetActiveScene()->EndPlayMode();
     }
+
+    AssetManager::GetInstance().OpenScene(s_startPlayModeSceneName.c_str());
 
     s_isPlayMode = false;
     AssetManager::GetInstance().ResetTextures();
@@ -225,12 +234,13 @@ bool Engine::PlayModePaused()
     return s_playModePaused;
 }
 
-void Blainn::Engine::InitScenePlayMode()
+void Engine::InitScenePlayMode()
 {
-    if (!s_activeScene) return;
-    s_activeScene->StartPlayMode();
+    if (!s_sceneManager.GetActiveScene()) return;
 
-    s_startPlayModeSceneName = s_activeScene->GetName();
+    s_sceneManager.StartPlayMode();
+
+    if (s_sceneManager.GetActiveScene()) s_startPlayModeSceneName = s_sceneManager.GetActiveScene()->GetName();
 
     s_playModeTimeline.Reset();
     s_playModeTimeline.Start();
@@ -238,13 +248,28 @@ void Blainn::Engine::InitScenePlayMode()
 
     PhysicsSubsystem::StartSimulation();
 
-    for (auto [entity, id, aiComp] : s_activeScene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
+    if (s_sceneManager.GetActiveScene())
     {
-        Entity ent = s_activeScene->GetEntityWithUUID(id.ID);
-        AISubsystem::GetInstance().CreateAIController(ent);
+        for (auto [entity, id, aiComp] :
+             s_sceneManager.GetActiveScene()->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
+        {
+            Entity ent = s_sceneManager.GetActiveScene()->GetEntityWithUUID(id.ID);
+            AISubsystem::GetInstance().CreateAIController(ent);
+        }
+
+        ScriptingSubsystem::LoadAllScripts(*s_sceneManager.GetActiveScene());
     }
 
-    ScriptingSubsystem::LoadAllScripts(*s_activeScene);
+    for (auto &[id, scene] : s_sceneManager.GetAdditiveScenes())
+    {
+        for (auto [entity, id, aiComp] : scene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
+        {
+            Entity ent = scene->GetEntityWithUUID(id.ID);
+            AISubsystem::GetInstance().CreateAIController(ent);
+        }
+
+        ScriptingSubsystem::LoadAllScripts(*scene);
+    }
 }
 
 
@@ -270,17 +295,6 @@ EngineConfig &Engine::GetConfig()
     return s_config;
 }
 
-
-eastl::shared_ptr<Scene> Engine::GetActiveScene()
-{
-    return s_activeScene;
-}
-
-
-void Engine::SetActiveScene(const eastl::shared_ptr<Scene> &scene)
-{
-    s_activeScene = scene;
-}
 
 HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winTitle, const std::string &winClassTitle,
                                 HINSTANCE hInst)
@@ -423,10 +437,4 @@ LRESULT CALLBACK Engine::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
     default:
         return DefWindowProc(hwnd, msg, wParam, lParam);
     }
-}
-
-
-void Engine::ClearActiveScene()
-{
-    s_activeScene.reset();
 }
