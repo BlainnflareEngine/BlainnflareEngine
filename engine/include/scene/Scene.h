@@ -19,9 +19,11 @@
 namespace Blainn
 {
 class MeshComponent;
+class SceneManager;
 class AssetManager;
 
 using EntityMap = eastl::unordered_map<uuid, Entity>;
+
 class Scene
 {
 public:
@@ -76,7 +78,7 @@ public:
                                    bool shouldSort = true, bool onSceneChanged = false, bool createdByEditor = false);
     void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false, bool createdByEditor = false);
     void LoadNavMeshData(const YAML::Node &node);
-    void SubmitToDestroyEntity(Entity entity);
+    void SubmitToDestroyEntity(Entity entity, bool sceneChanged = false);
 
 
     Entity GetEntityWithUUID(const uuid &id) const;
@@ -104,45 +106,51 @@ public:
     void SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTransform);
     TransformComponent GetWorldSpaceTransform(Entity entity);
 
+    uuid &GetSceneID()
+    {
+        return m_SceneID;
+    }
     // prefabs would be cool
     // Entity CreatePrefabEntity(Entity entity, Entity parent /* and so on */);
 
-    static void ProcessEvents();
-
 private:
-    void DestroyEntityInternal(Entity entity, bool excludeChildren = false, bool first = true);
-    void DestroyEntityInternal(const uuid &entityID, bool excludeChildren = false, bool first = true);
+    void DestroyEntityInternal(Entity entity, bool sceneChanged = false, bool excludeChildren = false, bool first = true);
+    void DestroyEntityInternal(const uuid &entityID, bool sceneChanged = false, bool excludeChildren = false, bool first = true);
 
     void SortEntities();
 
     template <typename Fn> void SubmitPostUpdateFunc(Fn &&func)
     {
-        s_postUpdateQueue.enqueue(func);
+        m_postUpdateQueue.enqueue(func);
     }
 
     void ReportEntityReparent(Entity entity);
 
+    void ProcessEvents();
+
+    static void ProcessStaticEvents();
 
 private:
     uuid m_SceneID;
-    entt::entity m_SceneEntity{entt::null};
     entt::registry m_Registry;
-
     eastl::string m_Name;
     bool m_IsEditorScene{false};
     uint32_t m_ViewportWidth{0}, m_ViewportHeight{0};
 
+    // TODO: remove this trash
     EntityMap m_EntityIdMap;
 
-    inline static moodycamel::ConcurrentQueue<eastl::function<void()>> s_postUpdateQueue;
+    moodycamel::ConcurrentQueue<eastl::function<void()>> m_postUpdateQueue;
 
     inline static eventpp::EventQueue<SceneEventType, void(const SceneEventPointer &), SceneEventPolicy>
         s_sceneEventQueue;
 
-    inline static bool m_bPlayMode{false};
+    bool m_bPlayMode{false};
+
     eastl::shared_ptr<Camera> m_editorCam;
 
     friend class Entity;
+    friend class SceneManager;
     friend class AssetManager;
 };
 } // namespace Blainn

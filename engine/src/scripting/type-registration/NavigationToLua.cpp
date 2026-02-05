@@ -44,14 +44,8 @@ void Blainn::RegisterNavigationTypes(sol::state &luaState)
     luaState.set_function("GetAIController",
                           [](const std::string &idStr) -> AIController *
                           {
-                              uuid entityId = uuid(idStr);
-                              Scene *scene = Engine::GetActiveScene().get();
-                              if (!scene)
-                              {
-                                  return nullptr;
-                              }
-
-                              Entity entity = scene->GetEntityWithUUID(entityId);
+                              uuid entityId = uuid::fromStrFactory(idStr);
+                              auto entity = Engine::GetSceneManager().TryGetEntityWithUUID(entityId);
                               if (!entity.IsValid())
                               {
                                   return nullptr;
@@ -69,14 +63,9 @@ void Blainn::RegisterNavigationTypes(sol::state &luaState)
     AIControllerType.set_function("Possess",
                                   [](AIController *controller, const std::string &idStr) -> bool
                                   {
-                                      uuid entityId = uuid(idStr);
-                                      Scene *scene = Engine::GetActiveScene().get();
-                                      if (!scene)
-                                      {
-                                          return false;
-                                      }
+                                      uuid entityId = uuid::fromStrFactory(idStr);
 
-                                      Entity entity = scene->GetEntityWithUUID(entityId);
+                                      Entity entity = Engine::GetSceneManager().TryGetEntityWithUUID(entityId);
                                       if (!entity.IsValid())
                                       {
                                           return false;

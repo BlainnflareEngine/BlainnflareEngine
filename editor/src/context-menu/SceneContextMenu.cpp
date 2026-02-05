@@ -1,68 +1,59 @@
-﻿//
-// Created by gorev on 25.10.2025.
-//
-
-#include "context-menu/SceneContextMenu.h"
-
+﻿#include "context-menu/SceneContextMenu.h"
+#include "scene_hierarchy_widget.h"
 #include "Engine.h"
 #include "components/CameraComponent.h"
 #include "components/SkyboxComponent.h"
-#include "scene/EntityTemplates.h"
-#include "SceneItemModel.h"
-#include "oclero/qlementine/widgets/Menu.hpp"
-#include "scene_hierarchy_widget.h"
 #include "components/LightComponent.h"
+#include "scene/EntityTemplates.h"
 
+#include <QMenu>
 #include <QClipboard>
-#include <QKeyEvent>
-#include <QPushButton>
+#include <QGuiApplication>
+#include <QAction>
 
 namespace editor
 {
 
-SceneContextMenu::SceneContextMenu(scene_hierarchy_widget &treeView, QObject *parent)
+SceneContextMenu::SceneContextMenu(scene_hierarchy_widget &treeWidget, QObject *parent)
     : QObject(parent)
-    , m_treeView(treeView)
+    , m_treeWidget(treeWidget)
 {
     m_duplicateAction = new QAction("Duplicate", this);
     m_duplicateAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
+    m_duplicateAction->setShortcutContext(Qt::WidgetShortcut);
 
     m_deleteAction = new QAction("Delete", this);
     m_deleteAction->setShortcut(QKeySequence::Delete);
+    m_deleteAction->setShortcutContext(Qt::WidgetShortcut);
 
     m_renameAction = new QAction("Rename", this);
     m_renameAction->setShortcut(QKeySequence(Qt::Key_F2));
+    m_renameAction->setShortcutContext(Qt::WidgetShortcut);
 
-    m_treeView.addAction(m_duplicateAction);
-    m_treeView.addAction(m_deleteAction);
-    m_treeView.addAction(m_renameAction);
+    m_treeWidget.addAction(m_duplicateAction);
+    m_treeWidget.addAction(m_deleteAction);
+    m_treeWidget.addAction(m_renameAction);
 
-    connect(m_duplicateAction, &QAction::triggered, this,
-            [this]()
-            {
-                if (m_treeView.selectionModel()->selectedRows().isEmpty()) return;
-                DuplicateEntity(m_treeView.selectionModel()->selectedRows().first());
-            });
-    connect(m_deleteAction, &QAction::triggered, this,
-            [this]()
-            {
-                if (m_treeView.selectionModel()->selectedRows().isEmpty()) return;
-                DeleteEntity(m_treeView.selectionModel()->selectedRows().first());
-            });
-    connect(m_renameAction, &QAction::triggered, this,
-            [this]()
-            {
-                if (m_treeView.selectionModel()->selectedRows().isEmpty()) return;
-                RenameEntity(m_treeView.selectionModel()->selectedRows().first());
-            });
+    connect(m_duplicateAction, &QAction::triggered, this, &SceneContextMenu::DuplicateEntity);
+    connect(m_deleteAction, &QAction::triggered, this, &SceneContextMenu::DeleteCurrentEntity);
+    connect(m_renameAction, &QAction::triggered, this, &SceneContextMenu::RenameEntity);
 }
 
-
-void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
+void SceneContextMenu::OnContextMenu(const QPoint &pos)
 {
-    QMenu *menu = new QMenu(nullptr);
+    QTreeWidgetItem *item = m_treeWidget.itemAt(pos);
+    QPoint globalPos = m_treeWidget.mapToGlobal(pos);
 
-    QAction *createEntityAction = menu->addAction(index.isValid() ? "Create child entity" : "Create entity");
+    OpenMenu(globalPos, item);
+}
+
+void SceneContextMenu::OpenMenu(const QPoint &globalPos, QTreeWidgetItem *item)
+{
+    m_currentItem = item;
+
+    auto *menu = new QMenu(nullptr);
+
+    QAction *createEntityAction = menu->addAction(item ? "Create child entity" : "Create entity");
     QAction *createCameraAction = menu->addAction("Create camera");
     QAction *createSkyboxAction = menu->addAction("Create skybox");
 
@@ -71,7 +62,7 @@ void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
     QAction *createPointLightAction = menu->addAction("Create point light");
     QAction *createSpotLightAction = menu->addAction("Create spot light");
 
-    if (index.isValid())
+    if (item)
     {
         menu->addSeparator();
         menu->addAction(m_renameAction);
@@ -80,226 +71,262 @@ void SceneContextMenu::OpenMenu(const QPoint &pos, const QModelIndex &index)
         menu->addAction(m_deleteAction);
     }
 
-    if (createEntityAction)
-        connect(createEntityAction, &QAction::triggered, this, [this, index]() { AddEntity(index); });
+    connect(createEntityAction, &QAction::triggered, this, [this, item]() { AddEntity(item); });
 
-    if (createCameraAction)
-        connect(createCameraAction, &QAction::triggered, this, [this, index]() { AddCamera(index); });
+    connect(createCameraAction, &QAction::triggered, this, [this, item]() { AddCamera(item); });
 
-    if (createSkyboxAction)
-        connect(createSkyboxAction, &QAction::triggered, this, [this, index]() { AddSkybox(index); });
+    connect(createSkyboxAction, &QAction::triggered, this, [this, item]() { AddSkybox(item); });
 
-    if (createDirectLightAction)
-        connect(createDirectLightAction, &QAction::triggered, this, [this, index]() { AddDirectionalLight(index); });
+    connect(createDirectLightAction, &QAction::triggered, this, [this, item]() { AddDirectionalLight(item); });
 
-    if (createPointLightAction)
-        connect(createPointLightAction, &QAction::triggered, this, [this, index]() { AddPointLight(index); });
+    connect(createPointLightAction, &QAction::triggered, this, [this, item]() { AddPointLight(item); });
 
-    if (createSpotLightAction)
-        connect(createSpotLightAction, &QAction::triggered, this, [this, index]() { AddSpotLight(index); });
+    connect(createSpotLightAction, &QAction::triggered, this, [this, item]() { AddSpotLight(item); });
 
-    if (index.isValid())
+    if (item)
     {
-        auto clipboardAction = menu->actions().at(menu->actions().size() - 2);
-        connect(clipboardAction, &QAction::triggered, this, [this, index]() { CopyUUIDToClipboard(index); });
+        auto actions = menu->actions();
+        QAction *copyIdAction = nullptr;
+        for (int i = actions.size() - 1; i >= 0; --i)
+        {
+            if (actions[i]->text() == "Copy ID")
+            {
+                copyIdAction = actions[i];
+                break;
+            }
+        }
+
+        if (copyIdAction)
+        {
+            connect(copyIdAction, &QAction::triggered, this, [this, item]() { CopyUUIDToClipboard(item); });
+        }
     }
 
     connect(menu, &QMenu::aboutToHide, menu, &QMenu::deleteLater);
-    menu->popup(pos);
+    menu->popup(globalPos);
 }
 
 
-void SceneContextMenu::OnContextMenu(const QPoint &pos)
+void SceneContextMenu::AddEntity(QTreeWidgetItem *parentItem)
 {
-    QModelIndex index = m_treeView.indexAt(pos);
-
-    QPoint menuPos = m_treeView.mapToGlobal(pos);
-
-    if (index.isValid())
+    if (parentItem)
     {
-        OpenMenu(menuPos, index);
-    }
-    else
-    {
-        OpenMenu(menuPos);
-    }
-}
-
-
-void SceneContextMenu::AddEntity(const QModelIndex &index)
-{
-    if (index.isValid())
-    {
-        Blainn::Entity parent = SceneItemModel::GetNodeFromIndex(index)->GetEntity();
-
-        if (parent.IsValid()) Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Entity", false, true);
-        else BF_ERROR("Parent entity is invalid.");
-    }
-    else
-    {
-        Blainn::Engine::GetActiveScene()->CreateEntity("Entity", false, true);
-    }
-}
-
-
-void SceneContextMenu::AddCamera(const QModelIndex &index)
-{
-    if (index.isValid())
-    {
-        Blainn::Entity parent = SceneItemModel::GetNodeFromIndex(index)->GetEntity();
+        auto uuid = m_treeWidget.GetUUIDFromItem(parentItem);
+        auto parent = Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(uuid);
 
         if (parent.IsValid())
         {
-            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Camera", false, true);
-            entity.AddComponent<Blainn::TransformComponent>();
-            auto &cam = entity.AddComponent<Blainn::CameraComponent>();
-            cam.camera.Reset(75.0f, 16 / 9, 0.1, 1000);
+            Blainn::Engine::GetSceneManager().CreateChildEntity(parent, "Entity", false, true);
         }
-        else BF_ERROR("Parent entity is invalid.");
+        else
+        {
+            BF_ERROR("Parent entity is invalid.");
+        }
     }
     else
     {
-        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Camera", false, true);
+        Blainn::Engine::GetSceneManager().CreateEntity("Entity", false, true);
+    }
+}
+
+void SceneContextMenu::AddCamera(QTreeWidgetItem *parentItem)
+{
+    Blainn::Entity entity;
+
+    if (parentItem)
+    {
+        auto uuid = m_treeWidget.GetUUIDFromItem(parentItem);
+        auto parent = Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(uuid);
+
+        if (parent.IsValid())
+        {
+            entity = Blainn::Engine::GetSceneManager().CreateChildEntity(parent, "Camera", false, true);
+        }
+        else
+        {
+            BF_ERROR("Parent entity is invalid.");
+            return;
+        }
+    }
+    else
+    {
+        entity = Blainn::Engine::GetSceneManager().CreateEntity("Camera", false, true);
+    }
+
+    if (entity.IsValid())
+    {
         entity.AddComponent<Blainn::TransformComponent>();
         auto &cam = entity.AddComponent<Blainn::CameraComponent>();
-        cam.camera.Reset(75.0f, 16 / 9, 0.1, 1000);
+        cam.camera.Reset(75.0f, 16.0f / 9.0f, 0.1f, 1000.0f);
     }
 }
 
-
-void SceneContextMenu::AddSkybox(const QModelIndex &index)
+void SceneContextMenu::AddSkybox(QTreeWidgetItem *parentItem)
 {
-    if (index.isValid())
+    Blainn::Entity entity;
+
+    if (parentItem)
     {
-        Blainn::Entity parent = SceneItemModel::GetNodeFromIndex(index)->GetEntity();
+        auto uuid = m_treeWidget.GetUUIDFromItem(parentItem);
+        auto parent = Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(uuid);
 
         if (parent.IsValid())
         {
-            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Skybox", false, true);
-            entity.AddComponent<Blainn::SkyboxComponent>();
+            entity = Blainn::Engine::GetSceneManager().CreateChildEntity(parent, "Skybox", false, true);
         }
-        else BF_ERROR("Parent entity is invalid.");
+        else
+        {
+            BF_ERROR("Parent entity is invalid.");
+            return;
+        }
     }
     else
     {
-        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Skybox", false, true);
+        entity = Blainn::Engine::GetSceneManager().CreateEntity("Skybox", false, true);
+    }
+
+    if (entity.IsValid())
+    {
         entity.AddComponent<Blainn::SkyboxComponent>();
     }
 }
 
-
-void SceneContextMenu::AddDirectionalLight(const QModelIndex &index)
+void SceneContextMenu::AddDirectionalLight(QTreeWidgetItem *parentItem)
 {
-    if (index.isValid())
+    Blainn::Entity entity;
+
+    if (parentItem)
     {
-        Blainn::Entity parent = SceneItemModel::GetNodeFromIndex(index)->GetEntity();
+        auto uuid = m_treeWidget.GetUUIDFromItem(parentItem);
+        auto parent = Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(uuid);
 
         if (parent.IsValid())
         {
-            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Directional light", false, true);
-            entity.AddComponent<Blainn::TransformComponent>();
-            entity.AddComponent<Blainn::DirectionalLightComponent>();
+            entity = Blainn::Engine::GetSceneManager().CreateChildEntity(parent, "Directional light", false, true);
         }
-        else BF_ERROR("Parent entity is invalid.");
+        else
+        {
+            BF_ERROR("Parent entity is invalid.");
+            return;
+        }
     }
     else
     {
-        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Directional light", false, true);
+        entity = Blainn::Engine::GetSceneManager().CreateEntity("Directional light", false, true);
+    }
+
+    if (entity.IsValid())
+    {
         entity.AddComponent<Blainn::TransformComponent>();
         entity.AddComponent<Blainn::DirectionalLightComponent>();
     }
 }
 
-
-void SceneContextMenu::AddPointLight(const QModelIndex &index)
+void SceneContextMenu::AddPointLight(QTreeWidgetItem *parentItem)
 {
-    if (index.isValid())
+    Blainn::Entity entity;
+
+    if (parentItem)
     {
-        Blainn::Entity parent = SceneItemModel::GetNodeFromIndex(index)->GetEntity();
+        auto uuid = m_treeWidget.GetUUIDFromItem(parentItem);
+        auto parent = Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(uuid);
 
         if (parent.IsValid())
         {
-            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Point light", false, true);
-            entity.AddComponent<Blainn::TransformComponent>();
-            entity.AddComponent<Blainn::PointLightComponent>();
+            entity = Blainn::Engine::GetSceneManager().CreateChildEntity(parent, "Point light", false, true);
         }
-        else BF_ERROR("Parent entity is invalid.");
+        else
+        {
+            BF_ERROR("Parent entity is invalid.");
+            return;
+        }
     }
     else
     {
-        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Point light", false, true);
+        entity = Blainn::Engine::GetSceneManager().CreateEntity("Point light", false, true);
+    }
+
+    if (entity.IsValid())
+    {
         entity.AddComponent<Blainn::TransformComponent>();
         entity.AddComponent<Blainn::PointLightComponent>();
     }
 }
 
-
-void SceneContextMenu::AddSpotLight(const QModelIndex &index)
+void SceneContextMenu::AddSpotLight(QTreeWidgetItem *parentItem)
 {
-    if (index.isValid())
+    Blainn::Entity entity;
+
+    if (parentItem)
     {
-        Blainn::Entity parent = SceneItemModel::GetNodeFromIndex(index)->GetEntity();
+        auto uuid = m_treeWidget.GetUUIDFromItem(parentItem);
+        auto parent = Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(uuid);
 
         if (parent.IsValid())
         {
-            auto entity = Blainn::Engine::GetActiveScene()->CreateChildEntity(parent, "Spot light", false, true);
-            entity.AddComponent<Blainn::TransformComponent>();
-            entity.AddComponent<Blainn::SpotLightComponent>();
+            entity = Blainn::Engine::GetSceneManager().CreateChildEntity(parent, "Spot light", false, true);
         }
-        else BF_ERROR("Parent entity is invalid.");
+        else
+        {
+            BF_ERROR("Parent entity is invalid.");
+            return;
+        }
     }
     else
     {
-        auto entity = Blainn::Engine::GetActiveScene()->CreateEntity("Spot light", false, true);
+        entity = Blainn::Engine::GetSceneManager().CreateEntity("Spot light", false, true);
+    }
+
+    if (entity.IsValid())
+    {
         entity.AddComponent<Blainn::TransformComponent>();
         entity.AddComponent<Blainn::SpotLightComponent>();
     }
 }
 
 
-void SceneContextMenu::RenameEntity(const QModelIndex &index) const
+void SceneContextMenu::RenameEntity()
 {
-    m_treeView.edit(index);
+    if (auto *item = m_treeWidget.currentItem())
+    {
+        m_treeWidget.editItem(item);
+    }
 }
 
-
-void SceneContextMenu::DuplicateEntity(const QModelIndex &index) const
+void SceneContextMenu::DuplicateEntity()
 {
-    auto sceneModel = SceneItemModel::GetNodeFromIndex(index);
+    if (auto *item = m_treeWidget.currentItem())
+    {
+        auto uuid = m_treeWidget.GetUUIDFromItem(item);
+        auto entity = Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(uuid);
 
-    if (!sceneModel) return;
-
-    Blainn::Engine::GetActiveScene()->DuplicateEntity(sceneModel->GetEntity());
+        if (entity.IsValid())
+        {
+            Blainn::Engine::GetSceneManager().DuplicateEntity(entity);
+        }
+    }
 }
 
-
-void SceneContextMenu::DeleteEntity(const QModelIndex &index)
+void SceneContextMenu::DeleteCurrentEntity()
 {
-    auto sceneModel = SceneItemModel::GetNodeFromIndex(index);
+    if (auto *item = m_treeWidget.currentItem())
+    {
+        auto uuid = m_treeWidget.GetUUIDFromItem(item);
+        auto entity = Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(uuid);
 
-    if (!sceneModel) return;
-
-    Blainn::Engine::GetActiveScene()->SubmitToDestroyEntity(sceneModel->GetEntity());
+        if (entity.IsValid())
+        {
+            Blainn::Engine::GetSceneManager().SubmitToDestroyEntity(entity);
+        }
+    }
 }
 
-
-void SceneContextMenu::CopyUUIDToClipboard(const QModelIndex &index)
+void SceneContextMenu::CopyUUIDToClipboard(QTreeWidgetItem *item) const
 {
-    auto sceneModel = SceneItemModel::GetNodeFromIndex(index);
-    if (!sceneModel) return;
+    if (!item) return;
 
-    QGuiApplication::clipboard()->setText(sceneModel->GetUUID().bytes().c_str());
+    auto uuid = m_treeWidget.GetUUIDFromItem(item);
+    QGuiApplication::clipboard()->setText(uuid.str().c_str());
 }
 
-
-QKeySequence &SceneContextMenu::GetRenameKey()
-{
-    return m_renameKey;
-}
-
-
-QKeySequence &SceneContextMenu::GetDeleteKey()
-{
-    return m_deleteKey;
-}
 } // namespace editor

@@ -5,6 +5,8 @@
 #include "entity_inspector_content.h"
 
 #include "EditorRegistry.h"
+#include "Engine.h"
+#include "FileSystemUtils.h"
 #include "entity/scripting/scripting_widget.h"
 #include "LabelsUtils.h"
 #include "../../include/inspector/entity/perception_widget.h"
@@ -34,13 +36,13 @@
 
 namespace editor
 {
-entity_inspector_content::entity_inspector_content(const EntityInspectorData &data, QWidget *parent)
+entity_inspector_content::entity_inspector_content(const Blainn::uuid &id, QWidget *parent)
     : inspector_content_base(parent)
-    , m_data(data)
+    , m_id(id)
 {
     BLAINN_PROFILE_FUNC();
 
-    auto entity = m_data.node->GetEntity();
+    auto entity = Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(m_id);
     if (!entity.IsValid())
     {
         deleteLater();
@@ -51,7 +53,7 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     mainLayout->setContentsMargins(10, 10, 10, 10);
     mainLayout->setSpacing(5);
 
-    m_tag = new QLabel(ToHeader2(m_data.tag), this);
+    m_tag = new QLabel(ToHeader2(entity.Name().c_str()), this);
     m_tag->setTextFormat(Qt::MarkdownText);
     m_tag->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     mainLayout->addWidget(m_tag);
@@ -65,7 +67,8 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
     addButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     mainLayout->addWidget(addButton);
 
-    connect(m_data.node, &EntityNode::OnTagChanged, this, &entity_inspector_content::SetTag);
+    // TODO: tag changed signal
+    // connect(m_data.node, &EntityNode::OnTagChanged, this, &entity_inspector_content::SetTag);
 
     for (const auto &[typeId, factory] : g_widgetRegistry)
     {
@@ -84,7 +87,10 @@ entity_inspector_content::entity_inspector_content(const EntityInspectorData &da
 
 void entity_inspector_content::SetTag(const QString &tag)
 {
-    m_data.tag = tag;
+    auto entity = Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(m_id);
+    if (!entity.IsValid()) return;
+
+    entity.GetComponent<Blainn::TagComponent>().Tag = ToString(tag).c_str();
     m_tag->setText(ToHeader2(tag));
 }
 
@@ -102,5 +108,11 @@ void entity_inspector_content::resizeEvent(QResizeEvent *event)
     BLAINN_PROFILE_FUNC();
 
     inspector_content_base::resizeEvent(event);
+}
+
+
+Blainn::uuid &entity_inspector_content::GetCurrentEntityUUID()
+{
+    return m_id;
 }
 } // namespace editor

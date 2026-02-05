@@ -124,6 +124,7 @@ void folder_content_widget::OnEntrySelectedIndex(const QModelIndex &index)
     if (fileInfo.isFile() && fileInfo.suffix() == formats::sceneFormat)
     {
         Path path = std::filesystem::relative(ToString(fileInfo.filePath()), Engine::GetContentDirectory());
+
         AssetManager::GetInstance().OpenScene(path);
         return;
     }

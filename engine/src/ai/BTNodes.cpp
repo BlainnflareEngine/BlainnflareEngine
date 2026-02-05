@@ -37,23 +37,30 @@ BTStatus SequenceNode::Update(Blackboard &bb)
     {
         BTStatus s = children[m_currentIndex]->Update(bb);
 
-        switch (s)
+        if (BTStatus::Success == s)
         {
-            case BTStatus::Success:
-                m_currentIndex++;
-                break;
-
-            case BTStatus::Running:
-                return s;
-                
-            case BTStatus::Failure:
-            case BTStatus::Aborted:
-            case BTStatus::Error:
-                return s;
-
-            default:
-                break;
+            m_currentIndex++;
+            continue;
         }
+        return s;
+
+        //switch (s)
+        //{
+        //    case BTStatus::Success:
+        //        m_currentIndex++;
+        //        break;
+
+        //    case BTStatus::Running:
+        //        return s;
+        //        
+        //    case BTStatus::Failure:
+        //    case BTStatus::Aborted:
+        //    case BTStatus::Error:
+        //        return s;
+
+        //    default:
+        //        break;
+        //}
     }
 
     return BTStatus::Success;
@@ -282,9 +289,8 @@ BTStatus Blainn::NegateNode::Update(Blackboard &bb)
     switch (s) {
         case BTStatus::Success: return BTStatus::Failure;
         case BTStatus::Failure: return BTStatus::Success;
-        case BTStatus::Running: return BTStatus::Running;
-        case BTStatus::Aborted: return BTStatus::Aborted;
-        case BTStatus::Error:return BTStatus::Error;
+        default:
+            return s;
     }
 
     BF_ERROR("NegateNode: invalid BTStatus");
@@ -312,8 +318,8 @@ BTStatus Blainn::ConditionNode::Update(Blackboard &bb)
 
     BTStatus s = child->Update(bb);
 
-    if (s == BTStatus::Error)
-        return BTStatus::Error;
+    //if (s == BTStatus::Error)
+    //    return BTStatus::Error;
 
     return s;
 }

@@ -69,30 +69,40 @@ void PhysicsSubsystem::Update(float deltaTime)
     BLAINN_PROFILE_FUNC();
     assert(m_isInitialized && "PhysicsSubsystem not initialized. Call PhysicsSubsystem::Init() before using it.");
 
-    eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
-    auto enities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
-
-    for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        if (!transformComp.IsDirty()) continue;
-        UpdateBodyInJolt(*activeScene, idComp.ID);
+        const auto &view = scene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
+
+        for (const auto &[_, idComp, transformComp, physicsComp] : view.each())
+        {
+            if (!transformComp.IsDirty()) continue;
+            UpdateBodyInJolt(idComp.ID);
+        }
     }
+
 
     m_joltPhysicsSystem->Update(deltaTime, physicsUpdateSubsteps, m_joltTempAllocator.get(), m_joltJobSystem.get());
 
-    for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
+        const auto &view = scene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
 
+        for (const auto &[_, idComp, transformComp, physicsComp] : view.each())
         {
-            BodyGetter bodyGetter = GetBodyGetter(entity);
-            if (bodyGetter.isTrigger()) continue;
+            Entity entity = scene->GetEntityWithUUID(idComp.ID);
 
-            transformComp.SetTranslation(bodyGetter.GetPosition());
-            transformComp.SetRotation(bodyGetter.GetRotation());
+            {
+                BodyGetter bodyGetter = GetBodyGetter(entity);
+                if (bodyGetter.isTrigger()) continue;
+
+                transformComp.SetTranslation(bodyGetter.GetPosition());
+                transformComp.SetRotation(bodyGetter.GetRotation());
+            }
+
+            scene->SetFromWorldSpaceTransformMatrix(entity, transformComp.GetTransform());
         }
-        activeScene->SetFromWorldSpaceTransformMatrix(entity, transformComp.GetTransform());
     }
+
 
     ProcessEvents();
 }
@@ -101,27 +111,28 @@ void PhysicsSubsystem::StartSimulation()
 {
     m_physicsTimeline->Start();
 
-    eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
-    auto entities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
-
-    for (const auto &[_, idComp, transformComp, physicsComp] : entities.each())
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        PhysicsSubsystem::UpdateBodyInJolt(*activeScene, idComp.ID);
-        Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
-        BodyUpdater bodyUpdater = GetBodyUpdater(entity);
-        bodyUpdater.ActivateBody();
+        const auto &view = scene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
+        for (const auto &[_, idComp, transformComp, physicsComp] : view.each())
+        {
+            UpdateBodyInJolt(idComp.ID);
+            Entity entity = scene->GetEntityWithUUID(idComp.ID);
+            BodyUpdater bodyUpdater = GetBodyUpdater(entity);
+            bodyUpdater.ActivateBody();
+        }
     }
 }
 
 
-void Blainn::PhysicsSubsystem::UpdateBodyInJolt(Blainn::Scene &activeScene, const uuid &entityUuid)
+void Blainn::PhysicsSubsystem::UpdateBodyInJolt(const uuid &entityUuid)
 {
     BLAINN_PROFILE_FUNC();
-    Entity entity = activeScene.GetEntityWithUUID(entityUuid);
+    Entity entity = Engine::GetSceneManager().TryGetEntityWithUUID(entityUuid);
 
     Vec3 translation, scale;
     Quat rotation;
-    activeScene.GetWorldSpaceTransformMatrix(entity).Decompose(scale, rotation, translation);
+    Engine::GetSceneManager().GetWorldSpaceTransformMatrix(entity).Decompose(scale, rotation, translation);
 
     BodyUpdater bodyUpdater = GetBodyUpdater(entity);
     bodyUpdater.SetPosition(translation).SetRotation(rotation);
@@ -131,14 +142,16 @@ void PhysicsSubsystem::StopSimulation()
 {
     m_physicsTimeline->Pause();
 
-    eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
-    auto enities = activeScene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
-
-    for (const auto &[_, idComp, transformComp, physicsComp] : enities.each())
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        Entity entity = activeScene->GetEntityWithUUID(idComp.ID);
-        BodyUpdater bodyUpdater = GetBodyUpdater(entity);
-        bodyUpdater.DeactivateBody();
+        const auto &view = scene->GetAllEntitiesWith<IDComponent, TransformComponent, PhysicsComponent>();
+
+        for (const auto &[_, idComp, transformComp, physicsComp] : view.each())
+        {
+            Entity entity = scene->GetEntityWithUUID(idComp.ID);
+            BodyUpdater bodyUpdater = GetBodyUpdater(entity);
+            bodyUpdater.DeactivateBody();
+        }
     }
 }
 
@@ -224,7 +237,7 @@ eastl::optional<Entity> Blainn::PhysicsSubsystem::GetEntityByBodyId(JPH::BodyID 
         return eastl::optional<Entity>{};
     }
 
-    return eastl::optional<Entity>(Engine::GetActiveScene()->GetEntityWithUUID(m_bodyEntityConnections[bodyId]));
+    return eastl::optional<Entity>(Engine::GetSceneManager().TryGetEntityWithUUID(m_bodyEntityConnections[bodyId]));
 }
 
 PhysicsEventHandle PhysicsSubsystem::AddEventListener(
@@ -295,13 +308,11 @@ eastl::optional<RayCastResult> PhysicsSubsystem::FilteredCastRay(eastl::queue<uu
                                                                  Vec3 directionAndDistance,
                                                                  const eastl::vector<ObjectLayer> &ignoredLayers)
 {
-    eastl::shared_ptr<Scene> activeScene = Engine::GetActiveScene();
-
     JPH::IgnoreMultipleBodiesFilter bodyFilter;
 
     while (!entities.empty())
     {
-        Entity currentEntity = activeScene->GetEntityWithUUID(entities.front());
+        Entity currentEntity = Engine::GetSceneManager().TryGetEntityWithUUID(entities.front());
 
         RelationshipComponent *relationshipComp = currentEntity.TryGetComponent<RelationshipComponent>();
         if (relationshipComp)
@@ -337,11 +348,13 @@ void Blainn::PhysicsSubsystem::ProcessEvents()
 {
     s_physicsEventQueue.process();
 }
+
+
 PhysicsComponent &Blainn::PhysicsSubsystem::GetPhysicsComponentByBodyId(JPH::BodyID bodyId)
 {
     assert(m_bodyEntityConnections.contains(bodyId));
-    return Engine::GetActiveScene()
-        ->GetEntityWithUUID(m_bodyEntityConnections.at(bodyId))
+    return Engine::GetSceneManager()
+        .TryGetEntityWithUUID(m_bodyEntityConnections.at(bodyId))
         .GetComponent<PhysicsComponent>();
 }
 

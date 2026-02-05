@@ -1,68 +1,65 @@
-﻿//
-// Created by gorev on 25.10.2025.
-//
+﻿#pragma once
 
-#pragma once
-#include "folder-content/ContentFilterProxyModel.h"
+#include "scene/Entity.h"
 
-
-#include <QKeyEvent>
+#include <QKeySequence>
 #include <QObject>
+#include <QPoint>
 
 
+class QTreeWidgetItem;
 class QMenu;
-namespace editor
-{
-class SceneItemModel;
-}
+class QAction;
+
 namespace editor
 {
 class scene_hierarchy_widget;
-}
-namespace editor
-{
 
 class SceneContextMenu : public QObject
 {
     Q_OBJECT
 
 public:
-    SceneContextMenu(scene_hierarchy_widget &treeView, QObject *parent = nullptr);
+    explicit SceneContextMenu(scene_hierarchy_widget &treeWidget, QObject *parent = nullptr);
 
-    void OpenMenu(const QPoint &pos, const QModelIndex &index = QModelIndex());
+    void RenameEntity();
+    void DuplicateEntity();
+    void DeleteCurrentEntity();
 
-    void AddEntity(const QModelIndex &index);
+    QKeySequence GetRenameKey() const
+    {
+        return QKeySequence(Qt::Key_F2);
+    }
+    QKeySequence GetDeleteKey() const
+    {
+        return QKeySequence(Qt::Key_Delete);
+    }
+    QKeySequence GetDuplicateKey() const
+    {
+        return QKeySequence(Qt::CTRL + Qt::Key_D);
+    }
 
-    void AddCamera(const QModelIndex &index);
-    void AddSkybox(const QModelIndex &index);
-    void AddDirectionalLight(const QModelIndex &index);
-    void AddPointLight(const QModelIndex &index);
-    void AddSpotLight(const QModelIndex &index);
-
-    void RenameEntity(const QModelIndex &index) const;
-    void DuplicateEntity(const QModelIndex &index) const;
-    void DeleteEntity(const QModelIndex &index);
-
-    void CopyUUIDToClipboard(const QModelIndex &index);
-
-    QKeySequence &GetRenameKey();
-    QKeySequence &GetDeleteKey();
+    void OpenMenu(const QPoint &globalPos, QTreeWidgetItem *item = nullptr);
 
 public slots:
     void OnContextMenu(const QPoint &pos);
 
 private:
-    scene_hierarchy_widget &m_treeView;
+    void AddEntity(QTreeWidgetItem *parentItem = nullptr);
+    void AddCamera(QTreeWidgetItem *parentItem = nullptr);
+    void AddSkybox(QTreeWidgetItem *parentItem = nullptr);
+    void AddDirectionalLight(QTreeWidgetItem *parentItem = nullptr);
+    void AddPointLight(QTreeWidgetItem *parentItem = nullptr);
+    void AddSpotLight(QTreeWidgetItem *parentItem = nullptr);
 
-    QKeySequence m_renameKey = QKeySequence(Qt::Key_F2);
-    QKeySequence m_deleteKey = QKeySequence(Qt::Key_Delete);
-    QKeySequence m_duplicateKey = QKeySequence(Qt::CTRL + Qt::Key_D);
+    void CopyUUIDToClipboard(QTreeWidgetItem *item) const;
 
-    QMenu *m_menu = nullptr;
+    scene_hierarchy_widget &m_treeWidget;
 
     QAction *m_duplicateAction = nullptr;
     QAction *m_deleteAction = nullptr;
     QAction *m_renameAction = nullptr;
-};
 
+    QTreeWidgetItem *m_currentItem = nullptr;
+};
 } // namespace editor

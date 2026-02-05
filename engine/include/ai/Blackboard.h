@@ -11,7 +11,7 @@
 namespace Blainn
 {
 
-using BlackboardValue = std::variant<int, float, double, bool, eastl::string, std::string, Vec2, Vec3>;
+using BlackboardValue = std::variant<int, float, double, bool, std::string, Vec2, Vec3>;
 
 class Blackboard
 {
@@ -66,10 +66,6 @@ public:
         {
             values[key] = eastl::make_shared<Value<eastl::string>>(eastl::string(value.as<const char *>()));
         }
-        //else if (value.is<eastl::string>())
-        //{
-        //    values[key] = eastl::make_shared<Value<eastl::string>>(value.as<eastl::string>());
-        //}
         else if (value.is<Vec2>())
         {
             values[key] = eastl::make_shared<Value<Vec2>>(value.as<Vec2>());

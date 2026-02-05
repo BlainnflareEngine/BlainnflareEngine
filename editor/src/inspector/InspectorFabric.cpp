@@ -62,11 +62,11 @@ mesh_inspector_content *InspectorFabric::GetMeshInspector(const QString &file)
 }
 
 
-entity_inspector_content *InspectorFabric::GetEntityInspector(const EntityInspectorData &data)
+entity_inspector_content *InspectorFabric::GetEntityInspector(const Blainn::uuid &id)
 {
     BLAINN_PROFILE_FUNC();
 
-    auto inspector = new entity_inspector_content(data);
+    auto inspector = new entity_inspector_content(id);
     return inspector;
 }
 } // namespace editor

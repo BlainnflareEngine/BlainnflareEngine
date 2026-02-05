@@ -22,7 +22,7 @@ class InspectorFabric
 {
 public:
     inspector_content_base *GetInspector(const QString &file);
-    entity_inspector_content *GetEntityInspector(const EntityInspectorData &data);
+    entity_inspector_content *GetEntityInspector(const Blainn::uuid &id);
 
 private:
     material_inspector_content *GetMaterialInspector(const QString &file);

@@ -4,6 +4,7 @@
 
 #include "entity/ai_controller_widget.h"
 
+#include "Engine.h"
 #include "FileSystemUtils.h"
 #include "Render/DebugRenderer.h"
 #include "components/AIControllerComponent.h"
@@ -81,6 +82,8 @@ void ai_controller_widget::OnUpdate()
 
     if (!Blainn::RenderSubsystem::GetInstance().DebugEnabled()) return;
 
+    Blainn::Engine::GetSceneManager().ConvertToWorldSpace(m_entity);
+
     auto transform = m_entity.TryGetComponent<Blainn::TransformComponent>();
     if (!transform) return;
 
@@ -93,6 +96,7 @@ void ai_controller_widget::OnUpdate()
                         transform->GetTranslation().z - 0.3f};
 
     Blainn::RenderSubsystem::GetInstance().GetDebugRenderer().DrawWireBox({min}, {max}, Blainn::Color(1, 1, 0, 1));
+    Blainn::Engine::GetSceneManager().ConvertToLocalSpace(m_entity);
 }
 
 
@@ -147,7 +151,7 @@ void ai_controller_widget::OnFaceMovementDirectionChanged(bool value)
     auto comp = m_entity.TryGetComponent<Blainn::AIControllerComponent>();
     if (!comp) return;
 
-    comp->GroundOffset = value;
+    comp->FaceMovementDirection = value;
 }
 
 

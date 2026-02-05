@@ -21,7 +21,6 @@ void ScriptingSubsystem::Init()
                          sol::lib::os, sol::lib::io);
 
     RegisterBlainnTypes();
-    //m_lua.stop_gc();
 
     m_isInitialized = true;
 }
@@ -83,14 +82,11 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
             script.second.OnUpdateCall(deltaTimeMs);
             script.second.OnDrawUI();
             TracyCZoneEnd(scriptZone);
-            if (!Engine::GetActiveScene()->TryGetEntityWithUUID(id).IsValid()) return;
+            // TODO: don't understand why this line exists
+            if (!Engine::GetSceneManager().TryGetEntityWithUUID(id).IsValid()) return;
         }
     }
     TracyCZoneEnd(scripts);
-    //BLAINN_PROFILE_SCOPE_DYNAMIC("Collecting Garbage");
-    TracyCZoneN(gc, "Collect garbage", 1);
-    //m_lua.collect_garbage();
-    TracyCZoneEnd(gc);
     TracyCZoneEnd(ssUpdate);
 }
 

@@ -15,6 +15,10 @@
 
 #include "Navigation/NavigationSubsystem.h"
 
+#include "scene/SceneManager.h"
+#include "scene/SceneManagerTemplates.h"
+#include "scene/Scene.h"
+
 namespace Blainn
 {
 const Path relativeDefaultDiffuseTexturePath = "Textures/Default.dds";
@@ -56,7 +60,7 @@ void AssetManager::LoadDefaultMaterials()
 {
     Material material = Material(relativeDefaultMaterialPath, "");
     material.SetTexture(GetTexture(relativeDefaultDiffuseTexturePath), TextureType::ALBEDO);
-
+    
     m_materialPaths[ToEASTLString(relativeDefaultMaterialPath.string())] = {0, 1};
     m_materials.emplace(eastl::make_shared<Material>(eastl::move(material)));
 }
@@ -260,29 +264,20 @@ bool AssetManager::SceneExists(const Path &relativePath)
 }
 
 
-void AssetManager::OpenScene(Path relativePath)
+void AssetManager::OpenScene(const Path &relativePath)
 {
-    Engine::GetActiveScene()->SubmitPostUpdateFunc(
-        [relativePath]()
-        {
-            NavigationSubsystem::ClearNavMesh();
+    NavigationSubsystem::ClearNavMesh();
 
-            YAML::Node scene;
-            Path absolute_path(Engine::GetContentDirectory() / relativePath);
+    YAML::Node scene;
+    Path absolute_path(Engine::GetContentDirectory() / relativePath);
 
-            if (exists(absolute_path))
-            {
-                scene = YAML::LoadFile(absolute_path.string());
-            }
+    if (exists(absolute_path))
+    {
+        scene = YAML::LoadFile(absolute_path.string());
+    }
 
-            bool wasPlayMode = Engine::IsPlayMode();
-
-            Engine::ClearActiveScene();
-            Engine::SetActiveScene(eastl::make_shared<Scene>(scene));
-
-            if (wasPlayMode)
-                Engine::InitScenePlayMode();
-        });
+    Engine::GetSceneManager().CloseScenes();
+    Engine::GetSceneManager().OpenScene(scene, Single);
 }
 
 
