@@ -377,6 +377,18 @@ void SceneManager::SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTra
 }
 
 
+void SceneManager::ConvertToLocalSpace(Entity entity)
+{
+    GetScene(entity.GetSceneUUID())->ConvertToLocalSpace(entity);
+}
+
+
+void SceneManager::ConvertToWorldSpace(Entity entity)
+{
+    GetScene(entity.GetSceneUUID())->ConvertToWorldSpace(entity);
+}
+
+
 void SceneManager::RebuildAllScenesList()
 {
     m_allScenes.clear();

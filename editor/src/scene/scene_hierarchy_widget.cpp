@@ -1,52 +1,45 @@
-﻿//
-// Created by gorev on 25.10.2025.
-//
-
-
-#include "scene_hierarchy_widget.h"
+﻿#include "scene_hierarchy_widget.h"
 
 #include "Editor.h"
 #include "Engine.h"
-#include "EntityDelegate.h"
 #include "FileSystemUtils.h"
 #include "InspectorFabric.h"
-#include "SceneItemModel.h"
 #include "context-menu/SceneContextMenu.h"
 #include "ui_scene_hierarchy_widget.h"
 
 #include <QMimeData>
+#include <QApplication>
+#include <QDrag>
 
 namespace editor
 {
+constexpr char MIME_ENTITY_UUID[] = "application/x-blainn-entity-uuid";
+
 scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
-    : QTreeView(parent)
+    : QTreeWidget(parent)
     , ui(new Ui::scene_hierarchy_widget)
 {
-    m_sceneMeta = eastl::make_unique<SceneMeta>("");
+    // m_sceneMeta = eastl::make_shared<SceneMeta>("");
 
     ui->setupUi(this);
 
-    setSortingEnabled(false);
-
-    m_sceneModel = new SceneItemModel(this);
-    setModel(m_sceneModel);
     setHeaderHidden(true);
+    setIndentation(15);
     setSelectionMode(SingleSelection);
     setContextMenuPolicy(Qt::CustomContextMenu);
-    setItemDelegate(new EntityDelegate(this));
     setDragEnabled(true);
     setAcceptDrops(true);
     setDropIndicatorShown(true);
-    setDragDropMode(InternalMove);
+    setDragDropMode(DragDrop);
+    setEditTriggers(EditKeyPressed | DoubleClicked);
+    viewport()->setAcceptDrops(true);
 
     m_addToSceneMenu = new SceneContextMenu(*this, this);
 
-    connect(this, &QTreeView::customContextMenuRequested, m_addToSceneMenu, &SceneContextMenu::OnContextMenu);
-
-    connect(m_sceneModel, &QAbstractItemModel::dataChanged, this, &scene_hierarchy_widget::OnItemDataChanged);
-
-    connect(this->selectionModel(), &QItemSelectionModel::selectionChanged, this,
-            &scene_hierarchy_widget::OnSelectionChanged);
+    connect(this, &QTreeWidget::customContextMenuRequested, this, &scene_hierarchy_widget::OpenChildContextMenu);
+    connect(this, &QTreeWidget::itemSelectionChanged, this, &scene_hierarchy_widget::OnItemSelectionChanged);
+    connect(this, &QTreeWidget::itemChanged, this, &scene_hierarchy_widget::OnItemChanged);
+    connect(this, &QTreeWidget::itemDoubleClicked, this, &scene_hierarchy_widget::OnItemDoubleClicked);
 
     m_sceneEvents.emplace_back(Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityCreated,
                                                                [this](const Blainn::SceneEventPointer &event)
@@ -55,6 +48,7 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
                                                                    this->OnEntityCreated(event);
                                                                }),
                                Blainn::SceneEventType::EntityCreated);
+
     m_sceneEvents.emplace_back(Blainn::Scene::AddEventListener(Blainn::SceneEventType::EntityDestroyed,
                                                                [this](const Blainn::SceneEventPointer &event)
                                                                {
@@ -62,6 +56,7 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
                                                                    this->OnEntityDestroyed(event);
                                                                }),
                                Blainn::SceneEventType::EntityDestroyed);
+
     m_sceneEvents.emplace_back(Blainn::Scene::AddEventListener(Blainn::SceneEventType::SceneChanged,
                                                                [this](const Blainn::SceneEventPointer &event)
                                                                {
@@ -69,7 +64,6 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
                                                                    this->OnSceneChanged(event);
                                                                }),
                                Blainn::SceneEventType::SceneChanged);
-
 
     m_selectionHandle = Blainn::Engine::GetSelectionManager().CallbackList.append(
         [this](Blainn::uuid id)
@@ -90,86 +84,125 @@ scene_hierarchy_widget::~scene_hierarchy_widget()
 }
 
 
-void scene_hierarchy_widget::OpenContextMenu(const QPoint &position)
+QTreeWidgetItem *scene_hierarchy_widget::FindItemByUuid(const Blainn::uuid &uuid) const
 {
-    m_addToSceneMenu->OpenMenu(position);
-}
-
-
-SceneItemModel &scene_hierarchy_widget::GetSceneModel() const
-{
-    return *m_sceneModel;
-}
-
-
-void scene_hierarchy_widget::CreateEntityInHierarchy(Blainn::Entity &entity, const bool bSceneChanged,
-                                                     bool bCreatedInEditor)
-{
-    Blainn::Entity parent = entity.GetParent();
-    QModelIndex newIndex;
-
-    if (parent.IsValid())
+    struct StackItem
     {
-        newIndex =
-            GetSceneModel().AddNewEntity(entity, SceneItemModel::FindIndexByEntity(m_sceneModel, parent.GetUUID()));
-    }
-    else
+        QTreeWidgetItem *item;
+        int childIndex;
+    };
+
+    eastl::vector<StackItem> stack;
+
+    for (int i = 0; i < topLevelItemCount(); ++i)
     {
-        newIndex = GetSceneModel().AddNewEntity(entity);
+        stack.push_back({topLevelItem(i), 0});
     }
 
-    if (newIndex.isValid())
+    while (!stack.empty())
     {
-        if (newIndex.isValid()) expand(newIndex);
+        auto &current = stack.back();
 
-        if (!bSceneChanged && bCreatedInEditor)
+        if (GetUUIDFromItem(current.item) == uuid) return current.item;
+
+        if (current.childIndex < current.item->childCount())
         {
-            setCurrentIndex(newIndex);
-            edit(newIndex);
+            stack.push_back({current.item->child(current.childIndex), 0});
+            current.childIndex++;
+        }
+        else
+        {
+            stack.pop_back();
         }
     }
 
-    if (m_sceneMeta && !bSceneChanged)
-    {
-        int newPosition = newIndex.row();
-        m_sceneMeta->AddEntity(entity, newPosition);
-    }
-
-    // TODO: meta is not working now)
-    // m_sceneModel->SortAccordingToMeta(m_sceneMeta);
+    return nullptr;
 }
 
-
-void scene_hierarchy_widget::CreateEntityInHierarchy(Blainn::Entity &&entity, bool bSceneChanged, bool bCreatedInEditor)
+Blainn::uuid scene_hierarchy_widget::GetUUIDFromItem(QTreeWidgetItem *item) const
 {
-    Blainn::Entity parent = entity.GetParent();
-    QModelIndex newIndex;
+    if (!item) return {};
 
-    if (parent.IsValid())
+    QString uuidStr = item->data(0, Qt::UserRole).toString();
+    if (uuidStr.isEmpty()) return {};
+
+    return Blainn::uuid::fromStrFactory(ToString(uuidStr));
+}
+
+void scene_hierarchy_widget::AddItemForEntity(const Blainn::Entity &entity, QTreeWidgetItem *parentItem)
+{
+    if (!entity.IsValid()) return;
+
+    auto *item = new QTreeWidgetItem();
+    item->setText(0, ToQString(entity.Name()));
+    item->setFlags(item->flags() | Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
+
+    QString uuidStr = entity.GetUUID().str().c_str();
+    item->setData(0, Qt::UserRole, uuidStr);
+    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled
+                   | Qt::ItemIsDropEnabled);
+
+    if (parentItem)
     {
-        newIndex =
-            GetSceneModel().AddNewEntity(entity, SceneItemModel::FindIndexByEntity(m_sceneModel, parent.GetUUID()));
+        parentItem->addChild(item);
     }
     else
     {
-        newIndex = GetSceneModel().AddNewEntity(entity);
+        addTopLevelItem(item);
     }
 
-    if (newIndex.isValid())
+    auto children = entity.Children();
+    for (auto &child : children)
     {
-        if (newIndex.isValid()) expand(newIndex);
+        AddItemForEntity(Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(child), item);
+    }
+}
 
-        if (!bSceneChanged && bCreatedInEditor)
+void scene_hierarchy_widget::RemoveItemForEntity(const Blainn::uuid &uuid)
+{
+    if (auto *item = FindItemByUuid(uuid))
+    {
+        delete item;
+    }
+}
+
+bool scene_hierarchy_widget::IsDescendant(QTreeWidgetItem *ancestor, QTreeWidgetItem *item) const
+{
+    while (item)
+    {
+        item = item->parent();
+        if (item == ancestor) return true;
+    }
+    return false;
+}
+
+eastl::vector<Blainn::uuid> scene_hierarchy_widget::SaveExpandedState(QTreeWidgetItem *root) const
+{
+    eastl::vector<Blainn::uuid> uuids;
+
+    if (root)
+    {
+        collectExpandedState(root, uuids);
+    }
+    else
+    {
+        for (int i = 0; i < topLevelItemCount(); ++i)
         {
-            setCurrentIndex(newIndex);
-            edit(newIndex);
+            collectExpandedState(topLevelItem(i), uuids);
         }
     }
 
-    if (m_sceneMeta && !bSceneChanged)
+    return uuids;
+}
+
+void scene_hierarchy_widget::RestoreExpandedState(const eastl::vector<Blainn::uuid> &uuids)
+{
+    for (const auto &uuid : uuids)
     {
-        int newPosition = newIndex.row();
-        m_sceneMeta->AddEntity(entity, newPosition);
+        if (auto *item = FindItemByUuid(uuid))
+        {
+            item->setExpanded(true);
+        }
     }
 }
 
@@ -180,188 +213,407 @@ void scene_hierarchy_widget::OnEntityCreated(const Blainn::SceneEventPointer &ev
 
     const auto entityEvent = static_cast<const EntityCreatedEvent *>(event.get());
 
-    //if (entityEvent->IsSceneChanged()) return;
     if (!entityEvent->GetEntity().IsValid()) return;
 
-    CreateEntityInHierarchy(entityEvent->GetEntity(), entityEvent->IsSceneChanged(), entityEvent->CreatedByEditor());
-}
+    const auto &entity = entityEvent->GetEntity();
 
+    if (FindItemByUuid(entity.GetUUID())) return;
+
+    if (entity.GetParent().IsValid())
+    {
+        auto parent = entity.GetParent();
+        if (auto *parentItem = FindItemByUuid(parent.GetUUID()))
+        {
+            AddItemForEntity(entity, parentItem);
+        }
+        else
+        {
+            AddItemForEntity(entity, nullptr);
+        }
+    }
+    else
+    {
+        AddItemForEntity(entity, nullptr);
+    }
+
+    if (entityEvent->CreatedByEditor() && !entityEvent->IsSceneChanged())
+    {
+        if (auto *item = FindItemByUuid(entity.GetUUID()))
+        {
+            setCurrentItem(item);
+            editItem(item);
+        }
+    }
+}
 
 void scene_hierarchy_widget::OnEntityDestroyed(const Blainn::SceneEventPointer &event)
 {
     using namespace Blainn;
 
     const auto entityEvent = static_cast<const EntityDestroyedEvent *>(event.get());
-    if (entityEvent->IsSceneChanged()) return;
-    Entity destroyedEntity = entityEvent->GetEntity();
-
-    SceneItemModel *model = qobject_cast<SceneItemModel *>(this->model());
-    if (!model)
-    {
-        return;
-    }
-
-    QModelIndex nodeIndex = SceneItemModel::FindIndexByEntity(model, entityEvent->GetUUID());
-
-    if (!nodeIndex.isValid())
-    {
-        return;
-    }
-
-    if (nodeIndex.row() >= model->rowCount(nodeIndex.parent()))
-    {
-        return;
-    }
-
-    model->removeRow(nodeIndex.row(), nodeIndex.parent());
-
-    // if (!entityEvent->IsSceneChanged()) m_sceneModel->SortAccordingToMeta(m_sceneMeta);
+    RemoveItemForEntity(entityEvent->GetUUID());
 }
-
 
 void scene_hierarchy_widget::OnSceneChanged(const Blainn::SceneEventPointer &event)
 {
     using namespace Blainn;
+    // TODO: add additive scenes?
+}
 
-    return;
-    auto sceneEvent = static_cast<SceneChangedEvent *>(event.get());
-    m_sceneMeta = eastl::make_shared<SceneMeta>(QString::fromStdString(sceneEvent->GetName().c_str()));
+void scene_hierarchy_widget::BuildTreeFromScene()
+{
+    using namespace Blainn;
 
-    // TODO: somehow add additive scenes
-    eastl::vector<Entity> entities = {};
-    Engine::GetSceneManager().GetActiveScene()->GetEntitiesInHierarchy(entities);
-
-    for (auto &entity : entities)
+    for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        CreateEntityInHierarchy(entity, true);
+        eastl::unordered_map<uuid, QTreeWidgetItem *> itemMap;
+        eastl::vector<Entity> rootEntities;
+
+        auto view = scene->GetAllEntitiesWith<IDComponent, RelationshipComponent>();
+        for (auto [entityHandle, idComp, relationshipComp] : view.each())
+        {
+            Entity entity(entityHandle, scene.get());
+            auto *item = new QTreeWidgetItem();
+            item->setText(0, ToQString(entity.Name()));
+            item->setFlags(item->flags() | Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
+
+            QByteArray uuidData;
+            uuidData.resize(sizeof(uuid));
+            uuid entityUuid = entity.GetUUID();
+            memcpy(uuidData.data(), &entityUuid, sizeof(uuid));
+            item->setData(0, Qt::UserRole, uuidData);
+
+            itemMap[entity.GetUUID()] = item;
+        }
+
+        for (auto &[uuid, item] : itemMap)
+        {
+            Entity entity = scene->TryGetEntityWithUUID(uuid);
+            if (!entity.IsValid()) continue;
+
+            if (entity.GetParent().IsValid())
+            {
+                auto parent = entity.GetParent();
+                auto parentIt = itemMap.find(parent.GetUUID());
+                if (parentIt != itemMap.end())
+                {
+                    parentIt->second->addChild(item);
+                }
+                else
+                {
+                    addTopLevelItem(item);
+                }
+            }
+            else
+            {
+                addTopLevelItem(item);
+            }
+        }
+    }
+}
+
+
+void scene_hierarchy_widget::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton)
+    {
+        m_dragStartPosition = event->pos();
+    }
+    QTreeWidget::mousePressEvent(event);
+}
+
+
+void scene_hierarchy_widget::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasFormat(MIME_ENTITY_UUID))
+    {
+        event->acceptProposedAction();
+        return;
+    }
+
+    event->ignore();
+}
+
+void scene_hierarchy_widget::dragMoveEvent(QDragMoveEvent *event)
+{
+    auto *targetItem = itemAt(event->position().toPoint());
+    auto *sourceItem = currentItem();
+
+    if (!sourceItem)
+    {
+        event->ignore();
+        return;
+    }
+
+    if (targetItem && (targetItem == sourceItem || IsDescendant(sourceItem, targetItem)))
+    {
+        event->ignore();
+        return;
+    }
+
+    event->acceptProposedAction();
+}
+
+void scene_hierarchy_widget::dropEvent(QDropEvent *event)
+{
+    BLAINN_PROFILE_SCOPE(DropEntityInHierarchy);
+
+    auto *targetItem = itemAt(event->position().toPoint());
+    blockSignals(true);
+
+    if (!event->mimeData()->hasFormat(MIME_ENTITY_UUID))
+    {
+        event->ignore();
+        blockSignals(false);
+        return;
+    }
+
+    QByteArray encoded = event->mimeData()->data(MIME_ENTITY_UUID);
+
+    if (encoded.isEmpty())
+    {
+        event->ignore();
+        blockSignals(false);
+        return;
+    }
+
+    QString uuidStr = QString::fromUtf8(encoded);
+    Blainn::uuid uuid = Blainn::uuid::fromStrFactory(ToString(uuidStr));
+
+    auto *draggedItem = FindItemByUuid(uuid);
+    if (!draggedItem)
+    {
+        BF_ERROR("Cannot find item with UUID {} in hierarchy", uuid.str());
+        event->ignore();
+        blockSignals(false);
+        return;
+    }
+
+    if (targetItem && (targetItem == draggedItem || IsDescendant(draggedItem, targetItem)))
+    {
+        BF_WARN("Cannot drop on self or descendant");
+        event->ignore();
+        blockSignals(false);
+        return;
+    }
+
+    auto expandedState = SaveExpandedState(draggedItem);
+
+    auto *oldParent = draggedItem->parent();
+    int oldIndex = oldParent ? oldParent->indexOfChild(draggedItem) : indexOfTopLevelItem(draggedItem);
+
+    if (oldParent) oldParent->takeChild(oldIndex);
+    else takeTopLevelItem(oldIndex);
+
+    if (targetItem)
+    {
+        targetItem->addChild(draggedItem);
+        targetItem->setExpanded(true);
+    }
+    else
+    {
+        addTopLevelItem(draggedItem);
+    }
+
+    RestoreExpandedState(expandedState);
+
+    auto &sceneManager = Blainn::Engine::GetSceneManager();
+    auto entity = sceneManager.TryGetEntityWithUUID(uuid);
+    if (entity.IsValid())
+    {
+        if (targetItem)
+        {
+            auto targetUuid = GetUUIDFromItem(targetItem);
+            auto newParent = sceneManager.TryGetEntityWithUUID(targetUuid);
+            if (newParent.IsValid()) sceneManager.ParentEntity(entity, newParent);
+            else sceneManager.UnparentEntity(entity);
+        }
+        else
+        {
+            sceneManager.UnparentEntity(entity);
+        }
+    }
+
+    clearSelection();
+    draggedItem->setSelected(true);
+    scrollToItem(draggedItem);
+    blockSignals(false);
+
+    event->acceptProposedAction();
+}
+
+
+void scene_hierarchy_widget::OnItemSelectionChanged()
+{
+    BLAINN_PROFILE_SCOPE(OnItemSelectionChanged);
+
+    auto selectedItems = this->selectedItems();
+    if (selectedItems.isEmpty())
+    {
+        Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
+        Blainn::Engine::GetSelectionManager().SelectUUID({});
+        m_entityInspector = nullptr;
+        return;
+    }
+
+    auto *item = selectedItems.first();
+    auto uuid = GetUUIDFromItem(item);
+
+    Blainn::Engine::GetSelectionManager().SelectUUID(uuid);
+
+    auto entity = Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(uuid);
+    if (!entity.IsValid())
+    {
+        Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
+        m_entityInspector = nullptr;
+        return;
+    }
+
+    InspectorFabric fabric;
+    m_entityInspector = fabric.GetEntityInspector(uuid);
+    Blainn::Editor::GetInstance().GetInspector().SetItem(m_entityInspector);
+}
+
+void scene_hierarchy_widget::OnItemChanged(QTreeWidgetItem *item, int column)
+{
+    if (column != 0) return;
+
+    auto uuid = GetUUIDFromItem(item);
+    auto &sceneManager = Blainn::Engine::GetSceneManager();
+    auto entity = sceneManager.TryGetEntityWithUUID(uuid);
+
+    if (entity.IsValid() && entity.HasComponent<Blainn::TagComponent>())
+    {
+        entity.GetComponent<Blainn::TagComponent>().Tag = ToEASTLString(item->text(0));
+        if (m_entityInspector->GetCurrentEntityUUID() == uuid) m_entityInspector->SetTag(item->text(0));
+    }
+}
+
+void scene_hierarchy_widget::OnItemDoubleClicked(QTreeWidgetItem *item, int column)
+{
+    Q_UNUSED(column);
+    // TODO: open entity editor?
+}
+
+
+void scene_hierarchy_widget::ChangeSelection(const Blainn::uuid &id)
+{
+    BLAINN_PROFILE_FUNC();
+
+    if (auto *item = FindItemByUuid(id))
+    {
+        blockSignals(true);
+        setCurrentItem(item);
+        scrollToItem(item);
+        blockSignals(false);
+    }
+}
+
+
+void scene_hierarchy_widget::collectExpandedState(QTreeWidgetItem *item, eastl::vector<Blainn::uuid> &uuids) const
+{
+    if (item->isExpanded() && item->childCount() > 0)
+    {
+        uuids.push_back(GetUUIDFromItem(item));
+    }
+
+    for (int i = 0; i < item->childCount(); ++i)
+    {
+        collectExpandedState(item->child(i), uuids);
     }
 }
 
 void scene_hierarchy_widget::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();
-
-    QTreeView::paintEvent(event);
+    QTreeWidget::paintEvent(event);
 }
-
 
 void scene_hierarchy_widget::resizeEvent(QResizeEvent *event)
 {
     BLAINN_PROFILE_FUNC();
-
-    QTreeView::resizeEvent(event);
+    QTreeWidget::resizeEvent(event);
 }
-
-
-void scene_hierarchy_widget::OnItemDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
-                                               const QVector<int> &roles)
-{
-    if (!topLeft.isValid()) return;
-
-
-    QString newName = topLeft.data(Qt::DisplayRole).toString();
-
-    if (EntityNode *node = SceneItemModel::GetNodeFromIndex(topLeft))
-    {
-        node->SetName(newName);
-    }
-}
-
-
-void scene_hierarchy_widget::OnSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
-{
-
-    QModelIndexList selectedIndexes = selected.indexes();
-
-    if (selectedIndexes.isEmpty())
-    {
-        Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
-        Blainn::Engine::GetSelectionManager().SelectUUID({});
-        return;
-    }
-
-    auto index = selectedIndexes.first();
-    auto entity = SceneItemModel::GetNodeFromIndex(index);
-
-    Blainn::Engine::GetSelectionManager().SelectUUID(entity->GetUUID());
-
-    {
-        BLAINN_PROFILE_SCOPE(InvalidIndexReturn0);
-        if (!index.isValid())
-        {
-            Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
-            return;
-        }
-    }
-
-    InspectorFabric fabric;
-    EntityInspectorData data;
-    {
-        BLAINN_PROFILE_SCOPE(GetEntityData);
-        auto entity = SceneItemModel::GetNodeFromIndex(index);
-        data.tag = entity->GetName();
-        data.node = entity;
-    }
-    entity_inspector_content *inspector;
-    {
-        BLAINN_PROFILE_SCOPE(GetEntityInspectorContent);
-        inspector = fabric.GetEntityInspector(data);
-    }
-    {
-        BLAINN_PROFILE_SCOPE(SetItem);
-        Blainn::Editor::GetInstance().GetInspector().SetItem(inspector);
-    }
-}
-
-
-void scene_hierarchy_widget::SaveCurrentMeta()
-{
-    if (m_sceneMeta) m_sceneMeta->Save();
-}
-
 
 void scene_hierarchy_widget::keyPressEvent(QKeyEvent *event)
 {
-    const auto currentIndex = this->currentIndex();
-
-    if (currentIndex.isValid())
+    if (auto *current = currentItem())
     {
-        QKeySequence keySequence = QKeySequence(event->key() | event->modifiers());
+        QKeySequence keySequence(event->key() | event->modifiers());
 
         if (keySequence == m_addToSceneMenu->GetDeleteKey())
         {
-            m_addToSceneMenu->DeleteEntity(currentIndex);
+            m_addToSceneMenu->DeleteCurrentEntity();
             event->accept();
             return;
         }
 
         if (keySequence == m_addToSceneMenu->GetRenameKey())
         {
-            m_addToSceneMenu->RenameEntity(currentIndex);
+            editItem(current);
             event->accept();
             return;
         }
     }
 
-    QTreeView::keyPressEvent(event);
+    QTreeWidget::keyPressEvent(event);
 }
 
-void scene_hierarchy_widget::ChangeSelection(Blainn::uuid id)
+
+QMimeData *scene_hierarchy_widget::mimeData(const QList<QTreeWidgetItem *> &items) const
 {
-    BLAINN_PROFILE_FUNC();
+    if (items.isEmpty()) return nullptr;
 
+    auto *mimeData = new QMimeData();
 
-    QModelIndex index;
+    auto *item = items.first();
+
+    QVariant userData = item->data(0, Qt::UserRole);
+    QString uuidStr;
+
+    if (userData.typeId() == QMetaType::QString)
     {
-        BLAINN_PROFILE_SCOPE(FindIndexByEntity);
-        index = SceneItemModel::FindIndexByEntity(m_sceneModel, id);
+        uuidStr = userData.toString();
+    }
+    else if (userData.typeId() == QMetaType::QByteArray)
+    {
+        uuidStr = QString::fromUtf8(userData.toByteArray());
     }
 
+    if (!uuidStr.isEmpty())
     {
-        BLAINN_PROFILE_SCOPE(SetCurrentIndex);
-        setCurrentIndex(index);
+        mimeData->setData(MIME_ENTITY_UUID, uuidStr.toUtf8());
     }
+
+    return mimeData;
 }
 
+
+Qt::DropActions scene_hierarchy_widget::supportedDropActions() const
+{
+    return Qt::MoveAction | Qt::CopyAction;
+}
+
+void scene_hierarchy_widget::startDrag(Qt::DropActions supportedActions)
+{
+    QTreeWidget::startDrag(supportedActions);
+}
+
+void scene_hierarchy_widget::OpenContextMenu(const QPoint &position)
+{
+    m_addToSceneMenu->OpenMenu(position);
+}
+
+
+void scene_hierarchy_widget::OpenChildContextMenu(const QPoint &pos)
+{
+    auto *item = itemAt(pos);
+    if (item)
+    {
+        setCurrentItem(item);
+    }
+
+    m_addToSceneMenu->OnContextMenu(pos);
+}
 
 } // namespace editor

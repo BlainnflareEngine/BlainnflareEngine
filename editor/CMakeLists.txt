@@ -100,16 +100,10 @@ set(EDITOR_SOURCES
         src/scene/scene_hierarchy_widget.cpp
         include/scene/scene_hierarchy_widget.h
         ui/scene/scene_hierarchy_widget.ui
-        include/scene/EntityNode.h
-        ui/scene/SceneItemModel.cpp
-        include/scene/SceneItemModel.h
-        src/scene/EntityDelegate.cpp
-        include/scene/EntityDelegate.h
         src/TexturePreviewAsyncLoader.cpp
         include/TexturePreviewAsyncLoader.h
         src/inspector/entity_inspector_content.cpp
         include/inspector/entity_inspector_content.h
-        include/inspector/EntityInspectorData.h
         include/inspector/entity/add_component_button.h
         src/inspector/entity/add_component_button.cpp
         ../engine/include/scene/SceneParser.h
@@ -126,9 +120,7 @@ set(EDITOR_SOURCES
         src/inspector/input-widgets/path_input_field.cpp
         include/inspector/input-widgets/path_input_field.h
         include/inspector/input-widgets/NumericInputWidget.h
-        src/scene/SceneMeta.cpp
         include/scene/SceneMeta.h
-        include/scene/EntityNodeComparator.h
         src/inspector/input-widgets/bool_input_field.cpp
         include/inspector/input-widgets/bool_input_field.h
         src/inspector/entity/scripting/scripting_widget.cpp
