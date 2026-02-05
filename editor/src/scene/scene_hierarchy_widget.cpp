@@ -19,7 +19,7 @@ scene_hierarchy_widget::scene_hierarchy_widget(QWidget *parent)
     : QTreeWidget(parent)
     , ui(new Ui::scene_hierarchy_widget)
 {
-    m_sceneMeta = eastl::make_shared<SceneMeta>("");
+    // m_sceneMeta = eastl::make_shared<SceneMeta>("");
 
     ui->setupUi(this);
 
@@ -166,11 +166,6 @@ void scene_hierarchy_widget::RemoveItemForEntity(const Blainn::uuid &uuid)
     }
 }
 
-void scene_hierarchy_widget::UpdateItemName(QTreeWidgetItem *item, const QString &newName)
-{
-    if (item) item->setText(0, newName);
-}
-
 bool scene_hierarchy_widget::IsDescendant(QTreeWidgetItem *ancestor, QTreeWidgetItem *item) const
 {
     while (item)
@@ -256,23 +251,13 @@ void scene_hierarchy_widget::OnEntityDestroyed(const Blainn::SceneEventPointer &
     using namespace Blainn;
 
     const auto entityEvent = static_cast<const EntityDestroyedEvent *>(event.get());
-    // if (entityEvent->IsSceneChanged()) return;
-
     RemoveItemForEntity(entityEvent->GetUUID());
 }
 
 void scene_hierarchy_widget::OnSceneChanged(const Blainn::SceneEventPointer &event)
 {
     using namespace Blainn;
-
-
-    /*auto expandedState = SaveExpandedState();
-
-    clear();
-
-    //BuildTreeFromScene();
-
-    RestoreExpandedState(expandedState);*/
+    // TODO: add additive scenes?
 }
 
 void scene_hierarchy_widget::BuildTreeFromScene()
@@ -374,10 +359,12 @@ void scene_hierarchy_widget::dropEvent(QDropEvent *event)
     BLAINN_PROFILE_SCOPE(DropEntityInHierarchy);
 
     auto *targetItem = itemAt(event->position().toPoint());
+    blockSignals(true);
 
     if (!event->mimeData()->hasFormat(MIME_ENTITY_UUID))
     {
         event->ignore();
+        blockSignals(false);
         return;
     }
 
@@ -386,6 +373,7 @@ void scene_hierarchy_widget::dropEvent(QDropEvent *event)
     if (encoded.isEmpty())
     {
         event->ignore();
+        blockSignals(false);
         return;
     }
 
@@ -397,6 +385,7 @@ void scene_hierarchy_widget::dropEvent(QDropEvent *event)
     {
         BF_ERROR("Cannot find item with UUID {} in hierarchy", uuid.str());
         event->ignore();
+        blockSignals(false);
         return;
     }
 
@@ -404,6 +393,7 @@ void scene_hierarchy_widget::dropEvent(QDropEvent *event)
     {
         BF_WARN("Cannot drop on self or descendant");
         event->ignore();
+        blockSignals(false);
         return;
     }
 
@@ -447,6 +437,7 @@ void scene_hierarchy_widget::dropEvent(QDropEvent *event)
     clearSelection();
     draggedItem->setSelected(true);
     scrollToItem(draggedItem);
+    blockSignals(false);
 
     event->acceptProposedAction();
 }
@@ -461,6 +452,7 @@ void scene_hierarchy_widget::OnItemSelectionChanged()
     {
         Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
         Blainn::Engine::GetSelectionManager().SelectUUID({});
+        m_entityInspector = nullptr;
         return;
     }
 
@@ -473,12 +465,13 @@ void scene_hierarchy_widget::OnItemSelectionChanged()
     if (!entity.IsValid())
     {
         Blainn::Editor::GetInstance().GetInspector().SetItem(new QWidget());
+        m_entityInspector = nullptr;
         return;
     }
 
     InspectorFabric fabric;
-    auto *inspector = fabric.GetEntityInspector(uuid);
-    Blainn::Editor::GetInstance().GetInspector().SetItem(inspector);
+    m_entityInspector = fabric.GetEntityInspector(uuid);
+    Blainn::Editor::GetInstance().GetInspector().SetItem(m_entityInspector);
 }
 
 void scene_hierarchy_widget::OnItemChanged(QTreeWidgetItem *item, int column)
@@ -492,6 +485,7 @@ void scene_hierarchy_widget::OnItemChanged(QTreeWidgetItem *item, int column)
     if (entity.IsValid() && entity.HasComponent<Blainn::TagComponent>())
     {
         entity.GetComponent<Blainn::TagComponent>().Tag = ToEASTLString(item->text(0));
+        if (m_entityInspector->GetCurrentEntityUUID() == uuid) m_entityInspector->SetTag(item->text(0));
     }
 }
 
@@ -501,14 +495,17 @@ void scene_hierarchy_widget::OnItemDoubleClicked(QTreeWidgetItem *item, int colu
     // TODO: open entity editor?
 }
 
+
 void scene_hierarchy_widget::ChangeSelection(const Blainn::uuid &id)
 {
     BLAINN_PROFILE_FUNC();
 
     if (auto *item = FindItemByUuid(id))
     {
+        blockSignals(true);
         setCurrentItem(item);
         scrollToItem(item);
+        blockSignals(false);
     }
 }
 

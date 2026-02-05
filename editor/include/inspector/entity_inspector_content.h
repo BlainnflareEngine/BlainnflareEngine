@@ -3,7 +3,6 @@
 //
 
 #pragma once
-#include "EntityInspectorData.h"
 #include "inspector_content_base.h"
 #include <QLabel>
 #include <QVBoxLayout>
@@ -23,6 +22,8 @@ public:
 
     void paintEvent(QPaintEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+
+    Blainn::uuid &GetCurrentEntityUUID();
 
 protected:
     Blainn::uuid m_id;

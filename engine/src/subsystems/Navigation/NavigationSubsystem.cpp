@@ -53,12 +53,15 @@ void NavigationSubsystem::Update(float deltaTime)
 {
     for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
     {
-        for (const auto &[entity, transform, controllerComp] :
-             scene->GetAllEntitiesWith<TransformComponent, AIControllerComponent>().each())
+        for (const auto &[entity, id, transform, controllerComp] :
+             scene->GetAllEntitiesWith<IDComponent, TransformComponent, AIControllerComponent>().each())
         {
             AIController &controller = controllerComp.aiController;
 
             Vec3 moveDir;
+
+            // TODO: this now is always in !local space!, need to convert to world space, otherwise movement will be not
+            // correct for child objects
             if (controller.GetDesiredDirection(moveDir, controllerComp.StoppingDistance, controllerComp.GroundOffset))
             {
                 transform.SetTranslation(transform.GetTranslation()

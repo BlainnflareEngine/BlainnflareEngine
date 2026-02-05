@@ -5,6 +5,8 @@
 #include "entity_inspector_content.h"
 
 #include "EditorRegistry.h"
+#include "Engine.h"
+#include "FileSystemUtils.h"
 #include "entity/scripting/scripting_widget.h"
 #include "LabelsUtils.h"
 #include "../../include/inspector/entity/perception_widget.h"
@@ -88,7 +90,7 @@ void entity_inspector_content::SetTag(const QString &tag)
     auto entity = Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(m_id);
     if (!entity.IsValid()) return;
 
-    entity.GetComponent<Blainn::TagComponent>().Tag = ToEASTLString(tag);
+    entity.GetComponent<Blainn::TagComponent>().Tag = ToString(tag).c_str();
     m_tag->setText(ToHeader2(tag));
 }
 
@@ -106,5 +108,11 @@ void entity_inspector_content::resizeEvent(QResizeEvent *event)
     BLAINN_PROFILE_FUNC();
 
     inspector_content_base::resizeEvent(event);
+}
+
+
+Blainn::uuid &entity_inspector_content::GetCurrentEntityUUID()
+{
+    return m_id;
 }
 } // namespace editor

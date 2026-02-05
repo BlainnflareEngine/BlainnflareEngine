@@ -87,6 +87,8 @@ public:
     Mat4 GetWorldSpaceTransformMatrix(Entity entity);
     TransformComponent GetWorldSpaceTransform(Entity entity);
     void SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTransform);
+    void ConvertToLocalSpace(Entity entity);
+    void ConvertToWorldSpace(Entity entity);
 
     template <typename... Components> GlobalViewList<Components...> GetAllEntitiesWith();
 

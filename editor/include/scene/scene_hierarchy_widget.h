@@ -10,6 +10,7 @@
 
 namespace editor
 {
+class entity_inspector_content;
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
@@ -43,7 +44,7 @@ protected:
     void dragMoveEvent(QDragMoveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
-    QMimeData* mimeData(const QList<QTreeWidgetItem*>& items) const override;
+    QMimeData *mimeData(const QList<QTreeWidgetItem *> &items) const override;
     Qt::DropActions supportedDropActions() const override;
     void startDrag(Qt::DropActions supportedActions) override;
 
@@ -63,10 +64,11 @@ private:
     QPoint m_dragStartPosition;
     bool m_dragging = false;
 
+    entity_inspector_content* m_entityInspector = nullptr;
+
     QTreeWidgetItem *FindItemByUuid(const Blainn::uuid &uuid) const;
     void AddItemForEntity(const Blainn::Entity &entity, QTreeWidgetItem *parentItem = nullptr);
     void RemoveItemForEntity(const Blainn::uuid &uuid);
-    void UpdateItemName(QTreeWidgetItem *item, const QString &newName);
     bool IsDescendant(QTreeWidgetItem *ancestor, QTreeWidgetItem *item) const;
     void BuildTreeFromScene();
     void ChangeSelection(const Blainn::uuid &id);
