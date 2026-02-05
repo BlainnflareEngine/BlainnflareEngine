@@ -167,6 +167,7 @@ set(EDITOR_SOURCES
         include/inspector/entity/light/spot_light_widget.h
         include/EditorRegistry.h
         src/EditorRegistry.cpp
+        include/MimeFormats.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})
