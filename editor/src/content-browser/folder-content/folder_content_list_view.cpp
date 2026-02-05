@@ -10,8 +10,11 @@
 #include "Engine.h"
 #include "FileSystemUtils.h"
 #include "MimeFormats.h"
+#include "Serializer.h"
 #include "import_asset_dialog.h"
 #include "ui_folder_content_list_view.h"
+#include "scene/SceneManager.h"
+#include "scene/SceneManagerTemplates.h"
 
 #include <QFileSystemModel>
 #include <QMimeData>
@@ -75,8 +78,16 @@ void folder_content_list_view::HandleEntityDrop(QDropEvent *event, const QString
 
     QString uuidStr = QString::fromUtf8(encoded);
     Blainn::uuid uuid = Blainn::uuid::fromStrFactory(ToString(uuidStr));
+    Blainn::Entity entity = Blainn::Engine::GetSceneManager().TryGetEntityWithUUID(uuid);
 
-    BF_DEBUG("Create prefab from entity {}", uuid.str());
+    QDir contentDir(Blainn::Engine::GetContentDirectory());
+
+    QString prefabFilename = entity.Name().c_str() + QStringLiteral(".") + formats::prefabFormat;
+    QString absolutePath = contentDir.absoluteFilePath(prefabFilename);
+    QString relativePath = contentDir.relativeFilePath(absolutePath);
+
+    Blainn::Serializer::CreatePrefab(entity, ToString(relativePath));
+    BF_DEBUG("Create prefab from entity {} Is valid {}", uuid.str(), entity.IsValid());
 }
 
 
@@ -125,7 +136,7 @@ void folder_content_list_view::dropEvent(QDropEvent *event)
         return;
     }
 
-    QString targetPath =  GetTargetPath(sourceTargetIndex, fsModel);
+    QString targetPath = GetTargetPath(sourceTargetIndex, fsModel);
 
     if (mime->hasFormat(MIME_ENTITY_UUID))
     {
