@@ -48,6 +48,35 @@ bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
         return false;
     }
 
+    m_onStart  = m_environment["OnStart"];
+    m_onUpdate = m_environment["OnUpdate"];
+    m_onDestroy = m_environment["OnDestroy"];
+    m_onCollisionStarted = m_environment["OnCollisionStarted"];
+    m_onCollisionEnded = m_environment["OnCollisionEnded"];
+    m_onDrawUI = m_environment["OnDrawUI"];
+
+    if (m_onStart.valid()) sol::set_environment(m_environment, m_onStart);
+    if (m_onUpdate.valid()) sol::set_environment(m_environment, m_onUpdate);
+    if (m_onDestroy.valid()) sol::set_environment(m_environment, m_onDestroy);
+
+    if (m_onCollisionStarted.valid())
+    {
+        sol::set_environment(m_environment, m_onCollisionStarted);
+        m_onCollisionStartedHandle = PhysicsSubsystem::AddEventListener(
+            PhysicsEventType::CollisionStarted,
+            [this](const eastl::shared_ptr<PhysicsEvent> &physicsEvent) { OnCollisionStartedCall(physicsEvent); });
+    }
+    if (m_onCollisionEnded.valid())
+    {
+        sol::set_environment(m_environment, m_onCollisionEnded);
+        m_onCollisionEndedHandle = PhysicsSubsystem::AddEventListener(
+            PhysicsEventType::CollisionEnded,
+            [this](const eastl::shared_ptr<PhysicsEvent> &physicsEvent) { OnCollisionEndedCall(physicsEvent); });
+    }
+
+    if (m_onDrawUI.valid()) sol::set_environment(m_environment, m_onDrawUI);
+
+    /*
     if (HasFunction(PredefinedFunctions::kOnStart)) m_predefinedFunctions.insert(PredefinedFunctions::kOnStart);
     if (HasFunction(PredefinedFunctions::kOnUpdate)) m_predefinedFunctions.insert(PredefinedFunctions::kOnUpdate);
     if (HasFunction(PredefinedFunctions::kOnDestroy)) m_predefinedFunctions.insert(PredefinedFunctions::kOnDestroy);
@@ -68,6 +97,7 @@ bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
     }
 
     if (HasFunction(PredefinedFunctions::kOnDrawUI)) m_predefinedFunctions.insert(PredefinedFunctions::kOnDrawUI);
+    */
 
     m_isLoaded = true;
     return true;
@@ -110,57 +140,87 @@ bool Blainn::LuaScript::HasFunction(const eastl::string &functionName) const
 
 bool LuaScript::OnStartCall()
 {
-    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnStart)) return false;
-    return CustomCall(PredefinedFunctions::kOnStart);
+    if (!m_onStart.valid()) return false;
+    auto result = m_onStart();
+    if (!result.valid())
+    {
+        sol::error err = result;
+        BF_ERROR("Lua OnStart error in {}:\n\t\t{}", m_scriptPath.string(), err.what());
+        return false;
+    }
+    return true;
 }
 
 bool LuaScript::OnUpdateCall(float deltaTimeMs)
 {
-    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnUpdate)) return false;
-    return CustomCall(PredefinedFunctions::kOnUpdate, deltaTimeMs);
+    if (!m_onUpdate.valid()) return false;
+
+    auto result = m_onUpdate(deltaTimeMs);
+    if (!result.valid())
+    {
+        sol::error err = result;
+        BF_ERROR("Lua OnUpdate error in {}:\n\t\t{}", m_scriptPath.string(), err.what());
+        return false;
+    }
+
+    return true;
 }
 
 bool LuaScript::OnDestroyCall()
 {
     RemovePhysicsEventListeners();
-    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnDestroy)) return false;
-    return CustomCall(PredefinedFunctions::kOnDestroy);
+
+    if (!m_onDestroy.valid()) return false;
+
+    auto result = m_onDestroy();
+    if (!result.valid())
+    {
+        sol::error err = result;
+        BF_ERROR("Lua OnDestroy error in {}:\n\t\t{}", m_scriptPath.string(), err.what());
+        return false;
+    }
+
+    return true;
 }
 
 bool Blainn::LuaScript::OnCollisionStartedCall(const eastl::shared_ptr<PhysicsEvent> &physicsEvent)
 {
+    if (!m_onCollisionStarted.valid()) return false;
     if (physicsEvent->entity1 != m_owningEntityId && physicsEvent->entity2 != m_owningEntityId) return false;
-    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnCollisionStarted)) return false;
-    sol::state &lua = ScriptingSubsystem::GetLuaState();
-    sol::state_view sv(lua);
+
+    sol::state_view sv(ScriptingSubsystem::GetLuaState());
     sol::table tbl = sv.create_table();
     tbl["eventType"] = static_cast<int>(physicsEvent->eventType);
     tbl["entity1"] = physicsEvent->entity1.bytes();
     tbl["entity2"] = physicsEvent->entity2.bytes();
-    return CustomCall(PredefinedFunctions::kOnCollisionStarted, tbl);
+
+    auto result = m_onCollisionStarted(tbl);
+    return result.valid();
 }
 
 bool Blainn::LuaScript::OnCollisionEndedCall(const eastl::shared_ptr<PhysicsEvent> &physicsEvent)
 {
+    if (!m_onCollisionEnded.valid()) return false;
     if (physicsEvent->entity1 != m_owningEntityId && physicsEvent->entity2 != m_owningEntityId) return false;
-    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnCollisionEnded)) return false;
-    sol::state &lua = ScriptingSubsystem::GetLuaState();
-    sol::state_view sv(lua);
+
+    sol::state_view sv(ScriptingSubsystem::GetLuaState());
     sol::table tbl = sv.create_table();
     tbl["eventType"] = static_cast<int>(physicsEvent->eventType);
     tbl["entity1"] = physicsEvent->entity1.bytes();
     tbl["entity2"] = physicsEvent->entity2.bytes();
-    return CustomCall(PredefinedFunctions::kOnCollisionEnded, tbl);
+
+    auto result = m_onCollisionEnded(tbl);
+    return result.valid();
 }
 
 void Blainn::LuaScript::RemovePhysicsEventListeners()
 {
-    if (m_predefinedFunctions.contains(PredefinedFunctions::kOnCollisionStarted))
+    if (m_onCollisionStarted.valid())
     {
         PhysicsSubsystem::RemoveEventListener(PhysicsEventType::CollisionStarted, m_onCollisionStartedHandle);
     }
 
-    if (m_predefinedFunctions.contains(PredefinedFunctions::kOnCollisionEnded))
+    if (m_onCollisionEnded.valid())
     {
         PhysicsSubsystem::RemoveEventListener(PhysicsEventType::CollisionEnded, m_onCollisionEndedHandle);
     }
@@ -168,6 +228,15 @@ void Blainn::LuaScript::RemovePhysicsEventListeners()
 
 bool LuaScript::OnDrawUI()
 {
-    if (!m_predefinedFunctions.contains(PredefinedFunctions::kOnDrawUI)) return false;
-    return CustomCall(PredefinedFunctions::kOnDrawUI);
+    if (!m_onDrawUI.valid()) return false;
+
+    auto result = m_onDrawUI();
+    if (!result.valid())
+    {
+        sol::error err = result;
+        BF_ERROR("Lua OnDrawUI error in {}:\n\t\t{}", m_scriptPath.string(), err.what());
+        return false;
+    }
+
+    return true;
 }

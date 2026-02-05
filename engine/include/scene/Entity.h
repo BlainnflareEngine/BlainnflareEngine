@@ -7,6 +7,12 @@
 #include "TransformComponent.h"
 #include "aliases.h"
 
+#if defined(_MSC_VER)
+  #define BF_FORCEINLINE __forceinline
+#else
+  #define BF_FORCEINLINE inline __attribute__((always_inline))
+#endif
+
 namespace Blainn
 {
 struct TransformComponent;
@@ -64,8 +70,7 @@ public:
     }
     uuid GetSceneUUID() const;
 
-    TransformComponent& Transform() { return GetComponent<TransformComponent>(); }
-    const Mat4& Transform() const { return GetComponent<TransformComponent>().GetTransform(); }
+    TransformComponent *Transform() { return TryGetComponent<TransformComponent>(); }
 
 #pragma region Utility templates for queriyng and managing components
 

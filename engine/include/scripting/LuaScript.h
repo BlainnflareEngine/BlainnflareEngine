@@ -66,6 +66,7 @@ private:
     Path m_scriptPath; // stores absolute path
     sol::environment m_environment;
 
+    /*
     struct PredefinedFunctions
     {
         inline const static eastl::string kOnStart = "OnStart";
@@ -75,7 +76,15 @@ private:
         inline const static eastl::string kOnCollisionEnded = "OnCollisionEnded";
         inline const static eastl::string kOnDrawUI = "OnDrawUI";
     };
-    eastl::unordered_set<eastl::string> m_predefinedFunctions;
+    */
+    //eastl::unordered_set<eastl::string> m_predefinedFunctions;
+
+    sol::protected_function m_onStart;
+    sol::protected_function m_onUpdate;
+    sol::protected_function m_onDestroy;
+    sol::protected_function m_onCollisionStarted;
+    sol::protected_function m_onCollisionEnded;
+    sol::protected_function m_onDrawUI;
 
     PhysicsEventHandle m_onCollisionStartedHandle;
     PhysicsEventHandle m_onCollisionEndedHandle;
