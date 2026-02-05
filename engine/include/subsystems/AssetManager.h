@@ -78,7 +78,7 @@ public:
 
     void ResetTextures();
     static bool SceneExists(const Path &relativePath);
-    static void OpenScene(Path relativePath);
+    static void OpenScene(const Path& relativePath);
     static void CreateScene(const Path &relativePath);
 
 private:

@@ -126,7 +126,7 @@ Blainn::uuid scene_hierarchy_widget::GetUUIDFromItem(QTreeWidgetItem *item) cons
     QString uuidStr = item->data(0, Qt::UserRole).toString();
     if (uuidStr.isEmpty()) return {};
 
-    return Blainn::uuid::fromStrFactory(ToString(uuidStr));
+    return Blainn::uuid(ToString(uuidStr));
 }
 
 void scene_hierarchy_widget::AddItemForEntity(const Blainn::Entity &entity, QTreeWidgetItem *parentItem)
@@ -137,7 +137,7 @@ void scene_hierarchy_widget::AddItemForEntity(const Blainn::Entity &entity, QTre
     item->setText(0, ToQString(entity.Name()));
     item->setFlags(item->flags() | Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
 
-    QString uuidStr = entity.GetUUID().str().c_str();
+    QString uuidStr = entity.GetUUID().bytes().c_str();
     item->setData(0, Qt::UserRole, uuidStr);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsDragEnabled
                    | Qt::ItemIsDropEnabled);
