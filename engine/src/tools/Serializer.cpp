@@ -17,15 +17,32 @@ void Serializer::CreatePrefab(Entity &entity, const Path &relativePath)
     out << YAML::Key << "PrefabName" << YAML::Value << entity.Name().c_str();
     out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq; // Entities
 
+    std::function<void(Entity & entity, YAML::Emitter & out)> fn;
 
-    auto fn = [](Entity &entity, YAML::Emitter &out)
+    fn = [&](Entity &entity, YAML::Emitter &out)
     {
         out << YAML::BeginMap; // begin for every entity
 
-        Default(entity, out);
+        Name(entity, out);
+        // ID(entity, out);
 
         for (const auto &[typeId, meta] : g_componentRegistry)
         {
+            if (typeId == entt::type_hash<RelationshipComponent>::value())
+            {
+                for (auto childID : entity.Children())
+                {
+                    out << YAML::Key << "RelationshipComponent" << YAML::Value << YAML::BeginMap;
+                    out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq; // Entities
+                    auto child = Engine::GetSceneManager().TryGetEntityWithUUID(childID);
+                    fn(child, out);
+                    out << YAML::EndSeq;
+                    out << YAML::EndMap;
+                }
+
+                continue;
+            }
+
             if (entity.HasComponent(typeId))
             {
                 meta.serializer(entity, out);
@@ -36,11 +53,11 @@ void Serializer::CreatePrefab(Entity &entity, const Path &relativePath)
     };
 
     fn(entity, out);
-    for (auto &id : entity.Children())
+    /*for (auto &id : entity.Children())
     {
-        auto children = Engine::GetSceneManager().TryGetEntityWithUUID(id);
-        fn(children, out);
-    }
+        auto entity = Engine::GetSceneManager().TryGetEntityWithUUID(id);
+        fn(entity, out);
+    }*/
 
 
     out << YAML::EndSeq; // Entities
@@ -53,11 +70,18 @@ void Serializer::CreatePrefab(Entity &entity, const Path &relativePath)
 }
 
 
-void Serializer::Default(Entity &entity, YAML::Emitter &out)
+void Serializer::Name(Entity &entity, YAML::Emitter &out)
 {
     out << YAML::Key << "Name" << YAML::Value << entity.Name().c_str();
+}
+
+
+void Serializer::ID(Entity &entity, YAML::Emitter &out)
+{
     out << YAML::Key << "EntityID" << YAML::Value << entity.GetUUID().str();
 }
+
+
 void Serializer::Tag(Entity &entity, YAML::Emitter &out)
 {
     if (!entity.HasComponent<TagComponent>()) return;

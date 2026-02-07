@@ -28,7 +28,9 @@ class Serializer
 public:
     static void CreatePrefab(Entity &entity, const Path &relativePath);
 
-    static void Default(Entity &entity, YAML::Emitter &out);
+    static void Name(Entity &entity, YAML::Emitter &out);
+
+    static void ID(Entity &entity, YAML::Emitter &out);
 
     static void Tag(Entity &entity, YAML::Emitter &out);
 

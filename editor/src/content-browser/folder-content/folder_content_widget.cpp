@@ -6,6 +6,7 @@
 #include "folder_content_widget.h"
 
 #include "AssetManager.h"
+#include "ContentBrowserModel.h"
 #include "ContentDelegate.h"
 #include "ContentFilterProxyModel.h"
 #include "Editor.h"
@@ -34,7 +35,7 @@ folder_content_widget::folder_content_widget(QWidget *parent)
     ui->setupUi(this);
 
     m_iconProvider = new IconProvider();
-    m_fileSystemModel = new QFileSystemModel(this);
+    m_fileSystemModel = new ContentBrowserModel(this);
     m_fileSystemModel->setFilter(QDir::NoDotAndDotDot | QDir::AllEntries);
     m_fileSystemModel->setIconProvider(m_iconProvider);
 

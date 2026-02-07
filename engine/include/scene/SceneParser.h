@@ -18,7 +18,7 @@ namespace Blainn
 {
 inline uuid GetID(const YAML::Node &node)
 {
-    return uuid::fromStrFactory(node["EntityID"].as<std::string>().c_str());
+    return uuid::fromStrFactory(node["EntityID"].as<std::string>(Rand::getRandomUUID().str()).c_str());
 }
 
 inline eastl::string GetTag(const YAML::Node &node)

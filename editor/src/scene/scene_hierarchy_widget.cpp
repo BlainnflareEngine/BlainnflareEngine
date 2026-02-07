@@ -329,12 +329,18 @@ void scene_hierarchy_widget::dragEnterEvent(QDragEnterEvent *event)
         event->acceptProposedAction();
         return;
     }
+    if (event->mimeData()->hasFormat(MIME_PREFAB))
+    {
+        event->acceptProposedAction();
+        return;
+    }
 
     event->ignore();
 }
 
 void scene_hierarchy_widget::dragMoveEvent(QDragMoveEvent *event)
 {
+    qDebug() << "scene_hierarchy_widget::dragMoveEvent" << event->mimeData()->formats();
     auto *targetItem = itemAt(event->position().toPoint());
     auto *sourceItem = currentItem();
 
@@ -501,10 +507,10 @@ void scene_hierarchy_widget::ChangeSelection(const Blainn::uuid &id)
 
     if (auto *item = FindItemByUuid(id))
     {
-        blockSignals(true);
+        //blockSignals(true);
         setCurrentItem(item);
         scrollToItem(item);
-        blockSignals(false);
+        //blockSignals(false);
     }
 }
 

@@ -168,6 +168,8 @@ set(EDITOR_SOURCES
         include/EditorRegistry.h
         src/EditorRegistry.cpp
         include/MimeFormats.h
+        include/content-browser/folder-content/ContentBrowserModel.h
+        include/PrefabDropHandler.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

@@ -10,12 +10,13 @@
 class QAbstractItemView;
 namespace editor
 {
+class ContentBrowserModel;
 class folder_content_list_view;
 class ContentContextMenu;
 class FileContextMenu;
 class ContentFilterProxyModel;
 class IconProvider;
-}
+} // namespace editor
 class QVBoxLayout;
 class QFileSystemModel;
 class QListView;
@@ -56,11 +57,10 @@ private:
     Ui::folder_content_widget *ui;
     folder_content_list_view *m_listView;
     ContentFilterProxyModel *m_proxyModel;
-    QFileSystemModel *m_fileSystemModel;
+    ContentBrowserModel *m_fileSystemModel;
     QVBoxLayout *m_layout;
     ContentContextMenu *m_contentContextMenu;
     FileContextMenu *m_fileContextMenu;
     IconProvider *m_iconProvider;
 };
 } // namespace editor
-
