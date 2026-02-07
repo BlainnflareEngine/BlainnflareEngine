@@ -371,16 +371,15 @@ Entity Scene::CreatePrefabEntity(const YAML::Node &entitiesNode)
         return entity;
     };
 
-    // Создаём корневую сущность (первая в списке)
     Entity root = createRecursive(entitiesNode[0], Entity{});
 
-    // Опционально: поддержка нескольких корневых объектов в префабе
     for (size_t i = 1; i < entitiesNode.size(); ++i)
     {
         createRecursive(entitiesNode[i], Entity{});
     }
 
     SortEntities();
+
     return root;
 }
 
