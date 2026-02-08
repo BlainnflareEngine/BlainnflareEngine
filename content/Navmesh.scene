@@ -11,7 +11,7 @@ Entities:
         y: 0
         z: 0
       Rotation:
-        x: 0
+        x: -0
         y: 0
         z: 0
       Scale:
@@ -37,7 +37,7 @@ Entities:
         y: 0
         z: 0
       Rotation:
-        x: 0
+        x: -0
         y: 0
         z: 0
       Scale:
@@ -59,10 +59,10 @@ Entities:
       AgentRadius: 0.6
       AgentMaxClimb: 0.5
       AgentMaxSlope: 45
-  - Name: Entity
+  - Name: Mover
     EntityID: f423c828-d0eb-4dda-9286-be145e62c499
     TagComponent:
-      Tag: Entity
+      Tag: Mover
     TransformComponent:
       Translation:
         x: 4.5
@@ -79,7 +79,7 @@ Entities:
     RelationshipComponent:
       Parent: 00000000-0000-0000-0000-000000000000
       Children:
-        []
+        - e4c334df-dfe8-4259-a058-8c98464d7613
     MeshComponent:
       Enabled: true
       IsWalkable: false
@@ -90,6 +90,8 @@ Entities:
       MovementSpeed: 2
       StoppingDistance: 0.5
       GroundOffset: 0.5
+      FaceMovementDirection: true
+      RotationSpeed: 0.5
     StimulusComponent:
       EnableSight: true
       EnableSound: false
@@ -99,5 +101,31 @@ Entities:
       SoundRadius: 0
       Tag: Untagged
       Enabled: true
+  - Name: Child
+    EntityID: e4c334df-dfe8-4259-a058-8c98464d7613
+    TagComponent:
+      Tag: Child
+    TransformComponent:
+      Translation:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        x: -0
+        y: 0
+        z: -0
+      Scale:
+        x: 1
+        y: 1
+        z: 1
+    RelationshipComponent:
+      Parent: f423c828-d0eb-4dda-9286-be145e62c499
+      Children:
+        []
+    MeshComponent:
+      Enabled: true
+      IsWalkable: false
+      Path: ""
+      Material: Materials/Default.mat
 NavMeshData:
   Path: Navmesh\Navmesh.scene.navmesh

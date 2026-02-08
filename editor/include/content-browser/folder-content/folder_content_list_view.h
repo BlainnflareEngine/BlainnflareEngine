@@ -7,6 +7,8 @@
 
 #include <QListView>
 
+
+class QFileSystemModel;
 namespace editor
 {
 QT_BEGIN_NAMESPACE
@@ -33,5 +35,9 @@ protected:
 
 private:
     Ui::folder_content_list_view *ui;
+
+    void HandleFileDrop(const QMimeData *mime, const QString &targetPath);
+    void HandleEntityDrop(QDropEvent *event, const QString &targetPath);
+    QString GetTargetPath(const QModelIndex &index, QFileSystemModel *fsModel);
 };
 } // namespace editor

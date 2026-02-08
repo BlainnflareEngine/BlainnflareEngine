@@ -31,6 +31,8 @@ namespace formats
 {
 inline static const QString metaFormat = "blainn";
 
+inline static const QString prefabFormat = "prefab";
+
 inline static const QString shaderFormat = "hlsl";
 
 inline static const QString materialFormat = "mat";

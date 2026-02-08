@@ -75,6 +75,8 @@ public:
     Entity CreateChildEntityWithID(Entity parent, const uuid &id, const eastl::string &name = "",
                                    bool shouldSort = true, bool onSceneChanged = false, bool createdByEditor = false);
     void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false, bool createdByEditor = false);
+    Entity CreatePrefabEntity(const YAML::Node &prefabNode);
+
     void LoadNavMeshData(const YAML::Node &node);
     void SubmitToDestroyEntity(Entity entity, bool sceneChanged = false);
 
@@ -108,12 +110,12 @@ public:
     {
         return m_SceneID;
     }
-    // prefabs would be cool
-    // Entity CreatePrefabEntity(Entity entity, Entity parent /* and so on */);
 
 private:
-    void DestroyEntityInternal(Entity entity, bool sceneChanged = false, bool excludeChildren = false, bool first = true);
-    void DestroyEntityInternal(const uuid &entityID, bool sceneChanged = false, bool excludeChildren = false, bool first = true);
+    void DestroyEntityInternal(Entity entity, bool sceneChanged = false, bool excludeChildren = false,
+                               bool first = true);
+    void DestroyEntityInternal(const uuid &entityID, bool sceneChanged = false, bool excludeChildren = false,
+                               bool first = true);
 
     void SortEntities();
 

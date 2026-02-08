@@ -94,6 +94,8 @@ void transform_widget::DeleteComponent()
     if (m_entity.IsValid()) m_entity.RemoveComponentIfExists<Blainn::TransformComponent>();
     deleteLater();
 }
+
+
 void transform_widget::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();

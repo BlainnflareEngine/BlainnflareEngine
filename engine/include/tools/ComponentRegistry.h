@@ -116,5 +116,10 @@ inline void InitializeComponentRegistry()
         "PerceptionComponent", HasPerception, [](Entity &e, const YAML::Node &node)
         { e.AddComponent<PerceptionComponent>(eastl::move(GetPerception(node))); },
         [](Entity &e, YAML::Emitter &out) { Serializer::Perception(e, out); });
+
+    RegisterComponent<PrefabComponent>(
+        "PrefabComponent", HasPrefab,
+        [](Entity &e, const YAML::Node &node) { e.AddComponent<PrefabComponent>(eastl::move(GetPrefab(node))); },
+        [](Entity &e, YAML::Emitter &out) { Serializer::Prefab(e, out); });
 }
 } // namespace Blainn
