@@ -60,7 +60,7 @@ void AssetManager::LoadDefaultMaterials()
 {
     Material material = Material(relativeDefaultMaterialPath, "");
     material.SetTexture(GetTexture(relativeDefaultDiffuseTexturePath), TextureType::ALBEDO);
-
+    
     m_materialPaths[ToEASTLString(relativeDefaultMaterialPath.string())] = {0, 1};
     m_materials.emplace(eastl::make_shared<Material>(eastl::move(material)));
 }

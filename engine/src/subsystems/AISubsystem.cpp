@@ -42,6 +42,8 @@ void AISubsystem::Destroy()
 
 void AISubsystem::Update(float dt)
 {
+    BLAINN_PROFILE_FUNC();
+
     if (m_settings.enableLOD)
     {
         UpdateLOD();
@@ -187,7 +189,7 @@ bool AISubsystem::CreateAIController(Entity entity)
         return false;
     }
     const sol::table &scriptEnv = componentPtr->aiScript->GetEnvironment();
-
+    
     PerceptionComponent *perception = entity.TryGetComponent<PerceptionComponent>();
     if (perception)
     {
@@ -220,12 +222,12 @@ bool AISubsystem::CreateAIController(Entity entity)
 
     eastl::unique_ptr<Blackboard> bb = eastl::make_unique<Blackboard>();
     LoadBlackboard(scriptEnv, bb);
-
+    
     if (perception)
     {
         bb->Set("_perception", perception);
     }
-
+    
     bb->Set("selfEntity", entity.GetUUID());
 
     BTMap trees;
@@ -235,9 +237,9 @@ bool AISubsystem::CreateAIController(Entity entity)
     LoadUtility(scriptEnv, utility);
 
     componentPtr->aiController.Init(eastl::move(trees), eastl::move(utility), eastl::move(bb));
-
+    
     BF_INFO("AI Controller created for entity: " + entity.GetUUID().str());
-
+    
     return true;
 }
 

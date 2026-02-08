@@ -64,8 +64,7 @@ public:
     }
     uuid GetSceneUUID() const;
 
-    TransformComponent& Transform() { return GetComponent<TransformComponent>(); }
-    const Mat4& Transform() const { return GetComponent<TransformComponent>().GetTransform(); }
+    TransformComponent *Transform() { return TryGetComponent<TransformComponent>(); }
 
 #pragma region Utility templates for queriyng and managing components
 

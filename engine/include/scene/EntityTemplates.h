@@ -13,34 +13,33 @@ template <typename T, typename... Args> T &Entity::AddComponent(Args &&...args)
 
     return m_Scene->m_Registry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);;
 }
-
-template <typename T> T &Entity::GetComponent() const
+template <typename T> BF_FORCEINLINE T &Entity::GetComponent() const
 {
     assert(HasComponent<T>() && "Entity doesn't have the component!");
     return m_Scene->m_Registry.get<T>(m_EntityHandle);
 }
 
 // Returns nullptr if entity does not have the requested component
-template <typename T> T *Entity::TryGetComponent()
+template <typename T> BF_FORCEINLINE T *Entity::TryGetComponent()
 {
     assert(IsValid());
     return m_Scene->m_Registry.try_get<T>(m_EntityHandle);
 }
 
 // Returns nullptr if entity does not have the requested component
-template <typename T> const T *Entity::TryGetComponent() const
+template <typename T> BF_FORCEINLINE const T *Entity::TryGetComponent() const
 {
     assert(IsValid());
     return m_Scene->m_Registry.try_get<T>(m_EntityHandle);
 }
 
-template <typename T> bool Entity::HasComponent()
+template <typename T> BF_FORCEINLINE bool Entity::HasComponent()
 {
     assert(IsValid());
     bool has = m_Scene->m_Registry.all_of<T>(m_EntityHandle);
     return has;;
 }
-template <typename T> bool Entity::HasComponent() const
+template <typename T> BF_FORCEINLINE bool Entity::HasComponent() const
 {
     assert(IsValid());
     return m_Scene->m_Registry.all_of<T>(m_EntityHandle);

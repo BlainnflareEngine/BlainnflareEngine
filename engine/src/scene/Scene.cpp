@@ -45,7 +45,7 @@ Scene::Scene(const YAML::Node &config)
     assert(config.IsDefined());
 
     m_Name = config["SceneName"].as<std::string>().c_str();
-    m_SceneID.fromStr(config["SceneID"].as<std::string>().c_str());
+    m_SceneID = uuid::fromStrFactory(config["SceneID"].as<std::string>());
 
     s_sceneEventQueue.enqueue(eastl::make_shared<SceneChangedEvent>(m_Name));
 
@@ -122,9 +122,6 @@ void Blainn::Scene::Update()
             transformComponent.FrameResetDirtyFlags();
         }
     }
-
-
-    ProcessEvents();
 }
 
 void Scene::SaveScene()
@@ -759,10 +756,10 @@ void Scene::ConvertToLocalSpace(Entity entity)
 
     if (!parent) return;
 
-    auto &transform = entity.Transform();
+    auto *transform = entity.Transform();
     auto parentTransform = GetWorldSpaceTransformMatrix(parent);
-    auto localTransform = transform.GetTransform() * parentTransform.Invert();
-    transform.SetTransform(localTransform);
+    auto localTransform = transform->GetTransform() * parentTransform.Invert();
+    transform->SetTransform(localTransform);
 }
 
 void Scene::ConvertToWorldSpace(Entity entity)
@@ -779,27 +776,30 @@ void Scene::ConvertToWorldSpace(Entity entity)
 
 Mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
 {
+    BLAINN_PROFILE_FUNC();
     Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
 
-    if (parent) return entity.Transform().GetTransform() * GetWorldSpaceTransformMatrix(parent);
+    if (parent) return entity.Transform()->GetTransform() * GetWorldSpaceTransformMatrix(parent);
 
-    return entity.Transform().GetTransform();
+    if (auto* transformComp = entity.Transform())
+        return transformComp->GetTransform();
+    return Mat4();
 }
 
 void Blainn::Scene::SetFromWorldSpaceTransformMatrix(Entity entity, Mat4 worldTransform)
 {
     Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
-    auto &entityTransform = entity.Transform();
+    auto *entityTransform = entity.Transform();
 
     if (parent)
     {
         Mat4 parentTransform = GetWorldSpaceTransformMatrix(parent);
         Mat4 localTransform = worldTransform * parentTransform.Invert();
-        entityTransform.SetTransform(localTransform);
+        entityTransform->SetTransform(localTransform);
     }
     else
     {
-        entityTransform.SetTransform(worldTransform);
+        entityTransform->SetTransform(worldTransform);
     }
 
     if (entity.HasComponent<PhysicsComponent>())

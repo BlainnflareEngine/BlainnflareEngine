@@ -20,6 +20,8 @@ namespace Blainn
 {
 class MeshComponent;
 class SceneManager;
+class AssetManager;
+
 using EntityMap = eastl::unordered_map<uuid, Entity>;
 
 class Scene
@@ -151,6 +153,7 @@ private:
 
     friend class Entity;
     friend class SceneManager;
+    friend class AssetManager;
 };
 } // namespace Blainn
 

@@ -110,7 +110,6 @@ void Blainn::RegisterAssetManagerTypes(sol::state &luaState)
                          [](const std::string &path)
                          {
                              AssetManager::OpenScene(Path(path));
-                             Engine::InitScenePlayMode();
                          });
     manager.set_function("CreateScene", [](const std::string &path) { AssetManager::CreateScene(Path(path)); });
     manager.set_function("SceneExists",
