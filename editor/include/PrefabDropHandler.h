@@ -22,7 +22,7 @@ inline void HandlePrefabDrop(const QMimeData *data)
         for (auto prefab : prefabs)
         {
             YAML::Node prefabData = YAML::LoadFile(ToString(prefab.absolutePath));
-            Blainn::Engine::GetSceneManager().GetActiveScene()->CreatePrefabEntity(prefabData["Entities"]);
+            Blainn::Engine::GetSceneManager().GetActiveScene()->CreatePrefabEntity(prefabData);
         }
     }
 }

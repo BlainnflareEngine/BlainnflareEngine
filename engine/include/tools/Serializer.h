@@ -63,5 +63,7 @@ public:
     static void PointLight(Entity &entity, YAML::Emitter &out);
 
     static void SpotLight(Entity &entity, YAML::Emitter &out);
+
+    static void Prefab(Entity &entity, YAML::Emitter &out);
 };
 } // namespace Blainn

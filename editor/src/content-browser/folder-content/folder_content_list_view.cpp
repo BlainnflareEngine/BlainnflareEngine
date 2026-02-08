@@ -13,6 +13,7 @@
 #include "Serializer.h"
 #include "import_asset_dialog.h"
 #include "ui_folder_content_list_view.h"
+#include "components/PrefabComponent.h"
 #include "scene/SceneManager.h"
 #include "scene/SceneManagerTemplates.h"
 
@@ -85,6 +86,8 @@ void folder_content_list_view::HandleEntityDrop(QDropEvent *event, const QString
     QString prefabFilename = entity.Name().c_str() + QStringLiteral(".") + formats::prefabFormat;
     QString absolutePath = contentDir.absoluteFilePath(prefabFilename);
     QString relativePath = contentDir.relativeFilePath(absolutePath);
+
+    entity.AddComponent<Blainn::PrefabComponent>().Path = ToString(relativePath);
 
     Blainn::Serializer::CreatePrefab(entity, ToString(relativePath));
     BF_DEBUG("Create prefab from entity {} Is valid {}", uuid.str(), entity.IsValid());

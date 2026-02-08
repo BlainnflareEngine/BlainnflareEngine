@@ -212,7 +212,7 @@ void Engine::EscapePlayMode()
 
     if (s_sceneManager.GetActiveScene())
     {
-        s_sceneManager.GetActiveScene()->EndPlayMode();
+        s_sceneManager.EndPlayMode();
     }
 
     AssetManager::GetInstance().OpenScene(s_startPlayModeSceneName.c_str());

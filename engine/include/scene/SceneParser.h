@@ -13,6 +13,7 @@
 #include "components/SkyboxComponent.h"
 #include "physics/BodyBuilder.h"
 #include "Engine.h"
+#include "components/PrefabComponent.h"
 
 namespace Blainn
 {
@@ -715,5 +716,24 @@ inline SpotLightComponent GetSpotLight(const YAML::Node &node)
     pointLight.SpotOuterAngle = lightNode["OuterAngle"].as<float>(1);
 
     return pointLight;
+}
+
+inline bool HasPrefab(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["PrefabComponent"]) return true;
+
+    return false;
+}
+
+inline PrefabComponent GetPrefab(const YAML::Node &node)
+{
+    PrefabComponent prefab;
+
+    auto &prefabNode = node["PrefabComponent"];
+    prefab.Path = prefabNode["Path"].as<std::string>();
+
+    return prefab;
 }
 } // namespace Blainn

@@ -4,6 +4,7 @@
 #include "Serializer.h"
 
 #include "ComponentRegistry.h"
+#include "components/PrefabComponent.h"
 
 namespace Blainn
 {
@@ -15,6 +16,7 @@ void Serializer::CreatePrefab(Entity &entity, const Path &relativePath)
     out << YAML::BeginMap; // Root
 
     out << YAML::Key << "PrefabName" << YAML::Value << entity.Name().c_str();
+    out << YAML::Key << "Path" << YAML::Value << relativePath.string();
     out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq; // Entities
 
     std::function<void(Entity & entity, YAML::Emitter & out)> fn;
@@ -74,7 +76,6 @@ void Serializer::Name(Entity &entity, YAML::Emitter &out)
 {
     out << YAML::Key << "Name" << YAML::Value << entity.Name().c_str();
 }
-
 
 void Serializer::ID(Entity &entity, YAML::Emitter &out)
 {
@@ -456,5 +457,17 @@ void Serializer::SpotLight(Entity &entity, YAML::Emitter &out)
     out << YAML::Key << "OuterAngle" << YAML::Value << light->SpotOuterAngle;
 
     out << YAML::EndMap;
+}
+
+void Serializer::Prefab(Entity &entity, YAML::Emitter &out)
+{
+    auto prefab = entity.TryGetComponent<PrefabComponent>();
+    if (!prefab) return;
+
+    out << YAML::Key << "PrefabComponent" << YAML::Value << YAML::BeginMap;
+    out << YAML::Key << "Path" << YAML::Value << prefab->Path.string();
+    out << YAML::EndMap;
+
+    BF_WARN("Need to save prefab overrides in Serializer::Prefab");
 }
 } // namespace Blainn

@@ -24,6 +24,7 @@
 #include "subsystems/RenderSubsystem.h"
 #include "Render/RuntimeCamera.h"
 #include "Render/EditorCamera.h"
+#include "components/PrefabComponent.h"
 #include "subsystems/AISubsystem.h"
 #include "subsystems/PerceptionSubsystem.h"
 
@@ -329,13 +330,15 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
     }
 }
 
-Entity Scene::CreatePrefabEntity(const YAML::Node &entitiesNode)
+Entity Scene::CreatePrefabEntity(const YAML::Node &prefabNode)
 {
-    if (!entitiesNode)
+    if (!prefabNode)
     {
         BF_WARN("Invalid or empty prefab entities node");
         return {};
     }
+
+    auto &entitiesNode = prefabNode["Entities"];
 
     std::function<Entity(const YAML::Node &, Entity)> createRecursive = [&](const YAML::Node &node,
                                                                             Entity parent) -> Entity
