@@ -26,7 +26,8 @@ bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
 
     m_environment = sol::environment(lua, sol::create, lua.globals());
     m_owningEntityId = owningEntity.GetUUID();
-    m_environment["OwningEntity"] = m_owningEntityId.bytes();
+    m_environment["OwningEntityID"] = m_owningEntityId.str();
+    m_environment["OwningEntity"] = owningEntity;
 
     sol::load_result script = lua.load_file(scriptPath.string());
     if (!script.valid())
@@ -75,29 +76,6 @@ bool LuaScript::Load(const Path &scriptPath, const Entity &owningEntity)
     }
 
     if (m_onDrawUI.valid()) sol::set_environment(m_environment, m_onDrawUI);
-
-    /*
-    if (HasFunction(PredefinedFunctions::kOnStart)) m_predefinedFunctions.insert(PredefinedFunctions::kOnStart);
-    if (HasFunction(PredefinedFunctions::kOnUpdate)) m_predefinedFunctions.insert(PredefinedFunctions::kOnUpdate);
-    if (HasFunction(PredefinedFunctions::kOnDestroy)) m_predefinedFunctions.insert(PredefinedFunctions::kOnDestroy);
-
-    if (HasFunction(PredefinedFunctions::kOnCollisionStarted))
-    {
-        m_predefinedFunctions.insert(PredefinedFunctions::kOnCollisionStarted);
-        m_onCollisionStartedHandle = PhysicsSubsystem::AddEventListener(
-            PhysicsEventType::CollisionStarted,
-            [this](const eastl::shared_ptr<PhysicsEvent> &physicsEvent) { OnCollisionStartedCall(physicsEvent); });
-    }
-    if (HasFunction(PredefinedFunctions::kOnCollisionEnded))
-    {
-        m_predefinedFunctions.insert(PredefinedFunctions::kOnCollisionEnded);
-        m_onCollisionEndedHandle = PhysicsSubsystem::AddEventListener(
-            PhysicsEventType::CollisionEnded,
-            [this](const eastl::shared_ptr<PhysicsEvent> &physicsEvent) { OnCollisionEndedCall(physicsEvent); });
-    }
-
-    if (HasFunction(PredefinedFunctions::kOnDrawUI)) m_predefinedFunctions.insert(PredefinedFunctions::kOnDrawUI);
-    */
 
     m_isLoaded = true;
     return true;
@@ -191,8 +169,8 @@ bool Blainn::LuaScript::OnCollisionStartedCall(const eastl::shared_ptr<PhysicsEv
     sol::state_view sv(ScriptingSubsystem::GetLuaState());
     sol::table tbl = sv.create_table();
     tbl["eventType"] = static_cast<int>(physicsEvent->eventType);
-    tbl["entity1"] = physicsEvent->entity1.bytes();
-    tbl["entity2"] = physicsEvent->entity2.bytes();
+    tbl["entity1"] = physicsEvent->entity1.str();
+    tbl["entity2"] = physicsEvent->entity2.str();
 
     auto result = m_onCollisionStarted(tbl);
     return result.valid();
@@ -206,8 +184,8 @@ bool Blainn::LuaScript::OnCollisionEndedCall(const eastl::shared_ptr<PhysicsEven
     sol::state_view sv(ScriptingSubsystem::GetLuaState());
     sol::table tbl = sv.create_table();
     tbl["eventType"] = static_cast<int>(physicsEvent->eventType);
-    tbl["entity1"] = physicsEvent->entity1.bytes();
-    tbl["entity2"] = physicsEvent->entity2.bytes();
+    tbl["entity1"] = physicsEvent->entity1.str();
+    tbl["entity2"] = physicsEvent->entity2.str();
 
     auto result = m_onCollisionEnded(tbl);
     return result.valid();

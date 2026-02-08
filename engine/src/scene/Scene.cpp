@@ -44,7 +44,7 @@ Scene::Scene(const YAML::Node &config)
     assert(config.IsDefined());
 
     m_Name = config["SceneName"].as<std::string>().c_str();
-    m_SceneID = uuid(config["SceneID"].as<std::string>());
+    m_SceneID = uuid::fromStrFactory(config["SceneID"].as<std::string>());
 
     s_sceneEventQueue.enqueue(eastl::make_shared<SceneChangedEvent>(m_Name));
 
@@ -133,7 +133,7 @@ void Scene::SaveScene()
     out << YAML::BeginMap; // Root
 
     out << YAML::Key << "SceneName" << YAML::Value << m_Name.c_str();
-    out << YAML::Key << "SceneID" << YAML::Value << m_SceneID.bytes();
+    out << YAML::Key << "SceneID" << YAML::Value << m_SceneID.str();
 
     out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq; // Entities
 

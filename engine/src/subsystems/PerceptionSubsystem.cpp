@@ -542,7 +542,7 @@ void PerceptionSubsystem::CreateAttachPerceptionComponent(Entity entity)
     PerceptionComponent *componentPtr = entity.TryGetComponent<PerceptionComponent>();
     if (componentPtr)
     {
-        BF_ERROR("Perception component error: entity " + entity.GetUUID().bytes() + " already has PerceptionComponent");
+        BF_ERROR("Perception component error: entity " + entity.GetUUID().str() + " already has PerceptionComponent");
         return;
     }
 
@@ -562,7 +562,7 @@ void PerceptionSubsystem::CreateAttachStimulusComponent(Entity entity)
     StimulusComponent *componentPtr = entity.TryGetComponent<StimulusComponent>();
     if (componentPtr)
     {
-        BF_ERROR("Stimulus component error: entity " + entity.GetUUID().bytes() + " already has StimulusComponent");
+        BF_ERROR("Stimulus component error: entity " + entity.GetUUID().str() + " already has StimulusComponent");
         return;
     }
 

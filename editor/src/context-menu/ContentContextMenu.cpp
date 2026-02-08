@@ -181,7 +181,7 @@ void ContentContextMenu::CreateMaterial(const QString &dirPath) const
                     YAML::Node config;
                     QDir contentDir(Blainn::Engine::GetContentDirectory());
 
-                    config["ID"] = Blainn::Rand::getRandomUUID().bytes();
+                    config["ID"] = Blainn::Rand::getRandomUUID().str();
                     config["Path"] = ToString(contentDir.relativeFilePath(filePath));
 
                     auto relPath = [&contentDir](const QString &absPath) -> std::string

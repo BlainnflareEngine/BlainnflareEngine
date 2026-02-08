@@ -28,7 +28,7 @@ public:
     static void Default(Entity &entity, YAML::Emitter &out)
     {
         out << YAML::Key << "Name" << YAML::Value << entity.Name().c_str();
-        out << YAML::Key << "EntityID" << YAML::Value << entity.GetUUID().bytes();
+        out << YAML::Key << "EntityID" << YAML::Value << entity.GetUUID().str();
     }
 
     static void Tag(Entity &entity, YAML::Emitter &out)
@@ -80,11 +80,11 @@ public:
         out << YAML::Key << "RelationshipComponent" << YAML::Value << YAML::BeginMap;
 
         uuid parentUUID = entity.GetParentUUID();
-        out << YAML::Key << "Parent" << YAML::Value << parentUUID.bytes();
+        out << YAML::Key << "Parent" << YAML::Value << parentUUID.str();
 
         out << YAML::Key << "Children" << YAML::Value << YAML::BeginSeq;
         for (const auto &childID : relationship.Children)
-            out << childID.bytes();
+            out << childID.str();
 
         out << YAML::EndSeq;
         out << YAML::EndMap;
@@ -149,7 +149,7 @@ public:
         auto &physics = entity.GetComponent<PhysicsComponent>();
 
         out << YAML::Key << "PhysicsComponent" << YAML::Value << YAML::BeginMap;
-        out << YAML::Key << "ParentID" << YAML::Value << physics.parentId.bytes();
+        out << YAML::Key << "ParentID" << YAML::Value << physics.parentId.str();
         out << YAML::Key << "ShapeType" << YAML::Value << static_cast<int>(physics.GetShapeType());
         out << YAML::Key << "ControlParentTransform" << YAML::Value << physics.controlParentTransform;
 

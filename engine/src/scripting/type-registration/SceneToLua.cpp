@@ -41,7 +41,7 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
     sol::usertype<EntityEvent> EntityEventType = luaState.new_usertype<EntityEvent>(
         "EntityEvent", sol::no_constructor, sol::base_classes, sol::bases<SceneEvent>());
     EntityEventType.set_function("GetEntity", &EntityEvent::GetEntity);
-    EntityEventType.set_function("GetUUID", [](EntityEvent &e) { return e.GetUUID().bytes(); });
+    EntityEventType.set_function("GetUUID", [](EntityEvent &e) { return e.GetUUID().str(); });
     EntityEventType.set_function("IsSceneChanged", &EntityEvent::IsSceneChanged);
 
     sol::usertype<EntityCreatedEvent> EntityCreatedEventType = luaState.new_usertype<EntityCreatedEvent>(
@@ -97,7 +97,7 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
     SceneType.set_function("DestroyEntity", [](Scene &scene, Entity entity) { scene.SubmitToDestroyEntity(entity); });
 
     SceneType.set_function("TryGetEntityWithUUID", [](Scene &scene, const std::string &idStr)
-                           { return scene.TryGetEntityWithUUID(uuid(idStr)); });
+                           { return scene.TryGetEntityWithUUID(uuid::fromStrFactory(idStr)); });
 
     SceneType.set_function("TryGetEntityWithTag", [](Scene &scene, const std::string &tag)
                            { return scene.TryGetEntityWithTag(eastl::string(tag.c_str())); });

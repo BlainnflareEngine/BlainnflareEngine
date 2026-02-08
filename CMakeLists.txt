@@ -133,7 +133,6 @@ target_link_libraries(pch INTERFACE
 )
 
 target_include_directories(pch INTERFACE
-        "${CMAKE_SOURCE_DIR}/libs/uuid_v4"
         "${ENGINE_DIR}/include/subsystems"
         "${ENGINE_DIR}/include/tools"
         "${ENGINE_DIR}/src/subsystems"
@@ -161,7 +160,6 @@ set(BLAINN_COMMON_INCLUDES
         "${TracyClient_DIR}/public"
         "${spdlog_DIR}/include"
         "${CMAKE_SOURCE_DIR}/common"
-        "${uuid_v4_DIR}"
         "${Entt_DIR}/single_include"
         $<TARGET_PROPERTY:assimp::assimp,INTERFACE_INCLUDE_DIRECTORIES>
         "${LIBS_DIR}/eventpp/include"

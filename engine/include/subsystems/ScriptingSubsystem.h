@@ -50,20 +50,20 @@ public:
     {
         if (!m_scriptEntityConnections.contains(scriptUuid))
         {
-            BF_ERROR("Script " + scriptUuid.bytes() + " function call error - no script");
+            BF_ERROR("Script " + scriptUuid.str() + " function call error - no script");
             return false;
         }
 
         ScriptingComponent *component = m_scriptEntityConnections.at(scriptUuid).TryGetComponent<ScriptingComponent>();
         if (!component)
         {
-            BF_ERROR("Script" + scriptUuid.bytes() + " function call error - component not exist");
+            BF_ERROR("Script" + scriptUuid.str() + " function call error - component not exist");
             return false;
         }
 
         if (!component->scripts.contains(scriptUuid))
         {
-            BF_ERROR("Script" + scriptUuid.bytes() + " not contained in component");
+            BF_ERROR("Script" + scriptUuid.str() + " not contained in component");
             return false;
         }
 

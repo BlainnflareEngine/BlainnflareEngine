@@ -154,7 +154,7 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
                 if (!res) return sol::object(sol::nil);
                 sol::table t = lua.create_table();
                 RayCastResult rayCastResult = res.value();
-                t["entityId"] = rayCastResult.entityId.bytes();
+                t["entityId"] = rayCastResult.entityId.str();
                 t["distance"] = rayCastResult.distance;
                 t["hitNormal"] = rayCastResult.hitNormal;
                 t["hitPoint"] = rayCastResult.hitPoint;
@@ -170,7 +170,7 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
                 if (!res) return sol::object(sol::nil);
                 sol::table t = lua.create_table();
                 RayCastResult rayCastResult = res.value();
-                t["entityId"] = rayCastResult.entityId.bytes();
+                t["entityId"] = rayCastResult.entityId.str();
                 t["distance"] = rayCastResult.distance;
                 t["hitNormal"] = rayCastResult.hitNormal;
                 t["hitPoint"] = rayCastResult.hitPoint;
@@ -187,7 +187,7 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
                 if (!res) return sol::object(sol::nil);
                 sol::table t = lua.create_table();
                 RayCastResult rayCastResult = res.value();
-                t["entityId"] = rayCastResult.entityId.bytes();
+                t["entityId"] = rayCastResult.entityId.str();
                 t["distance"] = rayCastResult.distance;
                 t["hitNormal"] = rayCastResult.hitNormal;
                 t["hitPoint"] = rayCastResult.hitPoint;

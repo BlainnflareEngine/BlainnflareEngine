@@ -11,7 +11,6 @@
 #include "scene/Scene.h"
 #include "scripting/TypeRegistration.h"
 #include "sol_ImGui.h"
-#include "tracy/TracyC.h"
 
 using namespace Blainn;
 
@@ -68,26 +67,17 @@ void Blainn::ScriptingSubsystem::UnloadAllScripts(Scene &scene)
 
 void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
 {
-    //BLAINN_PROFILE_FUNC();
-    TracyCZoneN(ssUpdate, "ScriptingSubsystem::Update", 1);
-
-    TracyCZoneN(scripts, "Run Scripts", 1);
+    BLAINN_PROFILE_FUNC();
     auto view = scene.GetAllEntitiesWith<ScriptingComponent, IDComponent>();
     for (const auto &[entity, scriptingComponent, idComp] : view.each())
     {
         for (auto &script : scriptingComponent.scripts)
         {
-            TracyCZoneN(scriptZone, "Script", 1);
             uuid id = idComp.ID;
             script.second.OnUpdateCall(deltaTimeMs);
             script.second.OnDrawUI();
-            TracyCZoneEnd(scriptZone);
-            // TODO: don't understand why this line exists
-            if (!Engine::GetSceneManager().TryGetEntityWithUUID(id).IsValid()) return;
         }
     }
-    TracyCZoneEnd(scripts);
-    TracyCZoneEnd(ssUpdate);
 }
 
 void Blainn::ScriptingSubsystem::CreateAttachScriptingComponent(Entity entity)
@@ -95,7 +85,7 @@ void Blainn::ScriptingSubsystem::CreateAttachScriptingComponent(Entity entity)
     ScriptingComponent *component = entity.TryGetComponent<ScriptingComponent>();
     if (component)
     {
-        BF_ERROR("Entity " + entity.GetUUID().bytes() + " already has ScriptingComponent");
+        BF_ERROR("Entity " + entity.GetUUID().str() + " already has ScriptingComponent");
         return;
     }
     entity.AddComponent<ScriptingComponent>();
@@ -161,7 +151,7 @@ eastl::optional<uuid> ScriptingSubsystem::LoadScript(Entity entity, const Path &
     ScriptingComponent *component = entity.TryGetComponent<ScriptingComponent>();
     if (!component)
     {
-        BF_ERROR("Script load error: entity " + entity.GetUUID().bytes() + "does not have scripting component");
+        BF_ERROR("Script load error: entity " + entity.GetUUID().str() + "does not have scripting component");
         return eastl::nullopt;
     }
 
@@ -206,7 +196,7 @@ void ScriptingSubsystem::UnloadScript(const uuid &scriptUuid)
     ScriptingComponent *component = m_scriptEntityConnections.at(scriptUuid).TryGetComponent<ScriptingComponent>();
     if (!component)
     {
-        BF_ERROR("Script" + scriptUuid.bytes() + " unload error - component not exist");
+        BF_ERROR("Script" + scriptUuid.str() + " unload error - component not exist");
         return;
     }
 
@@ -223,7 +213,7 @@ void ScriptingSubsystem::UnloadScript(const uuid &scriptUuid)
     }
     else
     {
-        BF_ERROR("Script" + scriptUuid.bytes() + " unload error - not found");
+        BF_ERROR("Script" + scriptUuid.str() + " unload error - not found");
     }
 }
 

@@ -19,7 +19,7 @@ struct ImportMeshData
         YAML::Node node = YAML::LoadFile(absolutePath.string() + metaFormat);
 
         data.path = node["ModelPath"].as<std::string>();
-        data.id = uuid(node["ID"].as<std::string>());
+        data.id = uuid::fromStrFactory(node["ID"].as<std::string>());
         data.convertToLH = node["ConvertToLH"].as<bool>();
         data.createMaterials = node["CreateMaterials"].as<bool>();
         return data;

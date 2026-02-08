@@ -27,11 +27,11 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
                                  sol::state_view lua(luaState);
                                  auto result = ScriptingSubsystem::LoadScript(entity, Path(path.c_str()), callOnStart);
                                  if (!result.has_value()) return sol::object(sol::nil);
-                                 return sol::make_object(lua, result.value().bytes());
+                                 return sol::make_object(lua, result.value().str());
                              });
 
     scriptTable.set_function("UnloadScript", [](const std::string &idStr)
-                             { ScriptingSubsystem::UnloadScript(uuid(idStr)); });
+                             { ScriptingSubsystem::UnloadScript(uuid::fromStrFactory(idStr)); });
 
     // Helper to list scripts on an entity
     scriptTable.set_function("ListScripts",
@@ -43,7 +43,7 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
                                  if (!comp) return tbl;
                                  int idx = 1;
                                  for (auto &kv : comp->scripts)
-                                     tbl[idx++] = kv.first.bytes();
+                                     tbl[idx++] = kv.first.str();
                                  return tbl;
                              });
 
@@ -51,13 +51,13 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
                              [&luaState](const std::string &idStr, const std::string &valueName)
                              {
                                  return ScriptingSubsystem::GetValueFromScript(
-                                     uuid(idStr), eastl::string(valueName.c_str()));
+                                     uuid::fromStrFactory(idStr), eastl::string(valueName.c_str()));
                              });
 
     scriptTable.set_function("SetValueInScript",
                              [](const std::string &idStr, const std::string &valueName, sol::object value)
                              {
-                                 ScriptingSubsystem::SetValueInScript(uuid(idStr),
+                                 ScriptingSubsystem::SetValueInScript(uuid::fromStrFactory(idStr),
                                                                       eastl::string(valueName.c_str()), value);
                              });
 
@@ -69,7 +69,7 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
                                { return s.Load(Path(path.c_str()), owningEntity); });
     LuaScriptType.set_function("IsLoaded", &LuaScript::IsLoaded);
     LuaScriptType.set_function("GetScriptPath", [](LuaScript &s) { return s.GetScriptPath().string(); });
-    LuaScriptType.set_function("GetId", [](LuaScript &s) { return s.GetId().bytes(); });
+    LuaScriptType.set_function("GetId", [](LuaScript &s) { return s.GetId().str(); });
     LuaScriptType.set_function("HasFunction", [](LuaScript &s, const std::string &funcName)
                                { return s.HasFunction(eastl::string(funcName.c_str())); });
     LuaScriptType.set_function("OnStartCall", &LuaScript::OnStartCall);

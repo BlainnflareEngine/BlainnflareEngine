@@ -21,7 +21,7 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
     // Basic components
     sol::usertype<IDComponent> IDComponentType =
         luaState.new_usertype<IDComponent>("IDComponent", sol::constructors<IDComponent()>());
-    IDComponentType["ID"] = sol::property([](const IDComponent &idc) { return idc.ID.bytes(); });
+    IDComponentType["ID"] = sol::property([](const IDComponent &idc) { return idc.ID.str(); });
 
     sol::usertype<TagComponent> TagComponentType = luaState.new_usertype<TagComponent>(
         "TagComponent", sol::constructors<TagComponent(), TagComponent(const eastl::string &)>());
@@ -32,15 +32,15 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
     sol::usertype<RelationshipComponent> RelationshipComponentType = luaState.new_usertype<RelationshipComponent>(
         "RelationshipComponent", sol::constructors<RelationshipComponent()>());
     RelationshipComponentType["ParentHandle"] = sol::property(
-        [](const RelationshipComponent &r) { return r.ParentHandle.bytes(); },
-        [](RelationshipComponent &r, const std::string &id) { r.ParentHandle = uuid(id); });
+        [](const RelationshipComponent &r) { return r.ParentHandle.str(); },
+        [](RelationshipComponent &r, const std::string &id) { r.ParentHandle = uuid::fromStrFactory(id); });
     RelationshipComponentType.set_function("Children",
                                            [&luaState](RelationshipComponent &r)
                                            {
                                                sol::table tbl = luaState.create_table();
                                                int i = 1;
                                                for (const auto &c : r.Children)
-                                                   tbl[i++] = c.bytes();
+                                                   tbl[i++] = c.str();
                                                return tbl;
                                            });
 
@@ -82,7 +82,7 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
                                             sol::table tbl = luaState.create_table();
                                             int idx = 1;
                                             for (auto &kv : s.scripts)
-                                                tbl[idx++] = kv.first.bytes();
+                                                tbl[idx++] = kv.first.str();
                                             return tbl;
                                         });
 
