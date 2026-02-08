@@ -8,14 +8,14 @@ function ConfigureStimulus(stimulus)
     stimulus:SetStimulusTag("TestAI")
 end
 
-local ai = GetAIController(OwningEntity)
 local scene = Engine.GetActiveScene()
-local e = scene:TryGetEntityWithUUID(OwningEntity)
-if not e:IsValid() then
+local ai = GetAIController(OwningEntity:GetUUID())
+
+if not OwningEntity:IsValid() then
     Log.Error("AI is invalid")
     return
 end
-local tc = e:GetTransformComponent()
+local tc = OwningEntity:GetTransformComponent()
 
 Blackboard =
 {
