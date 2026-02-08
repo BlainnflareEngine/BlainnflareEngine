@@ -287,7 +287,7 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
     textureReadback->Map(0, nullptr, reinterpret_cast<void **>(&data));
 
     uint8_t *rowStart = data + y * footprint.Footprint.RowPitch;
-    uint8_t *texel = rowStart + x * 8;
+    uint8_t *texel = rowStart + x * sizeof(UUID::UnderlyingType);
     uuid id(texel);
 
     textureReadback->Unmap(0, nullptr);
@@ -1595,7 +1595,7 @@ void RenderSubsystem::RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList)
             struct Data
             {
                 Mat4 world;
-                uint64_t id;
+                uuid id;
             } objData;
             Entity ent = Engine::GetSceneManager().TryGetEntityWithUUID(idComponent.ID);
             objData.world = Engine::GetSceneManager()

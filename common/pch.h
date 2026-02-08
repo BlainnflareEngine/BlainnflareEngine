@@ -136,3 +136,9 @@ inline eastl::string ToEASTLString(const std::string &s)
 // enable to test lua scripts functionality.
 // #define BLAINN_TEST_LUA_SCRIPTS
 #endif
+
+#if defined(_MSC_VER)
+    #define BF_FORCEINLINE __forceinline
+#else
+    #define BF_FORCEINLINE inline __attribute__((always_inline))
+#endif
