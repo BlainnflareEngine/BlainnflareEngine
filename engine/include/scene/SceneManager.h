@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "Scene.h"
 #include "SceneEvent.h"
 #include <entt/entt.hpp>
 
@@ -57,11 +58,17 @@ public:
     void StartPlayMode()
     {
         m_bPlayMode = true;
+
+        for (auto &scene : m_allScenes)
+            scene->StartPlayMode();
     }
 
     void EndPlayMode()
     {
         m_bPlayMode = false;
+
+        for (auto &scene : m_allScenes)
+            scene->EndPlayMode();
     }
 
     Entity TryGetEntityWithUUID(const uuid &id) const;

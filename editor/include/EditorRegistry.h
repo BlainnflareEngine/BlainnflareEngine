@@ -10,6 +10,7 @@
 #include "components/MeshComponent.h"
 #include "components/NavMeshVolumeComponent.h"
 #include "components/PhysicsComponent.h"
+#include "components/PrefabComponent.h"
 #include "components/ScriptingComponent.h"
 #include "components/SkyboxComponent.h"
 #include "components/StimulusComponent.h"
@@ -22,6 +23,7 @@
 #include "entity/mesh_widget.h"
 #include "entity/navmesh_volume_widget.h"
 #include "entity/perception_widget.h"
+#include "entity/prefab_widget.h"
 #include "entity/skybox_widget.h"
 #include "entity/stimulus_widget.h"
 #include "entity/transform_widget.h"
@@ -50,6 +52,7 @@ inline void InitializeEditorWidgets()
 {
     using namespace Blainn;
 
+    RegisterComponentWidget<PrefabComponent, prefab_widget>();
     RegisterComponentWidget<TransformComponent, transform_widget>();
     RegisterComponentWidget<SpotLightComponent, spot_light_widget>();
     RegisterComponentWidget<PointLightComponent, point_light_widget>();

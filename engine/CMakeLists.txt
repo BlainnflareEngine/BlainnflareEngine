@@ -194,6 +194,10 @@ set(ENGINE_SOURCES
         include/scene/SceneManager.h
         include/scene/SceneManagerTemplates.h
         include/tools/UUID.h
+        include/components/PrefabComponent.h
+        src/subsystems/PrefabSubsystem.cpp
+        include/subsystems/PrefabSubsystem.h
+        src/tools/Serializer.cpp
 )
 
 file(GLOB IMGUI_SOURCES

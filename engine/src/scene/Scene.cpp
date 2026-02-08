@@ -24,6 +24,7 @@
 #include "subsystems/RenderSubsystem.h"
 #include "Render/RuntimeCamera.h"
 #include "Render/EditorCamera.h"
+#include "components/PrefabComponent.h"
 #include "subsystems/AISubsystem.h"
 #include "subsystems/PerceptionSubsystem.h"
 
@@ -146,7 +147,8 @@ void Scene::SaveScene()
 
         out << YAML::BeginMap; // begin for every entity
 
-        Serializer::Default(e, out);
+        Serializer::Name(e, out);
+        Serializer::ID(e, out);
 
         for (const auto &[typeId, meta] : g_componentRegistry)
         {
@@ -232,7 +234,7 @@ Entity Scene::CreateChildEntity(Entity parent, const eastl::string &name, bool o
 
     /* entity.AddComponent<TransformComponent>();
      */
-    if (!name.empty()) entity.AddComponent<TagComponent>(name);
+    entity.AddComponent<TagComponent>(name.empty() ? "Untagged" : name);
 
     entity.AddComponent<RelationshipComponent>();
 
@@ -257,10 +259,7 @@ Entity Scene::CreateEntityWithID(const uuid &id, const eastl::string &name, bool
     auto &idComponent = entity.AddComponent<IDComponent>();
     idComponent.ID = id;
 
-    /* entity.AddComponent<TransformComponent>();
-     */
-    if (!name.empty()) entity.AddComponent<TagComponent>(name);
-
+    entity.AddComponent<TagComponent>(name.empty() ? "Entity" : name);
     entity.AddComponent<RelationshipComponent>();
 
     m_EntityIdMap[idComponent.ID] = entity;
@@ -304,7 +303,7 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
 {
     if (!entitiesNode || !entitiesNode.IsSequence())
     {
-        BF_WARN("Entities node is not a sequence or is empty");
+        BF_WARN("Entities node is empty");
         return;
     }
 
@@ -326,6 +325,62 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
             }
         }
     }
+}
+
+Entity Scene::CreatePrefabEntity(const YAML::Node &prefabNode)
+{
+    if (!prefabNode)
+    {
+        BF_WARN("Invalid or empty prefab entities node");
+        return {};
+    }
+
+    auto &entitiesNode = prefabNode["Entities"];
+
+    std::function<Entity(const YAML::Node &, Entity)> createRecursive = [&](const YAML::Node &node,
+                                                                            Entity parent) -> Entity
+    {
+        Entity entity = CreateEntity(GetTag(node), false, false);
+
+        for (const auto &[typeId, meta] : g_componentRegistry)
+        {
+            if (typeId == entt::type_hash<RelationshipComponent>::value()) continue;
+            if (meta.hasComponent(node))
+            {
+                meta.deserializer(entity, node);
+            }
+        }
+
+        if (parent)
+        {
+            entity.SetParent(parent);
+        }
+
+        if (node["RelationshipComponent"] && node["RelationshipComponent"]["Entities"])
+        {
+            const auto &childrenNodes = node["RelationshipComponent"]["Entities"];
+            if (childrenNodes.IsSequence())
+            {
+                for (const auto &childNode : childrenNodes)
+                {
+                    createRecursive(childNode, entity);
+                }
+            }
+        }
+
+        return entity;
+    };
+
+    Entity root = createRecursive(entitiesNode[0], Entity{});
+
+    for (size_t i = 1; i < entitiesNode.size(); ++i)
+    {
+        createRecursive(entitiesNode[i], Entity{});
+    }
+
+    SortEntities();
+
+    return root;
 }
 
 
@@ -350,6 +405,7 @@ void Scene::SubmitToDestroyEntity(Entity entity, bool sceneChanged)
     SubmitPostUpdateFunc([entity, sceneChanged]() { entity.m_Scene->DestroyEntityInternal(entity, sceneChanged); });
 }
 
+
 void Scene::DestroyEntityInternal(Entity entity, bool sceneChanged, bool excludeChildren, bool first)
 {
     BLAINN_PROFILE_FUNC();
@@ -366,7 +422,7 @@ void Scene::DestroyEntityInternal(Entity entity, bool sceneChanged, bool exclude
         for (size_t i = 0; i < entity.Children().size(); i++)
         {
             auto childId = entity.Children()[i];
-            Entity child = GetEntityWithUUID(childId);
+            Entity child = TryGetEntityWithUUID(childId);
             DestroyEntityInternal(child, excludeChildren, false);
         }
     }
@@ -467,7 +523,7 @@ void Scene::GetEntitiesInHierarchy(eastl::vector<Entity> &outEntities)
         {
             for (const auto &childUUID : rel->Children)
             {
-                auto child = GetEntityWithUUID(childUUID);
+                auto child = TryGetEntityWithUUID(childUUID);
                 dfs(child);
             }
         }

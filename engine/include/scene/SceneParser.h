@@ -13,12 +13,13 @@
 #include "components/SkyboxComponent.h"
 #include "physics/BodyBuilder.h"
 #include "Engine.h"
+#include "components/PrefabComponent.h"
 
 namespace Blainn
 {
 inline uuid GetID(const YAML::Node &node)
 {
-    return uuid(UUID::fromStrFactory(node["EntityID"].as<std::string>()));
+    return uuid::fromStrFactory(node["EntityID"].as<std::string>(Rand::getRandomUUID().str()).c_str());
 }
 
 inline eastl::string GetTag(const YAML::Node &node)
@@ -715,5 +716,24 @@ inline SpotLightComponent GetSpotLight(const YAML::Node &node)
     pointLight.SpotOuterAngle = lightNode["OuterAngle"].as<float>(1);
 
     return pointLight;
+}
+
+inline bool HasPrefab(const YAML::Node &node)
+{
+    if (!node || node.IsNull()) return false;
+
+    if (node["PrefabComponent"]) return true;
+
+    return false;
+}
+
+inline PrefabComponent GetPrefab(const YAML::Node &node)
+{
+    PrefabComponent prefab;
+
+    auto &prefabNode = node["PrefabComponent"];
+    prefab.Path = prefabNode["Path"].as<std::string>();
+
+    return prefab;
 }
 } // namespace Blainn
