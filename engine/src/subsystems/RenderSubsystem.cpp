@@ -215,7 +215,7 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
 {
     BLAINN_PROFILE_FUNC();
     if (m_UIRenderer->IsUIHovered()) return Engine::GetSelectionManager().GetSelectedUUID();
-    if (x > m_width || y > m_height) return uuid{0, 0};
+    if (x > m_width || y > m_height) return uuid();
 
     auto device = m_device.GetDevice2();
     m_device.Flush();
@@ -251,7 +251,7 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
     if (totalSize == 0)
     {
         BF_ERROR("Failed to create copyable footprint");
-        return uuid{0, 0};
+        return uuid();
     }
 
     D3D12_RESOURCE_DESC buffersDesc = CD3DX12_RESOURCE_DESC::Buffer(totalSize);
@@ -263,7 +263,7 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
                                                IID_PPV_ARGS(&textureReadback))))
     {
         BF_ERROR("Failed to create readback buffer");
-        return uuid{0, 0};
+        return uuid();
     }
 
     m_device.Flush();
@@ -287,7 +287,7 @@ uuid RenderSubsystem::GetUUIDAt(uint32_t x, uint32_t y)
     textureReadback->Map(0, nullptr, reinterpret_cast<void **>(&data));
 
     uint8_t *rowStart = data + y * footprint.Footprint.RowPitch;
-    uint8_t *texel = rowStart + x * 16;
+    uint8_t *texel = rowStart + x * sizeof(UUID::UnderlyingType);
     uuid id(texel);
 
     textureReadback->Unmap(0, nullptr);
@@ -492,14 +492,12 @@ void Blainn::RenderSubsystem::LoadGraphicsFeatures()
 
     skyBox = eastl::make_unique<MeshComponent>(AssetManager::GetDefaultMesh());
 
-    auto uuidTexDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32G32B32A32_UINT, m_width, m_height, 1, 0, 1, 0,
+    auto uuidTexDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32G32_UINT, m_width, m_height, 1, 0, 1, 0,
                                                     D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
     D3D12_CLEAR_VALUE optClearValue = {};
     optClearValue.Format = uuidTexDesc.Format;
     optClearValue.Color[0] = 0.f;
     optClearValue.Color[1] = 0.f;
-    optClearValue.Color[2] = 0.f;
-    optClearValue.Color[3] = 0.f;
 
     eastl::shared_ptr<GTexture> uuidTexture = eastl::make_shared<GTexture>(m_device, uuidTexDesc, &optClearValue);
     uuidTexture->SetName(L"UUID Render Target");
@@ -651,12 +649,8 @@ void Blainn::RenderSubsystem::CreateRootSignature()
 #pragma region UUID
     m_UUIDRootSignature = eastl::make_shared<RootSignature>();
     CD3DX12_ROOT_PARAMETER uuidRootParameter[2];
-    // mat4 + 128(32 * 4) bit uuid
-    uuidRootParameter[0].InitAsConstants(20, SHADER_REGISTER(0));
-    // mat4 viewproj
-    uuidRootParameter[1].InitAsConstants(16, SHADER_REGISTER(1));
-    // uuidRootParameter[0].InitAsConstantBufferView(0, 0);
-    // uuidRootParameter[1].InitAsConstantBufferView(1, 0);
+    uuidRootParameter[0].InitAsConstants((sizeof(Mat4) + sizeof(uint64_t)) / 4, SHADER_REGISTER(0));
+    uuidRootParameter[1].InitAsConstants(sizeof(Mat4) / 4, SHADER_REGISTER(1));
     m_UUIDRootSignature->Create(m_device, ARRAYSIZE(uuidRootParameter), uuidRootParameter,
                                 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 #pragma endregion
@@ -950,7 +944,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
     uuidDrawPSO.InputLayout = SimpleVertex::InputLayout;
     uuidDrawPSO.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     uuidDrawPSO.NumRenderTargets = 1u;
-    uuidDrawPSO.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_UINT;
+    uuidDrawPSO.RTVFormats[0] = m_uuidRenderTarget.GetTexture(AttachmentPoint::Color0)->GetD3D12ResourceDesc().Format;
     uuidDrawPSO.DSVFormat = DepthStencilFormat;
     uuidDrawPSO.SampleDesc = {1u, 0u};
 
@@ -1588,7 +1582,7 @@ void RenderSubsystem::RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList)
     pCommandList->RSSetScissorRects(1u, &m_scissorRect);
 
     Mat4 ViewProjMat = m_deferredPassCBData.ViewProj;
-    pCommandList->SetGraphicsRoot32BitConstants(1, 16, &ViewProjMat, 0);
+    pCommandList->SetGraphicsRoot32BitConstants(1, sizeof(Mat4) / 4, &ViewProjMat, 0);
 
     pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -1601,15 +1595,15 @@ void RenderSubsystem::RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList)
             struct Data
             {
                 Mat4 world;
-                char id[16];
+                uuid id;
             } objData;
             Entity ent = Engine::GetSceneManager().TryGetEntityWithUUID(idComponent.ID);
             objData.world = Engine::GetSceneManager()
                                 .GetWorldSpaceTransformMatrix(ent)
                                 .Transpose(); // transformComponent.GetTransform().Transpose();
-            idComponent.ID.bytes(objData.id);
+            objData.id = idComponent.ID;
 
-            pCommandList->SetGraphicsRoot32BitConstants(0, 20, &objData, 0);
+            pCommandList->SetGraphicsRoot32BitConstants(0, sizeof(objData) / 4, &objData, 0);
 
             auto &model = meshComponent.MeshHandle->GetMesh();
             auto currVBV = model.VertexBufferView();

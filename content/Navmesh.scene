@@ -1,8 +1,8 @@
 SceneName: Navmesh.scene
-SceneID: 2c897ebb-cb94-4c0f-ab43-053fcc710256
+SceneID: 0000000000000000
 Entities:
   - Name: Floor
-    EntityID: 6961d162-4d86-4d70-8b95-938cf15e7673
+    EntityID: d26f54347cf36af6
     TagComponent:
       Tag: Floor
     TransformComponent:
@@ -19,18 +19,18 @@ Entities:
         y: 1
         z: 1
     RelationshipComponent:
-      Parent: 00000000-0000-0000-0000-000000000000
+      Parent: 0000000000000000
       Children:
         []
     MeshComponent:
       Enabled: true
-      IsWalkable: false
+      IsWalkable: true
       Path: Navmesh/nav_test.obj
-      Material: Materials\Default.mat
-  - Name: Entity
-    EntityID: 0834e488-d7c9-4959-b551-f04a0e7ede8c
+      Material: Navmesh/NavMeshFloor.mat
+  - Name: NavMeshVolume
+    EntityID: c2ebf0058e5e122b
     TagComponent:
-      Tag: Entity
+      Tag: NavMeshVolume
     TransformComponent:
       Translation:
         x: 0
@@ -45,14 +45,14 @@ Entities:
         y: 1
         z: 1
     RelationshipComponent:
-      Parent: 00000000-0000-0000-0000-000000000000
+      Parent: 0000000000000000
       Children:
         []
     NavmeshVolumeComponent:
       Extent:
-        X: 50
-        Y: 50
-        Z: 50
+        X: 40
+        Y: 40
+        Z: 40
       Enabled: true
       CellSize: 0.3
       AgentHeight: 2
@@ -60,72 +60,68 @@ Entities:
       AgentMaxClimb: 0.5
       AgentMaxSlope: 45
   - Name: Mover
-    EntityID: f423c828-d0eb-4dda-9286-be145e62c499
+    EntityID: b99b9cfa28053af5
     TagComponent:
       Tag: Mover
     TransformComponent:
       Translation:
-        x: 4.5
-        y: -1.7676976
-        z: 0
+        x: 4.5637665
+        y: -0.99491954
+        z: -5.2561064
       Rotation:
         x: -0
         y: 0
         z: -0
       Scale:
         x: 1
-        y: 1
+        y: 2.4423928
         z: 1
     RelationshipComponent:
-      Parent: 00000000-0000-0000-0000-000000000000
-      Children:
-        - e4c334df-dfe8-4259-a058-8c98464d7613
-    MeshComponent:
-      Enabled: true
-      IsWalkable: false
-      Path: ""
-      Material: Materials/Default.mat
-    AIControllerComponent:
-      Path: scripts/aibb.ai.lua
-      MovementSpeed: 2
-      StoppingDistance: 0.5
-      GroundOffset: 0.5
-      FaceMovementDirection: true
-      RotationSpeed: 0.5
-    StimulusComponent:
-      EnableSight: true
-      EnableSound: false
-      EnableTouch: false
-      EnableDamage: false
-      SightRadius: 0
-      SoundRadius: 0
-      Tag: Untagged
-      Enabled: true
-  - Name: Child
-    EntityID: e4c334df-dfe8-4259-a058-8c98464d7613
-    TagComponent:
-      Tag: Child
-    TransformComponent:
-      Translation:
-        x: 0
-        y: 0
-        z: 0
-      Rotation:
-        x: -0
-        y: 0
-        z: -0
-      Scale:
-        x: 1
-        y: 1
-        z: 1
-    RelationshipComponent:
-      Parent: f423c828-d0eb-4dda-9286-be145e62c499
+      Parent: 0000000000000000
       Children:
         []
     MeshComponent:
       Enabled: true
       IsWalkable: false
       Path: ""
-      Material: Materials/Default.mat
+      Material: Navmesh/Mover.mat
+    AIControllerComponent:
+      Path: beh.AI.lua
+      MovementSpeed: 2
+      StoppingDistance: 0.5
+      GroundOffset: 1.23
+      FaceMovementDirection: true
+      RotationSpeed: 0.2
+    StimulusComponent:
+      EnableSight: true
+      EnableSound: true
+      EnableTouch: true
+      EnableDamage: true
+      SightRadius: 0
+      SoundRadius: 0
+      Tag: Untagged
+      Enabled: true
+    PerceptionComponent:
+      EnableSight: true
+      SightRange: 1500
+      SightFOV: 90
+      SightForgetTime: 5
+      SightLOSCheckInterval: 0.1
+      SightRequireLOS: true
+      EnableSound: false
+      SoundRange: 2000
+      SoundForgetTime: 3
+      SoundMinStrength: 0.1
+      EnableTouch: false
+      TouchForgetTime: 1
+      EnableDamage: false
+      DamageForgetTime: 2
+      UpdateInterval: 0
+      MaxUpdateDistance: 5000
+      IgnoreTags:
+        []
+      PriorityTags:
+        []
+      Enabled: true
 NavMeshData:
   Path: Navmesh\Navmesh.scene.navmesh

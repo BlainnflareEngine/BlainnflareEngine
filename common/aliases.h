@@ -1,14 +1,14 @@
 #pragma once
 
-#include <uuid_v4.h>
 #include "DirectXTK12/inc/SimpleMath.h"
 #include "entt/entt.hpp"
+#include "tools/UUID.h"
 
 #include <filesystem>
 
 namespace Blainn
 {
-using uuid = UUIDv4::UUID;
+using uuid = Blainn::UUID;
 
 using Vec2 = DirectX::SimpleMath::Vector2;
 using Vec3 = DirectX::SimpleMath::Vector3;

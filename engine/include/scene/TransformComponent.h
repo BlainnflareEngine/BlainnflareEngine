@@ -23,7 +23,6 @@ private:
     Vec3 EulerRotation{0.f, 0.f, 0.f};
     Quat Rotation{0.f, 0.f, 0.f, 1.f};
 
-
     void MarkFramesDirty()
     {
         NumFramesDirty = kNumFramesMarkDirty;
@@ -67,10 +66,6 @@ public:
         BLAINN_PROFILE_FUNC();
         using namespace DirectX::SimpleMath;
         transform.Decompose(Scale, Rotation, Translation);
-        /*
-        Vec3 re = Rotation.ToEuler();
-        EulerRotation = Vec3{re.y, re.x, re.z};
-        */
         EulerRotation = Rotation.ToEuler();
 
         MarkFramesDirty();

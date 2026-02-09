@@ -58,5 +58,5 @@ void SelectionManager::SelectUUID(uuid id, bool keepSelection)
 
 void SelectionManager::DeselectAll()
 {
-    m_selectedUUID = uuid{0, 0};
+    m_selectedUUID = uuid();
 }

@@ -56,11 +56,11 @@
 #pragma endregion
 
 
-#include <uuid_v4.h>
 #include <yaml-cpp/yaml.h>
 
 #include "subsystems/Log.h"
 #include "tools/Profiler.h"
+#include "tools/UUID.h"
 
 
 #pragma region New operators for EASTL
@@ -77,19 +77,6 @@ inline void *operator new[](size_t size, size_t alignment, size_t alignmentOffse
 }
 
 #pragma endregion
-
-
-namespace eastl
-{
-template <> struct hash<UUIDv4::UUID>
-{
-    size_t operator()(const UUIDv4::UUID &u) const EA_NOEXCEPT
-    {
-        return u.hash(); // must return size_t
-    }
-};
-} // namespace eastl
-
 
 inline eastl::string ToEASTLString(const std::string &s)
 {
@@ -148,4 +135,10 @@ inline eastl::string ToEASTLString(const std::string &s)
 #ifdef BLAINN_REGISTER_LUA_TYPES
 // enable to test lua scripts functionality.
 // #define BLAINN_TEST_LUA_SCRIPTS
+#endif
+
+#if defined(_MSC_VER)
+    #define BF_FORCEINLINE __forceinline
+#else
+    #define BF_FORCEINLINE inline __attribute__((always_inline))
 #endif

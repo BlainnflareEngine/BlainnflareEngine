@@ -11,7 +11,6 @@ https://github.com/assimp/assimp.git ^
 https://github.com/gabime/spdlog.git ^
 https://github.com/wolfpld/tracy.git ^
 https://github.com/ThePhD/sol2.git ^
-https://github.com/crashoz/uuid_v4.git ^
 https://github.com/jbeder/yaml-cpp.git ^
 https://github.com/skypjack/entt.git ^
 https://github.com/cameron314/concurrentqueue.git ^

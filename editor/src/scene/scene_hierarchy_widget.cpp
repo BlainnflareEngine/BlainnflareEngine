@@ -490,7 +490,7 @@ void scene_hierarchy_widget::OnItemChanged(QTreeWidgetItem *item, int column)
     if (entity.IsValid() && entity.HasComponent<Blainn::TagComponent>())
     {
         entity.GetComponent<Blainn::TagComponent>().Tag = ToEASTLString(item->text(0));
-        if (m_entityInspector->GetCurrentEntityUUID() == uuid) m_entityInspector->SetTag(item->text(0));
+        if (m_entityInspector && m_entityInspector->GetCurrentEntityUUID() == uuid) m_entityInspector->SetTag(item->text(0));
     }
 }
 

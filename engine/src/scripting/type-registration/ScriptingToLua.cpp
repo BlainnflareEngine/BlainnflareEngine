@@ -51,7 +51,7 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
                              [&luaState](const std::string &idStr, const std::string &valueName)
                              {
                                  return ScriptingSubsystem::GetValueFromScript(
-                                     uuid::fromStrFactory(idStr), eastl::string(valueName.c_str()));                                  
+                                     uuid::fromStrFactory(idStr), eastl::string(valueName.c_str()));
                              });
 
     scriptTable.set_function("SetValueInScript",

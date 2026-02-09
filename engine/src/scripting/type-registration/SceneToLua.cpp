@@ -73,7 +73,7 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
         "CreateEntityWithID",
         [](Scene &scene, const std::string &idStr, const std::string &name, bool shouldSort, bool onSceneChanged)
         {
-            uuid id = uuid::fromStrFactory(idStr);
+            uuid id = uuid(idStr);
             return scene.CreateEntityWithID(id, eastl::string(name.c_str()), shouldSort, onSceneChanged);
         });
 
