@@ -94,7 +94,6 @@ set(ENGINE_SOURCES
         include/scripting/TypeRegistration.h
         src/scripting/type-registration/CommonToLua.cpp
         src/scripting/type-registration/VectorsToLua.cpp
-        src/scripting/type-registration/UselessSimpleMathTypesToLua.cpp
         src/scripting/type-registration/InputToLua.cpp
         src/scripting/type-registration/EntityToLua.cpp
         src/scripting/type-registration/SceneToLua.cpp
@@ -111,8 +110,8 @@ set(ENGINE_SOURCES
         src/scripting/type-registration/Vector2ToLua.cpp
         src/scripting/type-registration/Vector3ToLua.cpp
         src/scripting/type-registration/Vector4ToLua.cpp
-        src/scripting/type-registration/RegisterQuatType.cpp
-        src/scripting/type-registration/RegisterMat4Type.cpp
+        src/scripting/type-registration/QuatToLua.cpp
+        src/scripting/type-registration/Mat4ToLua.cpp
         src/scripting/type-registration/DebugUIRendererToLua.cpp
 
         include/subsystems/PhysicsSubsystem.h

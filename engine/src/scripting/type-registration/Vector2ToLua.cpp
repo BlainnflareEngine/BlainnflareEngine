@@ -30,7 +30,8 @@ void RegisterVector2Type(sol::state &luaState)
             [](const Vec2 &a, const Vec2 &b) { return a / b; },
             [](const Vec2 &v, float s) { return v / s; },
             [](float s, const Vec2 &v) { return s / v; }
-            ),        sol::meta_function::equal_to, [](const Vec2 &a, const Vec2 &b) { return a == b; },
+            ),
+        sol::meta_function::equal_to, [](const Vec2 &a, const Vec2 &b) { return a == b; },
         sol::meta_function::unary_minus, [](const Vec2 &a) { return -a; }
     );
 
@@ -38,28 +39,28 @@ void RegisterVector2Type(sol::state &luaState)
     Vec2Type["y"] = &Vec2::y;
 
     // Member functions
-    Vec2Type["Length"] = static_cast<float (Vec2::*)() const>(&Vec2::Length);
-    Vec2Type["LengthSquared"] = static_cast<float (Vec2::*)() const>(&Vec2::LengthSquared);
-    Vec2Type["Normalize"] = static_cast<void (Vec2::*)()>(&Vec2::Normalize);
-    Vec2Type["Dot"] = static_cast<float (Vec2::*)(const Vec2 &) const>(&Vec2::Dot);
-    Vec2Type["Cross"] = static_cast<Vec2 (Vec2::*)(const Vec2 &) const>(&Vec2::Cross);
-    Vec2Type["Clamp"] = static_cast<void (Vec2::*)(const Vec2&, const Vec2&)>(&Vec2::Clamp);
+    Vec2Type.set_function("Length",          &Vec2::Length);
+    Vec2Type.set_function("LengthSquared",   &Vec2::LengthSquared);
+    Vec2Type.set_function("Normalize",       static_cast<void (Vec2::*)()>(&Vec2::Normalize));
+    Vec2Type.set_function("Dot",             static_cast<float (Vec2::*)(const Vec2 &) const>(&Vec2::Dot));
+    Vec2Type.set_function("Cross",           static_cast<Vec2 (Vec2::*)(const Vec2 &) const>(&Vec2::Cross));
+    Vec2Type.set_function("Clamp",           static_cast<void (Vec2::*)(const Vec2&, const Vec2&)>(&Vec2::Clamp));
 
     // Static functions
-    Vec2Type["Distance"] = static_cast<float (*)(const Vec2&, const Vec2&)>(&Vec2::Distance);
-    Vec2Type["DistanceSquared"] = static_cast<float (*)(const Vec2&, const Vec2&)>(&Vec2::DistanceSquared);
-    Vec2Type["Min"] = static_cast<Vec2 (*)(const Vec2&, const Vec2&)>(&Vec2::Min);
-    Vec2Type["Max"] = static_cast<Vec2 (*)(const Vec2&, const Vec2&)>(&Vec2::Max);
-    Vec2Type["Lerp"] = static_cast<Vec2 (*)(const Vec2&, const Vec2&, float)>(&Vec2::Lerp);
-    Vec2Type["SmoothStep"] = static_cast<Vec2 (*)(const Vec2&, const Vec2&, float)>(&Vec2::SmoothStep);
-    Vec2Type["Barycentric"] = static_cast<Vec2 (*)(const Vec2&, const Vec2&, const Vec2&, float, float)>(&Vec2::Barycentric);
-    Vec2Type["CatmullRom"] = static_cast<Vec2 (*)(const Vec2&, const Vec2&, const Vec2&, const Vec2&, float)>(&Vec2::CatmullRom);
-    Vec2Type["Hermite"] = static_cast<Vec2 (*)(const Vec2&, const Vec2&, const Vec2&, const Vec2&, float)>(&Vec2::Hermite);
-    Vec2Type["Reflect"] = static_cast<Vec2 (*)(const Vec2&, const Vec2&)>(&Vec2::Reflect);
-    Vec2Type["Refract"] = static_cast<Vec2 (*)(const Vec2&, const Vec2&, float)>(&Vec2::Refract);
-    Vec2Type["TransformQuat"] = static_cast<Vec2 (*)(const Vec2&, const Quat&)>(&Vec2::Transform);
-    Vec2Type["TransformMat4"] = static_cast<Vec2 (*)(const Vec2&, const Mat4&)>(&Vec2::Transform);
-    Vec2Type["TransformNormal"] = static_cast<Vec2 (*)(const Vec2&, const Mat4&)>(&Vec2::TransformNormal);
+    Vec2Type.set_function("Distance",        static_cast<float (*)(const Vec2&, const Vec2&)>(&Vec2::Distance));
+    Vec2Type.set_function("DistanceSquared", static_cast<float (*)(const Vec2&, const Vec2&)>(&Vec2::DistanceSquared));
+    Vec2Type.set_function("Min",             static_cast<Vec2 (*)(const Vec2&, const Vec2&)>(&Vec2::Min));
+    Vec2Type.set_function("Max",             static_cast<Vec2 (*)(const Vec2&, const Vec2&)>(&Vec2::Max));
+    Vec2Type.set_function("Lerp",            static_cast<Vec2 (*)(const Vec2&, const Vec2&, float)>(&Vec2::Lerp));
+    Vec2Type.set_function("SmoothStep",      static_cast<Vec2 (*)(const Vec2&, const Vec2&, float)>(&Vec2::SmoothStep));
+    Vec2Type.set_function("Barycentric",     static_cast<Vec2 (*)(const Vec2&, const Vec2&, const Vec2&, float, float)>(&Vec2::Barycentric));
+    Vec2Type.set_function("CatmullRom",      static_cast<Vec2 (*)(const Vec2&, const Vec2&, const Vec2&, const Vec2&, float)>(&Vec2::CatmullRom));
+    Vec2Type.set_function("Hermite",         static_cast<Vec2 (*)(const Vec2&, const Vec2&, const Vec2&, const Vec2&, float)>(&Vec2::Hermite));
+    Vec2Type.set_function("Reflect",         static_cast<Vec2 (*)(const Vec2&, const Vec2&)>(&Vec2::Reflect));
+    Vec2Type.set_function("Refract",         static_cast<Vec2 (*)(const Vec2&, const Vec2&, float)>(&Vec2::Refract));
+    Vec2Type.set_function("TransformQuat",   static_cast<Vec2 (*)(const Vec2&, const Quat&)>(&Vec2::Transform));
+    Vec2Type.set_function("TransformMat4",   static_cast<Vec2 (*)(const Vec2&, const Mat4&)>(&Vec2::Transform));
+    Vec2Type.set_function("TransformNormal", static_cast<Vec2 (*)(const Vec2&, const Mat4&)>(&Vec2::TransformNormal));
 
     // Constants
     luaState["Vec2Zero"] = Vec2::Zero;

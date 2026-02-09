@@ -20,19 +20,25 @@ using namespace Blainn;
 void Blainn::RegisterAssetLoaderTypes(sol::state &luaState)
 {
     // Expose TextureType to Lua
-    luaState.new_enum<true>("TextureType", "NONE", TextureType::NONE, "ALBEDO", TextureType::ALBEDO, "NORMAL",
-                            TextureType::NORMAL, "METALLIC", TextureType::METALLIC, "ROUGHNESS", TextureType::ROUGHNESS,
-                            "AO", TextureType::AO, "CUBEMAP", TextureType::CUBEMAP, "OTHER", TextureType::OTHER);
+    luaState.new_enum<TextureType, true>("TextureType", {
+                                             {"NONE",      TextureType::NONE},
+                                             {"ALBEDO",    TextureType::ALBEDO},
+                                             {"NORMAL",    TextureType::NORMAL},
+                                             {"METALLIC",  TextureType::METALLIC},
+                                             {"ROUGHNESS", TextureType::ROUGHNESS},
+                                             {"AO",        TextureType::AO},
+                                             {"CUBEMAP",   TextureType::CUBEMAP},
+                                             {"OTHER",     TextureType::OTHER}
+                                         });
 
     // ImportMeshData binding
-    sol::usertype<ImportMeshData> ImportMeshDataType =
-        luaState.new_usertype<ImportMeshData>("ImportMeshData", sol::constructors<ImportMeshData()>());
+    sol::usertype<ImportMeshData> ImportMeshDataType = luaState.new_usertype<ImportMeshData>("ImportMeshData", sol::constructors<ImportMeshData()>());
     ImportMeshDataType["path"] = sol::property(
         [](const ImportMeshData &d) { return d.path.string(); },
         [](ImportMeshData &d, const std::string &p) { d.path = Path(p); });
-    ImportMeshDataType["id"] =
-        sol::property([](const ImportMeshData &d) { return d.id.str(); },
-                      [](ImportMeshData &d, const std::string &idStr) { d.id = uuid::fromStrFactory(idStr); });
+    ImportMeshDataType["id"] = sol::property(
+        [](const ImportMeshData &d) { return d.id.str(); },
+        [](ImportMeshData &d, const std::string &idStr) { d.id = uuid::fromStrFactory(idStr); });
     ImportMeshDataType["convertToLH"] = &ImportMeshData::convertToLH;
     ImportMeshDataType["createMaterials"] = &ImportMeshData::createMaterials;
 
@@ -42,16 +48,16 @@ void Blainn::RegisterAssetLoaderTypes(sol::state &luaState)
 
     sol::usertype<MeshHandle> MeshHandleType = luaState.new_usertype<MeshHandle>("MeshHandle", sol::no_constructor);
     MeshHandleType.set_function("GetIndex", &MeshHandle::GetIndex);
-    MeshHandleType.set_function("GetMesh", &MeshHandle::GetMesh);
+    MeshHandleType.set_function("GetMesh",  &MeshHandle::GetMesh);
 
     sol::usertype<MaterialHandle> MaterialHandleType =
         luaState.new_usertype<MaterialHandle>("MaterialHandle", sol::no_constructor);
-    MaterialHandleType.set_function("GetIndex", &MaterialHandle::GetIndex);
+    MaterialHandleType.set_function("GetIndex",    &MaterialHandle::GetIndex);
     MaterialHandleType.set_function("GetMaterial", &MaterialHandle::GetMaterial);
 
     sol::usertype<TextureHandle> TextureHandleType =
         luaState.new_usertype<TextureHandle>("TextureHandle", sol::no_constructor);
-    TextureHandleType.set_function("GetIndex", &TextureHandle::GetIndex);
+    TextureHandleType.set_function("GetIndex",   &TextureHandle::GetIndex);
     TextureHandleType.set_function("GetTexture", &TextureHandle::GetTexture);
 
     // File-system types
@@ -69,47 +75,50 @@ void Blainn::RegisterAssetLoaderTypes(sol::state &luaState)
     sol::table assetTable = luaState.create_table();
 
     assetTable.set_function("LoadMesh",
-                            [](const std::string &relativePath, const ImportMeshData &data)
-                            {
-                                Path p(relativePath);
-                                auto handle = AssetManager::GetInstance().LoadMesh(p, data);
-                                if (!handle) return 0u;
-                                return handle->GetIndex();
-                            });
+        [](const std::string &relativePath, const ImportMeshData &data)
+        {
+            Path p(relativePath);
+            auto handle = AssetManager::GetInstance().LoadMesh(p, data);
+            if (!handle) return 0u;
+            return handle->GetIndex();
+        });
 
     assetTable.set_function("LoadTexture",
-                            [](const std::string &pathStr, const TextureType type)
-                            {
-                                Path p(pathStr);
-                                auto handle = AssetManager::GetInstance().LoadTexture(p, type);
-                                if (!handle) return 0u;
-                                return handle->GetIndex();
-                            });
+        [](const std::string &pathStr, const TextureType type)
+        {
+            Path p(pathStr);
+            auto handle = AssetManager::GetInstance().LoadTexture(p, type);
+            if (!handle) return 0u;
+            return handle->GetIndex();
+        });
 
     assetTable.set_function("LoadMaterial",
-                            [](const std::string &pathStr)
-                            {
-                                Path p(pathStr);
-                                auto handle = AssetManager::GetInstance().LoadMaterial(p);
-                                if (!handle) return 0u;
-                                return handle->GetIndex();
-                            });
+        [](const std::string &pathStr)
+        {
+            Path p(pathStr);
+            auto handle = AssetManager::GetInstance().LoadMaterial(p);
+            if (!handle) return 0u;
+            return handle->GetIndex();
+        });
 
     assetTable.set_function("GetMeshPath",
-                            [](const unsigned int index) -> std::string
-                            {
-                                Model &m = AssetManager::GetInstance().GetMeshByIndex(index);
-                                return m.GetPath().string();
-                            });
+        [](const unsigned int index) -> std::string
+        {
+            Model &m = AssetManager::GetInstance().GetMeshByIndex(index);
+            return m.GetPath().string();
+        });
 
-    assetTable.set_function("GetModelByIndex", [](const unsigned int index) -> Model &
-                            { return AssetManager::GetInstance().GetMeshByIndex(index); });
+    assetTable.set_function("GetModelByIndex",
+        [](const unsigned int index) -> Model &
+        { return AssetManager::GetInstance().GetMeshByIndex(index); });
 
-    assetTable.set_function("GetTextureByIndex", [](const unsigned int index) -> Texture &
-                            { return AssetManager::GetInstance().GetTextureByIndex(index); });
+    assetTable.set_function("GetTextureByIndex",
+        [](const unsigned int index) -> Texture &
+        { return AssetManager::GetInstance().GetTextureByIndex(index); });
 
-    assetTable.set_function("GetMaterialByIndex", [](const unsigned int index) -> Material &
-                            { return AssetManager::GetInstance().GetMaterialByIndex(index); });
+    assetTable.set_function("GetMaterialByIndex",
+        [](const unsigned int index) -> Material &
+        { return AssetManager::GetInstance().GetMaterialByIndex(index); });
 
     luaState["AssetManager"] = assetTable;
 }

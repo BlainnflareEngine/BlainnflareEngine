@@ -358,28 +358,28 @@ void Blainn::RegisterInputTypes(sol::state &luaState)
     inputTable.set_function("AddEventListener", add_listener_func);
 
     inputTable.set_function("RemoveEventListener",
-                            [](int eventTypeInt, uint64_t id)
-                            {
-                                auto it = s_inputListenerRemovers.find(id);
-                                if (it == s_inputListenerRemovers.end()) return;
-                                // call stored remover
-                                it->second();
-                                s_inputListenerRemovers.erase(it);
-                            });
+        [](int eventTypeInt, uint64_t id)
+        {
+            auto it = s_inputListenerRemovers.find(id);
+            if (it == s_inputListenerRemovers.end()) return;
+            // call stored remover
+            it->second();
+            s_inputListenerRemovers.erase(it);
+        });
 
 
-    inputTable.set_function("IsKeyPressed",     &Input::IsKeyPressed);
-    inputTable.set_function("IsKeyHeld",        &Input::IsKeyHeld);
-    inputTable.set_function("IsKeyDown",        &Input::IsKeyDown);
-    inputTable.set_function("IsKeyReleased",    &Input::IsKeyReleased);
+    inputTable.set_function("IsKeyPressed",  &Input::IsKeyPressed);
+    inputTable.set_function("IsKeyHeld",     &Input::IsKeyHeld);
+    inputTable.set_function("IsKeyDown",     &Input::IsKeyDown);
+    inputTable.set_function("IsKeyReleased", &Input::IsKeyReleased);
 
-    inputTable.set_function("IsMouseButtonPressed",     &Input::IsMouseButtonPressed);
-    inputTable.set_function("IsMouseButtonHeld",        &Input::IsMouseButtonHeld);
-    inputTable.set_function("IsMouseButtonDown",        &Input::IsMouseButtonDown);
-    inputTable.set_function("IsMouseButtonReleased",    &Input::IsMouseButtonReleased);
+    inputTable.set_function("IsMouseButtonPressed",  &Input::IsMouseButtonPressed);
+    inputTable.set_function("IsMouseButtonHeld",     &Input::IsMouseButtonHeld);
+    inputTable.set_function("IsMouseButtonDown",     &Input::IsMouseButtonDown);
+    inputTable.set_function("IsMouseButtonReleased", &Input::IsMouseButtonReleased);
 
-    inputTable.set_function("GetMousePositionX",      &Input::GetMousePositionX);
-    inputTable.set_function("GetMousePositionY",      &Input::GetMousePositionY);
+    inputTable.set_function("GetMousePositionX", &Input::GetMousePositionX);
+    inputTable.set_function("GetMousePositionY", &Input::GetMousePositionY);
 
     luaState["Input"] = inputTable;
 }
