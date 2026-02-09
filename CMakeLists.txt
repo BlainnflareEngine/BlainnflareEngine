@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.1...4.1.1)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
 
 cmake_policy(SET CMP0074 OLD)
 cmake_policy(SET CMP0169 OLD)
-add_compile_options(/EHsc /arch:AVX2)
+if(MSVC)
+    add_compile_options(/EHsc /arch:AVX2)
+    add_compile_options(/MP)
+endif()
 
 option(BLAINN_EXCLUDE_EDITOR "Build the engine without the editor" OFF)
 option(BLAINN_DISABLE_D3D_DEBUG_LAYER "Disable debug layer for better performance" OFF)
@@ -29,13 +29,6 @@ set(CMAKE_CONFIGURATION_TYPES
         Dist
         CACHE STRING "" FORCE)
 
-# These definitions apply to all the projects
-if(NOT BLAINN_EXCLUDE_EDITOR)
-    add_compile_definitions(
-        "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:BLAINN_HAS_CONSOLE>"
-    )
-endif()
-
 if(TRACY_ENABLE)
     add_compile_definitions("TRACY_ENABLE;BLAINN_ENABLE_PROFILING=1")
 endif()
@@ -51,6 +44,15 @@ project(${PROJECT_NAME}
         VERSION 0.0.1
         LANGUAGES CXX C
 )
+
+# Put executable outputs at the build directory root for all configurations.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+if(CMAKE_CONFIGURATION_TYPES)
+    foreach(cfg ${CMAKE_CONFIGURATION_TYPES})
+        string(TOUPPER "${cfg}" cfg_upper)
+        set("CMAKE_RUNTIME_OUTPUT_DIRECTORY_${cfg_upper}" "${CMAKE_BINARY_DIR}")
+    endforeach()
+endif()
 
 
 # cpp options
