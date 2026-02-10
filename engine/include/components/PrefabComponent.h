@@ -13,12 +13,13 @@ namespace Blainn
 {
 struct PrefabOverride
 {
-    eastl::string Path;
-    eastl::any value;
+    entt::id_type ComponentType;
+    YAML::Node OriginalData;
 };
 
+
 // Component-Overrides map, stores prefab values that are overridden by user
-using PrefabOverrides = eastl::unordered_map<entt::id_type, eastl::vector<PrefabOverride>>;
+using PrefabOverrides = eastl::unordered_map<entt::id_type, PrefabOverride>;
 
 struct PrefabComponent
 {

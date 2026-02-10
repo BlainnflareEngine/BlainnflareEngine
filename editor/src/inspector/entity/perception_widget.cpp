@@ -15,7 +15,7 @@
 namespace editor
 {
 perception_widget::perception_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "Perception", parent)
+    : component_widget(entity, "Perception", parent)
 {
     if (!m_entity.IsValid() || !m_entity.HasComponent<Blainn::PerceptionComponent>())
     {
@@ -135,7 +135,7 @@ void perception_widget::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();
 
-    component_widget_base::paintEvent(event);
+    component_widget::paintEvent(event);
 }
 
 

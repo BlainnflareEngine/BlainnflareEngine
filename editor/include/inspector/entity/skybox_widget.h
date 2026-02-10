@@ -1,12 +1,12 @@
 #pragma once
 
-#include "component_widget_base.h"
+#include "component_widget.h"
 
 namespace editor
 {
 class path_input_field;
 
-class skybox_widget : public component_widget_base
+class skybox_widget : public component_widget<Blainn::TransformComponent>
 {
 public:
     explicit skybox_widget(const Blainn::Entity &entity, QWidget *parent = nullptr);

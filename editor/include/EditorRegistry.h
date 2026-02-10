@@ -19,7 +19,7 @@
 #include "entity/physics_widget.h"
 #include "entity/camera_widget.h"
 #include "entity/ai_controller_widget.h"
-#include "entity/component_widget_base.h"
+#include "entity/component_widget.h"
 #include "entity/mesh_widget.h"
 #include "entity/navmesh_volume_widget.h"
 #include "entity/perception_widget.h"

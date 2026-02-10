@@ -319,9 +319,9 @@ void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, 
 
         for (const auto &[typeId, meta] : g_componentRegistry)
         {
-            if (meta.hasComponent(entityNode))
+            if (meta.hasComponent(entityNode, true))
             {
-                meta.deserializer(entity, entityNode);
+                meta.deserializer(entity, entityNode, true);
             }
         }
     }
@@ -345,9 +345,9 @@ Entity Scene::CreatePrefabEntity(const YAML::Node &prefabNode)
         for (const auto &[typeId, meta] : g_componentRegistry)
         {
             if (typeId == entt::type_hash<RelationshipComponent>::value()) continue;
-            if (meta.hasComponent(node))
+            if (meta.hasComponent(node, true))
             {
-                meta.deserializer(entity, node);
+                meta.deserializer(entity, node, true);
             }
         }
 
@@ -606,6 +606,7 @@ void Scene::UnparentEntity(Entity entity, bool convertToWorldSpace)
     ReportEntityReparent(entity);
 }
 
+// TODO: refactor this trash
 Entity Scene::DuplicateEntity(Entity entity)
 {
     // This is bad solution for duplication problem, we will need to solve it other way, with reflection maybe
@@ -714,7 +715,11 @@ Entity Scene::DuplicateEntity(Entity entity)
         }
 
         if (auto comp = src.TryGetComponent<AIControllerComponent>())
-            AISubsystem::GetInstance().CreateAttachAIControllerComponent(newEntity, comp->scriptPath);
+        {
+            auto controller = AIControllerComponent();
+            controller.scriptPath = comp->scriptPath;
+            AISubsystem::GetInstance().CreateAttachAIControllerComponent(newEntity, controller);
+        }
 
         if (auto comp = src.TryGetComponent<SkyboxComponent>()) newEntity.AddComponent<SkyboxComponent>(*comp);
 
@@ -781,8 +786,7 @@ Mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
 
     if (parent) return entity.Transform()->GetTransform() * GetWorldSpaceTransformMatrix(parent);
 
-    if (auto* transformComp = entity.Transform())
-        return transformComp->GetTransform();
+    if (auto *transformComp = entity.Transform()) return transformComp->GetTransform();
     return Mat4();
 }
 

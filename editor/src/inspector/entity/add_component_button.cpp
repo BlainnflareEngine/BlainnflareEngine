@@ -151,7 +151,8 @@ void add_component_button::OnAIControllerAction()
 
     if (m_entity.HasComponent<Blainn::AIControllerComponent>()) return;
 
-    Blainn::AISubsystem::GetInstance().CreateAttachAIControllerComponent(m_entity, "");
+    auto controller = Blainn::AIControllerComponent();
+    Blainn::AISubsystem::GetInstance().CreateAttachAIControllerComponent(m_entity, controller);
     auto aiController = new ai_controller_widget(m_entity, this);
     m_layout->insertWidget(m_layout->count() - 1, aiController);
 }

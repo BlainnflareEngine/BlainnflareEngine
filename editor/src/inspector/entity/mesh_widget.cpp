@@ -17,7 +17,7 @@
 namespace editor
 {
 mesh_widget::mesh_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "Mesh", parent)
+    : component_widget(entity, "Mesh", parent)
 {
     Blainn::MeshComponent *mesh = m_entity.TryGetComponent<Blainn::MeshComponent>();
     if (!mesh)
@@ -150,6 +150,6 @@ void mesh_widget::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();
 
-    component_widget_base::paintEvent(event);
+    component_widget::paintEvent(event);
 }
 } // namespace editor

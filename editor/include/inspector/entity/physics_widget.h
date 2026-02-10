@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "component_widget_base.h"
+#include "component_widget.h"
 #include "input-widgets/enum_input_widget.h"
 #include "input-widgets/vector3_bool_widget.h"
 
@@ -20,7 +20,7 @@ class bool_input_field;
 namespace editor
 {
 
-class physics_widget : public component_widget_base
+class physics_widget : public component_widget<Blainn::TransformComponent>
 {
 public:
     explicit physics_widget(const Blainn::Entity &entity, QWidget *parent = nullptr);

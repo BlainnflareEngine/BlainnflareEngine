@@ -36,16 +36,21 @@ public:
 
     void Update(float dt);
 
-    void CreateAttachAIControllerComponent(Entity entity, const Path &aiScriptPath);
+    static void CreateAttachAIControllerComponent(Entity entity, AIControllerComponent &controller);
     bool CreateAIController(Entity entity);
     void DestroyAIControllerComponent(Entity entity);
 
     BehaviourTree *GetBehaviourTree(const eastl::string &name);
 
 
-    
-    void SetSettings(const Settings& settings) { m_settings = settings; }
-    const Settings& GetSettings() const { return m_settings; }
+    void SetSettings(const Settings &settings)
+    {
+        m_settings = settings;
+    }
+    const Settings &GetSettings() const
+    {
+        return m_settings;
+    }
 
 private:
     AISubsystem() = default;
@@ -53,7 +58,7 @@ private:
     void LoadBlackboard(const sol::table &scriptEnvironment, eastl::unique_ptr<Blackboard> &blackboard);
     void LoadBehaviourTrees(const sol::table &scriptEnvironment, BTMap &behaviourTrees);
     void LoadUtility(const sol::table &scriptEnvironment, eastl::unique_ptr<UtilitySelector> &utility);
-    
+
     void UpdateLOD();
     float CalculateUpdateInterval(float distanceToCamera);
 

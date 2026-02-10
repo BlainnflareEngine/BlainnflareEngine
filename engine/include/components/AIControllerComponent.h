@@ -11,6 +11,8 @@ namespace Blainn
 
 struct AIControllerComponent
 {
+    AIControllerComponent() = default;
+
     std::string scriptPath;
     AIController aiController;
     eastl::unique_ptr<LuaScript> aiScript;

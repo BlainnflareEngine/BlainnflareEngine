@@ -17,7 +17,7 @@
 namespace editor
 {
 stimulus_widget::stimulus_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "Stimulus", parent)
+    : component_widget(entity, "Stimulus", parent)
 {
     auto comp = entity.TryGetComponent<Blainn::StimulusComponent>();
     if (!comp)
@@ -76,7 +76,7 @@ void stimulus_widget::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();
 
-    component_widget_base::paintEvent(event);
+    component_widget::paintEvent(event);
 }
 
 

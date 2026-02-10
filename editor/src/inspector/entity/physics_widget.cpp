@@ -17,7 +17,7 @@
 namespace editor
 {
 physics_widget::physics_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "Physics", parent)
+    : component_widget(entity, "Physics", parent)
 {
     m_isTrigger = new bool_input_field("Is Trigger", false, this);
 
@@ -472,6 +472,6 @@ void physics_widget::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();
 
-    component_widget_base::paintEvent(event);
+    component_widget::paintEvent(event);
 }
 } // namespace editor

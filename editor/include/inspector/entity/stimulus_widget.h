@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "component_widget_base.h"
+#include "component_widget.h"
 #include "input-widgets/float_input_field.h"
 
 namespace editor
@@ -15,7 +15,7 @@ class bool_input_field;
 namespace editor
 {
 
-class stimulus_widget : public component_widget_base
+class stimulus_widget : public component_widget<Blainn::TransformComponent>
 {
     Q_OBJECT
 

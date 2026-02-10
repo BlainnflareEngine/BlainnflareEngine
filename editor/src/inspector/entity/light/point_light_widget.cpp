@@ -13,7 +13,7 @@
 namespace editor
 {
 point_light_widget::point_light_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "Point light", parent)
+    : component_widget(entity, "Point light", parent)
 {
     Blainn::PointLightComponent *comp;
     if (!m_entity.IsValid() || !(comp = m_entity.TryGetComponent<Blainn::PointLightComponent>()))
@@ -57,7 +57,7 @@ void point_light_widget::DeleteComponent()
 
 void point_light_widget::OnUpdate()
 {
-    component_widget_base::OnUpdate();
+    component_widget::OnUpdate();
 }
 
 

@@ -1,7 +1,4 @@
-﻿//
-// Created by gorev on 26.01.2026.
-//
-
+﻿// ComponentRegistry.h
 #pragma once
 #include "Serializer.h"
 #include "EASTL/vector.h"
@@ -15,16 +12,16 @@ namespace Blainn
 struct ComponentMeta
 {
     eastl::string name;
-    eastl::function<bool(const YAML::Node &)> hasComponent;
-    eastl::function<void(Entity &, const YAML::Node &)> deserializer;
+    eastl::function<bool(const YAML::Node &, bool)> hasComponent;
+    eastl::function<void(Entity &, const YAML::Node &, bool)> deserializer;
     eastl::function<void(Entity &, YAML::Emitter &)> serializer;
 };
 
 inline eastl::vector<eastl::pair<entt::id_type, ComponentMeta>> g_componentRegistry;
 
 template <typename ComponentType>
-void RegisterComponent(const char *name, eastl::function<bool(const YAML::Node &)> hasFn,
-                       eastl::function<void(Entity &, const YAML::Node &)> deserializeFn,
+void RegisterComponent(const char *name, eastl::function<bool(const YAML::Node &, bool)> hasFn,
+                       eastl::function<void(Entity &, const YAML::Node &, bool)> deserializeFn,
                        eastl::function<void(Entity &, YAML::Emitter &)> serializeFn)
 {
     g_componentRegistry.emplace_back(entt::type_hash<ComponentType>::value(),
@@ -34,19 +31,29 @@ void RegisterComponent(const char *name, eastl::function<bool(const YAML::Node &
 inline void InitializeComponentRegistry()
 {
     RegisterComponent<TagComponent>(
-        "TagComponent", HasTag, [](Entity &e, const YAML::Node &node)
-        { e.GetComponent<TagComponent>().Tag = eastl::move(GetTag(node["TagComponent"])); },
+        "TagComponent", HasTag,
+        [](Entity &e, const YAML::Node &node, bool packed)
+        {
+            if (e.HasComponent<TagComponent>()) e.GetComponent<TagComponent>().Tag = eastl::move(GetTag(node, packed));
+            else e.AddComponent<TagComponent>(eastl::move(GetTag(node, packed)));
+        },
         [](Entity &e, YAML::Emitter &out) { Serializer::Tag(e, out); });
+
     RegisterComponent<TransformComponent>(
         "TransformComponent", HasTransform,
-        [](Entity &e, const YAML::Node &node) { e.AddComponent<TransformComponent>(eastl::move(GetTransform(node))); },
+        [](Entity &e, const YAML::Node &node, bool packed)
+        {
+            if (e.HasComponent<TransformComponent>())
+                e.GetComponent<TransformComponent>() = eastl::move(GetTransform(node, packed));
+            else e.AddComponent<TransformComponent>(eastl::move(GetTransform(node, packed)));
+        },
         [](Entity &e, YAML::Emitter &out) { Serializer::Transform(e, out); });
 
     RegisterComponent<RelationshipComponent>(
         "RelationshipComponent", HasRelationship,
-        [](Entity &e, const YAML::Node &node)
+        [](Entity &e, const YAML::Node &node, bool packed)
         {
-            auto comp = GetRelationship(node);
+            auto comp = GetRelationship(node, packed);
             if (auto existing = e.TryGetComponent<RelationshipComponent>())
             {
                 e.SetParentUUID(comp.ParentHandle);
@@ -60,66 +67,129 @@ inline void InitializeComponentRegistry()
         [](Entity &e, YAML::Emitter &out) { Serializer::Relationship(e, out); });
 
     RegisterComponent<DirectionalLightComponent>(
-        "DirectionalLightComponent", HasDirectionalLight, [](Entity &e, const YAML::Node &node)
-        { e.AddComponent<DirectionalLightComponent>(eastl::move(GetDirectionalLight(node))); },
+        "DirectionalLightComponent", HasDirectionalLight,
+        [](Entity &e, const YAML::Node &node, bool packed)
+        {
+            if (e.HasComponent<DirectionalLightComponent>())
+                e.GetComponent<DirectionalLightComponent>() = eastl::move(GetDirectionalLight(node, packed));
+            else e.AddComponent<DirectionalLightComponent>(eastl::move(GetDirectionalLight(node, packed)));
+        },
         [](Entity &e, YAML::Emitter &out) { Serializer::DirectionalLight(e, out); });
 
     RegisterComponent<PointLightComponent>(
-        "PointLightComponent", HasPointLight, [](Entity &e, const YAML::Node &node)
-        { e.AddComponent<PointLightComponent>(eastl::move(GetPointLight(node))); },
+        "PointLightComponent", HasPointLight,
+        [](Entity &e, const YAML::Node &node, bool packed)
+        {
+            if (e.HasComponent<PointLightComponent>())
+                e.GetComponent<PointLightComponent>() = eastl::move(GetPointLight(node, packed));
+            else e.AddComponent<PointLightComponent>(eastl::move(GetPointLight(node, packed)));
+        },
         [](Entity &e, YAML::Emitter &out) { Serializer::PointLight(e, out); });
 
     RegisterComponent<SpotLightComponent>(
         "SpotLightComponent", HasSpotLight,
-        [](Entity &e, const YAML::Node &node) { e.AddComponent<SpotLightComponent>(eastl::move(GetSpotLight(node))); },
+        [](Entity &e, const YAML::Node &node, bool packed)
+        {
+            if (e.HasComponent<SpotLightComponent>())
+                e.GetComponent<SpotLightComponent>() = eastl::move(GetSpotLight(node, packed));
+            else e.AddComponent<SpotLightComponent>(eastl::move(GetSpotLight(node, packed)));
+        },
         [](Entity &e, YAML::Emitter &out) { Serializer::SpotLight(e, out); });
 
     RegisterComponent<PhysicsComponent>(
-        "PhysicsComponent", HasPhysics, [](Entity &e, const YAML::Node &node) { GetPhysics(node, e); },
-        [](Entity &e, YAML::Emitter &out) { Serializer::Physics(e, out); });
+        "PhysicsComponent", HasPhysics, [](Entity &e, const YAML::Node &node, bool packed)
+        { GetPhysics(node, e, packed); }, [](Entity &e, YAML::Emitter &out) { Serializer::Physics(e, out); });
 
     RegisterComponent<MeshComponent>(
         "MeshComponent", HasMesh,
-        [](Entity &e, const YAML::Node &node) { e.AddComponent<MeshComponent>(eastl::move(GetMesh(node))); },
+        [](Entity &e, const YAML::Node &node, bool packed)
+        {
+            if (e.HasComponent<MeshComponent>()) e.GetComponent<MeshComponent>() = eastl::move(GetMesh(node, packed));
+            else e.AddComponent<MeshComponent>(eastl::move(GetMesh(node, packed)));
+        },
         [](Entity &e, YAML::Emitter &out) { Serializer::Mesh(e, out); });
 
     RegisterComponent<CameraComponent>(
         "CameraComponent", HasCamera,
-        [](Entity &e, const YAML::Node &node) { e.AddComponent<CameraComponent>(eastl::move(GetCamera(node))); },
+        [](Entity &e, const YAML::Node &node, bool packed)
+        {
+            if (e.HasComponent<CameraComponent>())
+                e.GetComponent<CameraComponent>() = eastl::move(GetCamera(node, packed));
+            else e.AddComponent<CameraComponent>(eastl::move(GetCamera(node, packed)));
+        },
         [](Entity &e, YAML::Emitter &out) { Serializer::Camera(e, out); });
 
     RegisterComponent<SkyboxComponent>(
         "SkyboxComponent", HasSkybox,
-        [](Entity &e, const YAML::Node &node) { e.AddComponent<SkyboxComponent>(eastl::move(GetSkybox(node))); },
+        [](Entity &e, const YAML::Node &node, bool packed)
+        {
+            if (e.HasComponent<SkyboxComponent>())
+                e.GetComponent<SkyboxComponent>() = eastl::move(GetSkybox(node, packed));
+            else e.AddComponent<SkyboxComponent>(eastl::move(GetSkybox(node, packed)));
+        },
         [](Entity &e, YAML::Emitter &out) { Serializer::Skybox(e, out); });
 
     RegisterComponent<NavmeshVolumeComponent>(
-        "NavmeshVolumeComponent", HasNavMeshVolume, [](Entity &e, const YAML::Node &node)
-        { e.AddComponent<NavmeshVolumeComponent>(eastl::move(GetNavMeshVolume(node))); },
+        "NavmeshVolumeComponent", HasNavMeshVolume,
+        [](Entity &e, const YAML::Node &node, bool packed)
+        {
+            if (e.HasComponent<NavmeshVolumeComponent>())
+                e.GetComponent<NavmeshVolumeComponent>() = eastl::move(GetNavMeshVolume(node, packed));
+            else e.AddComponent<NavmeshVolumeComponent>(eastl::move(GetNavMeshVolume(node, packed)));
+        },
         [](Entity &e, YAML::Emitter &out) { Serializer::NavMeshVolume(e, out); });
 
     RegisterComponent<ScriptingComponent>(
         "ScriptingComponent", HasScripting,
-        [](Entity &e, const YAML::Node &node) { e.AddComponent<ScriptingComponent>(eastl::move(GetScripting(node))); },
+        [](Entity &e, const YAML::Node &node, bool packed)
+        {
+            if (e.HasComponent<ScriptingComponent>())
+                e.GetComponent<ScriptingComponent>() = eastl::move(GetScripting(node, packed));
+            else e.AddComponent<ScriptingComponent>(eastl::move(GetScripting(node, packed)));
+        },
         [](Entity &e, YAML::Emitter &out) { Serializer::Scripting(e, out); });
 
     RegisterComponent<AIControllerComponent>(
-        "AIControllerComponent", HasAIController, [](Entity &e, const YAML::Node &node) { GetAIController(node, e); },
-        [](Entity &e, YAML::Emitter &out) { Serializer::AIController(e, out); });
+        "AIControllerComponent", HasAIController, [](Entity &e, const YAML::Node &node, bool packed)
+        { GetAIController(node, e, packed); }, [](Entity &e, YAML::Emitter &out) { Serializer::AIController(e, out); });
 
     RegisterComponent<StimulusComponent>(
         "StimulusComponent", HasStimulus,
-        [](Entity &e, const YAML::Node &node) { e.AddComponent<StimulusComponent>(eastl::move(GetStimulus(node))); },
+        [](Entity &e, const YAML::Node &node, bool packed)
+        {
+            if (e.HasComponent<StimulusComponent>())
+                e.GetComponent<StimulusComponent>() = eastl::move(GetStimulus(node, packed));
+            else e.AddComponent<StimulusComponent>(eastl::move(GetStimulus(node, packed)));
+        },
         [](Entity &e, YAML::Emitter &out) { Serializer::Stimulus(e, out); });
 
     RegisterComponent<PerceptionComponent>(
-        "PerceptionComponent", HasPerception, [](Entity &e, const YAML::Node &node)
-        { e.AddComponent<PerceptionComponent>(eastl::move(GetPerception(node))); },
+        "PerceptionComponent", HasPerception,
+        [](Entity &e, const YAML::Node &node, bool packed)
+        {
+            if (e.HasComponent<PerceptionComponent>())
+                e.GetComponent<PerceptionComponent>() = eastl::move(GetPerception(node, packed));
+            else e.AddComponent<PerceptionComponent>(eastl::move(GetPerception(node, packed)));
+        },
         [](Entity &e, YAML::Emitter &out) { Serializer::Perception(e, out); });
 
     RegisterComponent<PrefabComponent>(
         "PrefabComponent", HasPrefab,
-        [](Entity &e, const YAML::Node &node) { e.AddComponent<PrefabComponent>(eastl::move(GetPrefab(node))); },
+        [](Entity &e, const YAML::Node &node, bool packed)
+        {
+            if (e.HasComponent<PrefabComponent>()) return;
+            e.AddComponent<PrefabComponent>(eastl::move(GetPrefab(node, packed)));
+        },
         [](Entity &e, YAML::Emitter &out) { Serializer::Prefab(e, out); });
 }
+
+inline const ComponentMeta *FindComponentMeta(const entt::id_type typeId)
+{
+    for (const auto &[id, meta] : g_componentRegistry)
+    {
+        if (id == typeId) return &meta;
+    }
+    return nullptr;
+}
+
 } // namespace Blainn

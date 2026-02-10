@@ -1,13 +1,13 @@
 #pragma once
 
-#include "component_widget_base.h"
+#include "component_widget.h"
 
 
 namespace editor
 {
 class vector3_input_widget;
 
-class navmesh_volume_widget : public component_widget_base
+class navmesh_volume_widget : public component_widget<Blainn::TransformComponent>
 {
 public:
     explicit navmesh_volume_widget(const Blainn::Entity &entity, QWidget *parent = nullptr);

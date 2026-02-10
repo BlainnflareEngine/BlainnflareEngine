@@ -158,16 +158,12 @@ void AISubsystem::LoadUtility(const sol::table &scriptEnvironment, eastl::unique
     utility = UtilityBuilder::Build(utilityTable);
 }
 
-void AISubsystem::CreateAttachAIControllerComponent(Entity entity, const Path &aiScriptPath)
+void AISubsystem::CreateAttachAIControllerComponent(Entity entity, AIControllerComponent &controller)
 {
-    AIControllerComponent *componentPtr = entity.TryGetComponent<AIControllerComponent>();
-    if (componentPtr)
-    {
-        BF_ERROR("AI controller error: entity " + entity.GetUUID().str() + " already has AI controller component");
-        return;
-    }
-    AIControllerComponent &component = entity.AddComponent<AIControllerComponent>();
-    component.scriptPath = aiScriptPath.string();
+    if (entity.HasComponent<AIControllerComponent>())
+        entity.GetComponent<AIControllerComponent>() = eastl::move(controller);
+
+    entity.AddComponent<AIControllerComponent>(eastl::move(controller));
 }
 
 bool AISubsystem::CreateAIController(Entity entity)
@@ -189,7 +185,7 @@ bool AISubsystem::CreateAIController(Entity entity)
         return false;
     }
     const sol::table &scriptEnv = componentPtr->aiScript->GetEnvironment();
-    
+
     PerceptionComponent *perception = entity.TryGetComponent<PerceptionComponent>();
     if (perception)
     {
@@ -222,12 +218,12 @@ bool AISubsystem::CreateAIController(Entity entity)
 
     eastl::unique_ptr<Blackboard> bb = eastl::make_unique<Blackboard>();
     LoadBlackboard(scriptEnv, bb);
-    
+
     if (perception)
     {
         bb->Set("_perception", perception);
     }
-    
+
     bb->Set("selfEntity", entity.GetUUID());
 
     BTMap trees;
@@ -237,9 +233,9 @@ bool AISubsystem::CreateAIController(Entity entity)
     LoadUtility(scriptEnv, utility);
 
     componentPtr->aiController.Init(eastl::move(trees), eastl::move(utility), eastl::move(bb));
-    
+
     BF_INFO("AI Controller created for entity: " + entity.GetUUID().str());
-    
+
     return true;
 }
 

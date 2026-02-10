@@ -26,7 +26,6 @@ void Serializer::CreatePrefab(Entity &entity, const Path &relativePath)
         out << YAML::BeginMap; // begin for every entity
 
         Name(entity, out);
-        // ID(entity, out);
 
         for (const auto &[typeId, meta] : g_componentRegistry)
         {
@@ -55,11 +54,6 @@ void Serializer::CreatePrefab(Entity &entity, const Path &relativePath)
     };
 
     fn(entity, out);
-    /*for (auto &id : entity.Children())
-    {
-        auto entity = Engine::GetSceneManager().TryGetEntityWithUUID(id);
-        fn(entity, out);
-    }*/
 
 
     out << YAML::EndSeq; // Entities

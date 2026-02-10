@@ -19,6 +19,8 @@ struct MeshComponent
 
         if (material) MaterialHandle = material;
         else MaterialHandle = AssetManager::GetInstance().GetDefaultMaterialHandle();
+
+        InitializeCB();
     }
 
     MeshComponent(eastl::shared_ptr<MeshHandle> &&meshHandle, eastl::shared_ptr<MaterialHandle> &&material)
@@ -26,18 +28,56 @@ struct MeshComponent
     {
         MeshHandle = eastl::move(meshHandle);
         MaterialHandle = eastl::move(material);
+
+        InitializeCB();
     }
 
     MeshComponent(const MeshComponent &other)
         : MeshHandle(other.MeshHandle)
         , MaterialHandle(other.MaterialHandle)
         , PerObjectCBData(other.PerObjectCBData)
-        , IsWalkable(other.IsWalkable)
         , Enabled(other.Enabled)
+        , IsWalkable(other.IsWalkable)
     {
-        auto &device = Device::GetInstance();
-        ObjectCB = eastl::make_unique<UploadBuffer<ObjectConstants>>(device.GetDevice2().Get(),
-                                                                     1u /*amount of meshes in model*/, TRUE);
+        InitializeCB();
+    }
+
+    MeshComponent(MeshComponent &&other)
+        : MeshHandle(eastl::move(other.MeshHandle))
+        , MaterialHandle(eastl::move(other.MaterialHandle))
+        , PerObjectCBData(eastl::move(other.PerObjectCBData))
+        , Enabled(eastl::move(other.Enabled))
+        , IsWalkable(eastl::move(other.IsWalkable))
+    {
+        InitializeCB();
+    }
+
+    MeshComponent &operator=(const MeshComponent &other)
+    {
+        if (this != &other)
+        {
+            MeshHandle = other.MeshHandle;
+            MaterialHandle = other.MaterialHandle;
+            PerObjectCBData = other.PerObjectCBData;
+            Enabled = other.Enabled;
+            IsWalkable = other.IsWalkable;
+            InitializeCB();
+        }
+        return *this;
+    }
+
+    MeshComponent& operator=(MeshComponent&& other) noexcept
+    {
+        if (this != &other)
+        {
+            MeshHandle = eastl::move(other.MeshHandle);
+            MaterialHandle = eastl::move(other.MaterialHandle);
+            PerObjectCBData = eastl::move(other.PerObjectCBData);
+            Enabled = other.Enabled;
+            IsWalkable = other.IsWalkable;
+            InitializeCB();
+        }
+        return *this;
     }
 
     void UpdateMeshCB(ObjectConstants &objectCBData);
@@ -52,5 +92,13 @@ struct MeshComponent
     bool Enabled = true;
     // TODO: use layers in future
     bool IsWalkable = false;
+
+private:
+    void InitializeCB()
+    {
+        auto &device = Device::GetInstance();
+        ObjectCB = eastl::make_unique<UploadBuffer<ObjectConstants>>(device.GetDevice2().Get(),
+                                                                     1u /*amount of meshes in model*/, TRUE);
+    }
 };
 } // namespace Blainn

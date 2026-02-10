@@ -18,7 +18,7 @@
 namespace editor
 {
 ai_controller_widget::ai_controller_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "AI Controller", parent)
+    : component_widget(entity, "AI Controller", parent)
 {
     auto comp = entity.TryGetComponent<Blainn::AIControllerComponent>();
     if (!entity.IsValid() || !comp)
@@ -78,7 +78,7 @@ void ai_controller_widget::DeleteComponent()
 
 void ai_controller_widget::OnUpdate()
 {
-    component_widget_base::OnUpdate();
+    component_widget::OnUpdate();
 
     if (!Blainn::RenderSubsystem::GetInstance().DebugEnabled()) return;
 
@@ -170,6 +170,6 @@ void ai_controller_widget::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();
 
-    component_widget_base::paintEvent(event);
+    component_widget::paintEvent(event);
 }
 } // namespace editor

@@ -16,7 +16,7 @@
 namespace editor
 {
 camera_widget::camera_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "Camera", parent)
+    : component_widget(entity, "Camera", parent)
 {
     auto *cam = m_entity.TryGetComponent<Blainn::CameraComponent>();
     if (!cam) destroy();
@@ -84,7 +84,7 @@ void camera_widget::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();
 
-    component_widget_base::paintEvent(event);
+    component_widget::paintEvent(event);
 }
 
 void camera_widget::OnNearZChanged()

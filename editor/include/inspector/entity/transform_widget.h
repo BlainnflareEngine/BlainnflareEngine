@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "component_widget_base.h"
+#include "component_widget.h"
 #include "scene/Entity.h"
 
 
@@ -23,7 +23,7 @@ class QLabel;
 namespace editor
 {
 
-class transform_widget : public component_widget_base
+class transform_widget : public component_widget<Blainn::TransformComponent>
 {
     Q_OBJECT
 

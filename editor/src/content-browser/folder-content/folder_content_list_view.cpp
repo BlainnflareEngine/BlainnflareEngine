@@ -87,7 +87,14 @@ void folder_content_list_view::HandleEntityDrop(QDropEvent *event, const QString
     QString absolutePath = contentDir.absoluteFilePath(prefabFilename);
     QString relativePath = contentDir.relativeFilePath(absolutePath);
 
-    entity.AddComponent<Blainn::PrefabComponent>().Path = ToString(relativePath);
+    if (entity.HasComponent<Blainn::PrefabComponent>())
+    {
+        BF_DEBUG("This object is already a prefab. You should handle this!");
+    }
+    else
+    {
+        entity.AddComponent<Blainn::PrefabComponent>().Path = ToString(relativePath);
+    }
 
     Blainn::Serializer::CreatePrefab(entity, ToString(relativePath));
     BF_DEBUG("Create prefab from entity {} Is valid {}", uuid.str(), entity.IsValid());

@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "../component_widget_base.h"
+#include "entity/component_widget.h"
 
 namespace editor
 {
@@ -12,7 +12,7 @@ class color_input_field;
 namespace editor
 {
 
-class directional_light_widget : public component_widget_base
+class directional_light_widget : public component_widget<Blainn::TransformComponent>
 {
 public:
     explicit directional_light_widget(const Blainn::Entity &entity, QWidget *parent = nullptr);

@@ -15,13 +15,14 @@
 #include <QVBoxLayout>
 
 #include "Engine.h"
+#include "PrefabSubsystem.h"
 #include "subsystems/PhysicsSubsystem.h"
 #include "input-widgets/vector3_input_widget.h"
 
 namespace editor
 {
 transform_widget::transform_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "Transform", parent)
+    : component_widget(entity, "Transform", parent)
 {
     CreateTransformFields();
     LoadTransformValues();
@@ -43,6 +44,8 @@ void transform_widget::OnPositionChanged()
     {
         Blainn::PhysicsSubsystem::UpdateBodyInJolt(m_entity.GetUUID());
     }
+
+    emit ComponentChanged();
 }
 
 
@@ -67,6 +70,8 @@ void transform_widget::OnRotationChanged()
     {
         Blainn::PhysicsSubsystem::UpdateBodyInJolt(m_entity.GetUUID());
     }
+
+    emit ComponentChanged();
 }
 
 
@@ -76,12 +81,14 @@ void transform_widget::OnScaleChanged()
 
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
     transform.SetScale(m_scale->GetValue());
+
+    emit ComponentChanged();
 }
 
 
 void transform_widget::OnUpdate()
 {
-    component_widget_base::OnUpdate();
+    component_widget::OnUpdate();
 
     if (!m_entity.IsValid()) return;
 
@@ -99,7 +106,7 @@ void transform_widget::DeleteComponent()
 void transform_widget::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();
-    component_widget_base::paintEvent(event);
+    component_widget::paintEvent(event);
 }
 
 

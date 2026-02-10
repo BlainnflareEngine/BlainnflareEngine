@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "component_widget_base.h"
+#include "component_widget.h"
 
 namespace editor
 {
@@ -15,7 +15,7 @@ namespace editor
 class float_input_field;
 class collapsible_group;
 
-class perception_widget : public component_widget_base
+class perception_widget : public component_widget<Blainn::TransformComponent>
 {
 public:
     explicit perception_widget(const Blainn::Entity &entity, QWidget *parent = nullptr);

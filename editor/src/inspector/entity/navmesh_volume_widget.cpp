@@ -11,7 +11,7 @@
 namespace editor
 {
 navmesh_volume_widget::navmesh_volume_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "Navmesh volume", parent)
+    : component_widget(entity, "Navmesh volume", parent)
 {
     if (!m_entity.IsValid())
     {
@@ -39,7 +39,7 @@ void navmesh_volume_widget::DeleteComponent()
 }
 void navmesh_volume_widget::OnUpdate()
 {
-    component_widget_base::OnUpdate();
+    component_widget::OnUpdate();
 
     auto &volume = m_entity.GetComponent<Blainn::NavmeshVolumeComponent>();
     auto &transform = m_entity.GetComponent<Blainn::TransformComponent>();
@@ -52,7 +52,7 @@ void navmesh_volume_widget::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();
 
-    component_widget_base::paintEvent(event);
+    component_widget::paintEvent(event);
 }
 
 

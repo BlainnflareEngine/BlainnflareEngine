@@ -5,7 +5,7 @@
 
 
 #pragma once
-#include "component_widget_base.h"
+#include "component_widget.h"
 
 
 namespace editor
@@ -13,7 +13,7 @@ namespace editor
 class bool_input_field;
 class float_input_field;
 
-class camera_widget : public component_widget_base
+class camera_widget : public component_widget<Blainn::TransformComponent>
 {
 public:
     explicit camera_widget(const Blainn::Entity &entity, QWidget *parent = nullptr);

@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "entity/component_widget_base.h"
+#include "entity/component_widget.h"
 
 
 class QVBoxLayout;
@@ -21,7 +21,7 @@ class bool_input_field;
 namespace editor
 {
 
-class scripting_widget : public component_widget_base
+class scripting_widget : public component_widget<Blainn::TransformComponent>
 {
 public:
     explicit scripting_widget(const Blainn::Entity &entity, QWidget *parent = nullptr);

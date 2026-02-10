@@ -15,7 +15,7 @@
 namespace editor
 {
 directional_light_widget::directional_light_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "Directional light", parent)
+    : component_widget(entity, "Directional light", parent)
 {
     auto light = m_entity.TryGetComponent<Blainn::DirectionalLightComponent>();
     if (!light) deleteLater();
@@ -40,7 +40,7 @@ void directional_light_widget::OnUpdate()
 {
     using namespace Blainn;
 
-    component_widget_base::OnUpdate();
+    component_widget::OnUpdate();
 
     if (!RenderSubsystem::GetInstance().DebugEnabled()) return;
 
@@ -70,6 +70,6 @@ void directional_light_widget::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();
 
-    component_widget_base::paintEvent(event);
+    component_widget::paintEvent(event);
 }
 } // namespace editor

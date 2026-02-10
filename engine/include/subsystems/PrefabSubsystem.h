@@ -5,6 +5,10 @@
 #pragma once
 #include "scene/Entity.h"
 
+namespace eastl
+{
+class any;
+}
 namespace Blainn
 {
 class Scene;
@@ -14,11 +18,15 @@ namespace Blainn
 class PrefabSubsystem
 {
 public:
-    void UpdatePrefabRefs(const Path &relativePath);
+    static void UpdatePrefabRefs(const Path &relativePath);
 
-    Entity CreateEntityFromPrefab(const Path &relativePath, const Scene &scene, const Vec3 &position,
-                                  const Quat &rotation, const Vec3 &scale);
-
-private:
+    // Register full component (for now, will be changed to register only one field)
+    static void RegisterComponentOverride(Entity entity, entt::id_type componentType);
+    static YAML::Node LoadPrefabYaml(const Path &relativePath);
+    static bool HasPrefabOverrides(Entity entity);
+    static void ApplyPrefabOverrides(Entity entity);
+    static void RevertPrefabOverrides(Entity entity);
+    static eastl::any GetOriginalPrefabValue(Entity entity, entt::id_type componentType,
+                                             const eastl::string &fieldPath);
 };
 } // namespace Blainn

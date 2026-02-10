@@ -12,8 +12,6 @@ namespace Blainn
 class AIController
 {
 public:
-    AIController() = default;
-
     void Init(BTMap trees, eastl::unique_ptr<UtilitySelector> utility, eastl::unique_ptr<Blackboard> blackboard);
 
     void Update(float dt);
@@ -71,7 +69,7 @@ private:
     Vec3 m_moveDirection = Vec3(0, 0, 0);
     eastl::vector<Vec3> m_currentPath;
 
-    Entity m_controlledEntity;
+    Entity m_controlledEntity = {};
 
     // LOD
     float m_updateInterval = 0.0f; // 0 каждый кадр

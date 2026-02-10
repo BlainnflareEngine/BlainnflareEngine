@@ -168,7 +168,6 @@ void PhysicsSubsystem::CreateAttachPhysicsComponent(PhysicsComponentSettings &se
 
     if (componentPtr)
     {
-        BF_WARN("Entity already has physics component. Recreating...");
         DestroyPhysicsComponent(settings.entity);
     }
 

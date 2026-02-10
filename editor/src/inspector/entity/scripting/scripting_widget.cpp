@@ -15,7 +15,7 @@
 namespace editor
 {
 scripting_widget::scripting_widget(const Blainn::Entity &entity, QWidget *parent)
-    : component_widget_base(entity, "Scripting component", parent)
+    : component_widget(entity, "Scripting component", parent)
 {
     auto mainLayout = qobject_cast<QVBoxLayout *>(layout());
     m_scriptsLayout = new QVBoxLayout();
@@ -166,6 +166,6 @@ void scripting_widget::paintEvent(QPaintEvent *event)
 {
     BLAINN_PROFILE_FUNC();
 
-    component_widget_base::paintEvent(event);
+    component_widget::paintEvent(event);
 }
 } // namespace editor

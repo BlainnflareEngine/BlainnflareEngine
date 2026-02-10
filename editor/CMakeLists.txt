@@ -113,8 +113,8 @@ set(EDITOR_SOURCES
         include/inspector/input-widgets/float_input_field.h
         include/themed_panel.h
         src/themed_panel.cpp
-        src/inspector/entity/component_widget_base.cpp
         include/inspector/entity/component_widget_base.h
+        include/inspector/entity/component_widget.h
         src/inspector/entity/mesh_widget.cpp
         include/inspector/entity/mesh_widget.h
         src/inspector/input-widgets/path_input_field.cpp
@@ -172,6 +172,8 @@ set(EDITOR_SOURCES
         include/PrefabDropHandler.h
         src/inspector/entity/prefab_widget.cpp
         include/inspector/entity/prefab_widget.h
+        src/inspector/prefab_inspector_content.cpp
+        include/inspector/prefab_inspector_content.h
 )
 
 add_library(EDITOR STATIC ${EDITOR_SOURCES})

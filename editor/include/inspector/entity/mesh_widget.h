@@ -3,14 +3,14 @@
 //
 
 #pragma once
-#include "component_widget_base.h"
+#include "component_widget.h"
 
 namespace editor
 {
 class bool_input_field;
 class path_input_field;
 
-class mesh_widget : public component_widget_base
+class mesh_widget : public component_widget<Blainn::TransformComponent>
 {
 public:
     explicit mesh_widget(const Blainn::Entity &entity, QWidget *parent = nullptr);

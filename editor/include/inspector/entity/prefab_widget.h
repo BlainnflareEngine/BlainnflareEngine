@@ -3,19 +3,23 @@
 //
 
 #pragma once
-#include "component_widget_base.h"
+#include "component_widget.h"
 
 namespace editor
 {
 
-class prefab_widget : public component_widget_base
+class prefab_widget : public component_widget<Blainn::TransformComponent>
 {
     Q_OBJECT
 
 public:
-    explicit prefab_widget(const Blainn::Entity& entity,QWidget *parent = nullptr);
+    explicit prefab_widget(const Blainn::Entity &entity, QWidget *parent = nullptr);
 
     void DeleteComponent() override;
+
+private:
+    QPushButton *m_applyChanges = nullptr;
+    QPushButton *m_revertChanges = nullptr;
 };
 
 } // namespace editor

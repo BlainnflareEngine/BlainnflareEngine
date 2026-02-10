@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "component_widget_base.h"
+#include "component_widget.h"
 
 namespace editor
 {
@@ -14,7 +14,7 @@ namespace editor
 class float_input_field;
 class path_input_field;
 
-class ai_controller_widget : public component_widget_base
+class ai_controller_widget : public component_widget<Blainn::TransformComponent>
 {
 public:
     explicit ai_controller_widget(const Blainn::Entity &entity, QWidget *parent = nullptr);
