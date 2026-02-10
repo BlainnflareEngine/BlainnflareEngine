@@ -216,8 +216,23 @@ list(APPEND ENGINE_SOURCES ${IMGUI_SOURCES})
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
 
+if(MSVC)
+    file(GLOB IMGUIZMO_CPP_SOURCES "${IMGUIZMO_DIR}/*.cpp")
+    if(IMGUIZMO_CPP_SOURCES)
+        set_source_files_properties(${IMGUIZMO_CPP_SOURCES} PROPERTIES COMPILE_OPTIONS "/WX-")
+    endif()
+    file(GLOB SOL_IMGUI_CPP_SOURCES "${CMAKE_SOURCE_DIR}/libs/sol2_ImGui_Bindings/*.cpp")
+    if(SOL_IMGUI_CPP_SOURCES)
+        set_source_files_properties(${SOL_IMGUI_CPP_SOURCES} PROPERTIES COMPILE_OPTIONS "/WX-")
+    endif()
+endif()
 
-target_compile_options(ENGINE PRIVATE /bigobj)
+
+if(MSVC)
+    target_compile_options(ENGINE PRIVATE /bigobj /W4 /WX)
+else()
+    target_compile_options(ENGINE PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
 
 source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${ENGINE_SOURCES})
 

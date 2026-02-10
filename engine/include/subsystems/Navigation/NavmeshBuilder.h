@@ -4,7 +4,7 @@
 #include "helpers.h"
 #include <Recast.h>
 
-struct dtNavMesh;
+class dtNavMesh;
 
 namespace Blainn
 {
@@ -43,6 +43,9 @@ class RcContext : public rcContext
 {
     void doLog(const rcLogCategory category, const char *msg, const int len) override
     {
+        (void)category;
+        (void)len;
+        (void)msg;
         BF_TRACE("Recast navigation: {}", msg);
     }
 };

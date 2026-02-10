@@ -292,9 +292,6 @@ BTStatus Blainn::NegateNode::Update(Blackboard &bb)
         default:
             return s;
     }
-
-    BF_ERROR("NegateNode: invalid BTStatus");
-    return BTStatus::Error;
 }
 
 void Blainn::NegateNode::Reset()

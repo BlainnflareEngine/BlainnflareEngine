@@ -7,9 +7,9 @@
 #include "scene/Scene.h"
 
 
-struct dtNavMesh;
-struct dtNavMeshQuery;
-struct dtQueryFilter;
+class dtNavMesh;
+class dtNavMeshQuery;
+class dtQueryFilter;
 
 namespace Blainn
 {

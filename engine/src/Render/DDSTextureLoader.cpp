@@ -1159,6 +1159,7 @@ static HRESULT CreateD3DResources12(ID3D12Device *device, ID3D12GraphicsCommandL
                                     _In_reads_opt_(mipCount *arraySize) D3D12_SUBRESOURCE_DATA *initData,
                                     ComPtr<ID3D12Resource> &texture, ComPtr<ID3D12Resource> &textureUploadHeap)
 {
+    (void)isCubeMap;
     if (device == nullptr) return E_POINTER;
 
     if (forceSRGB) format = MakeSRGB(format);
@@ -1589,6 +1590,7 @@ static HRESULT CreateTextureFromDDS12(_In_ ID3D12Device *device, _In_opt_ ID3D12
                                       _In_ size_t bitSize, _In_ size_t maxsize, _In_ bool forceSRGB,
                                       ComPtr<ID3D12Resource> &texture, ComPtr<ID3D12Resource> &textureUploadHeap)
 {
+    (void)forceSRGB;
     HRESULT hr = S_OK;
 
     UINT width = header->width;

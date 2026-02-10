@@ -323,6 +323,7 @@ VOID Blainn::RenderSubsystem::InitializeWindow()
 // Helper function for setting the window's title text.
 void Blainn::RenderSubsystem::SetCustomWindowText(LPCWSTR text) const
 {
+    (void)text;
     // std::wstring windowText = m_title + L": " + text;
     // SetWindowText(m_hWND_, windowText.c_str());
 }
@@ -543,7 +544,7 @@ void Blainn::RenderSubsystem::LoadSrvAndSamplerDescriptorHeaps()
         srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
         srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
         srvDesc.Texture2DArray.MostDetailedMip = 0u;
-        srvDesc.Texture2DArray.MipLevels = -1;
+        srvDesc.Texture2DArray.MipLevels = UINT(-1);
         srvDesc.Texture2DArray.FirstArraySlice = 0u;
         srvDesc.Texture2DArray.ArraySize = m_cascadeShadowMap->Get()->GetDesc().DepthOrArraySize;
         srvDesc.Texture2DArray.PlaneSlice = 0u;
@@ -957,6 +958,7 @@ void Blainn::RenderSubsystem::CreatePipelineStateObjects()
 #pragma region Update
 void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 {
+    (void)deltaTime;
     BLAINN_PROFILE_FUNC();
 
     for (auto &scene : Engine::GetSceneManager().GetActiveScenes())
@@ -991,6 +993,7 @@ void Blainn::RenderSubsystem::UpdateObjectsCB(float deltaTime)
 
 void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
 {
+    (void)deltaTime;
     BLAINN_PROFILE_FUNC();
 #pragma region PointLights
     auto currPointLightSB = m_currFrameResource->PointLightSB.get();
@@ -1063,12 +1066,13 @@ void RenderSubsystem::UpdateLightsBuffers(float deltaTime)
 
 void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
 {
+    (void)deltaTime;
     BLAINN_PROFILE_FUNC();
     auto currMaterialDataSB = m_currFrameResource->MaterialSB.get();
 
     auto &materials = AssetManager::GetInstance().m_materials;
 
-    for (int matIndex = 0; matIndex < materials.size(); ++matIndex)
+    for (size_t matIndex = 0; matIndex < materials.size(); ++matIndex)
     {
         m_perMaterialSBData = MaterialData();
         if (materials[matIndex] /* && materials[matIndex]->IsFramesDirty()*/)
@@ -1102,12 +1106,13 @@ void Blainn::RenderSubsystem::UpdateMaterialBuffer(float deltaTime)
 
             materials[matIndex]->FrameResetDirtyFlags();
         }
-        currMaterialDataSB->CopyData(matIndex, m_perMaterialSBData);
+        currMaterialDataSB->CopyData(static_cast<UINT>(matIndex), m_perMaterialSBData);
     }
 }
 
 void Blainn::RenderSubsystem::UpdateShadowTransform(float deltaTime)
 {
+    (void)deltaTime;
     BLAINN_PROFILE_FUNC();
     static eastl::array<eastl::pair<XMMATRIX, XMMATRIX>, MaxCascades> lightSpaceMatrices;
     GetLightSpaceMatrices(lightSpaceMatrices);
@@ -1124,6 +1129,7 @@ void Blainn::RenderSubsystem::UpdateShadowTransform(float deltaTime)
 
 void Blainn::RenderSubsystem::UpdateShadowPassCB(float deltaTime)
 {
+    (void)deltaTime;
     BLAINN_PROFILE_FUNC();
     XMMATRIX view = XMMatrixIdentity();
     XMMATRIX proj = XMMatrixIdentity();
@@ -1487,6 +1493,7 @@ void Blainn::RenderSubsystem::RenderSkyBoxPass(ID3D12GraphicsCommandList2 *pComm
 
 void Blainn::RenderSubsystem::RenderTransparencyPass(ID3D12GraphicsCommandList2 *pCommandList)
 {
+    (void)pCommandList;
 }
 
 void RenderSubsystem::RenderDebugPass(ID3D12GraphicsCommandList2 *pCommandList)
@@ -1615,11 +1622,11 @@ void RenderSubsystem::RenderUUIDPass(ID3D12GraphicsCommandList2 *pCommandList)
             [[likely]]
             if (currIBV.SizeInBytes)
             {
-                pCommandList->DrawIndexedInstanced(model.GetIndicesCount(), 1u, 0u, 0u, 0u);
+                pCommandList->DrawIndexedInstanced(static_cast<UINT>(model.GetIndicesCount()), 1u, 0u, 0u, 0u);
             }
             else
             {
-                pCommandList->DrawInstanced(model.GetVerticesCount(), 1u, 0u, 0u);
+                pCommandList->DrawInstanced(static_cast<UINT>(model.GetVerticesCount()), 1u, 0u, 0u);
             }
         }
     }
@@ -1658,11 +1665,11 @@ void Blainn::RenderSubsystem::DrawMesh(ID3D12GraphicsCommandList2 *pCommandList,
     [[likely]]
     if (currIBV.SizeInBytes)
     {
-        pCommandList->DrawIndexedInstanced(mesh.GetIndicesCount(), 1u, 0u, 0u, 0u);
+        pCommandList->DrawIndexedInstanced(static_cast<UINT>(mesh.GetIndicesCount()), 1u, 0u, 0u, 0u);
     }
     else
     {
-        pCommandList->DrawInstanced(mesh.GetVerticesCount(), 1u, 0u, 0u);
+        pCommandList->DrawInstanced(static_cast<UINT>(mesh.GetVerticesCount()), 1u, 0u, 0u);
     }
 }
 
@@ -1699,11 +1706,11 @@ void Blainn::RenderSubsystem::DrawMeshes(ID3D12GraphicsCommandList2 *pCommandLis
             [[likely]]
             if (currIBV.SizeInBytes)
             {
-                pCommandList->DrawIndexedInstanced(model.GetIndicesCount(), 1u, 0u, 0u, 0u);
+                pCommandList->DrawIndexedInstanced(static_cast<UINT>(model.GetIndicesCount()), 1u, 0u, 0u, 0u);
             }
             else
             {
-                pCommandList->DrawInstanced(model.GetVerticesCount(), 1u, 0u, 0u);
+                pCommandList->DrawInstanced(static_cast<UINT>(model.GetVerticesCount()), 1u, 0u, 0u);
             }
         }
     }
@@ -1722,11 +1729,11 @@ void RenderSubsystem::DrawInstancedMesh(ID3D12GraphicsCommandList2 *pCommandList
     [[likely]]
     if (currIBV.SizeInBytes)
     {
-        pCommandList->DrawIndexedInstanced(mesh.GetIndicesCount(), numInstances, 0u, 0, 0u);
+        pCommandList->DrawIndexedInstanced(static_cast<UINT>(mesh.GetIndicesCount()), numInstances, 0u, 0, 0u);
     }
     else
     {
-        pCommandList->DrawInstanced(mesh.GetVerticesCount(), numInstances, 0u, 0u);
+        pCommandList->DrawInstanced(static_cast<UINT>(mesh.GetVerticesCount()), numInstances, 0u, 0u);
     }
 }
 

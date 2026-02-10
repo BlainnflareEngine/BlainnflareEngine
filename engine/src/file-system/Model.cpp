@@ -78,20 +78,20 @@ Model::Model()
         allVertices.reserve(totalVertexCount);
         allIndices.reserve(totalIndexCount);
 
-        size_t indexValueOffsetPerMesh = 0;
+        uint32_t indexValueOffsetPerMesh = 0;
         for (auto &mesh : GetMeshes())
         {
             allVertices.insert(allVertices.end(), mesh.vertices.begin(), mesh.vertices.end());
             
             auto tempCurrentMeshIndices = mesh.indices;
-            eastl::for_each(tempCurrentMeshIndices.begin(), tempCurrentMeshIndices.end(), [&indexValueOffsetPerMesh](UINT& value)
+            eastl::for_each(tempCurrentMeshIndices.begin(), tempCurrentMeshIndices.end(), [&indexValueOffsetPerMesh](uint32_t &value)
                 {
                     value += indexValueOffsetPerMesh;
                 });
 
             allIndices.insert(allIndices.end(), tempCurrentMeshIndices.begin(), tempCurrentMeshIndices.end());
 
-            indexValueOffsetPerMesh += mesh.vertices.size();
+            indexValueOffsetPerMesh += static_cast<uint32_t>(mesh.vertices.size());
         }
     }
 

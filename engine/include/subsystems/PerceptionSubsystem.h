@@ -19,7 +19,7 @@ namespace Blainn
 {
 class Entity;
 enum class StimulusType : uint8_t;
-class PhysicsEvent;
+struct PhysicsEvent;
 
 enum class PerceptionEventType;
 struct PerceptionEvent;

@@ -4,7 +4,10 @@
 
 #include "ComponentRegistry.h"
 
+#pragma warning(push)
+#pragma warning(disable : 4100)
 #include <VGJS.h>
+#pragma warning(pop)
 
 #include <semaphore>
 #include <windowsx.h>
@@ -262,9 +265,9 @@ void Engine::InitScenePlayMode()
 
     for (auto &[id, scene] : s_sceneManager.GetAdditiveScenes())
     {
-        for (auto [entity, id, aiComp] : scene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
+        for (auto [entity, entityId, aiComp] : scene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
         {
-            Entity ent = scene->GetEntityWithUUID(id.ID);
+            Entity ent = scene->GetEntityWithUUID(entityId.ID);
             AISubsystem::GetInstance().CreateAIController(ent);
         }
 

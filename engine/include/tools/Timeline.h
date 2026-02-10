@@ -141,7 +141,7 @@ inline void Timeline<EastlDurationType>::RemoveChildTimeline(Timeline *childTime
 
 template <typename EastlDurationType> inline float Timeline<EastlDurationType>::GetLastSavedTickDelta() const
 {
-    return m_lastSavedTickDelta;
+    return static_cast<float>(m_lastSavedTickDelta);
 }
 
 template <typename EastlDurationType> int64_t Blainn::Timeline<EastlDurationType>::GetTime() const

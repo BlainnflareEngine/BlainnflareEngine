@@ -51,7 +51,11 @@ void UIRenderer::Initialize(int width, int height)
         *out_gpu_handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(srvHeap->GetGPUDescriptorHandleForHeapStart(), descriptorAllocIndex, descriptorSize);
         descriptorAllocIndex++;
     };
-    initInfo.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle){};
+    initInfo.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle)
+    {
+        (void)cpu_handle;
+        (void)gpu_handle;
+    };
     ImGui_ImplDX12_Init(&initInfo);
 
     SetupInput();

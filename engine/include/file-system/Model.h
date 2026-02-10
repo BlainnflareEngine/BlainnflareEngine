@@ -32,13 +32,13 @@ public:
 
 public:
     void CreateBufferResources();
-    size_t GetVerticesCount() const
+    uint32_t GetVerticesCount() const
     {
-        return totalVertexCount;
+        return static_cast<uint32_t>(totalVertexCount);
     }
-    size_t GetIndicesCount() const
+    uint32_t GetIndicesCount() const
     {
-        return totalIndexCount;
+        return static_cast<uint32_t>(totalIndexCount);
     }
 
     void CreateGPUBuffers();

@@ -23,11 +23,11 @@ void Blainn::RegisterNavigationTypes(sol::state &luaState)
     navigationTable.set_function("GetNavMeshDebugDraw", []() -> bool { return NavigationSubsystem::ShouldDrawDebug(); });
 
     navigationTable.set_function("FindRandomPointOnNavMeshInRadius",
-        [](Vec3 &outPoint, const Vec3 &center, float radius) -> std::pair<bool, Vec3>
+        [](const Vec3 &center, float radius) -> std::pair<bool, Vec3>
         { return NavigationSubsystem::FindRandomPointOnNavMesh(center, radius); });
 
     navigationTable.set_function("FindRandomPointOnNavMesh",
-        [](Vec3 &outPoint) -> std::pair<bool, Vec3>
+        []() -> std::pair<bool, Vec3>
         { return NavigationSubsystem::FindRandomPointOnNavMesh(); });
 
     luaState["Navigation"] = navigationTable;

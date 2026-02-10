@@ -85,6 +85,9 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
     EntityType.set_function("AddPhysicsComponent",
                             [](Entity &e, const std::string &parentId, const std::string &componentId)
                             {
+                                (void)e;
+                                (void)parentId;
+                                (void)componentId;
                                 // PhysicsComponent requires a BodyBuilder reference; we can only add if BodyBuilder not
                                 // required. Skip actual add.
                                 return nullptr;

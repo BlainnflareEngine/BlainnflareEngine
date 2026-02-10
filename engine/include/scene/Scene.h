@@ -18,7 +18,7 @@
 
 namespace Blainn
 {
-class MeshComponent;
+struct MeshComponent;
 class SceneManager;
 class AssetManager;
 

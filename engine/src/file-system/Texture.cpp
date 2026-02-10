@@ -168,6 +168,7 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index/*, bool IsCu
 
     void Texture::CreateCubemap(ID3D12GraphicsCommandList2 *cmdList, uint32_t index)
     {
+        (void)index;
         //assert(m_path.extension() == ".dds");
         if (!(m_path.extension() == ".dds"))
         {

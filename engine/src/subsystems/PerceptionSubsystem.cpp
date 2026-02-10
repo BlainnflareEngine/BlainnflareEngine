@@ -296,7 +296,7 @@ void PerceptionSubsystem::ProcessTouchStimuli()
 
                 if (perception.ShouldIgnoreTag(tempStimulus.tag)) continue;
 
-                float distance = (tempStimulus.location - observerPos).Length();
+                // float distance = (tempStimulus.location - observerPos).Length();
 
                 bool found = false;
                 for (auto &perceived : perception.perceivedStimuli)

@@ -46,6 +46,7 @@ eastl::string Blainn::UtilitySelector::Evaluate(UtilityContext &context, Blackbo
         }
         catch (const std::exception &e)
         {
+            (void)e;
             BF_ERROR("UtilitySelector: Exception in score function for decision '" + decision.name
                         + "': " + eastl::string(e.what()));
             continue;

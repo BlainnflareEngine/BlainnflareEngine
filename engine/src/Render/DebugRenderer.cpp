@@ -48,7 +48,7 @@ void DebugRenderer::EndDebugRenderPass()
     if (m_lineListVertices.empty()) return;
 
     auto currentFrameBuffer = m_debugRequests[m_currentFrame % 4];
-    UINT vertexBufferSize = m_lineListVertices.size() * sizeof(VertexPositionColor);
+    UINT vertexBufferSize = static_cast<UINT>(m_lineListVertices.size() * sizeof(VertexPositionColor));
 
     if (currentFrameBuffer == nullptr || currentFrameBuffer.Get()->GetDesc().Width < vertexBufferSize)
         currentFrameBuffer = CreateBuffer(m_currentFrame % 4, vertexBufferSize);
@@ -70,7 +70,7 @@ void DebugRenderer::EndDebugRenderPass()
     m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
 
     m_commandList->IASetVertexBuffers(0, 1, &vbView);
-    m_commandList->DrawInstanced(m_lineListVertices.size(), 1, 0, 0);
+    m_commandList->DrawInstanced(static_cast<UINT>(m_lineListVertices.size()), 1, 0, 0);
 
     size_t prevSize = m_lineListVertices.size();
     m_lineListVertices.clear();
@@ -131,6 +131,7 @@ void DebugRenderer::DrawArrow(Vec3 inFrom, Vec3 inTo, Color color, float size)
 void DebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor,
                                  ECastShadow inCastShadow)
 {
+    (void)inCastShadow;
     if (!m_bIsDebugEnabled)
         return;
     // DebugRendererSimple::DrawTriangle(inV1, inV2, inV3, inColor, inCastShadow);
@@ -166,10 +167,10 @@ void DebugRenderer::DrawWireBox(Vec3 min, Vec3 max, Color color)
     JPH::Vec3 vmax = {max.x, max.y, max.z};
     JPH::AABox box = {vmin, vmax};
     JPH::Color col;
-    col.r = floor(color.R() * 255);
-    col.g = floor(color.G() * 255);
-    col.b = floor(color.B() * 255);
-    col.a = floor(color.A() * 255);
+    col.r = static_cast<JPH::uint8>(floor(color.R() * 255.0f));
+    col.g = static_cast<JPH::uint8>(floor(color.G() * 255.0f));
+    col.b = static_cast<JPH::uint8>(floor(color.B() * 255.0f));
+    col.a = static_cast<JPH::uint8>(floor(color.A() * 255.0f));
     Super::DrawWireBox(box, col);
 }
 
@@ -181,10 +182,10 @@ void DebugRenderer::DrawWireBox(Mat4 matrix, Vec3 min, Vec3 max, Color color)
     JPH::Vec3 vmax = {max.x, max.y, max.z};
     JPH::AABox box = {vmin, vmax};
     JPH::Color col;
-    col.r = floor(color.R() * 255);
-    col.g = floor(color.G() * 255);
-    col.b = floor(color.B() * 255);
-    col.a = floor(color.A() * 255);
+    col.r = static_cast<JPH::uint8>(floor(color.R() * 255.0f));
+    col.g = static_cast<JPH::uint8>(floor(color.G() * 255.0f));
+    col.b = static_cast<JPH::uint8>(floor(color.B() * 255.0f));
+    col.a = static_cast<JPH::uint8>(floor(color.A() * 255.0f));
 
     JPH::Vec4 row1 = {matrix._11, matrix._12, matrix._13, matrix._14};
     JPH::Vec4 row2 = {matrix._21, matrix._22, matrix._23, matrix._24};
@@ -203,10 +204,10 @@ void DebugRenderer::DrawWireSphere(Vec3 center, float radius, Color color)
     JPH::Vec3 V1 = {center.x, center.y, center.z};
 
     JPH::Color col;
-    col.r = floor(color.R() * 255);
-    col.g = floor(color.G() * 255);
-    col.b = floor(color.B() * 255);
-    col.a = floor(color.A() * 255);
+    col.r = static_cast<JPH::uint8>(floor(color.R() * 255.0f));
+    col.g = static_cast<JPH::uint8>(floor(color.G() * 255.0f));
+    col.b = static_cast<JPH::uint8>(floor(color.B() * 255.0f));
+    col.a = static_cast<JPH::uint8>(floor(color.A() * 255.0f));
 
     Super::DrawWireSphere(V1, radius, col);
 }
@@ -216,10 +217,10 @@ void DebugRenderer::DrawWireUnitSphere(Mat4 matrix, Color color)
     if (!m_bIsDebugEnabled)
         return;
     JPH::Color col;
-    col.r = floor(color.R() * 255);
-    col.g = floor(color.G() * 255);
-    col.b = floor(color.B() * 255);
-    col.a = floor(color.A() * 255);
+    col.r = static_cast<JPH::uint8>(floor(color.R() * 255.0f));
+    col.g = static_cast<JPH::uint8>(floor(color.G() * 255.0f));
+    col.b = static_cast<JPH::uint8>(floor(color.B() * 255.0f));
+    col.a = static_cast<JPH::uint8>(floor(color.A() * 255.0f));
 
     JPH::Vec4 row1 = {matrix._11, matrix._12, matrix._13, matrix._14};
     JPH::Vec4 row2 = {matrix._21, matrix._22, matrix._23, matrix._24};
@@ -236,10 +237,10 @@ void DebugRenderer::DrawCapsule(Mat4 matrix, float halfHeightOfCylinder, float r
     if (!m_bIsDebugEnabled)
         return;
     JPH::Color col;
-    col.r = floor(color.R() * 255);
-    col.g = floor(color.G() * 255);
-    col.b = floor(color.B() * 255);
-    col.a = floor(color.A() * 255);
+    col.r = static_cast<JPH::uint8>(floor(color.R() * 255.0f));
+    col.g = static_cast<JPH::uint8>(floor(color.G() * 255.0f));
+    col.b = static_cast<JPH::uint8>(floor(color.B() * 255.0f));
+    col.a = static_cast<JPH::uint8>(floor(color.A() * 255.0f));
 
     JPH::Vec4 row1 = {matrix._11, matrix._12, matrix._13, matrix._14};
     JPH::Vec4 row2 = {matrix._21, matrix._22, matrix._23, matrix._24};
@@ -256,10 +257,10 @@ void DebugRenderer::DrawCylinder(Mat4 matrix, float halfHeight, float radius, Co
     if (!m_bIsDebugEnabled)
         return;
     JPH::Color col;
-    col.r = floor(color.R() * 255);
-    col.g = floor(color.G() * 255);
-    col.b = floor(color.B() * 255);
-    col.a = floor(color.A() * 255);
+    col.r = static_cast<JPH::uint8>(floor(color.R() * 255.0f));
+    col.g = static_cast<JPH::uint8>(floor(color.G() * 255.0f));
+    col.b = static_cast<JPH::uint8>(floor(color.B() * 255.0f));
+    col.a = static_cast<JPH::uint8>(floor(color.A() * 255.0f));
 
     JPH::Vec4 row1 = {matrix._11, matrix._12, matrix._13, matrix._14};
     JPH::Vec4 row2 = {matrix._21, matrix._22, matrix._23, matrix._24};

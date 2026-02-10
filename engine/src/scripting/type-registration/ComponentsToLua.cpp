@@ -98,12 +98,12 @@ void Blainn::RegisterComponentTypes(sol::state &luaState)
     CameraComponentType.set_function("SetFovDegrees",
         [](CameraComponent &camera, float fov) { camera.camera.SetFovDegrees(fov); });
     CameraComponentType.set_function("GetPriority",
-        [](CameraComponent &camera, int priority) -> int { return camera.CameraPriority; });
+        [](CameraComponent &camera) -> int { return camera.CameraPriority; });
     CameraComponentType.set_function("GetNearPlane",
-        [](CameraComponent &camera, float nearPlane) -> float { return camera.camera.GetNearZ(); });
+        [](CameraComponent &camera) -> float { return camera.camera.GetNearZ(); });
     CameraComponentType.set_function("GetFarPlane",
-        [](CameraComponent &camera, float farPlane) -> float { return camera.camera.GetFarZ(); });
+        [](CameraComponent &camera) -> float { return camera.camera.GetFarZ(); });
     CameraComponentType.set_function("GetFovDegrees",
-        [](CameraComponent &camera, float fov) -> float { return camera.camera.GetFovDegrees(); });
+        [](CameraComponent &camera) -> float { return camera.camera.GetFovDegrees(); });
 }
 #endif

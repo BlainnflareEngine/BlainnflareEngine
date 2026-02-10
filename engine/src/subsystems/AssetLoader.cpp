@@ -39,6 +39,7 @@ void AssetLoader::Destroy()
 
 eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, const ImportMeshData &data)
 {
+    (void)data;
     assert(relativePath.is_relative());
 
     Path absolutePath = Engine::GetContentDirectory() / relativePath;
@@ -90,10 +91,14 @@ void AssetLoader::ProcessNode(const Path &path, const aiNode &node, const aiScen
 MeshData<> AssetLoader::ProcessMesh(const Path &path, const aiMesh &mesh, const aiScene &scene, const aiNode &node,
                                     const Mat4 &parentMatrix, Model &model)
 {
+    (void)path;
+    (void)scene;
+    (void)node;
+    (void)model;
     MeshData<> result_mesh = MeshData<>();
     result_mesh.parentMatrix = parentMatrix;
 
-    for (size_t i = 0; i < mesh.mNumVertices; ++i)
+    for (unsigned int i = 0; i < mesh.mNumVertices; ++i)
     {
         BlainnVertex vertex;
 
@@ -122,7 +127,7 @@ MeshData<> AssetLoader::ProcessMesh(const Path &path, const aiMesh &mesh, const 
     {
         const aiFace face = mesh.mFaces[i];
 
-        for (int j = 0; j < face.mNumIndices; ++j)
+        for (unsigned int j = 0; j < face.mNumIndices; ++j)
         {
             result_mesh.indices.push_back(face.mIndices[j]);
         }

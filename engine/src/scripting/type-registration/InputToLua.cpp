@@ -360,6 +360,7 @@ void Blainn::RegisterInputTypes(sol::state &luaState)
     inputTable.set_function("RemoveEventListener",
         [](int eventTypeInt, uint64_t id)
         {
+            (void)eventTypeInt;
             auto it = s_inputListenerRemovers.find(id);
             if (it == s_inputListenerRemovers.end()) return;
             // call stored remover

@@ -290,7 +290,7 @@ Entity Scene::CreateChildEntityWithID(Entity parent, const uuid &id, const eastl
 
     m_EntityIdMap[idComponent.ID] = entity;
 
-    SortEntities();
+    if (shouldSort) SortEntities();
 
     s_sceneEventQueue.enqueue(
         eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged, createdByEditor));
@@ -301,6 +301,7 @@ Entity Scene::CreateChildEntityWithID(Entity parent, const uuid &id, const eastl
 
 void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, bool createdByEditor)
 {
+    (void)createdByEditor;
     if (!entitiesNode || !entitiesNode.IsSequence())
     {
         BF_WARN("Entities node is empty");
@@ -437,7 +438,7 @@ void Scene::DestroyEntityInternal(Entity entity, bool sceneChanged, bool exclude
 
     // before actually destroying remove components that might require ID of the entity
     // if (!sceneChanged)
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity, id));
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity, id, sceneChanged));
 
     PhysicsSubsystem::DestroyPhysicsComponent(entity);
     ScriptingSubsystem::DestroyScriptingComponent(entity);
@@ -635,10 +636,10 @@ Entity Scene::DuplicateEntity(Entity entity)
             float gravityFactor;
             PhysicsComponentMotionType motionType;
             ObjectLayer objectLayer;
-            ComponentShapeType shapeType;
-            Vec3 halfExtents;
-            float radius;
-            float halfHeight;
+            ComponentShapeType shapeType = ComponentShapeType::Box;
+            Vec3 halfExtents = Vec3::Zero;
+            float radius = 0.0f;
+            float halfHeight = 0.0f;
 
             {
                 auto getter = PhysicsSubsystem::GetBodyGetter(src);
@@ -674,6 +675,8 @@ Entity Scene::DuplicateEntity(Entity entity)
                     radius = capsuleParams.second;
                     break;
                 }
+                default:
+                    break;
                 }
             }
             PhysicsComponentSettings settings{newEntity, shapeType};
@@ -709,6 +712,8 @@ Entity Scene::DuplicateEntity(Entity entity)
                     updater.SetCylinderShapeSettings(halfHeight, radius);
                     break;
                 }
+                default:
+                    break;
                 }
             }
         }

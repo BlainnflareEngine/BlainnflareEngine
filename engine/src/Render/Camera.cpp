@@ -26,7 +26,7 @@ Blainn::Camera::Camera()
 
 void Blainn::Camera::Update(float deltaTime)
 {
-    m_deltaTime = Engine::GetDeltaTime();
+    m_deltaTime = deltaTime;
     if (!m_isDirty) return;
 
     // View matrix
@@ -37,7 +37,7 @@ void Blainn::Camera::Update(float deltaTime)
     m_view = XMMatrixLookAtLH(pos, target, up);
 
     m_isDirty = false;
-    XMFLOAT3 position = GetPosition3f();
+    m_position = GetPosition3f();
 }
 
 void Blainn::Camera::Reset(float fovAngleYDegrees, float aspectRatio, float nearZ, float farZ)

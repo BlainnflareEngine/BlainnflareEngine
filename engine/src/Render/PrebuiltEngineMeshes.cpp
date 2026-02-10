@@ -212,26 +212,25 @@ namespace Blainn
         MeshData<> meshData;
 
         float x, y, z; // vertex position
-        float radius;  // radius for each stack
 
-        const float PI = acos(-1);
-        float sectorStep = 2 * PI / sectorCount;
+        const float PI = std::acos(-1.0f);
+        float sectorStep = 2.0f * PI / static_cast<float>(sectorCount);
         float sectorAngle; // radian
 
         // compute the normal vector at 0 degree first
         // tanA = (baseRadius-topRadius) / height
-        float zAngle = atan2(baseRadius - topRadius, height);
-        float x0 = cos(zAngle); // nx
-        float y0 = 0;           // ny
-        float z0 = sin(zAngle); // nz
+        float zAngle = std::atan2(static_cast<float>(baseRadius - topRadius), static_cast<float>(height));
+        float x0 = std::cos(zAngle); // nx
+        float y0 = 0.0f;             // ny
+        float z0 = std::sin(zAngle); // nz
 
         // rotate (x0,y0,z0) per sector angle
         std::vector<float> sideNormals;
         for (int i = 0; i <= sectorCount; ++i)
         {
             sectorAngle = i * sectorStep;
-            sideNormals.push_back(cos(sectorAngle) * x0 - sin(sectorAngle) * y0); // nx
-            sideNormals.push_back(sin(sectorAngle) * x0 + cos(sectorAngle) * y0); // ny
+            sideNormals.push_back(std::cos(sectorAngle) * x0 - std::sin(sectorAngle) * y0); // nx
+            sideNormals.push_back(std::sin(sectorAngle) * x0 + std::cos(sectorAngle) * y0); // ny
             sideNormals.push_back(z0);                                            // nz
         }
 
@@ -239,9 +238,9 @@ namespace Blainn
         for (int i = 0; i <= sectorCount; ++i)
         {
             sectorAngle = i * sectorStep;
-            unitCircleVertices.push_back(cos(sectorAngle)); // x
-            unitCircleVertices.push_back(sin(sectorAngle)); // y
-            unitCircleVertices.push_back(0);                // z
+            unitCircleVertices.push_back(std::cos(sectorAngle)); // x
+            unitCircleVertices.push_back(std::sin(sectorAngle)); // y
+            unitCircleVertices.push_back(0.0f);                  // z
         }
 
         // remember where the base.top vertices start

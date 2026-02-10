@@ -46,7 +46,8 @@ namespace Blainn
         void DrawLineList(const eastl::vector<VertexPositionColor>::iterator& first, const eastl::vector<VertexPositionColor>::iterator& last);
 
         // this is not working, we didn't yet bother to render text!
-        virtual void DrawText3D(JPH::RVec3Arg inPosition, const std::string_view &inString, JPH::ColorArg inColor, float inHeight) override {}
+        virtual void DrawText3D([[maybe_unused]] JPH::RVec3Arg inPosition, [[maybe_unused]] const std::string_view &inString,
+                                [[maybe_unused]] JPH::ColorArg inColor, [[maybe_unused]] float inHeight) override {}
 
         bool IsDebugEnabled() const {return m_bIsDebugEnabled;}
         void SetDebugEnabled(bool value) {m_bIsDebugEnabled = value;}

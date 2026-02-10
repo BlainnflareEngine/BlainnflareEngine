@@ -93,6 +93,7 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
             }
             catch (const YAML::Exception &e)
             {
+                (void)e;
                 BF_ERROR("CreateEntities YAML error: {}", e.what());
             }
         });
@@ -187,6 +188,8 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
     SceneType.set_function("RemoveEventListener",
         [](Scene &scene, int eventTypeInt, uint64_t id)
         {
+            (void)scene;
+            (void)eventTypeInt;
             auto it = s_sceneListenerRemovers.find(id);
             if (it == s_sceneListenerRemovers.end()) return;
             it->second();

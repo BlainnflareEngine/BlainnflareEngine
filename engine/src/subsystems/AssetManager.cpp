@@ -6,7 +6,10 @@
 
 #include "Engine.h"
 #include "ImportAssetData.h"
+#pragma warning(push)
+#pragma warning(disable : 4100)
 #include "VGJS.h"
+#pragma warning(pop)
 #include "File-System/Material.h"
 #include "File-System/Model.h"
 #include "File-System/Texture.h"
@@ -78,14 +81,14 @@ void AssetManager::LoadPrebuiltMeshes()
 #pragma endregion Box
 #pragma region Sphere
     model = Model{};
-    model.SetMeshes({PrebuiltEngineMeshes::CreateSphere(1.0f, 16.0f, 16.0f)});
+    model.SetMeshes({PrebuiltEngineMeshes::CreateSphere(1.0f, 16u, 16u)});
     model.CreateBufferResources();
     model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
 #pragma endregion Sphere
 #pragma region Cone
     model = Model{};
-    model.SetMeshes({PrebuiltEngineMeshes::CreateCylinder(1.0f, 0.0f, 1.0f, 16.0f)});
+    model.SetMeshes({PrebuiltEngineMeshes::CreateCylinder(1, 0, 1, 16)});
     model.CreateBufferResources();
     model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
@@ -134,7 +137,7 @@ eastl::shared_ptr<MeshHandle> AssetManager::GetDefaultMesh(uint32_t index /* = 0
 
 eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &relativePath, const ImportMeshData &data)
 {
-    int index = m_meshes.emplace(eastl::make_shared<Model>(GetDefaultModel(), relativePath));
+    int index = static_cast<int>(m_meshes.emplace(eastl::make_shared<Model>(GetDefaultModel(), relativePath)));
     m_meshPaths[ToEASTLString(relativePath.string())] = AssetData{index, 1};
     vgjs::schedule([=]() { AddMeshWhenLoaded(relativePath, index, data); });
 
@@ -185,7 +188,7 @@ eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &relativeP
 {
     assert(relativePath.is_relative());
 
-    int index = m_textures.push_back(eastl::make_shared<Texture>());
+    int index = static_cast<int>(m_textures.push_back(eastl::make_shared<Texture>()));
     m_texturePaths[ToEASTLString(relativePath.string())] = AssetData{index, 1};
 
     vgjs::schedule([=]() { AddTextureWhenLoaded(relativePath, index, type); });
@@ -207,7 +210,7 @@ eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path, A
 {
     assert(path.is_relative() && "the path is not relative");
 
-    int index = data.index == -1 ? m_materials.emplace(eastl::make_shared<Material>()) : data.index;
+    int index = data.index == -1 ? static_cast<int>(m_materials.emplace(eastl::make_shared<Material>())) : data.index;
     int count = data.refCount == 0 ? 1 : data.refCount;
     m_materialPaths[ToEASTLString(path.string())] = AssetData{index, count};
     vgjs::schedule([=]() { AddMaterialWhenLoaded(path, index); });
@@ -376,21 +379,21 @@ Model &AssetManager::GetDefaultModel(uint32_t index /*= 0u*/)
 void AssetManager::IncreaseTextureRefCount(const unsigned int index)
 {
     for (auto &[key, value] : m_texturePaths)
-        if (value.index == index) ++value.refCount;
+        if (static_cast<unsigned int>(value.index) == index) ++value.refCount;
 }
 
 
 void AssetManager::IncreaseMaterialRefCount(const unsigned int index)
 {
     for (auto &[key, value] : m_materialPaths)
-        if (value.index == index) ++value.refCount;
+        if (static_cast<unsigned int>(value.index) == index) ++value.refCount;
 }
 
 
 void AssetManager::IncreaseMeshRefCount(const unsigned int index)
 {
     for (auto &[key, value] : m_meshPaths)
-        if (value.index == index) ++value.refCount;
+        if (static_cast<unsigned int>(value.index) == index) ++value.refCount;
 }
 
 
@@ -401,7 +404,7 @@ void AssetManager::DecreaseTextureRefCount(const unsigned int index)
 
     for (auto &[key, value] : m_texturePaths)
     {
-        if (value.index == index)
+        if (static_cast<unsigned int>(value.index) == index)
         {
             --value.refCount;
 
@@ -423,7 +426,7 @@ void AssetManager::DecreaseMaterialRefCount(const unsigned int index)
 
     for (auto &[key, value] : m_materialPaths)
     {
-        if (value.index == index)
+        if (static_cast<unsigned int>(value.index) == index)
         {
             --value.refCount;
 
@@ -444,7 +447,7 @@ void AssetManager::DecreaseMeshRefCount(const unsigned int index)
 
     for (auto &[key, value] : m_meshPaths)
     {
-        if (value.index == index)
+        if (static_cast<unsigned int>(value.index) == index)
         {
             --value.refCount;
 
