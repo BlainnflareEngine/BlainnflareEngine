@@ -1,0 +1,3 @@
+Checks: '-*,bugprone-*,concurrency-*,cppcoreguidelines-*,google-*,performance-*,readability-*'
+WarningsAsErrors: ''
+FormatStyle: none

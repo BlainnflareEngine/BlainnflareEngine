@@ -10,7 +10,7 @@
 
 #define BLAINN_DEFAULT_LOGGER_NAME "BLAINN"
 
-#ifdef _DEBUG || BLAINN_HAS_CONSOLE
+#if defined(_DEBUG) || defined(BLAINN_HAS_CONSOLE)
 #define BF_TRACE(...)                                                                                                  \
     if (spdlog::get(BLAINN_DEFAULT_LOGGER_NAME) != nullptr)                                                            \
     {                                                                                                                  \
@@ -61,15 +61,11 @@ public:
                         const std::string &pattern = "%^[%Y-%m-%d %H:%M:%S.%e] %v%$");
     static void RemoveSink(const std::shared_ptr<spdlog::sinks::base_sink<std::mutex>> &sink);
 
-    static void TryLogNotFoundMainCamera();
-    static void SetNotFoundMainCameraLogged(bool logged);
-
 private:
     Log() = default;
     ~Log() = default;
 
     inline static std::shared_ptr<spdlog::logger> s_Logger{nullptr};
-    inline static bool s_notFoundMainCameraLogged = false;
 };
 } // namespace Blainn
 

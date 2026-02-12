@@ -73,6 +73,8 @@ void Blainn::Scene::Update()
     if (!m_bPlayMode) RenderSubsystem::GetInstance().SetCamera(&*RenderSubsystem::GetInstance().GetEditorCamera());
     else
     {
+        const bool shouldCheckMissingMainCamera = !m_notFoundMainCameraLogged;
+
         auto view = GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
         RuntimeCamera *cam = nullptr;
         Entity *camEntity = nullptr;
@@ -92,7 +94,10 @@ void Blainn::Scene::Update()
         {
             m_editorCam = RenderSubsystem::GetInstance().GetEditorCamera();
             RenderSubsystem::GetInstance().SetCamera(&*m_editorCam);
-            Log::TryLogNotFoundMainCamera();
+            if (shouldCheckMissingMainCamera)
+            {
+                BF_ERROR("Could not find main camera, please, select an active camera!");
+            }
         }
         else
         {
@@ -113,6 +118,8 @@ void Blainn::Scene::Update()
             cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
             RenderSubsystem::GetInstance().SetCamera(cam);
         }
+
+        if (shouldCheckMissingMainCamera) m_notFoundMainCameraLogged = true;
     }
 
     {

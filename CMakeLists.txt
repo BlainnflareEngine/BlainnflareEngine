@@ -11,6 +11,7 @@ endif()
 
 option(BLAINN_EXCLUDE_EDITOR "Build the engine without the editor" OFF)
 option(BLAINN_DISABLE_D3D_DEBUG_LAYER "Disable debug layer for better performance" OFF)
+option(BLAINN_HAS_CONSOLE "Build has console" ON)
 
 set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "Disable RecastDemo (we don't need SDL2)" FORCE)
 set(RECASTNAVIGATION_EXAMPLES OFF CACHE BOOL "Disable examples" FORCE)
@@ -35,6 +36,10 @@ endif()
 
 if(BLAINN_DISABLE_D3D_DEBUG_LAYER)
     add_compile_definitions("BLAINN_DISABLE_D3D_DEBUG_LAYER")
+endif()
+
+if(BLAINN_HAS_CONSOLE)
+    add_compile_definitions("BLAINN_HAS_CONSOLE")
 endif()
 
 set(PROJECT_NAME
