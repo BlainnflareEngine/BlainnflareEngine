@@ -103,12 +103,34 @@ Model::Model()
         ThrowIfFailed(cmdAlloc->Reset());
         auto cmdList = cmdQueue->GetCommandList(cmdAlloc.Get());
 
+        m_bisLoaded = false;
+        m_bBuffersCreated = true;
+        m_loadFenceValue = 0u;
+
         CreateGPUBuffers(cmdList.Get(), allVertices, allIndices);
+        if (!BuffersCreated())
+            return;
 
         cmdQueue->ExecuteCommandList(cmdList.Get());
-        cmdQueue->Flush();
+        m_loadFenceValue = cmdQueue->Signal();
+    }
 
-        m_bisLoaded = BuffersCreated();
+    bool Model::IsLoaded()
+    {
+        if (m_bisLoaded)
+            return true;
+
+        if (!BuffersCreated() || m_loadFenceValue == 0u)
+            return false;
+
+        const auto cmdQueue = Device::GetInstance().GetCommandQueue();
+        if (cmdQueue->IsFenceComplete(m_loadFenceValue))
+        {
+            m_bisLoaded = true;
+            DisposeUploaders();
+        }
+
+        return m_bisLoaded;
     }
 
     D3D12_VERTEX_BUFFER_VIEW Model::VertexBufferView() const

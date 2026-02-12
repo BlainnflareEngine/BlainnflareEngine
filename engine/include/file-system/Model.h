@@ -54,10 +54,7 @@ public:
         m_texTransform = texTranform;
     }
 
-    bool IsLoaded() const
-    {
-        return m_bisLoaded;
-    }
+    bool IsLoaded();
 
 private:
     template <typename TVertex, typename TIndex = uint32_t>
@@ -79,6 +76,7 @@ private:
             if (!VertexBufferGPU)
             {
                 BF_ERROR("Could not create vertex buffer");
+                m_bBuffersCreated = false;
                 m_bisLoaded = false;
                 return;
             }
@@ -99,6 +97,7 @@ private:
             if (!IndexBufferGPU)
             {
                 BF_ERROR("Could not create index buffer");
+                m_bBuffersCreated = false;
                 m_bisLoaded = false;
                 return;
             }
@@ -159,6 +158,7 @@ private:
 
     bool m_bBuffersCreated = true;
     bool m_bisLoaded = false;
+    UINT64 m_loadFenceValue = 0u;
 };
 
 } // namespace Blainn

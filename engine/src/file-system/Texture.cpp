@@ -28,9 +28,10 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index/*, bool IsCu
             CreateCubemap(cmdList.Get(), index);
 
         cmdQueue->ExecuteCommandList(cmdList);
-        cmdQueue->Flush();
-
-        m_bIsLoaded = m_bIsInitialized;
+        if (m_bIsInitialized)
+        {
+            m_loadFenceValue = cmdQueue->Signal();
+        }
     }
 
     Texture::~Texture()
@@ -59,6 +60,24 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index/*, bool IsCu
     ID3D12Resource* Texture::GetResource() const
     {
         return m_resource.Get();
+    }
+
+    bool Texture::IsLoaded()
+    {
+        if (m_bIsLoaded)
+            return true;
+
+        if (!m_bIsInitialized || m_loadFenceValue == 0u)
+            return false;
+
+        const auto& cmdQueue = Device::GetInstance().GetCommandQueue();
+        if (cmdQueue->IsFenceComplete(m_loadFenceValue))
+        {
+            m_bIsLoaded = true;
+            DisposeUploaders();
+        }
+
+        return m_bIsLoaded;
     }
 
     void Texture::Create(ID3D12GraphicsCommandList2 *cmdList, uint32_t index)
