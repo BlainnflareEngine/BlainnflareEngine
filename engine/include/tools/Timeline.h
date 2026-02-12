@@ -59,7 +59,19 @@ template <typename EastlDurationType> inline Timeline<EastlDurationType>::~Timel
     if (m_parentTimeline)
     {
         m_parentTimeline->RemoveChildTimeline(this);
+        m_parentTimeline = nullptr;
     }
+
+    // If this timeline is a parent, invalidate child back-references so children
+    // won't touch this object later during shutdown.
+    for (Timeline *childTimeline : m_childTimelines)
+    {
+        if (childTimeline)
+        {
+            childTimeline->m_parentTimeline = nullptr;
+        }
+    }
+    m_childTimelines.clear();
 }
 
 template <typename EastlDurationType> void Blainn::Timeline<EastlDurationType>::Start()
@@ -123,6 +135,8 @@ template <typename EastlDurationType> void Blainn::Timeline<EastlDurationType>::
 
 template <typename EastlDurationType> inline void Timeline<EastlDurationType>::AddChildTimeline(Timeline *childTimeline)
 {
+    if (!childTimeline) return;
+    childTimeline->m_parentTimeline = this;
     m_childTimelines.push_back(childTimeline);
 }
 
@@ -135,6 +149,7 @@ inline void Timeline<EastlDurationType>::RemoveChildTimeline(Timeline *childTime
     auto it = eastl::find(m_childTimelines.begin(), m_childTimelines.end(), childTimeline);
     if (it != m_childTimelines.end())
     {
+        (*it)->m_parentTimeline = nullptr;
         m_childTimelines.erase(it);
     }
 }
