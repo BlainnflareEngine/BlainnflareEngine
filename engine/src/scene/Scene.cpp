@@ -769,6 +769,7 @@ void Scene::ConvertToLocalSpace(Entity entity)
     if (!parent) return;
 
     auto *transform = entity.Transform();
+    if (!transform) return;
     auto parentTransform = GetWorldSpaceTransformMatrix(parent);
     auto localTransform = transform->GetTransform() * parentTransform.Invert();
     transform->SetTransform(localTransform);
@@ -779,10 +780,10 @@ void Scene::ConvertToWorldSpace(Entity entity)
     Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
 
     if (!parent) return;
-    if (auto transformComponent = entity.TryGetComponent<TransformComponent>())
+    if (auto* transformComp = entity.Transform())
     {
         Mat4 transform = GetWorldSpaceTransformMatrix(entity);
-        transformComponent->SetTransform(transform);
+        transformComp->SetTransform(transform);
     }
 }
 

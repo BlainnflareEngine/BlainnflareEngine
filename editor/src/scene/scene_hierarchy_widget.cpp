@@ -100,14 +100,15 @@ QTreeWidgetItem *scene_hierarchy_widget::FindItemByUuid(const Blainn::uuid &uuid
 
     while (!stack.empty())
     {
-        auto &current = stack.back();
+        StackItem &current = stack.back();
 
         if (GetUUIDFromItem(current.item) == uuid) return current.item;
 
         if (current.childIndex < current.item->childCount())
         {
-            stack.push_back({current.item->child(current.childIndex), 0});
-            current.childIndex++;
+            const int nextChildIndex = current.childIndex++;
+            QTreeWidgetItem *nextChild = current.item->child(nextChildIndex);
+            stack.push_back({nextChild, 0});
         }
         else
         {

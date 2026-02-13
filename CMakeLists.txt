@@ -1,13 +1,7 @@
 cmake_minimum_required(VERSION 3.1...4.1.1)
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-
 cmake_policy(SET CMP0074 OLD)
 cmake_policy(SET CMP0169 OLD)
-if(MSVC)
-    add_compile_options(/EHsc /arch:AVX2)
-    add_compile_options(/MP)
-endif()
 
 option(BLAINN_EXCLUDE_EDITOR "Build the engine without the editor" OFF)
 option(BLAINN_DISABLE_D3D_DEBUG_LAYER "Disable debug layer for better performance" OFF)
@@ -49,6 +43,12 @@ project(${PROJECT_NAME}
         VERSION 0.0.1
         LANGUAGES CXX C
 )
+
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    add_compile_options(/EHsc /arch:AVX2)
+    add_compile_options(/MP)
+endif()
 
 # Put executable outputs at the build directory root for all configurations.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
@@ -217,13 +217,13 @@ endif()
 
 # =========================================
 # debug info
-if (${WIN32})
+if (WIN32)
     message("Running on Windows")
-elseif (${LINUX})
+elseif (LINUX)
     message("Running on Linux")
 endif ()
 
-if (${MSVC})
+if (MSVC)
     message("MSVC version: ${MSVC_VERSION}")
     message("MSVC toolset version: ${MSVC_TOOLSET_VERSION}")
 endif ()
