@@ -62,6 +62,5 @@ CMakeFiles/
 /CppProperties.json
 /imgui.ini
 /out
-cmake-build-debug
 
-!content/*.obj
+!content/**.obj
