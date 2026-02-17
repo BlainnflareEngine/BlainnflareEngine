@@ -24,8 +24,8 @@
 
 namespace Blainn
 {
-const Path relativeDefaultDiffuseTexturePath = "Textures/Default.dds";
-const Path relativeDefaultMaterialPath = "Materials/Default.mat";
+constexpr const char *relativeDefaultDiffuseTexturePath = "Textures/Default.dds";
+constexpr const char *relativeDefaultMaterialPath = "Materials/Default.mat";
 
 AssetManager &AssetManager::GetInstance()
 {
@@ -55,16 +55,19 @@ void AssetManager::Init()
 
 void AssetManager::LoadDefaultTextures()
 {
-    m_textures.emplace(m_loader->LoadTexture(relativeDefaultDiffuseTexturePath, TextureType::ALBEDO, 0u));
-    m_texturePaths[ToEASTLString(relativeDefaultDiffuseTexturePath.string())] = {0, 1};
+    const Path defaultDiffuseTexturePath = relativeDefaultDiffuseTexturePath;
+    m_textures.emplace(m_loader->LoadTexture(defaultDiffuseTexturePath, TextureType::ALBEDO, 0u));
+    m_texturePaths[ToEASTLString(defaultDiffuseTexturePath.string())] = {0, 1};
 }
 
 void AssetManager::LoadDefaultMaterials()
 {
-    Material material = Material(relativeDefaultMaterialPath, "");
-    material.SetTexture(GetTexture(relativeDefaultDiffuseTexturePath), TextureType::ALBEDO);
+    const Path defaultMaterialPath = relativeDefaultMaterialPath;
+    const Path defaultDiffuseTexturePath = relativeDefaultDiffuseTexturePath;
+    Material material = Material(defaultMaterialPath, "");
+    material.SetTexture(GetTexture(defaultDiffuseTexturePath), TextureType::ALBEDO);
     
-    m_materialPaths[ToEASTLString(relativeDefaultMaterialPath.string())] = {0, 1};
+    m_materialPaths[ToEASTLString(defaultMaterialPath.string())] = {0, 1};
     m_materials.emplace(eastl::make_shared<Material>(eastl::move(material)));
 }
 
@@ -74,28 +77,28 @@ void AssetManager::LoadPrebuiltMeshes()
     Model model;
 #pragma region Box
     model = Model{};
-    model.SetMeshes({PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f)});
+    model.SetMeshes({PrebuiltEngineMeshes::CreateBox(PrebuiltEngineMeshes::BoxParams{1.f, 1.f, 1.f})});
     model.CreateBufferResources();
     model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
 #pragma endregion Box
 #pragma region Sphere
     model = Model{};
-    model.SetMeshes({PrebuiltEngineMeshes::CreateSphere(1.0f, 16u, 16u)});
+    model.SetMeshes({PrebuiltEngineMeshes::CreateSphere(PrebuiltEngineMeshes::SphereParams{1.0f, 16u, 16u})});
     model.CreateBufferResources();
     model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
 #pragma endregion Sphere
 #pragma region Cone
     model = Model{};
-    model.SetMeshes({PrebuiltEngineMeshes::CreateCylinder(1, 0, 1, 16)});
+    model.SetMeshes({PrebuiltEngineMeshes::CreateCylinder(PrebuiltEngineMeshes::CylinderParams{1.0f, 0.0f, 1.0f, 16u})});
     model.CreateBufferResources();
     model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
 #pragma endregion Cone
 #pragma region Grid
     model = Model{};
-    model.SetMeshes({PrebuiltEngineMeshes::CreateGrid(50.0f, 50.0f, 20u, 20u)});
+    model.SetMeshes({PrebuiltEngineMeshes::CreateGrid(PrebuiltEngineMeshes::GridParams{50.0f, 50.0f, 20u, 20u})});
     model.CreateBufferResources();
     model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
@@ -256,7 +259,6 @@ eastl::shared_ptr<MaterialHandle> AssetManager::GetDefaultMaterialHandle()
 
 Path AssetManager::GetMaterialPath(const MaterialHandle &handle)
 {
-    auto a = m_materials[handle.GetIndex()]->GetPath();
     return m_materials[handle.GetIndex()]->GetPath();
 }
 

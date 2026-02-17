@@ -15,8 +15,12 @@ namespace editor
 point_light_widget::point_light_widget(const Blainn::Entity &entity, QWidget *parent)
     : component_widget_base(entity, "Point light", parent)
 {
-    Blainn::PointLightComponent *comp;
-    if (!m_entity.IsValid() || !(comp = m_entity.TryGetComponent<Blainn::PointLightComponent>()))
+    Blainn::PointLightComponent *comp = nullptr;
+    if (m_entity.IsValid())
+    {
+        comp = m_entity.TryGetComponent<Blainn::PointLightComponent>();
+    }
+    if (!comp)
     {
         deleteLater();
         return;
@@ -64,7 +68,11 @@ void point_light_widget::OnUpdate()
 void point_light_widget::OnColorChanged()
 {
     auto light = m_entity.TryGetComponent<Blainn::PointLightComponent>();
-    if (!light) deleteLater();
+    if (!light)
+    {
+        deleteLater();
+        return;
+    }
 
     Blainn::Color newColor = {ConvertQColorToDXColor(m_color->GetValue().red()),
                               ConvertQColorToDXColor(m_color->GetValue().green()),
@@ -77,11 +85,15 @@ void point_light_widget::OnColorChanged()
 void point_light_widget::OnRangeChanged()
 {
     auto light = m_entity.TryGetComponent<Blainn::PointLightComponent>();
-    if (!light) deleteLater();
+    if (!light)
+    {
+        deleteLater();
+        return;
+    }
 
     light->FalloffEnd = m_range->GetValue();
 
-    if (light->FalloffStart > light->FalloffEnd) m_attenuation->SetValue(light->FalloffEnd - 0.001);
+    if (light->FalloffStart > light->FalloffEnd) m_attenuation->SetValue(light->FalloffEnd - 0.001f);
 
     light->MarkFramesDirty();
 }
@@ -90,11 +102,15 @@ void point_light_widget::OnRangeChanged()
 void point_light_widget::OnAttenuationChanged()
 {
     auto light = m_entity.TryGetComponent<Blainn::PointLightComponent>();
-    if (!light) deleteLater();
+    if (!light)
+    {
+        deleteLater();
+        return;
+    }
 
     light->FalloffStart = m_attenuation->GetValue();
 
-    if (light->FalloffStart > light->FalloffEnd) m_attenuation->SetValue(light->FalloffEnd - 0.001);
+    if (light->FalloffStart > light->FalloffEnd) m_attenuation->SetValue(light->FalloffEnd - 0.001f);
 
     light->MarkFramesDirty();
 }
@@ -103,7 +119,11 @@ void point_light_widget::OnAttenuationChanged()
 void point_light_widget::OnIntensityChanged()
 {
     auto light = m_entity.TryGetComponent<Blainn::PointLightComponent>();
-    if (!light) deleteLater();
+    if (!light)
+    {
+        deleteLater();
+        return;
+    }
 
     light->Intensity = m_intensity->GetValue();
     light->MarkFramesDirty();

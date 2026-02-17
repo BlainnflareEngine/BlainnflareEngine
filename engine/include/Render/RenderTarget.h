@@ -4,6 +4,12 @@
 //
 
 #pragma once
+#include <cstdint>
+
+#include <d3d12.h>
+#include <DirectXMath.h>
+#include <EASTL/shared_ptr.h>
+#include <EASTL/vector.h>
 
 namespace Blainn
 {
@@ -30,6 +36,12 @@ struct AttachmentPoint
 class RenderTarget
 {
 public:
+    struct ResizeRequest
+    {
+        UINT width = 0u;
+        UINT height = 0u;
+    };
+
     RenderTarget();
     RenderTarget(const RenderTarget& copy) = default;
     RenderTarget(      RenderTarget&& copy) = default;
@@ -40,7 +52,7 @@ public:
     void AttachTexture(AttachmentPoint::Enum attachmentPoint, eastl::shared_ptr<GTexture> texture);
     eastl::shared_ptr<GTexture> GetTexture(AttachmentPoint::Enum attachmentPoint) const;
 
-    void Resize(UINT width, UINT height);
+    void Resize(const ResizeRequest &request);
     UINT GetWidth() const;
     UINT GetHeight() const;
 

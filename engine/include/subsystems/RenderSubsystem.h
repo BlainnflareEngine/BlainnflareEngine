@@ -26,6 +26,13 @@ class UIRenderer;
 
 class RenderSubsystem
 {
+public:
+    struct ResizeParams
+    {
+        UINT width = 0u;
+        UINT height = 0u;
+    };
+
 private:
     RenderSubsystem() = default;
     RenderSubsystem(const RenderSubsystem &) = delete;
@@ -40,7 +47,7 @@ public:
     void Init(HWND window);
     void SetWindowParams(HWND window);
     void Render(float deltaTime);
-    void OnResize(UINT newWidth, UINT newHeight);
+    void OnResize(const ResizeParams &resize);
     void Destroy();
 
     void DestroyCameraComponent(Entity entity);

@@ -5,13 +5,21 @@
 
 namespace Blainn
 {
-NavMeshBuildResult NavmeshBuilder::BuildNavMesh(const eastl::vector<NavMeshInputMesh> &meshes, const JPH::AABox &bounds,
-                                                const NavMeshBuildSettings &settings)
+NavMeshBuildResult NavmeshBuilder::BuildNavMesh(const NavMeshBuildRequest &request)
 {
     BF_DEBUG("Building navmesh");
 
     NavMeshBuildResult result;
     RcContext rc_context;
+    if (request.meshes == nullptr || request.bounds == nullptr)
+    {
+        result.errorMsg = "Invalid navmesh build request";
+        return result;
+    }
+
+    const eastl::vector<NavMeshInputMesh> &meshes = *request.meshes;
+    const JPH::AABox &bounds = *request.bounds;
+    const NavMeshBuildSettings &settings = request.settings;
 
     if (meshes.empty())
     {

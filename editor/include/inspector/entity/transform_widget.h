@@ -49,7 +49,7 @@ private:
     void LoadTransformValues();
     void ConnectSignals();
     void BlockSignals(bool block);
-    static bool IsValidNumericInput(const QString &currentText, const QString &newText);
+    static bool IsValidNumericInput(const QString &newText);
 
     QWidget *CreateVector3(const QString &title, float_input_field *&xField, float_input_field *&yField,
                            float_input_field *&zField);

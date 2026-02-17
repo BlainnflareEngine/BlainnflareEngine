@@ -119,8 +119,8 @@ material_inspector_content::material_inspector_content(const QString &file, QWid
             [this]()
             {
                 QDir content(QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
-                SetValueYAML(ToString(m_file), "AlbedoColor",
-                             ToString(m_albedoColor->GetValue().name(QColor::HexArgb)));
+                SetValueYAML(
+                    {ToString(m_file), "AlbedoColor", ToString(m_albedoColor->GetValue().name(QColor::HexArgb))});
                 Blainn::AssetManager::GetInstance().UpdateMaterial(ToString(content.relativeFilePath(m_file)));
             });
 
@@ -135,7 +135,7 @@ void material_inspector_content::connectPathField(path_input_field *field, const
             {
                 QDir content(QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
                 auto relPath = content.relativeFilePath(newPath);
-                SetValueYAML(ToString(m_file), yamlKey.toStdString(), ToString(newPath));
+                SetValueYAML({ToString(m_file), yamlKey.toStdString(), ToString(newPath)});
                 Blainn::AssetManager::GetInstance().UpdateMaterial(ToString(content.relativeFilePath(m_file)));
             });
 }
@@ -146,7 +146,7 @@ void material_inspector_content::connectFloatField(float_input_field *field, con
             [this, yamlKey, field]()
             {
                 QDir content(QString::fromStdString(Blainn::Engine::GetContentDirectory().string()));
-                SetValueYAML(ToString(m_file), yamlKey.toStdString(), std::to_string(field->GetValue()));
+                SetValueYAML({ToString(m_file), yamlKey.toStdString(), std::to_string(field->GetValue())});
                 Blainn::AssetManager::GetInstance().UpdateMaterial(ToString(content.relativeFilePath(m_file)));
             });
 }

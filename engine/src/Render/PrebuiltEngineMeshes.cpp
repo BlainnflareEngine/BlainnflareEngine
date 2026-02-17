@@ -2,15 +2,15 @@
 
 namespace Blainn
 {
-    MeshData<> PrebuiltEngineMeshes::CreateBox(float width, float height, float depth)
+    MeshData<> PrebuiltEngineMeshes::CreateBox(const BoxParams &params)
     {
         MeshData<> meshData;
 
         BlainnVertex v[24];
 
-        float w2 = 0.5f * width;
-        float h2 = 0.5f * height;
-        float d2 = 0.5f * depth;
+        float w2 = 0.5f * params.width;
+        float h2 = 0.5f * params.height;
+        float d2 = 0.5f * params.depth;
 
         // Fill in the front face vertex data.
         v[0] = BlainnVertex(-w2, -h2, -d2, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
@@ -111,39 +111,41 @@ namespace Blainn
         return meshData;
     }
 
-    MeshData<> PrebuiltEngineMeshes::CreateSphere(float radius, UINT sliceCount, UINT stackCount)
+    MeshData<> PrebuiltEngineMeshes::CreateSphere(const SphereParams &params)
     {
         MeshData<> meshData;
 
-        BlainnVertex topVertex(0.0f, +radius, 0.0f, 0.0f, +1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-        BlainnVertex bottomVertex(0.0f, -radius, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+        BlainnVertex topVertex(0.0f, +params.radius, 0.0f, 0.0f, +1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                               0.0f, 0.0f);
+        BlainnVertex bottomVertex(0.0f, -params.radius, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                                  0.0f, 1.0f);
 
         meshData.vertices.push_back(topVertex);
 
-        float phiStep = XM_PI / stackCount;
-        float thetaStep = 2.0f * XM_PI / sliceCount;
+        float phiStep = XM_PI / static_cast<float>(params.stackCount);
+        float thetaStep = 2.0f * XM_PI / static_cast<float>(params.sliceCount);
 
         // Compute vertices for each stack ring (do not count the poles as rings).
-        for (UINT i = 1; i <= stackCount - 1; ++i)
+        for (UINT i = 1; i <= params.stackCount - 1; ++i)
         {
-            float phi = i * phiStep;
+            float phi = static_cast<float>(i) * phiStep;
 
             // Vertices of ring.
-            for (UINT j = 0; j <= sliceCount; ++j)
+            for (UINT j = 0; j <= params.sliceCount; ++j)
             {
-                float theta = j * thetaStep;
+                float theta = static_cast<float>(j) * thetaStep;
 
                 BlainnVertex v;
 
                 // spherical to cartesian
-                v.position.x = radius * sinf(phi) * cosf(theta);
-                v.position.y = radius * cosf(phi);
-                v.position.z = radius * sinf(phi) * sinf(theta);
+                v.position.x = params.radius * sinf(phi) * cosf(theta);
+                v.position.y = params.radius * cosf(phi);
+                v.position.z = params.radius * sinf(phi) * sinf(theta);
 
                 // Partial derivative of P with respect to theta
-                v.tangent.x = -radius * sinf(phi) * sinf(theta);
+                v.tangent.x = -params.radius * sinf(phi) * sinf(theta);
                 v.tangent.y = 0.0f;
-                v.tangent.z = +radius * sinf(phi) * cosf(theta);
+                v.tangent.z = +params.radius * sinf(phi) * cosf(theta);
 
                 XMVECTOR T = XMLoadFloat3(&v.tangent);
                 XMStoreFloat3(&v.tangent, XMVector3Normalize(T));
@@ -160,7 +162,7 @@ namespace Blainn
 
         meshData.vertices.push_back(bottomVertex);
 
-        for (UINT i = 1; i <= sliceCount; ++i)
+        for (UINT i = 1; i <= params.sliceCount; ++i)
         {
             meshData.indices.push_back(0);
             meshData.indices.push_back(i + 1);
@@ -170,10 +172,10 @@ namespace Blainn
         // Offset the indices to the index of the first vertex in the first ring.
         // This is just skipping the top pole vertex.
         UINT baseIndex = 1;
-        UINT ringVertexCount = sliceCount + 1;
-        for (UINT i = 0; i < stackCount - 2; ++i)
+        UINT ringVertexCount = params.sliceCount + 1;
+        for (UINT i = 0; i < params.stackCount - 2; ++i)
         {
-            for (UINT j = 0; j < sliceCount; ++j)
+            for (UINT j = 0; j < params.sliceCount; ++j)
             {
                 meshData.indices.push_back(baseIndex + i * ringVertexCount + j);
                 meshData.indices.push_back(baseIndex + i * ringVertexCount + j + 1);
@@ -191,7 +193,7 @@ namespace Blainn
         // Offset the indices to the index of the first vertex in the last ring.
         baseIndex = southPoleIndex - ringVertexCount;
 
-        for (UINT i = 0; i < sliceCount; ++i)
+        for (UINT i = 0; i < params.sliceCount; ++i)
         {
             meshData.indices.push_back(southPoleIndex);
             meshData.indices.push_back(baseIndex + i);
@@ -207,37 +209,37 @@ namespace Blainn
         return meshData;
     }
 
-    MeshData<> PrebuiltEngineMeshes::CreateCylinder(int baseRadius, int topRadius, int height, int sectorCount)
+    MeshData<> PrebuiltEngineMeshes::CreateCylinder(const CylinderParams &params)
     {
         MeshData<> meshData;
 
         float x, y, z; // vertex position
 
         const float PI = std::acos(-1.0f);
-        float sectorStep = 2.0f * PI / static_cast<float>(sectorCount);
+        float sectorStep = 2.0f * PI / static_cast<float>(params.sectorCount);
         float sectorAngle; // radian
 
         // compute the normal vector at 0 degree first
         // tanA = (baseRadius-topRadius) / height
-        float zAngle = std::atan2(static_cast<float>(baseRadius - topRadius), static_cast<float>(height));
+        float zAngle = std::atan2(params.baseRadius - params.topRadius, params.height);
         float x0 = std::cos(zAngle); // nx
         float y0 = 0.0f;             // ny
         float z0 = std::sin(zAngle); // nz
 
         // rotate (x0,y0,z0) per sector angle
         std::vector<float> sideNormals;
-        for (int i = 0; i <= sectorCount; ++i)
+        for (UINT i = 0; i <= params.sectorCount; ++i)
         {
-            sectorAngle = i * sectorStep;
+            sectorAngle = static_cast<float>(i) * sectorStep;
             sideNormals.push_back(std::cos(sectorAngle) * x0 - std::sin(sectorAngle) * y0); // nx
             sideNormals.push_back(std::sin(sectorAngle) * x0 + std::cos(sectorAngle) * y0); // ny
             sideNormals.push_back(z0);                                            // nz
         }
 
         std::vector<float> unitCircleVertices;
-        for (int i = 0; i <= sectorCount; ++i)
+        for (UINT i = 0; i <= params.sectorCount; ++i)
         {
-            sectorAngle = i * sectorStep;
+            sectorAngle = static_cast<float>(i) * sectorStep;
             unitCircleVertices.push_back(std::cos(sectorAngle)); // x
             unitCircleVertices.push_back(std::sin(sectorAngle)); // y
             unitCircleVertices.push_back(0.0f);                  // z
@@ -247,43 +249,47 @@ namespace Blainn
         unsigned int baseVertexIndex = (unsigned int)meshData.vertices.size();
         // TODO: Convert this
         // put vertices of base of cylinder
-        z = -height * 0.5f;
+        z = -params.height * 0.5f;
         
         meshData.vertices.push_back(BlainnVertex(0.0f, 0.0f, z, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f));
 
-        for (int i = 0, j = 0; i < sectorCount; ++i, j += 3)
+        for (UINT i = 0, j = 0; i < params.sectorCount; ++i, j += 3)
         {
             x = unitCircleVertices[j];
             y = unitCircleVertices[j + 1];
-            meshData.vertices.push_back(BlainnVertex(x * baseRadius, y * baseRadius, z, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -x * 0.5f + 0.5f, -y * 0.5f + 0.5f));
+            meshData.vertices.push_back(
+                BlainnVertex(x * params.baseRadius, y * params.baseRadius, z, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+                             0.0f, 0.0f, 0.0f, -x * 0.5f + 0.5f, -y * 0.5f + 0.5f));
         }
 
         // remember where the top vertices start
         unsigned int topVertexIndex = (unsigned int)meshData.vertices.size();
         // put vertices of top of cylinder
-        z = height * 0.5f;
+        z = params.height * 0.5f;
         meshData.vertices.push_back(BlainnVertex(0.0f, 0.0f, z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f));
         
-        for (int i = 0, j = 0; i < sectorCount; ++i, j += 3)
+        for (UINT i = 0, j = 0; i < params.sectorCount; ++i, j += 3)
         {
             x = unitCircleVertices[j];
             y = unitCircleVertices[j + 1];
-            meshData.vertices.push_back(BlainnVertex(x * topRadius, y * topRadius, z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, x * 0.5f + 0.5f, -y * 0.5f + 0.5f));
+            meshData.vertices.push_back(
+                BlainnVertex(x * params.topRadius, y * params.topRadius, z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                             0.0f, 0.0f, x * 0.5f + 0.5f, -y * 0.5f + 0.5f));
         }
 
-        int k1 = 0;               // 1st vertex index at base
-        int k2 = sectorCount + 1; // 1st vertex index at top
+        UINT k1 = 0u; // 1st vertex index at base
+        UINT k2 = params.sectorCount + 1u; // 1st vertex index at top
 
-        for (int j = 0; j < sectorCount; ++j, ++k1, ++k2)
+        for (UINT j = 0; j < params.sectorCount; ++j, ++k1, ++k2)
         {
             if (j == 0)
             {
                 // 2 trianles per sector
-                meshData.indices.push_back(k1 + sectorCount);
+                meshData.indices.push_back(k1 + params.sectorCount);
                 meshData.indices.push_back(k1 + 1);
-                meshData.indices.push_back(k2 + sectorCount);
+                meshData.indices.push_back(k2 + params.sectorCount);
 
-                meshData.indices.push_back(k2 + sectorCount);
+                meshData.indices.push_back(k2 + params.sectorCount);
                 meshData.indices.push_back(k1 + 1);
                 meshData.indices.push_back(k2 + 1);
             }
@@ -301,9 +307,9 @@ namespace Blainn
         }
 
         // put indices for base
-        for (int i = 0, k = baseVertexIndex + 1; i < sectorCount; ++i, ++k)
+        for (UINT i = 0, k = baseVertexIndex + 1u; i < params.sectorCount; ++i, ++k)
         {
-            if (i < (sectorCount - 1))
+            if (i < (params.sectorCount - 1u))
             {
                 meshData.indices.push_back(baseVertexIndex);
                 meshData.indices.push_back(k + 1);
@@ -318,9 +324,9 @@ namespace Blainn
         }
 
         // put indices for top
-        for (int i = 0, k = topVertexIndex + 1; i < sectorCount; ++i, ++k)
+        for (UINT i = 0, k = topVertexIndex + 1u; i < params.sectorCount; ++i, ++k)
         {
-            if (i < (sectorCount - 1))
+            if (i < (params.sectorCount - 1u))
             {
                 meshData.indices.push_back(topVertexIndex);
                 meshData.indices.push_back(k);
@@ -337,41 +343,41 @@ namespace Blainn
         return meshData;
     }
 
-    MeshData<> PrebuiltEngineMeshes::CreateGrid(float width, float depth, UINT m, UINT n)
+    MeshData<> PrebuiltEngineMeshes::CreateGrid(const GridParams &params)
     {
         MeshData<> meshData;
 
-        UINT vertexCount = m * n;
-        UINT faceCount = (m - 1) * (n - 1) * 2;
+        UINT vertexCount = params.rows * params.columns;
+        UINT faceCount = (params.rows - 1u) * (params.columns - 1u) * 2u;
 
         //
         // Create the vertices.
         //
 
-        float halfWidth = 0.5f * width;
-        float halfDepth = 0.5f * depth;
+        float halfWidth = 0.5f * params.width;
+        float halfDepth = 0.5f * params.depth;
 
-        float dx = width / (n - 1);
-        float dz = depth / (m - 1);
+        float dx = params.width / static_cast<float>(params.columns - 1u);
+        float dz = params.depth / static_cast<float>(params.rows - 1u);
 
-        float du = 1.0f / (n - 1);
-        float dv = 1.0f / (m - 1);
+        float du = 1.0f / static_cast<float>(params.columns - 1u);
+        float dv = 1.0f / static_cast<float>(params.rows - 1u);
 
         meshData.vertices.resize(vertexCount);
-        for (UINT i = 0; i < m; ++i)
+        for (UINT i = 0; i < params.rows; ++i)
         {
-            float z = halfDepth - i * dz;
-            for (UINT j = 0; j < n; ++j)
+            float z = halfDepth - static_cast<float>(i) * dz;
+            for (UINT j = 0; j < params.columns; ++j)
             {
-                float x = -halfWidth + j * dx;
+                float x = -halfWidth + static_cast<float>(j) * dx;
 
-                meshData.vertices[i * n + j].position = XMFLOAT3(x, 0.0f, z);
-                meshData.vertices[i * n + j].normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
-                meshData.vertices[i * n + j].tangent = XMFLOAT3(1.0f, 0.0f, 0.0f);
+                meshData.vertices[i * params.columns + j].position = XMFLOAT3(x, 0.0f, z);
+                meshData.vertices[i * params.columns + j].normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+                meshData.vertices[i * params.columns + j].tangent = XMFLOAT3(1.0f, 0.0f, 0.0f);
 
                 // Stretch texture over grid.
-                meshData.vertices[i * n + j].texCoord.x = j * du;
-                meshData.vertices[i * n + j].texCoord.y = i * dv;
+                meshData.vertices[i * params.columns + j].texCoord.x = static_cast<float>(j) * du;
+                meshData.vertices[i * params.columns + j].texCoord.y = static_cast<float>(i) * dv;
             }
         }
 
@@ -379,21 +385,21 @@ namespace Blainn
         // Create the indices.
         //
 
-        meshData.indices.resize(faceCount * 3); // 3 indices per face
+        meshData.indices.resize(static_cast<size_t>(faceCount) * 3u); // 3 indices per face
 
         // Iterate over each quad and compute indices.
         UINT k = 0;
-        for (UINT i = 0; i < m - 1; ++i)
+        for (UINT i = 0; i < params.rows - 1u; ++i)
         {
-            for (UINT j = 0; j < n - 1; ++j)
+            for (UINT j = 0; j < params.columns - 1u; ++j)
             {
-                meshData.indices[k] = i * n + j;
-                meshData.indices[k + 1] = i * n + j + 1;
-                meshData.indices[k + 2] = (i + 1) * n + j;
+                meshData.indices[k] = i * params.columns + j;
+                meshData.indices[k + 1] = i * params.columns + j + 1u;
+                meshData.indices[k + 2] = (i + 1u) * params.columns + j;
 
-                meshData.indices[k + 3] = (i + 1) * n + j;
-                meshData.indices[k + 4] = i * n + j + 1;
-                meshData.indices[k + 5] = (i + 1) * n + j + 1;
+                meshData.indices[k + 3] = (i + 1u) * params.columns + j;
+                meshData.indices[k + 4] = i * params.columns + j + 1u;
+                meshData.indices[k + 5] = (i + 1u) * params.columns + j + 1u;
 
                 k += 6; // next quad
             }
@@ -402,11 +408,11 @@ namespace Blainn
         return meshData;
     }
 
-    MeshData<> PrebuiltEngineMeshes::CreateGeosphere(float radius, UINT numSubdivisions)
+    MeshData<> PrebuiltEngineMeshes::CreateGeosphere(const GeosphereParams &params)
     {
         MeshData<> meshData;
 
-        numSubdivisions = std::min<UINT>(numSubdivisions, 6u);
+        UINT numSubdivisions = std::min<UINT>(params.numSubdivisions, 6u);
 
         // Approximate a sphere by tessellating an icosahedron.
         const float X = 0.525731f;
@@ -437,7 +443,7 @@ namespace Blainn
             XMVECTOR n = XMVector3Normalize(XMLoadFloat3(&meshData.vertices[i].position));
 
             // Project onto sphere.
-            XMVECTOR p = radius * n;
+            XMVECTOR p = params.radius * n;
 
             XMStoreFloat3(&meshData.vertices[i].position, p);
             XMStoreFloat3(&meshData.vertices[i].normal, n);
@@ -448,15 +454,15 @@ namespace Blainn
             // Put in [0, 2pi].
             if (theta < 0.0f) theta += XM_2PI;
 
-            float phi = acosf(meshData.vertices[i].position.y / radius);
+            float phi = acosf(meshData.vertices[i].position.y / params.radius);
 
             meshData.vertices[i].texCoord.x = theta / XM_2PI;
             meshData.vertices[i].texCoord.y = phi / XM_PI;
 
             // Partial derivative of P with respect to theta
-            meshData.vertices[i].tangent.x = -radius * sinf(phi) * sinf(theta);
+            meshData.vertices[i].tangent.x = -params.radius * sinf(phi) * sinf(theta);
             meshData.vertices[i].tangent.y = 0.0f;
-            meshData.vertices[i].tangent.z = +radius * sinf(phi) * cosf(theta);
+            meshData.vertices[i].tangent.z = +params.radius * sinf(phi) * cosf(theta);
 
             XMVECTOR T = XMLoadFloat3(&meshData.vertices[i].tangent);
             XMStoreFloat3(&meshData.vertices[i].tangent, XMVector3Normalize(T));

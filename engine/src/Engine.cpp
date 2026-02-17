@@ -429,7 +429,7 @@ LRESULT CALLBACK Engine::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
     {
         UINT width = LOWORD(lParam);
         UINT height = HIWORD(lParam);
-        RenderSubsystem::GetInstance().OnResize(width, height);
+        RenderSubsystem::GetInstance().OnResize(RenderSubsystem::ResizeParams{width, height});
         return 0;
     }
 

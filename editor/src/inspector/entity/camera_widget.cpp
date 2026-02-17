@@ -21,7 +21,7 @@ camera_widget::camera_widget(const Blainn::Entity &entity, QWidget *parent)
     auto *cam = m_entity.TryGetComponent<Blainn::CameraComponent>();
     if (!cam) destroy();
 
-    m_cameraPriority = new float_input_field("Priority", cam->CameraPriority, this);
+    m_cameraPriority = new float_input_field("Priority", static_cast<float>(cam->CameraPriority), this);
     m_cameraPriority->SetDecimals(0);
     m_cameraPriority->SetSingleStep(1);
 
@@ -50,7 +50,7 @@ void camera_widget::OnPriorityChanged()
 {
     if (auto *cam = m_entity.TryGetComponent<Blainn::CameraComponent>())
     {
-        cam->CameraPriority = m_cameraPriority->GetValue();
+        cam->CameraPriority = static_cast<decltype(cam->CameraPriority)>(m_cameraPriority->GetValue());
     }
 }
 

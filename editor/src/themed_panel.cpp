@@ -25,7 +25,7 @@ void themed_panel::paintEvent(QPaintEvent *event)
     p.setRenderHint(QPainter::Antialiasing);
 
     QColor backgroundColor;
-    int radius;
+    qreal radius = 5.0;
 
     if (auto *style = oclero::qlementine::appStyle())
     {
@@ -50,7 +50,7 @@ void themed_panel::paintEvent(QPaintEvent *event)
     else
     {
         backgroundColor = palette().color(QPalette::Window);
-        radius = 5;
+        radius = 5.0;
     }
 
 

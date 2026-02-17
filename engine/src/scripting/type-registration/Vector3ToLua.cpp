@@ -19,18 +19,23 @@ void Blainn::RegisterVector3Type(sol::state &luaState)
             Vec3(float),
             Vec3(float, float, float)
         >(),
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         sol::meta_function::addition, [](const Vec3 &a, const Vec3 &b) { return a + b; },
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         sol::meta_function::subtraction, [](const Vec3 &a, const Vec3 &b) { return a - b; },
         sol::meta_function::multiplication, sol::overload(
+            // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
             [](const Vec3 &a, const Vec3 &b) { return a * b; },
             [](const Vec3 &v, float s) { return v * s; },
             [](float s, const Vec3 &v) { return s * v; }
             ),
         sol::meta_function::division, sol::overload(
+            // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
             [](const Vec3 &a, const Vec3 &b) { return a / b; },
             [](const Vec3 &v, float s) { return v / s; },
             [](float s, const Vec3 &v) { return s / v; }
             ),
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         sol::meta_function::equal_to, [](const Vec3 &a, const Vec3 &b) { return a == b; },
         sol::meta_function::unary_minus, [](const Vec3 &a) { return -a; }
     );

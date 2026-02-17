@@ -55,6 +55,7 @@ void Blainn::RegisterScriptingTypes(sol::state &luaState)
         });
 
     scriptTable.set_function("SetValueInScript",
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         [](const std::string &idStr, const std::string &valueName, sol::object value)
         {
             ScriptingSubsystem::SetValueInScript(uuid::fromStrFactory(idStr),

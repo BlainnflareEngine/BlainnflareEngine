@@ -68,15 +68,18 @@ void Blainn::RegisterQuatType(sol::state &luaState)
     QuatType[sol::meta_function::equal_to] = &Quat::operator==;
     QuatType[sol::meta_function::unary_minus] = [](const Quat& q) { return -q; };
 
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     QuatType[sol::meta_function::addition] = [](const Quat& a, const Quat& b) { return a + b; };
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     QuatType[sol::meta_function::subtraction] = [](const Quat& a, const Quat& b) { return a - b; };
     QuatType[sol::meta_function::multiplication] = sol::overload(
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         [](const Quat& a, const Quat& b) { return a * b; },
         [](const Quat& q, float s) { return q * s; },
         [](float s, const Quat& q) { return s * q; }
     );
-    QuatType[sol::meta_function::division] =
-        [](const Quat& a, const Quat& b) { return a / b; };
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+    QuatType[sol::meta_function::division] = [](const Quat& a, const Quat& b) { return a / b; };
 
     // instance methods (mutating)
     QuatType.set_function("Normalize",     static_cast<void (Quat::*)()>(&Quat::Normalize));

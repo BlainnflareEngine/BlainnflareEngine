@@ -71,8 +71,8 @@ private:
 
         if (vbByteSize)
         {
-            VertexBufferGPU = FreyaUtil::CreateDefaultBuffer(device.GetDevice2().Get(), pCommandList, vertices.data(),
-                                                             vbByteSize, VertexBufferUploader); // Create GPU resource
+            VertexBufferGPU = FreyaUtil::CreateDefaultBuffer(FreyaUtil::DefaultBufferParams{
+                device.GetDevice2().Get(), pCommandList, vertices.data(), vbByteSize, &VertexBufferUploader}); // Create GPU resource
             if (!VertexBufferGPU)
             {
                 BF_ERROR("Could not create vertex buffer");
@@ -92,8 +92,8 @@ private:
 
         if (ibByteSize)
         {
-            IndexBufferGPU = FreyaUtil::CreateDefaultBuffer(device.GetDevice2().Get(), pCommandList, indices.data(),
-                                                            ibByteSize, IndexBufferUploader); // Create GPU resource
+            IndexBufferGPU = FreyaUtil::CreateDefaultBuffer(FreyaUtil::DefaultBufferParams{
+                device.GetDevice2().Get(), pCommandList, indices.data(), ibByteSize, &IndexBufferUploader}); // Create GPU resource
             if (!IndexBufferGPU)
             {
                 BF_ERROR("Could not create index buffer");

@@ -1,5 +1,10 @@
 #include "ai/UtilitySelector.h"
 
+Blainn::UtilitySelector::UtilitySelector(eastl::vector<UtilityDecision> decisions)
+    : UtilitySelector(eastl::move(decisions), Settings{})
+{
+}
+
 Blainn::UtilitySelector::UtilitySelector(eastl::vector<UtilityDecision> decisions, Settings settings) 
     : m_decisions(eastl::move(decisions)), m_settings(settings) {}
 

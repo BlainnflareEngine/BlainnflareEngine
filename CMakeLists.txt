@@ -126,6 +126,60 @@ if(NOT BLAINN_EXCLUDE_EDITOR)
     add_subdirectory(${EDITOR_DIR})
 endif()
 
+if(CMAKE_GENERATOR MATCHES "Ninja")
+    find_program(BLAINN_CLANG_TIDY_EXE NAMES clang-tidy)
+    if(NOT BLAINN_CLANG_TIDY_EXE)
+        message(FATAL_ERROR "Ninja builds require clang-tidy, but no clang-tidy executable was found in PATH.")
+    endif()
+
+    set(BLAINN_CLANG_TIDY_CMD
+            "${BLAINN_CLANG_TIDY_EXE}"
+            "--config-file=${CMAKE_SOURCE_DIR}/.clang-tidy"
+            "--warnings-as-errors=*"
+            "--header-filter=^${CMAKE_SOURCE_DIR}/(engine|editor|common)/"
+            "--exclude-header-filter=^(${CMAKE_SOURCE_DIR}/libs/|${CMAKE_SOURCE_DIR}/engine/include/Render/DDSTextureLoader\\.h$)"
+            "--extra-arg=/EHsc"
+            "--extra-arg=/D_HAS_EXCEPTIONS=1"
+            "--extra-arg=/D_CPPUNWIND"
+            "--extra-arg=/D__cpp_exceptions=199711L")
+
+    file(GLOB_RECURSE BLAINN_THIRD_PARTY_SOURCES
+            CONFIGURE_DEPENDS
+            "${CMAKE_SOURCE_DIR}/libs/*.c"
+            "${CMAKE_SOURCE_DIR}/libs/*.cc"
+            "${CMAKE_SOURCE_DIR}/libs/*.cpp"
+            "${CMAKE_SOURCE_DIR}/libs/*.cxx")
+    if(BLAINN_THIRD_PARTY_SOURCES)
+        set_source_files_properties(${BLAINN_THIRD_PARTY_SOURCES} PROPERTIES SKIP_LINTING ON)
+    endif()
+
+    function(blainn_enable_target_clang_tidy target_name)
+        if(NOT TARGET ${target_name})
+            return()
+        endif()
+
+        set_property(TARGET ${target_name} PROPERTY CXX_CLANG_TIDY "${BLAINN_CLANG_TIDY_CMD}")
+
+        get_target_property(target_sources ${target_name} SOURCES)
+        if(target_sources)
+            foreach(source_file IN LISTS target_sources)
+                if(source_file MATCHES "([/\\\\]libs[/\\\\])")
+                    set_source_files_properties(${source_file} PROPERTIES SKIP_LINTING ON)
+                endif()
+                if(source_file MATCHES "DDSTextureLoader\\.cpp$")
+                    set_source_files_properties(${source_file} PROPERTIES SKIP_LINTING ON)
+                endif()
+            endforeach()
+        endif()
+    endfunction()
+
+    blainn_enable_target_clang_tidy(${PROJECT_NAME})
+    blainn_enable_target_clang_tidy(ENGINE)
+    blainn_enable_target_clang_tidy(EDITOR)
+
+    message(STATUS "Enabled clang-tidy for Ninja builds using ${CMAKE_SOURCE_DIR}/.clang-tidy")
+endif()
+
 # PCH
 add_library(pch INTERFACE)
 target_link_libraries(pch INTERFACE

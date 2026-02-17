@@ -19,18 +19,23 @@ void RegisterVector2Type(sol::state &luaState)
             Vec2(),
             Vec2(float, float)
         >(),
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         sol::meta_function::addition, [](const Vec2 &a, const Vec2 &b) { return a + b; },
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         sol::meta_function::subtraction, [](const Vec2 &a, const Vec2 &b) { return a - b; },
         sol::meta_function::multiplication, sol::overload(
+            // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
             [](const Vec2 &a, const Vec2 &b) { return a * b; },
             [](const Vec2 &v, float s) { return v * s; },
             [](float s, const Vec2 &v) { return s * v; }
             ),
         sol::meta_function::division, sol::overload(
+            // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
             [](const Vec2 &a, const Vec2 &b) { return a / b; },
             [](const Vec2 &v, float s) { return v / s; },
             [](float s, const Vec2 &v) { return s / v; }
             ),
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         sol::meta_function::equal_to, [](const Vec2 &a, const Vec2 &b) { return a == b; },
         sol::meta_function::unary_minus, [](const Vec2 &a) { return -a; }
     );

@@ -13,16 +13,9 @@
 #include "physics/Layers.h"
 #include "subsystems/PhysicsSubsystem.h"
 
-#include <atomic>
-#include <unordered_map>
-
 using namespace Blainn;
 
 #ifdef BLAINN_REGISTER_LUA_TYPES
-
-// Listener handle storage for Lua -> PhysicsSubsystem event listeners
-static inline std::unordered_map<uint64_t, PhysicsEventHandle> s_listenerHandles;
-static inline std::atomic<uint64_t> s_nextListenerId{1};
 
 void Blainn::RegisterPhysicsTypes(sol::state &luaState)
 {
@@ -142,8 +135,9 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
                 {
                     layers.push_back(o.as<ObjectLayer>());
                 }
-                catch (...)
+                catch (const std::exception &ex)
                 {
+                    BF_WARN("Failed to convert Lua layer to ObjectLayer: {}", ex.what());
                 }
             }
         }
@@ -201,8 +195,8 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
                 return sol::object(t);
             },
             // origin, dir, ignoredLayers, ignoredEntityIds (Vec3 origin/dir)
-            [&luaState, table_to_layers, table_to_entity_queue](
-                const Vec3 &origin, const Vec3 &dir, sol::table ignoredLayersTbl, sol::table ignoredEntityIdsTbl)
+            // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+            [&luaState, table_to_layers, table_to_entity_queue](const Vec3 &origin, const Vec3 &dir, sol::table ignoredLayersTbl, sol::table ignoredEntityIdsTbl)
             {
                 auto entities = table_to_entity_queue(ignoredEntityIdsTbl);
                 auto layers = table_to_layers(ignoredLayersTbl);

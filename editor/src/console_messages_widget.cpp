@@ -6,6 +6,8 @@
 #include "console_messages_widget.h"
 
 #include "EditorSink.h"
+#include "Log.h"
+#include "Profiler.h"
 #include "ui_console_messages_widget.h"
 
 #include <QScrollBar>
@@ -52,8 +54,6 @@ void console_messages_widget::AppendMessage(const LogMessage &message)
         color = QColor(Qt::yellow);
         break;
     case spdlog::level::err:
-        color = QColor(Qt::red);
-        break;
     case spdlog::level::critical:
         color = QColor(Qt::red);
         break;

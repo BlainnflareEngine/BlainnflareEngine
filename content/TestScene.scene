@@ -1,0 +1,29 @@
+SceneName: TestScene.scene
+SceneID: 904ffac64b933582
+Entities:
+  - Name: Entity
+    EntityID: f97f1d3d2578e9c4
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Translation:
+        x: 0
+        y: 0
+        z: 0
+      Rotation:
+        x: -0
+        y: 0
+        z: -0
+      Scale:
+        x: 1
+        y: 1
+        z: 1
+    RelationshipComponent:
+      Parent: 0000000000000000
+      Children:
+        []
+    MeshComponent:
+      Enabled: true
+      IsWalkable: false
+      Path: ""
+      Material: Materials/Default.mat

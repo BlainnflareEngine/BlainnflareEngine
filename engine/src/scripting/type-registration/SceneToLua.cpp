@@ -19,8 +19,22 @@ using namespace Blainn;
 #ifdef BLAINN_REGISTER_LUA_TYPES
 
 // Listener handle storage for Lua -> Scene event listeners
-inline static std::unordered_map<uint64_t, std::function<void()>> s_sceneListenerRemovers;
 inline static std::atomic<uint64_t> s_sceneNextListenerId{1};
+
+namespace
+{
+using SceneListenerRemoverMap = std::unordered_map<uint64_t, std::function<void()>>;
+
+SceneListenerRemoverMap &GetSceneListenerRemovers()
+{
+    static SceneListenerRemoverMap *s_sceneListenerRemovers = nullptr;
+    if (s_sceneListenerRemovers == nullptr)
+    {
+        s_sceneListenerRemovers = new SceneListenerRemoverMap();
+    }
+    return *s_sceneListenerRemovers;
+}
+}
 
 void Blainn::RegisterSceneTypes(sol::state &luaState)
 {
@@ -74,6 +88,7 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
 
     SceneType.set_function(
         "CreateEntityWithID",
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         [](Scene &scene, const std::string &idStr, const std::string &name, bool shouldSort, bool onSceneChanged)
         {
             uuid id = uuid(idStr);
@@ -138,6 +153,7 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
         });
 
     SceneType.set_function("ParentEntity",
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         [](Scene &scene, Entity entity, Entity parent) { scene.ParentEntity(entity, parent); });
     SceneType.set_function("UnparentEntity", [](Scene &scene, Entity entity, bool convertToWorldSpace)
                            { scene.UnparentEntity(entity, convertToWorldSpace); });
@@ -180,20 +196,21 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
                     }
                 });
 
-            s_sceneListenerRemovers[id] = [&scene, eventType, handle]()
+            GetSceneListenerRemovers()[id] = [&scene, eventType, handle]()
             { scene.RemoveEventListener(eventType, handle); };
             return id;
         });
 
     SceneType.set_function("RemoveEventListener",
-        [](Scene &scene, int eventTypeInt, uint64_t id)
+        [](Scene &scene, SceneEventType eventType, uint64_t id)
         {
             (void)scene;
-            (void)eventTypeInt;
-            auto it = s_sceneListenerRemovers.find(id);
-            if (it == s_sceneListenerRemovers.end()) return;
+            (void)eventType;
+            auto &listenerRemovers = GetSceneListenerRemovers();
+            auto it = listenerRemovers.find(id);
+            if (it == listenerRemovers.end()) return;
             it->second();
-            s_sceneListenerRemovers.erase(it);
+            listenerRemovers.erase(it);
         });
 }
 

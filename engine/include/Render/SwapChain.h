@@ -10,6 +10,12 @@ namespace Blainn
     class SwapChain
     {
     public:
+        struct Extent
+        {
+            UINT width = 0u;
+            UINT height = 0u;
+        };
+
         SwapChain(HWND hWnd, DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R10G10B10A2_UNORM);
         virtual ~SwapChain();
 
@@ -31,7 +37,7 @@ namespace Blainn
         bool IsTearingSupported() const { return m_bIsTearingSupported; }
 
         //void WaitForSwapChain();
-        void Reset(UINT width, UINT height);
+        void Reset(const Extent &extent);
 
         VOID Present();
         ID3D12Resource* GetBackBuffer() const;

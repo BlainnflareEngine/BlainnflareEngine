@@ -7,17 +7,24 @@
 #pragma once
 #include "Camera.h"
 #include "Input/InputSubsystem.h"
+#include "EASTL/vector.h"
 
 namespace Blainn
 {
 class EditorCamera : public Camera
 {
 public:
+    struct RotationDelta
+    {
+        float x = 0.0f;
+        float y = 0.0f;
+    };
+
     virtual ~EditorCamera();
-    virtual void Reset(float fovAngleY, float aspectRatio, float nearZ, float farZ) override;
+    virtual void Reset(const ProjectionParams &params) override;
 
     void Move(const KeyCode key);
-    void AdjustRotation(float x, float y);
+    void AdjustRotation(const RotationDelta &rotationDelta);
     void IncreaseSpeed();
     void DecreaseSpeed();
     void SetCameraProperties(const KeyCode key, InputEventType eventType);

@@ -19,6 +19,7 @@
 #include "entity/transform_widget.h"
 #include "entity/navmesh_volume_widget.h"
 #include "scene/EntityTemplates.h"
+#include "Profiler.h"
 
 #include <QLayout>
 
@@ -187,7 +188,7 @@ void add_component_button::OnCameraAction()
 
     if (m_entity.HasComponent<Blainn::CameraComponent>()) return;
     auto &comp = m_entity.AddComponent<Blainn::CameraComponent>();
-    comp.camera.Reset(75.f, 16 / 9.f, 0.01, 10000);
+    comp.camera.Reset({75.f, 16.0f / 9.0f, 0.01f, 10000.0f});
 
     auto camera = new camera_widget(m_entity, this);
     m_layout->insertWidget(m_layout->count() - 1, camera);

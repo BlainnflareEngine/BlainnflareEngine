@@ -130,7 +130,8 @@ void path_input_field::OnBrowse()
 
     filter += ";;All Files (*)";
 
-    SelectFileAsync(this, "Select File", QString::fromStdString(Blainn::Engine::GetContentDirectory().string()), filter,
+    SelectFileAsync(this,
+                    {"Select File", QString::fromStdString(Blainn::Engine::GetContentDirectory().string()), filter},
                     [this](const QString &selectedFile)
                     {
                         if (!selectedFile.isEmpty())
@@ -225,7 +226,7 @@ void path_input_field::mousePressEvent(QMouseEvent *event)
         else if (QFileInfo(initialDir).isFile()) initialDir = QFileInfo(initialDir).absolutePath();
 
 
-        SelectFileAsync(this, "Select File", initialDir, filter,
+        SelectFileAsync(this, {"Select File", initialDir, filter},
                         [this](const QString &selectedFile)
                         {
                             if (!selectedFile.isEmpty())

@@ -4,10 +4,14 @@
 
 #pragma once
 #include "EASTL/vector.h"
+#include "EASTL/string.h"
 
 
 #include <QTreeView>
+#include <QUrl>
 #include <qstring.h>
+#include <functional>
+#include <string>
 
 
 class QFileSystemModel;
@@ -25,6 +29,45 @@ struct ImportAssetInfo
 {
     QString originalPath;
     QString destinationPath;
+};
+
+struct ViewSettings
+{
+    QModelIndex rootIndex;
+    QModelIndex currentIndex;
+};
+
+struct FolderMembershipQuery
+{
+    QString filePath;
+    QString contentFolderPath;
+};
+
+struct FileSelectionRequest
+{
+    QString filter;
+    QString relativeDir;
+};
+
+struct AsyncFileSelectionRequest
+{
+    QString title;
+    QString initialDir;
+    QString nameFilter;
+};
+
+struct YamlWriteRequest
+{
+    std::string path;
+    std::string name;
+    std::string value;
+};
+
+struct AssetImportRequest
+{
+    QString src;
+    QString dest;
+    QUrl url;
 };
 
 namespace formats
@@ -77,7 +120,7 @@ void OpenFolderWithProxy(const QString &path, QAbstractItemView &itemView, const
 
 void OpenFolderWithoutProxy(const QString &path, QAbstractItemView &itemView, QFileSystemModel &fileModel);
 
-void ApplyViewSettings(QAbstractItemView &itemView, const QModelIndex &rootIndex, const QModelIndex &currentIndex);
+void ApplyViewSettings(QAbstractItemView &itemView, const ViewSettings &viewSettings);
 
 void OpenFolder(const QString &path, const eastl::vector<QAbstractItemView *> &itemViews);
 
@@ -92,7 +135,7 @@ bool CopyRecursively(const QString &sourceFolder, const QString &destFolder);
 // Performs renaming of all files in target path
 bool MoveRecursively(const QString &targetPath, const QString &srcPath);
 
-bool WasInFolderBefore(const QString &filePath, const QString &contentFolderPath);
+bool WasInFolderBefore(const FolderMembershipQuery &query);
 
 import_asset_dialog *GetImportAssetDialog(const ImportAssetInfo &info);
 
@@ -105,12 +148,12 @@ eastl::string ToEASTLString(const QString &str);
 QString ToQString(const eastl::string &str);
 
 
-void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir = QString());
-void SelectFileAsync(QWidget *parent, const QString &title, const QString &initialDir, const QString &nameFilter,
+void SelectFile(QLabel &label, const FileSelectionRequest &request);
+void SelectFileAsync(QWidget *parent, const AsyncFileSelectionRequest &request,
                      std::function<void(const QString &selectedFile)> onAccepted);
 
-void SetValueYAML(const std::string &path, const std::string &name, const std::string &value);
+void SetValueYAML(const YamlWriteRequest &request);
 
-void ImportAsset(const QString &src, const QString &dest, const QUrl &url);
+void ImportAsset(const AssetImportRequest &request);
 
 } // namespace editor

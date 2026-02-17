@@ -1,7 +1,7 @@
 #include "Render/CascadeShadowMap.h"
 
-CascadeShadowMap::CascadeShadowMap(ID3D12Device *device, UINT width, UINT height, UINT cascadesCount)
-    : ShadowMap(device, width, height, cascadesCount)
+CascadeShadowMap::CascadeShadowMap(ID3D12Device *device, const ShadowMapDesc &desc)
+    : ShadowMap(device, desc)
 {
     CreateResource();
 }

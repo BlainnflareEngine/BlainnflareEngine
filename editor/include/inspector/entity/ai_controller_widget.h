@@ -24,7 +24,7 @@ protected:
     virtual void OnUpdate() override;
 
 protected slots:
-    void OnPathChanged(const QString &old, const QString &path);
+    void OnPathChanged(const QString &path);
     void OnMovementSpeedChanged();
     void OnStoppingDistanceChanged();
     void OnGroundOffsetChanged();

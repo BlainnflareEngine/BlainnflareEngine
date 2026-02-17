@@ -3,6 +3,9 @@
 //
 
 #pragma once
+#include <fstream>
+#include <yaml-cpp/yaml.h>
+
 #include "Engine.h"
 #include "aliases.h"
 #include "EASTL/string.h"

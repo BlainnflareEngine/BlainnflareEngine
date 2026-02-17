@@ -54,10 +54,11 @@ void SelectionManager::SelectUUID(uuid id, bool keepSelection)
     if (id == m_selectedUUID) return;
     m_selectedUUID = id;
 
-    //CallbackList(id);
+    CallbackList(id);
 }
 
 void SelectionManager::DeselectAll()
 {
     m_selectedUUID = uuid();
+    CallbackList(m_selectedUUID);
 }

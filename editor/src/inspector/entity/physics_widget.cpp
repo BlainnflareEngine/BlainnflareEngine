@@ -116,10 +116,10 @@ void physics_widget::OnShapeChanged(int)
         ShowBoxSettings(extents);
         break;
     case ComponentShapeType::Cylinder:
-        ShowCylinderSettings(radius, halfHeight);
+        ShowCylinderSettings({radius, halfHeight});
         break;
     case ComponentShapeType::Capsule:
-        ShowCapsuleSettings(radius, halfHeight);
+        ShowCapsuleSettings({radius, halfHeight});
         break;
     case ComponentShapeType::Empty:
         break;
@@ -178,10 +178,10 @@ void physics_widget::LoadShape()
         ShowBoxSettings(extents);
         break;
     case ComponentShapeType::Cylinder:
-        ShowCylinderSettings(radius, halfHeight);
+        ShowCylinderSettings({radius, halfHeight});
         break;
     case ComponentShapeType::Capsule:
-        ShowCapsuleSettings(radius, halfHeight);
+        ShowCapsuleSettings({radius, halfHeight});
         break;
     case ComponentShapeType::Empty:
         break;
@@ -347,10 +347,10 @@ void physics_widget::ShowBoxSettings(const Blainn::Vec3 &extents)
 }
 
 
-void physics_widget::ShowCylinderSettings(float radius, float halfHeight)
+void physics_widget::ShowCylinderSettings(const ShapeDimensions &dimensions)
 {
-    m_radius = new float_input_field("Radius", radius, this, false);
-    m_halfHeight = new float_input_field("Half height", halfHeight, this, false);
+    m_radius = new float_input_field("Radius", dimensions.radius, this, false);
+    m_halfHeight = new float_input_field("Half height", dimensions.halfHeight, this, false);
 
     m_radius->SetMinValue(0.01);
     m_halfHeight->SetMinValue(0.01);
@@ -366,10 +366,10 @@ void physics_widget::ShowCylinderSettings(float radius, float halfHeight)
 }
 
 
-void physics_widget::ShowCapsuleSettings(float radius, float halfHeight)
+void physics_widget::ShowCapsuleSettings(const ShapeDimensions &dimensions)
 {
-    m_radius = new float_input_field("Radius", radius, this, false);
-    m_halfHeight = new float_input_field("Half height", halfHeight, this, false);
+    m_radius = new float_input_field("Radius", dimensions.radius, this, false);
+    m_halfHeight = new float_input_field("Half height", dimensions.halfHeight, this, false);
 
     m_radius->SetMinValue(0.01);
     m_halfHeight->SetMinValue(0.01);
