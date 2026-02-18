@@ -1,4 +1,4 @@
-#include <iostream>
+#include <cstdio>
 
 #ifdef BLAINN_INCLUDE_EDITOR
 #include <QApplication>
@@ -27,13 +27,15 @@ CHAR WindowClass[MAX_NAME_STRING];
 
 bool g_IsRunning = true;
 
-int main(int argc, char **argv)
+int main(int argc, char **argv) noexcept
 {
-    BF_DEBUG("This is debug!");
-    BF_ERROR("This is error!");
-    BF_INFO("This is info!");
-    BF_WARN("This is warn!");
-    BF_TRACE("This is trace!");
+    try
+    {
+        BF_DEBUG("This is debug!");
+        BF_ERROR("This is error!");
+        BF_INFO("This is info!");
+        BF_WARN("This is warn!");
+        BF_TRACE("This is trace!");
 
 #if !defined(BLAINN_INCLUDE_EDITOR)
     strcpy_s(WindowTitle, "Blainnflare Engine");
@@ -67,7 +69,8 @@ int main(int argc, char **argv)
 #else
     Blainn::RenderSubsystem::GetInstance().SetEnableDebug(false);
     Blainn::RenderSubsystem::GetInstance().GetUIRenderer().ShouldRenderDebugUI = false;;
-    Blainn::RenderSubsystem::GetInstance().OnResize(WindowHeight, WindowWidth);
+    Blainn::RenderSubsystem::GetInstance().OnResize(
+        {static_cast<UINT>(WindowHeight), static_cast<UINT>(WindowWidth)});
     Blainn::Engine::StartPlayMode();
 #endif
 
@@ -104,5 +107,18 @@ int main(int argc, char **argv)
 #endif
     Blainn::Engine::Destroy();
 
-    return 0;
+        return 0;
+    }
+    catch (const std::exception &e)
+    {
+        std::fputs("Fatal exception in main: ", stderr);
+        std::fputs(e.what(), stderr);
+        std::fputc('\n', stderr);
+    }
+    catch (...)
+    {
+        std::fputs("Fatal unknown exception in main\n", stderr);
+    }
+
+    return 1;
 }

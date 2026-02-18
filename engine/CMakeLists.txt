@@ -94,7 +94,6 @@ set(ENGINE_SOURCES
         include/scripting/TypeRegistration.h
         src/scripting/type-registration/CommonToLua.cpp
         src/scripting/type-registration/VectorsToLua.cpp
-        src/scripting/type-registration/UselessSimpleMathTypesToLua.cpp
         src/scripting/type-registration/InputToLua.cpp
         src/scripting/type-registration/EntityToLua.cpp
         src/scripting/type-registration/SceneToLua.cpp
@@ -111,8 +110,8 @@ set(ENGINE_SOURCES
         src/scripting/type-registration/Vector2ToLua.cpp
         src/scripting/type-registration/Vector3ToLua.cpp
         src/scripting/type-registration/Vector4ToLua.cpp
-        src/scripting/type-registration/RegisterQuatType.cpp
-        src/scripting/type-registration/RegisterMat4Type.cpp
+        src/scripting/type-registration/QuatToLua.cpp
+        src/scripting/type-registration/Mat4ToLua.cpp
         src/scripting/type-registration/DebugUIRendererToLua.cpp
 
         include/subsystems/PhysicsSubsystem.h
@@ -217,8 +216,40 @@ list(APPEND ENGINE_SOURCES ${IMGUI_SOURCES})
 
 add_library(ENGINE STATIC ${ENGINE_SOURCES})
 
+# Third-party sources from libs/ are compiled into ENGINE but should not be linted.
+set_source_files_properties(${IMGUI_SOURCES} PROPERTIES SKIP_LINTING ON)
 
-target_compile_options(ENGINE PRIVATE /bigobj)
+set_source_files_properties(
+        src/Render/DDSTextureLoader.cpp
+        include/Render/DDSTextureLoader.h
+        PROPERTIES
+        SKIP_LINTING ON
+)
+
+if(MSVC)
+    file(GLOB IMGUIZMO_CPP_SOURCES "${IMGUIZMO_DIR}/*.cpp")
+    if(IMGUIZMO_CPP_SOURCES)
+        set_source_files_properties(
+                ${IMGUIZMO_CPP_SOURCES}
+                PROPERTIES
+                COMPILE_OPTIONS "/WX-"
+                SKIP_LINTING ON
+        )
+    endif()
+    file(GLOB SOL_IMGUI_CPP_SOURCES "${CMAKE_SOURCE_DIR}/libs/sol2_ImGui_Bindings/*.cpp")
+    if(SOL_IMGUI_CPP_SOURCES)
+        set_source_files_properties(${SOL_IMGUI_CPP_SOURCES} PROPERTIES COMPILE_OPTIONS "/WX-")
+    endif()
+endif()
+
+
+if(MSVC)
+    target_compile_options(ENGINE PRIVATE /bigobj /W4 /WX)
+else()
+    target_compile_options(ENGINE PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
+
+target_compile_definitions(ENGINE PRIVATE NOMINMAX)
 
 source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${ENGINE_SOURCES})
 

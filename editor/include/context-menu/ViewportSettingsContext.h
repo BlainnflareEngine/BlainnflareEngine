@@ -16,7 +16,7 @@ class ViewportSettingsContext : public QWidget
 public:
     ViewportSettingsContext(QToolButton *toolButton, QWidget *parent = nullptr);
 
-    ~ViewportSettingsContext();
+    ~ViewportSettingsContext() noexcept;
 
     void Initialize();
 
@@ -36,9 +36,9 @@ protected:
     void EnableWorldGrid(bool value);
     void UseSnapping(bool value);
 
-    void OnTranslationSnappingChanged(int value);
-    void OnRotationSnappingChanged(int value);
-    void OnScaleSnappingChanged(int value);
+    void OnTranslationSnappingChanged(float value);
+    void OnRotationSnappingChanged(float value);
+    void OnScaleSnappingChanged(float value);
 
 private:
     QToolButton *m_toolButton = nullptr;

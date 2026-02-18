@@ -6,7 +6,10 @@
 
 #include "Engine.h"
 #include "ImportAssetData.h"
+#pragma warning(push)
+#pragma warning(disable : 4100)
 #include "VGJS.h"
+#pragma warning(pop)
 #include "File-System/Material.h"
 #include "File-System/Model.h"
 #include "File-System/Texture.h"
@@ -21,8 +24,8 @@
 
 namespace Blainn
 {
-const Path relativeDefaultDiffuseTexturePath = "Textures/Default.dds";
-const Path relativeDefaultMaterialPath = "Materials/Default.mat";
+constexpr const char *relativeDefaultDiffuseTexturePath = "Textures/Default.dds";
+constexpr const char *relativeDefaultMaterialPath = "Materials/Default.mat";
 
 AssetManager &AssetManager::GetInstance()
 {
@@ -52,16 +55,19 @@ void AssetManager::Init()
 
 void AssetManager::LoadDefaultTextures()
 {
-    m_textures.emplace(m_loader->LoadTexture(relativeDefaultDiffuseTexturePath, TextureType::ALBEDO, 0u));
-    m_texturePaths[ToEASTLString(relativeDefaultDiffuseTexturePath.string())] = {0, 1};
+    const Path defaultDiffuseTexturePath = relativeDefaultDiffuseTexturePath;
+    m_textures.emplace(m_loader->LoadTexture(defaultDiffuseTexturePath, TextureType::ALBEDO, 0u));
+    m_texturePaths[ToEASTLString(defaultDiffuseTexturePath.string())] = {0, 1};
 }
 
 void AssetManager::LoadDefaultMaterials()
 {
-    Material material = Material(relativeDefaultMaterialPath, "");
-    material.SetTexture(GetTexture(relativeDefaultDiffuseTexturePath), TextureType::ALBEDO);
+    const Path defaultMaterialPath = relativeDefaultMaterialPath;
+    const Path defaultDiffuseTexturePath = relativeDefaultDiffuseTexturePath;
+    Material material = Material(defaultMaterialPath, "");
+    material.SetTexture(GetTexture(defaultDiffuseTexturePath), TextureType::ALBEDO);
     
-    m_materialPaths[ToEASTLString(relativeDefaultMaterialPath.string())] = {0, 1};
+    m_materialPaths[ToEASTLString(defaultMaterialPath.string())] = {0, 1};
     m_materials.emplace(eastl::make_shared<Material>(eastl::move(material)));
 }
 
@@ -71,28 +77,28 @@ void AssetManager::LoadPrebuiltMeshes()
     Model model;
 #pragma region Box
     model = Model{};
-    model.SetMeshes({PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f)});
+    model.SetMeshes({PrebuiltEngineMeshes::CreateBox(PrebuiltEngineMeshes::BoxParams{1.f, 1.f, 1.f})});
     model.CreateBufferResources();
     model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
 #pragma endregion Box
 #pragma region Sphere
     model = Model{};
-    model.SetMeshes({PrebuiltEngineMeshes::CreateSphere(1.0f, 16.0f, 16.0f)});
+    model.SetMeshes({PrebuiltEngineMeshes::CreateSphere(PrebuiltEngineMeshes::SphereParams{1.0f, 16u, 16u})});
     model.CreateBufferResources();
     model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
 #pragma endregion Sphere
 #pragma region Cone
     model = Model{};
-    model.SetMeshes({PrebuiltEngineMeshes::CreateCylinder(1.0f, 0.0f, 1.0f, 16.0f)});
+    model.SetMeshes({PrebuiltEngineMeshes::CreateCylinder(PrebuiltEngineMeshes::CylinderParams{1.0f, 0.0f, 1.0f, 16u})});
     model.CreateBufferResources();
     model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
 #pragma endregion Cone
 #pragma region Grid
     model = Model{};
-    model.SetMeshes({PrebuiltEngineMeshes::CreateGrid(50.0f, 50.0f, 20u, 20u)});
+    model.SetMeshes({PrebuiltEngineMeshes::CreateGrid(PrebuiltEngineMeshes::GridParams{50.0f, 50.0f, 20u, 20u})});
     model.CreateBufferResources();
     model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
@@ -134,7 +140,7 @@ eastl::shared_ptr<MeshHandle> AssetManager::GetDefaultMesh(uint32_t index /* = 0
 
 eastl::shared_ptr<MeshHandle> AssetManager::LoadMesh(const Path &relativePath, const ImportMeshData &data)
 {
-    int index = m_meshes.emplace(eastl::make_shared<Model>(GetDefaultModel(), relativePath));
+    int index = static_cast<int>(m_meshes.emplace(eastl::make_shared<Model>(GetDefaultModel(), relativePath)));
     m_meshPaths[ToEASTLString(relativePath.string())] = AssetData{index, 1};
     vgjs::schedule([=]() { AddMeshWhenLoaded(relativePath, index, data); });
 
@@ -185,7 +191,7 @@ eastl::shared_ptr<TextureHandle> AssetManager::LoadTexture(const Path &relativeP
 {
     assert(relativePath.is_relative());
 
-    int index = m_textures.push_back(eastl::make_shared<Texture>());
+    int index = static_cast<int>(m_textures.push_back(eastl::make_shared<Texture>()));
     m_texturePaths[ToEASTLString(relativePath.string())] = AssetData{index, 1};
 
     vgjs::schedule([=]() { AddTextureWhenLoaded(relativePath, index, type); });
@@ -207,7 +213,7 @@ eastl::shared_ptr<MaterialHandle> AssetManager::LoadMaterial(const Path &path, A
 {
     assert(path.is_relative() && "the path is not relative");
 
-    int index = data.index == -1 ? m_materials.emplace(eastl::make_shared<Material>()) : data.index;
+    int index = data.index == -1 ? static_cast<int>(m_materials.emplace(eastl::make_shared<Material>())) : data.index;
     int count = data.refCount == 0 ? 1 : data.refCount;
     m_materialPaths[ToEASTLString(path.string())] = AssetData{index, count};
     vgjs::schedule([=]() { AddMaterialWhenLoaded(path, index); });
@@ -253,7 +259,6 @@ eastl::shared_ptr<MaterialHandle> AssetManager::GetDefaultMaterialHandle()
 
 Path AssetManager::GetMaterialPath(const MaterialHandle &handle)
 {
-    auto a = m_materials[handle.GetIndex()]->GetPath();
     return m_materials[handle.GetIndex()]->GetPath();
 }
 
@@ -376,21 +381,21 @@ Model &AssetManager::GetDefaultModel(uint32_t index /*= 0u*/)
 void AssetManager::IncreaseTextureRefCount(const unsigned int index)
 {
     for (auto &[key, value] : m_texturePaths)
-        if (value.index == index) ++value.refCount;
+        if (static_cast<unsigned int>(value.index) == index) ++value.refCount;
 }
 
 
 void AssetManager::IncreaseMaterialRefCount(const unsigned int index)
 {
     for (auto &[key, value] : m_materialPaths)
-        if (value.index == index) ++value.refCount;
+        if (static_cast<unsigned int>(value.index) == index) ++value.refCount;
 }
 
 
 void AssetManager::IncreaseMeshRefCount(const unsigned int index)
 {
     for (auto &[key, value] : m_meshPaths)
-        if (value.index == index) ++value.refCount;
+        if (static_cast<unsigned int>(value.index) == index) ++value.refCount;
 }
 
 
@@ -401,7 +406,7 @@ void AssetManager::DecreaseTextureRefCount(const unsigned int index)
 
     for (auto &[key, value] : m_texturePaths)
     {
-        if (value.index == index)
+        if (static_cast<unsigned int>(value.index) == index)
         {
             --value.refCount;
 
@@ -423,7 +428,7 @@ void AssetManager::DecreaseMaterialRefCount(const unsigned int index)
 
     for (auto &[key, value] : m_materialPaths)
     {
-        if (value.index == index)
+        if (static_cast<unsigned int>(value.index) == index)
         {
             --value.refCount;
 
@@ -444,7 +449,7 @@ void AssetManager::DecreaseMeshRefCount(const unsigned int index)
 
     for (auto &[key, value] : m_meshPaths)
     {
-        if (value.index == index)
+        if (static_cast<unsigned int>(value.index) == index)
         {
             --value.refCount;
 

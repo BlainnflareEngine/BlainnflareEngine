@@ -18,16 +18,52 @@ namespace Blainn
     class PrebuiltEngineMeshes
     {
     public:
-        static MeshData<> CreateBox(float width, float height, float depth);
+        struct BoxParams
+        {
+            float width = 1.0f;
+            float height = 1.0f;
+            float depth = 1.0f;
+        };
 
-        static MeshData<> CreateSphere(float radius, UINT sliceCount, UINT stackCount);
+        struct SphereParams
+        {
+            float radius = 1.0f;
+            UINT sliceCount = 16u;
+            UINT stackCount = 16u;
+        };
+
+        struct CylinderParams
+        {
+            float baseRadius = 1.0f;
+            float topRadius = 0.0f;
+            float height = 1.0f;
+            UINT sectorCount = 16u;
+        };
+
+        struct GridParams
+        {
+            float width = 1.0f;
+            float depth = 1.0f;
+            UINT rows = 2u;
+            UINT columns = 2u;
+        };
+
+        struct GeosphereParams
+        {
+            float radius = 1.0f;
+            UINT numSubdivisions = 1u;
+        };
+
+        static MeshData<> CreateBox(const BoxParams &params);
+
+        static MeshData<> CreateSphere(const SphereParams &params);
 
         // Cone & Cylinder
-        static MeshData<> CreateCylinder(int baseRadius, int topRadius, int height, int sectorCount);
+        static MeshData<> CreateCylinder(const CylinderParams &params);
 
-        static MeshData<> CreateGrid(float width, float depth, UINT m, UINT n);
+        static MeshData<> CreateGrid(const GridParams &params);
 
-        static MeshData<> CreateGeosphere(float radius, UINT numSubdivisions);
+        static MeshData<> CreateGeosphere(const GeosphereParams &params);
 
     private:
         static void Subdivide(MeshData<> &meshData);

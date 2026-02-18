@@ -3,6 +3,8 @@
 //
 #pragma once
 
+#include "EASTL/string.h"
+#include "EASTL/vector.h"
 #include "BasicComponents.h"
 #include "TransformComponent.h"
 #include "aliases.h"

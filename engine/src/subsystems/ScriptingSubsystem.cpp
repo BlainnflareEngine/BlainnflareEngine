@@ -30,9 +30,9 @@ void ScriptingSubsystem::Destroy()
     {
         ScriptingComponent *component = m_scriptEntityConnections.at(scriptUuid).TryGetComponent<ScriptingComponent>();
         if (!component) continue;
-        for (auto &script : component->scripts)
+        for (auto &loadedScript : component->scripts)
         {
-            script.second.OnDestroyCall();
+            loadedScript.second.OnDestroyCall();
         }
     }
     m_scriptEntityConnections = {};
@@ -58,9 +58,9 @@ void Blainn::ScriptingSubsystem::UnloadAllScripts(Scene &scene)
             scriptUuids.push_back(scriptUuid);
         }
 
-        for (const auto &id : scriptUuids)
+        for (const auto &scriptUuid : scriptUuids)
         {
-            ScriptingSubsystem::UnloadScript(id);
+            ScriptingSubsystem::UnloadScript(scriptUuid);
         }
     }
 }
@@ -73,7 +73,6 @@ void ScriptingSubsystem::Update(Scene &scene, float deltaTimeMs)
     {
         for (auto &script : scriptingComponent.scripts)
         {
-            uuid id = idComp.ID;
             script.second.OnUpdateCall(deltaTimeMs);
             script.second.OnDrawUI();
         }

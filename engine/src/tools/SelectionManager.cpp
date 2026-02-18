@@ -21,8 +21,8 @@ SelectionManager::SelectionManager()
 
                                                    if (event->GetMouseButton() == MouseButton::Left)
                                                    {
-                                                       uint32_t xPos = event->GetX();
-                                                       uint32_t yPos = event->GetY();
+                                                       uint32_t xPos = static_cast<uint32_t>(event->GetX());
+                                                       uint32_t yPos = static_cast<uint32_t>(event->GetY());
                                                        SelectAt(xPos, yPos);
                                                    }
                                                });
@@ -35,6 +35,7 @@ SelectionManager::~SelectionManager()
 
 void SelectionManager::SelectAt(const uint32_t x, const uint32_t y, bool keepSelection)
 {
+    (void)keepSelection;
     BLAINN_PROFILE_FUNC();
     if (!EnablePicking)
         return;
@@ -44,19 +45,20 @@ void SelectionManager::SelectAt(const uint32_t x, const uint32_t y, bool keepSel
     if (newID == m_selectedUUID) return;
     m_selectedUUID = newID;
 
-    m_selectedUUID = newID;
     CallbackList(newID);
 }
 
 void SelectionManager::SelectUUID(uuid id, bool keepSelection)
 {
+    (void)keepSelection;
     if (id == m_selectedUUID) return;
     m_selectedUUID = id;
 
-    //CallbackList(id);
+    CallbackList(id);
 }
 
 void SelectionManager::DeselectAll()
 {
     m_selectedUUID = uuid();
+    CallbackList(m_selectedUUID);
 }

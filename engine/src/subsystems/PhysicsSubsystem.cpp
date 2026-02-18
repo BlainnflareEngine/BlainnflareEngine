@@ -267,8 +267,8 @@ eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 direc
                                                             inObjectLayerFilter, inBodyFilter))
     {
         // draw line from origin to direction point
-        RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(origin, origin + directionAndDistance,
-                                                                   Blainn::Color(1, 0, 0, 1));
+        RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(
+            {origin, origin + directionAndDistance, Blainn::Color(1, 0, 0, 1)});
         return eastl::optional<RayCastResult>();
     }
     JPH::BodyID hitBodyId = joltResult.mBodyID;
@@ -294,11 +294,11 @@ eastl::optional<RayCastResult> PhysicsSubsystem::CastRay(Vec3 origin, Vec3 direc
     rayCastResult.hitNormal = worldNormal;
 
     // draw line from origin to hit point
-    RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(origin, rayCastResult.hitPoint,
-                                                               Blainn::Color(1, 0, 0, 1));
+    RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(
+        {origin, rayCastResult.hitPoint, Blainn::Color(1, 0, 0, 1)});
     // draw normal at hit point
     RenderSubsystem::GetInstance().GetDebugRenderer().DrawLine(
-        rayCastResult.hitPoint, rayCastResult.hitPoint + rayCastResult.hitNormal, Blainn::Color(0, 0, 1, 1));
+        {rayCastResult.hitPoint, rayCastResult.hitPoint + rayCastResult.hitNormal, Blainn::Color(0, 0, 1, 1)});
 
 
     return eastl::optional<RayCastResult>(eastl::move(rayCastResult));

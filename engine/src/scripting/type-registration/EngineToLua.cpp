@@ -16,16 +16,16 @@ void Blainn::RegisterEngineTypes(sol::state &luaState)
 {
     sol::table engineTbl = luaState.create_table();
 
-    engineTbl.set_function("GetContentDirectory", []() { return Engine::GetContentDirectory().string(); });
-    engineTbl.set_function("SetContentDirectory", [](const std::string &p) { Engine::SetContentDirectory(Path(p)); });
+    engineTbl.set_function("GetContentDirectory",        []() { return Engine::GetContentDirectory().string(); });
+    engineTbl.set_function("SetContentDirectory",        [](const std::string &p) { Engine::SetContentDirectory(Path(p)); });
     engineTbl.set_function("SetDefaultContentDirectory", []() { Engine::SetDefaultContentDirectory(); });
 
     engineTbl.set_function("GetActiveScene",
-                           []() -> Scene *
-                           {
-                               auto s = Engine::GetSceneManager().GetActiveScene();
-                               return s ? s.get() : nullptr;
-                           });
+        []() -> Scene *
+        {
+            auto s = Engine::GetSceneManager().GetActiveScene();
+            return s ? s.get() : nullptr;
+        });
     engineTbl.set_function("ClearActiveScene", []() { Engine::GetSceneManager().CloseScenes(); });
 
     luaState["Engine"] = engineTbl;

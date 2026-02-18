@@ -4,6 +4,8 @@
 //
 
 #pragma once
+#include <DirectXTK12/Src/d3dx12.h>
+#include <EASTL/shared_ptr.h>
 #include "Resource.h"
 
 namespace Blainn
@@ -14,12 +16,19 @@ class Device;
 class GTexture : public Resource
 {
 public:
+    struct ResizeRequest
+    {
+        UINT width = 1u;
+        UINT height = 1u;
+        UINT depthOrArraySize = 1u;
+    };
+
     GTexture(Device& device, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12_CLEAR_VALUE* clearValue = nullptr);
     GTexture(Device& device, const ComPtr<ID3D12Resource>& resource, const D3D12_CLEAR_VALUE* clearValue = nullptr);
 
     virtual ~GTexture();
 
-    void Resize(UINT width, UINT height, UINT depthOrArraySize = 1);
+    void Resize(const ResizeRequest &request);
 
     D3D12_CPU_DESCRIPTOR_HANDLE GetRenderTargetView() const;
     D3D12_CPU_DESCRIPTOR_HANDLE GetDepthStencilVeiw() const;

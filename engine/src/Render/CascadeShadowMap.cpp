@@ -1,7 +1,7 @@
 #include "Render/CascadeShadowMap.h"
 
-CascadeShadowMap::CascadeShadowMap(ID3D12Device *device, UINT width, UINT height, UINT cascadesCount)
-    : ShadowMap(device, width, height, cascadesCount)
+CascadeShadowMap::CascadeShadowMap(ID3D12Device *device, const ShadowMapDesc &desc)
+    : ShadowMap(device, desc)
 {
     CreateResource();
 }
@@ -18,7 +18,7 @@ void CascadeShadowMap::CreateDescriptors()
     srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
     srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
     srvDesc.Texture2DArray.MostDetailedMip = 0u;
-    srvDesc.Texture2DArray.MipLevels = -1;
+    srvDesc.Texture2DArray.MipLevels = UINT32_MAX;
     srvDesc.Texture2DArray.FirstArraySlice = 0u;
     srvDesc.Texture2DArray.ArraySize = m_shadowMap->GetDesc().DepthOrArraySize;
     srvDesc.Texture2DArray.PlaneSlice = 0u;

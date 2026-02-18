@@ -3,6 +3,7 @@
 // Copyright (c) 2026 Blainnflare. All rights reserved.
 //
 
+#include "pch.h"
 #include "Render/GTexture.h"
 
 #include "Render/Device.h"
@@ -25,7 +26,7 @@ GTexture::~GTexture()
 {
 }
 
-void GTexture::Resize(UINT width, UINT height, UINT depthOrArraySize)
+void GTexture::Resize(const ResizeRequest &request)
 {
     if (!m_d3d12Resource)
     {
@@ -35,9 +36,9 @@ void GTexture::Resize(UINT width, UINT height, UINT depthOrArraySize)
 
     CD3DX12_RESOURCE_DESC resDesc(m_d3d12Resource->GetDesc());
 
-    resDesc.Width =  eastl::max(width, 1u);
-    resDesc.Height = eastl::max(height, 1u);
-    resDesc.DepthOrArraySize = depthOrArraySize;
+    resDesc.Width = eastl::max(request.width, 1u);
+    resDesc.Height = eastl::max(request.height, 1u);
+    resDesc.DepthOrArraySize = static_cast<UINT16>(request.depthOrArraySize);
 
     auto d3d12Device = m_Device.GetDevice2();
 
@@ -77,27 +78,32 @@ D3D12_CPU_DESCRIPTOR_HANDLE GTexture::GetShaderResourceView() const
 
 D3D12_CPU_DESCRIPTOR_HANDLE GTexture::GetUnorderedAccessView(UINT mip) const
 {
+    (void)mip;
     BF_ERROR("GetUnorderedAccessView unimplemented");
     return m_UAVCPUHandle;
 }
 
 void GTexture::CreateRenderTargetView(const eastl::shared_ptr<D3D12_RENDER_TARGET_VIEW_DESC> &rtvDesc)
 {
+    (void)rtvDesc;
     // TODO do this properly when the descriptor allocator is created
 }
 
 void GTexture::CreateDepthStencilView(const eastl::shared_ptr<D3D12_DEPTH_STENCIL_VIEW_DESC> &dsvDesc)
 {
+    (void)dsvDesc;
     // TODO do this properly when the descriptor allocator is created
 }
 
 void GTexture::CreateShaderResourceView(const eastl::shared_ptr<D3D12_SHADER_RESOURCE_VIEW_DESC> &srvDesc)
 {
+    (void)srvDesc;
     // TODO do this properly when the descriptor allocator is created
 }
 
 void GTexture::CreateUnorderedAccessView(const eastl::shared_ptr<D3D12_UNORDERED_ACCESS_VIEW_DESC> &uavDesc)
 {
+    (void)uavDesc;
     // TODO do this properly when the descriptor allocator is created
 }
 

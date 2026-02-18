@@ -5,7 +5,7 @@
 class CascadeShadowMap : public ShadowMap
 {
 public:
-    CascadeShadowMap(ID3D12Device *device, UINT width, UINT height, UINT cascadesCount);
+    CascadeShadowMap(ID3D12Device *device, const ShadowMapDesc &desc);
     CascadeShadowMap(const CascadeShadowMap &lhs) = delete;
     CascadeShadowMap &operator=(const CascadeShadowMap &lhs) = delete;
 

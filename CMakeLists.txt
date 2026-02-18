@@ -1,16 +1,11 @@
 cmake_minimum_required(VERSION 3.1...4.1.1)
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-
 cmake_policy(SET CMP0074 OLD)
 cmake_policy(SET CMP0169 OLD)
-add_compile_options(/EHsc /arch:AVX2)
 
 option(BLAINN_EXCLUDE_EDITOR "Build the engine without the editor" OFF)
 option(BLAINN_DISABLE_D3D_DEBUG_LAYER "Disable debug layer for better performance" OFF)
+option(BLAINN_HAS_CONSOLE "Build has console" ON)
 
 set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "Disable RecastDemo (we don't need SDL2)" FORCE)
 set(RECASTNAVIGATION_EXAMPLES OFF CACHE BOOL "Disable examples" FORCE)
@@ -29,19 +24,16 @@ set(CMAKE_CONFIGURATION_TYPES
         Dist
         CACHE STRING "" FORCE)
 
-# These definitions apply to all the projects
-if(NOT BLAINN_EXCLUDE_EDITOR)
-    add_compile_definitions(
-        "$<$<NOT:$<OR:$<CONFIG:Dist>,$<CONFIG:Shipping>>>:BLAINN_HAS_CONSOLE>"
-    )
-endif()
-
 if(TRACY_ENABLE)
     add_compile_definitions("TRACY_ENABLE;BLAINN_ENABLE_PROFILING=1")
 endif()
 
 if(BLAINN_DISABLE_D3D_DEBUG_LAYER)
     add_compile_definitions("BLAINN_DISABLE_D3D_DEBUG_LAYER")
+endif()
+
+if(BLAINN_HAS_CONSOLE)
+    add_compile_definitions("BLAINN_HAS_CONSOLE")
 endif()
 
 set(PROJECT_NAME
@@ -51,6 +43,21 @@ project(${PROJECT_NAME}
         VERSION 0.0.1
         LANGUAGES CXX C
 )
+
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    add_compile_options(/EHsc /arch:AVX2)
+    add_compile_options(/MP)
+endif()
+
+# Put executable outputs at the build directory root for all configurations.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+if(CMAKE_CONFIGURATION_TYPES)
+    foreach(cfg ${CMAKE_CONFIGURATION_TYPES})
+        string(TOUPPER "${cfg}" cfg_upper)
+        set("CMAKE_RUNTIME_OUTPUT_DIRECTORY_${cfg_upper}" "${CMAKE_BINARY_DIR}")
+    endforeach()
+endif()
 
 
 # cpp options
@@ -117,6 +124,60 @@ add_subdirectory(${ENGINE_DIR})
 
 if(NOT BLAINN_EXCLUDE_EDITOR)
     add_subdirectory(${EDITOR_DIR})
+endif()
+
+if(CMAKE_GENERATOR MATCHES "Ninja")
+    find_program(BLAINN_CLANG_TIDY_EXE NAMES clang-tidy)
+    if(NOT BLAINN_CLANG_TIDY_EXE)
+        message(FATAL_ERROR "Ninja builds require clang-tidy, but no clang-tidy executable was found in PATH.")
+    endif()
+
+    set(BLAINN_CLANG_TIDY_CMD
+            "${BLAINN_CLANG_TIDY_EXE}"
+            "--config-file=${CMAKE_SOURCE_DIR}/.clang-tidy"
+            "--warnings-as-errors=*"
+            "--header-filter=^${CMAKE_SOURCE_DIR}/(engine|editor|common)/"
+            "--exclude-header-filter=^(${CMAKE_SOURCE_DIR}/libs/|${CMAKE_SOURCE_DIR}/engine/include/Render/DDSTextureLoader\\.h$)"
+            "--extra-arg=/EHsc"
+            "--extra-arg=/D_HAS_EXCEPTIONS=1"
+            "--extra-arg=/D_CPPUNWIND"
+            "--extra-arg=/D__cpp_exceptions=199711L")
+
+    file(GLOB_RECURSE BLAINN_THIRD_PARTY_SOURCES
+            CONFIGURE_DEPENDS
+            "${CMAKE_SOURCE_DIR}/libs/*.c"
+            "${CMAKE_SOURCE_DIR}/libs/*.cc"
+            "${CMAKE_SOURCE_DIR}/libs/*.cpp"
+            "${CMAKE_SOURCE_DIR}/libs/*.cxx")
+    if(BLAINN_THIRD_PARTY_SOURCES)
+        set_source_files_properties(${BLAINN_THIRD_PARTY_SOURCES} PROPERTIES SKIP_LINTING ON)
+    endif()
+
+    function(blainn_enable_target_clang_tidy target_name)
+        if(NOT TARGET ${target_name})
+            return()
+        endif()
+
+        set_property(TARGET ${target_name} PROPERTY CXX_CLANG_TIDY "${BLAINN_CLANG_TIDY_CMD}")
+
+        get_target_property(target_sources ${target_name} SOURCES)
+        if(target_sources)
+            foreach(source_file IN LISTS target_sources)
+                if(source_file MATCHES "([/\\\\]libs[/\\\\])")
+                    set_source_files_properties(${source_file} PROPERTIES SKIP_LINTING ON)
+                endif()
+                if(source_file MATCHES "DDSTextureLoader\\.cpp$")
+                    set_source_files_properties(${source_file} PROPERTIES SKIP_LINTING ON)
+                endif()
+            endforeach()
+        endif()
+    endfunction()
+
+    blainn_enable_target_clang_tidy(${PROJECT_NAME})
+    blainn_enable_target_clang_tidy(ENGINE)
+    blainn_enable_target_clang_tidy(EDITOR)
+
+    message(STATUS "Enabled clang-tidy for Ninja builds using ${CMAKE_SOURCE_DIR}/.clang-tidy")
 endif()
 
 # PCH
@@ -210,13 +271,13 @@ endif()
 
 # =========================================
 # debug info
-if (${WIN32})
+if (WIN32)
     message("Running on Windows")
-elseif (${LINUX})
+elseif (LINUX)
     message("Running on Linux")
 endif ()
 
-if (${MSVC})
+if (MSVC)
     message("MSVC version: ${MSVC_VERSION}")
     message("MSVC toolset version: ${MSVC_TOOLSET_VERSION}")
 endif ()

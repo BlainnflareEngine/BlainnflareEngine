@@ -1,4 +1,10 @@
 #pragma once
+#include <cstdint>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <wrl/client.h>
+#include <DirectXColors.h>
 
 #include "FreyaCoreDefines.h"
 #include "FreyaCoreTypes.h"
@@ -46,10 +52,10 @@ inline Blainn::Color HexToColor(const std::string &hex)
     std::string clean = hex;
     if (clean[0] == '#') clean = clean.substr(1);
 
-    if (clean.length() != 8) return Blainn::Color(Colors::White);
+    if (clean.length() != 8) return Blainn::Color(DirectX::Colors::White);
 
     unsigned int argb;
-    if (!(std::istringstream(clean) >> std::hex >> argb)) return Blainn::Color(Colors::White);
+    if (!(std::istringstream(clean) >> std::hex >> argb)) return Blainn::Color(DirectX::Colors::White);
 
     uint8_t r = argb >> 16 & 0xFF;
     uint8_t g = argb >> 8 & 0xFF;

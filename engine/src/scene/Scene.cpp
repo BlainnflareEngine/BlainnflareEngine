@@ -32,7 +32,7 @@
 using namespace Blainn;
 
 
-Scene::Scene(const eastl::string_view &name, uuid uid, bool isEditorScene) noexcept
+Scene::Scene(const eastl::string_view &name, uuid uid, bool isEditorScene)
     : m_SceneID(uid)
     , m_Name(name)
     , m_IsEditorScene(isEditorScene)
@@ -57,14 +57,27 @@ Scene::Scene(const YAML::Node &config)
 
 Scene::~Scene()
 {
-    eastl::function<void()> fn;
-
-    for (auto entity : m_EntityIdMap)
+    try
     {
-        SubmitToDestroyEntity(entity.second, true);
-    }
+        eastl::function<void()> fn;
 
-    ProcessEvents();
+        for (auto entity : m_EntityIdMap)
+        {
+            SubmitToDestroyEntity(entity.second, true);
+        }
+
+        ProcessEvents();
+    }
+    catch (const std::exception &exception)
+    {
+        OutputDebugStringA("Scene::~Scene caught exception: ");
+        OutputDebugStringA(exception.what());
+        OutputDebugStringA("\n");
+    }
+    catch (...)
+    {
+        OutputDebugStringA("Scene::~Scene caught unknown exception.\n");
+    }
 }
 
 
@@ -73,6 +86,8 @@ void Blainn::Scene::Update()
     if (!m_bPlayMode) RenderSubsystem::GetInstance().SetCamera(&*RenderSubsystem::GetInstance().GetEditorCamera());
     else
     {
+        const bool shouldCheckMissingMainCamera = !m_notFoundMainCameraLogged;
+
         auto view = GetAllEntitiesWith<IDComponent, TransformComponent, CameraComponent>();
         RuntimeCamera *cam = nullptr;
         Entity *camEntity = nullptr;
@@ -92,7 +107,10 @@ void Blainn::Scene::Update()
         {
             m_editorCam = RenderSubsystem::GetInstance().GetEditorCamera();
             RenderSubsystem::GetInstance().SetCamera(&*m_editorCam);
-            Log::TryLogNotFoundMainCamera();
+            if (shouldCheckMissingMainCamera)
+            {
+                BF_ERROR("Could not find main camera, please, select an active camera!");
+            }
         }
         else
         {
@@ -113,6 +131,8 @@ void Blainn::Scene::Update()
             cam->SetAspectRatio(RenderSubsystem::GetInstance().GetAspectRatio());
             RenderSubsystem::GetInstance().SetCamera(cam);
         }
+
+        if (shouldCheckMissingMainCamera) m_notFoundMainCameraLogged = true;
     }
 
     {
@@ -290,7 +310,7 @@ Entity Scene::CreateChildEntityWithID(Entity parent, const uuid &id, const eastl
 
     m_EntityIdMap[idComponent.ID] = entity;
 
-    SortEntities();
+    if (shouldSort) SortEntities();
 
     s_sceneEventQueue.enqueue(
         eastl::make_shared<EntityCreatedEvent>(entity, idComponent.ID, onSceneChanged, createdByEditor));
@@ -301,6 +321,7 @@ Entity Scene::CreateChildEntityWithID(Entity parent, const uuid &id, const eastl
 
 void Scene::CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged, bool createdByEditor)
 {
+    (void)createdByEditor;
     if (!entitiesNode || !entitiesNode.IsSequence())
     {
         BF_WARN("Entities node is empty");
@@ -437,7 +458,7 @@ void Scene::DestroyEntityInternal(Entity entity, bool sceneChanged, bool exclude
 
     // before actually destroying remove components that might require ID of the entity
     // if (!sceneChanged)
-    s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity, id));
+    s_sceneEventQueue.enqueue(eastl::make_shared<EntityDestroyedEvent>(entity, id, sceneChanged));
 
     PhysicsSubsystem::DestroyPhysicsComponent(entity);
     ScriptingSubsystem::DestroyScriptingComponent(entity);
@@ -635,10 +656,10 @@ Entity Scene::DuplicateEntity(Entity entity)
             float gravityFactor;
             PhysicsComponentMotionType motionType;
             ObjectLayer objectLayer;
-            ComponentShapeType shapeType;
-            Vec3 halfExtents;
-            float radius;
-            float halfHeight;
+            ComponentShapeType shapeType = ComponentShapeType::Box;
+            Vec3 halfExtents = Vec3::Zero;
+            float radius = 0.0f;
+            float halfHeight = 0.0f;
 
             {
                 auto getter = PhysicsSubsystem::GetBodyGetter(src);
@@ -674,6 +695,8 @@ Entity Scene::DuplicateEntity(Entity entity)
                     radius = capsuleParams.second;
                     break;
                 }
+                default:
+                    break;
                 }
             }
             PhysicsComponentSettings settings{newEntity, shapeType};
@@ -709,6 +732,8 @@ Entity Scene::DuplicateEntity(Entity entity)
                     updater.SetCylinderShapeSettings(halfHeight, radius);
                     break;
                 }
+                default:
+                    break;
                 }
             }
         }
@@ -757,6 +782,7 @@ void Scene::ConvertToLocalSpace(Entity entity)
     if (!parent) return;
 
     auto *transform = entity.Transform();
+    if (!transform) return;
     auto parentTransform = GetWorldSpaceTransformMatrix(parent);
     auto localTransform = transform->GetTransform() * parentTransform.Invert();
     transform->SetTransform(localTransform);
@@ -767,10 +793,10 @@ void Scene::ConvertToWorldSpace(Entity entity)
     Entity parent = TryGetEntityWithUUID(entity.GetParentUUID());
 
     if (!parent) return;
-    if (auto transformComponent = entity.TryGetComponent<TransformComponent>())
+    if (auto* transformComp = entity.Transform())
     {
         Mat4 transform = GetWorldSpaceTransformMatrix(entity);
-        transformComponent->SetTransform(transform);
+        transformComp->SetTransform(transform);
     }
 }
 

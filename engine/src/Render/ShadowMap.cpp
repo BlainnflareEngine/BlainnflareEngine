@@ -1,22 +1,22 @@
 #include "Render/ShadowMap.h"
 
-ShadowMap::ShadowMap(ID3D12Device *device, UINT width, UINT height, UINT cascadesCount)
+ShadowMap::ShadowMap(ID3D12Device *device, const ShadowMapDesc &desc)
     : m_device(device)
-    , m_mapWidth(width)
-    , m_mapHeight(height)
-    , m_cascadesCount(cascadesCount)
+    , m_mapWidth(desc.width)
+    , m_mapHeight(desc.height)
+    , m_cascadesCount(desc.cascadesCount)
 {
     m_viewport.TopLeftX = 0.0f;
     m_viewport.TopLeftY = 0.0f;
-    m_viewport.Width = static_cast<FLOAT>(width);
-    m_viewport.Height = static_cast<FLOAT>(height);
+    m_viewport.Width = static_cast<FLOAT>(desc.width);
+    m_viewport.Height = static_cast<FLOAT>(desc.height);
     m_viewport.MinDepth = 0.0f;
     m_viewport.MaxDepth = 1.0f;
 
     m_scissorRect.left = 0L;
     m_scissorRect.top = 0L;
-    m_scissorRect.right = static_cast<LONG>(width);
-    m_scissorRect.bottom = static_cast<LONG>(height);
+    m_scissorRect.right = static_cast<LONG>(desc.width);
+    m_scissorRect.bottom = static_cast<LONG>(desc.height);
 
     if (m_cascadesCount == 0)
     {
@@ -33,11 +33,11 @@ ID3D12Resource *ShadowMap::Get()
     return m_shadowMap.Get();
 }
 
-void ShadowMap::CreateDescriptors(CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuSrv, CD3DX12_GPU_DESCRIPTOR_HANDLE hGpuSrv, CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuDsv)
+void ShadowMap::CreateDescriptors(const DescriptorHandles &descriptorHandles)
 {
-    m_hCpuSrv = hCpuSrv;
-    m_hGpuSrv = hGpuSrv;
-    m_hCpuDsv = hCpuDsv;
+    m_hCpuSrv = descriptorHandles.cpuSrv;
+    m_hGpuSrv = descriptorHandles.gpuSrv;
+    m_hCpuDsv = descriptorHandles.cpuDsv;
 
     CreateDescriptors();
 }

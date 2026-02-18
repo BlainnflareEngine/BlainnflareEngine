@@ -32,13 +32,13 @@ public:
 
 public:
     void CreateBufferResources();
-    size_t GetVerticesCount() const
+    uint32_t GetVerticesCount() const
     {
-        return totalVertexCount;
+        return static_cast<uint32_t>(totalVertexCount);
     }
-    size_t GetIndicesCount() const
+    uint32_t GetIndicesCount() const
     {
-        return totalIndexCount;
+        return static_cast<uint32_t>(totalIndexCount);
     }
 
     void CreateGPUBuffers();
@@ -54,10 +54,7 @@ public:
         m_texTransform = texTranform;
     }
 
-    bool IsLoaded() const
-    {
-        return m_bisLoaded;
-    }
+    bool IsLoaded();
 
 private:
     template <typename TVertex, typename TIndex = uint32_t>
@@ -74,11 +71,12 @@ private:
 
         if (vbByteSize)
         {
-            VertexBufferGPU = FreyaUtil::CreateDefaultBuffer(device.GetDevice2().Get(), pCommandList, vertices.data(),
-                                                             vbByteSize, VertexBufferUploader); // Create GPU resource
+            VertexBufferGPU = FreyaUtil::CreateDefaultBuffer(FreyaUtil::DefaultBufferParams{
+                device.GetDevice2().Get(), pCommandList, vertices.data(), vbByteSize, &VertexBufferUploader}); // Create GPU resource
             if (!VertexBufferGPU)
             {
                 BF_ERROR("Could not create vertex buffer");
+                m_bBuffersCreated = false;
                 m_bisLoaded = false;
                 return;
             }
@@ -94,11 +92,12 @@ private:
 
         if (ibByteSize)
         {
-            IndexBufferGPU = FreyaUtil::CreateDefaultBuffer(device.GetDevice2().Get(), pCommandList, indices.data(),
-                                                            ibByteSize, IndexBufferUploader); // Create GPU resource
+            IndexBufferGPU = FreyaUtil::CreateDefaultBuffer(FreyaUtil::DefaultBufferParams{
+                device.GetDevice2().Get(), pCommandList, indices.data(), ibByteSize, &IndexBufferUploader}); // Create GPU resource
             if (!IndexBufferGPU)
             {
                 BF_ERROR("Could not create index buffer");
+                m_bBuffersCreated = false;
                 m_bisLoaded = false;
                 return;
             }
@@ -159,6 +158,7 @@ private:
 
     bool m_bBuffersCreated = true;
     bool m_bisLoaded = false;
+    UINT64 m_loadFenceValue = 0u;
 };
 
 } // namespace Blainn

@@ -55,10 +55,12 @@ libs/lua/*
 logs/*
 .idea/
 CMakeFiles/
-# client local machine's specific file
+# client local machine's specific files
 /CMakePresets.json
+/CMakeUserPresets.json
 /CMakeSettings.json
 /CppProperties.json
+/imgui.ini
 /out
 
 !content/**.obj

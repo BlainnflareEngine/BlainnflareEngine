@@ -4,6 +4,7 @@
 
 #pragma once
 #include <d3d12.h>
+#include <DirectXTK12/Src/d3dx12.h>
 #include <wrl/client.h>
 
 #include "FileSystemObject.h"
@@ -30,7 +31,7 @@ namespace Blainn
         UINT GetDescriptorOffset() const { return m_descriptorHeapOffset; }
         bool IsInitialized() const { return m_bIsInitialized; }
 
-        bool IsLoaded() const { return m_bIsLoaded; }
+        bool IsLoaded();
 
         void SetDescriptorOffset(UINT newOffset);
         void DisposeUploaders();
@@ -47,6 +48,7 @@ namespace Blainn
 
         TextureType m_type = TextureType::NONE;
         UINT m_descriptorHeapOffset = 0u;
+        UINT64 m_loadFenceValue = 0u;
         
         bool m_bIsInitialized = false;
         bool m_bIsLoaded = false;

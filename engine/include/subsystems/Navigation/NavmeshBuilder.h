@@ -1,10 +1,15 @@
 #pragma once
 
+#include "aliases.h"
+#include "subsystems/Log.h"
+#include <Jolt/Jolt.h>
 #include <Jolt/Geometry/AABox.h>
 #include "helpers.h"
+#include <EASTL/string.h>
+#include <EASTL/vector.h>
 #include <Recast.h>
 
-struct dtNavMesh;
+class dtNavMesh;
 
 namespace Blainn
 {
@@ -39,10 +44,20 @@ struct NavMeshInputMesh
     eastl::vector<int> indices;
 };
 
+struct NavMeshBuildRequest
+{
+    const eastl::vector<NavMeshInputMesh> *meshes = nullptr;
+    const JPH::AABox *bounds = nullptr;
+    NavMeshBuildSettings settings;
+};
+
 class RcContext : public rcContext
 {
     void doLog(const rcLogCategory category, const char *msg, const int len) override
     {
+        (void)category;
+        (void)len;
+        (void)msg;
         BF_TRACE("Recast navigation: {}", msg);
     }
 };
@@ -52,8 +67,7 @@ class NavmeshBuilder
 public:
     NO_COPY_NO_MOVE(NavmeshBuilder);
 
-    static NavMeshBuildResult BuildNavMesh(const eastl::vector<NavMeshInputMesh> &meshes, const JPH::AABox &bounds,
-                                           const NavMeshBuildSettings &settings = {});
+    static NavMeshBuildResult BuildNavMesh(const NavMeshBuildRequest &request);
 };
 
 } // namespace Blainn

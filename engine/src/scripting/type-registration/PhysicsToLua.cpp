@@ -13,39 +13,56 @@
 #include "physics/Layers.h"
 #include "subsystems/PhysicsSubsystem.h"
 
-#include <atomic>
-#include <unordered_map>
-
 using namespace Blainn;
 
 #ifdef BLAINN_REGISTER_LUA_TYPES
 
-// Listener handle storage for Lua -> PhysicsSubsystem event listeners
-static inline std::unordered_map<uint64_t, PhysicsEventHandle> s_listenerHandles;
-static inline std::atomic<uint64_t> s_nextListenerId{1};
-
 void Blainn::RegisterPhysicsTypes(sol::state &luaState)
 {
-    luaState.new_enum<true>("PhysicsEventType", "CollisionStarted", PhysicsEventType::CollisionStarted,
-                            "CollisionEnded", PhysicsEventType::CollisionEnded);
+    luaState.new_enum<PhysicsEventType, true>("PhysicsEventType", {
+                                                  {"CollisionStarted", PhysicsEventType::CollisionStarted},
+                                                  {"CollisionEnded",   PhysicsEventType::CollisionEnded}
+                                              });
 
-    luaState.new_enum<true>("ComponentShapeType", "Sphere", ComponentShapeType::Sphere, "Box", ComponentShapeType::Box,
-                            "Capsule", ComponentShapeType::Capsule, "Cylinder", ComponentShapeType::Cylinder, "Empty",
-                            ComponentShapeType::Empty);
+    luaState.new_enum<ComponentShapeType, true>("ComponentShapeType", {
+                                                    {"Sphere",   ComponentShapeType::Sphere},
+                                                    {"Box",      ComponentShapeType::Box},
+                                                    {"Capsule",  ComponentShapeType::Capsule},
+                                                    {"Cylinder", ComponentShapeType::Cylinder},
+                                                    {"Empty",    ComponentShapeType::Empty}
+                                                });
 
-    luaState.new_enum<true>("PhysicsComponentMotionType", "Static", PhysicsComponentMotionType::Static, "Kinematic",
-                            PhysicsComponentMotionType::Kinematic, "Dynamic", PhysicsComponentMotionType::Dynamic);
+    luaState.new_enum<PhysicsComponentMotionType, true>("PhysicsComponentMotionType", {
+                                                             {"Static",    PhysicsComponentMotionType::Static},
+                                                             {"Kinematic", PhysicsComponentMotionType::Kinematic},
+                                                             {"Dynamic",   PhysicsComponentMotionType::Dynamic}
+                                                         });
 
-    luaState.new_enum<true>("EActivation", "DontActivate", EActivation::DontActivate, "Activate",
-                            EActivation::Activate);
+    luaState.new_enum<EActivation, true>("EActivation", {
+                                             {"DontActivate", EActivation::DontActivate},
+                                             {"Activate",     EActivation::Activate}
+                                         });
 
     // Object layers
-    luaState.new_enum<true>("ObjectLayer", "UNUSED1", Layers::UNUSED1, "UNUSED2", Layers::UNUSED2, "UNUSED3",
-                            Layers::UNUSED3, "UNUSED4", Layers::UNUSED4, "NON_MOVING", Layers::NON_MOVING, "MOVING",
-                            Layers::MOVING, "DEBRIS", Layers::DEBRIS, "SENSOR", Layers::SENSOR);
+    luaState.new_enum<ObjectLayer, true>("ObjectLayer", {
+                                             {"UNUSED1",    Layers::UNUSED1},
+                                             {"UNUSED2",    Layers::UNUSED2},
+                                             {"UNUSED3",    Layers::UNUSED3},
+                                             {"UNUSED4",    Layers::UNUSED4},
+                                             {"NON_MOVING", Layers::NON_MOVING},
+                                             {"MOVING",     Layers::MOVING},
+                                             {"DEBRIS",     Layers::DEBRIS},
+                                             {"SENSOR",     Layers::SENSOR}
+                                         });
 
     // Broad phase layers (use integer values matching BroadPhaseLayers)
-    luaState.new_enum<true>("BroadPhaseLayer", "NON_MOVING", 0, "MOVING", 1, "DEBRIS", 2, "SENSOR", 3, "UNUSED", 4);
+    luaState.new_enum<int, true>("BroadPhaseLayer", {
+                                     {"NON_MOVING", 0},
+                                     {"MOVING",     1},
+                                     {"DEBRIS",     2},
+                                     {"SENSOR",     3},
+                                     {"UNUSED",     4}
+                                 });
 
     // ShapeCreationSettings
     sol::usertype<ShapeCreationSettings> ShapeSettingsType = luaState.new_usertype<ShapeCreationSettings>(
@@ -80,21 +97,21 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
     RegisterPhysicsBodyUpdater(luaState, physicsTable);
 
     physicsTable.set_function("CreateAttachPhysicsComponent",
-                              sol::overload(
-                                  [](Entity entity, int shapeTypeInt)
-                                  {
-                                      PhysicsComponentSettings s(entity, static_cast<ComponentShapeType>(shapeTypeInt));
-                                      PhysicsSubsystem::CreateAttachPhysicsComponent(s);
-                                  },
-                                  [](PhysicsComponentSettings &settings)
-                                  { PhysicsSubsystem::CreateAttachPhysicsComponent(settings); }));
+        sol::overload(
+            [](Entity entity, int shapeTypeInt)
+            {
+                PhysicsComponentSettings s(entity, static_cast<ComponentShapeType>(shapeTypeInt));
+                PhysicsSubsystem::CreateAttachPhysicsComponent(s);
+            },
+            [](PhysicsComponentSettings &settings)
+            { PhysicsSubsystem::CreateAttachPhysicsComponent(settings); }));
 
     physicsTable.set_function("HasPhysicsComponent", [](Entity e) { return PhysicsSubsystem::HasPhysicsComponent(e); });
     physicsTable.set_function("DestroyPhysicsComponent",
-                              [](Entity e) { PhysicsSubsystem::DestroyPhysicsComponent(e); });
+        [](Entity e) { PhysicsSubsystem::DestroyPhysicsComponent(e); });
 
-    physicsTable.set_function("IsBodyActive", [](Entity e) { return PhysicsSubsystem::IsBodyActive(e); });
-    physicsTable.set_function("ActivateBody", [](Entity e) { PhysicsSubsystem::ActivateBody(e); });
+    physicsTable.set_function("IsBodyActive",   [](Entity e) { return PhysicsSubsystem::IsBodyActive(e); });
+    physicsTable.set_function("ActivateBody",   [](Entity e) { PhysicsSubsystem::ActivateBody(e); });
     physicsTable.set_function("DeactivateBody", [](Entity e) { PhysicsSubsystem::DeactivateBody(e); });
 
     auto table_to_layers = [](const sol::table &tbl)
@@ -118,8 +135,9 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
                 {
                     layers.push_back(o.as<ObjectLayer>());
                 }
-                catch (...)
+                catch (const std::exception &ex)
                 {
+                    BF_WARN("Failed to convert Lua layer to ObjectLayer: {}", ex.what());
                 }
             }
         }
@@ -177,8 +195,8 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
                 return sol::object(t);
             },
             // origin, dir, ignoredLayers, ignoredEntityIds (Vec3 origin/dir)
-            [&luaState, table_to_layers, table_to_entity_queue](
-                const Vec3 &origin, const Vec3 &dir, sol::table ignoredLayersTbl, sol::table ignoredEntityIdsTbl)
+            // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+            [&luaState, table_to_layers, table_to_entity_queue](const Vec3 &origin, const Vec3 &dir, sol::table ignoredLayersTbl, sol::table ignoredEntityIdsTbl)
             {
                 auto entities = table_to_entity_queue(ignoredEntityIdsTbl);
                 auto layers = table_to_layers(ignoredLayersTbl);

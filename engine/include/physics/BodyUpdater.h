@@ -4,6 +4,8 @@
 #include "helpers.h"
 
 #include "physics/PhysicsCreationSettings.h"
+#include <Jolt/Physics/Body/BodyInterface.h>
+#include <Jolt/Physics/Body/BodyLockInterface.h>
 
 namespace Blainn
 {

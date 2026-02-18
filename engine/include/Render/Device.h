@@ -1,4 +1,8 @@
 #pragma once
+#include <EASTL/shared_ptr.h>
+#include <d3d12.h>
+#include <dxgi1_4.h>
+#include <DirectXTK12/Src/d3dx12.h>
 
 #include "DXHelpers.h"
 

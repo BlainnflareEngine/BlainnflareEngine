@@ -16,117 +16,110 @@ void Blainn::RegisterNavigationTypes(sol::state &luaState)
 {
     sol::table navigationTable = luaState.create_table();
 
-    navigationTable.set_function("IsNavMeshLoaded", []() -> bool { return NavigationSubsystem::IsNavMeshLoaded(); });
-
-    navigationTable.set_function("LoadNavMesh", [](const std::string &relativePath) -> bool
-                          { return NavigationSubsystem::LoadNavMesh(relativePath); });
-
-    navigationTable.set_function("ClearNavMesh", []() { NavigationSubsystem::ClearNavMesh(); });
-
-    navigationTable.set_function("SetNavMeshDebugDraw",
-                          [](bool enabled) { NavigationSubsystem::SetShouldDrawDebug(enabled); });
-
-    navigationTable.set_function("GetNavMeshDebugDraw",
-                                 []() -> bool { return NavigationSubsystem::ShouldDrawDebug(); });
+    navigationTable.set_function("IsNavMeshLoaded",     []() -> bool { return NavigationSubsystem::IsNavMeshLoaded(); });
+    navigationTable.set_function("LoadNavMesh",         [](const std::string &relativePath) -> bool { return NavigationSubsystem::LoadNavMesh(relativePath); });
+    navigationTable.set_function("ClearNavMesh",        []() { NavigationSubsystem::ClearNavMesh(); });
+    navigationTable.set_function("SetNavMeshDebugDraw", [](bool enabled) { NavigationSubsystem::SetShouldDrawDebug(enabled); });
+    navigationTable.set_function("GetNavMeshDebugDraw", []() -> bool { return NavigationSubsystem::ShouldDrawDebug(); });
 
     navigationTable.set_function("FindRandomPointOnNavMeshInRadius",
-                                 [](Vec3 &outPoint, const Vec3 &center, float radius) -> std::pair<bool, Vec3>
-                                 { return NavigationSubsystem::FindRandomPointOnNavMesh(center, radius); });
+        [](const Vec3 &center, float radius) -> std::pair<bool, Vec3>
+        { return NavigationSubsystem::FindRandomPointOnNavMesh(center, radius); });
 
     navigationTable.set_function("FindRandomPointOnNavMesh",
-                                 [](Vec3 &outPoint) -> std::pair<bool, Vec3>
-                                 { return NavigationSubsystem::FindRandomPointOnNavMesh(); });
+        []() -> std::pair<bool, Vec3>
+        { return NavigationSubsystem::FindRandomPointOnNavMesh(); });
 
     luaState["Navigation"] = navigationTable;
 
     auto AIControllerType = luaState.new_usertype<AIController>("AIController", sol::no_constructor);
 
     luaState.set_function("GetAIController",
-                          [](const std::string &idStr) -> AIController *
-                          {
-                              uuid entityId = uuid::fromStrFactory(idStr);
-                              auto entity = Engine::GetSceneManager().TryGetEntityWithUUID(entityId);
-                              if (!entity.IsValid())
-                              {
-                                  return nullptr;
-                              }
+        [](const std::string &idStr) -> AIController *
+        {
+            uuid entityId = uuid::fromStrFactory(idStr);
+            auto entity = Engine::GetSceneManager().TryGetEntityWithUUID(entityId);
+            if (!entity.IsValid())
+            {
+                return nullptr;
+            }
 
-                              AIControllerComponent *aiComp = entity.TryGetComponent<AIControllerComponent>();
-                              if (!aiComp)
-                              {
-                                  return nullptr;
-                              }
+            AIControllerComponent *aiComp = entity.TryGetComponent<AIControllerComponent>();
+            if (!aiComp)
+            {
+                return nullptr;
+            }
 
-                              return &aiComp->aiController;
-                          });
+            return &aiComp->aiController;
+        });
 
     AIControllerType.set_function("Possess",
-                                  [](AIController *controller, const std::string &idStr) -> bool
-                                  {
-                                      uuid entityId = uuid::fromStrFactory(idStr);
+        [](AIController *controller, const std::string &idStr) -> bool
+        {
+            uuid entityId = uuid::fromStrFactory(idStr);
 
-                                      Entity entity = Engine::GetSceneManager().TryGetEntityWithUUID(entityId);
-                                      if (!entity.IsValid())
-                                      {
-                                          return false;
-                                      }
+            Entity entity = Engine::GetSceneManager().TryGetEntityWithUUID(entityId);
+            if (!entity.IsValid())
+            {
+                return false;
+            }
 
-                                      if (!controller)
-                                      {
-                                          return false;
-                                      }
+            if (!controller)
+            {
+                return false;
+            }
 
-                                      controller->Possess(entity);
-                                      return true;
-                                  });
+            controller->Possess(entity);
+            return true;
+        });
 
     AIControllerType.set_function("MoveTo",
-                                  [](AIController *controller, const Vec3 &target) -> bool
-                                  {
-                                      if (!controller)
-                                      {
-                                          return false;
-                                      }
-                                      return controller->MoveTo(target);
-                                  });
+        [](AIController *controller, const Vec3 &target) -> bool
+        {
+            if (!controller)
+            {
+                return false;
+            }
+            return controller->MoveTo(target);
+        });
 
     AIControllerType.set_function("StopMoving",
-                                  [](AIController *controller)
-                                  {
-                                      if (controller)
-                                      {
-                                          controller->StopMoving();
-                                      }
-                                  });
+        [](AIController *controller)
+        {
+            if (controller)
+            {
+                controller->StopMoving();
+            }
+        });
 
     AIControllerType.set_function("StartMoving",
-                                  [](AIController *controller)
-                                  {
-                                      if (controller)
-                                      {
-                                          controller->StartMoving();
-                                      }
-                                  });
+        [](AIController *controller)
+        {
+            if (controller)
+            {
+                controller->StartMoving();
+            }
+        });
 
     AIControllerType.set_function("IsMoving",
-                                  [](AIController *controller) -> bool
-                                  {
-                                      if (!controller)
-                                      {
-                                          return false;
-                                      }
-                                      Vec3 dummy;
-                                      return controller->IsMoving();
-                                  });
+        [](AIController *controller) -> bool
+        {
+            if (!controller)
+            {
+                return false;
+            }
+            Vec3 dummy;
+            return controller->IsMoving();
+        });
 
     AIControllerType.set_function("GetBlackboard",
-                                  [](AIController *controller) -> Blackboard *
-                                  {
-                                      if (!controller)
-                                      {
-                                          return nullptr;
-                                      }
-                                      return &controller->GetBlackboard();
-                                  });
+        [](AIController *controller) -> Blackboard *
+        {
+            if (!controller)
+            {
+                return nullptr;
+            }
+            return &controller->GetBlackboard();
+        });
 }
 #endif

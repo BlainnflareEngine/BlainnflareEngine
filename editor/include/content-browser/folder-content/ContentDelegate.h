@@ -54,8 +54,8 @@ protected:
     QPixmap GetTexturePixmap(const QFileInfo &filePath, const QModelIndex &index) const;
 
     TextMode m_textMode;
-    unsigned int m_iconSize = 48;
-    unsigned int m_spacing = 5;
+    int m_iconSize = 48;
+    int m_spacing = 5;
 
     QFileSystemModel *m_model = nullptr;
     QSortFilterProxyModel *m_proxy = nullptr;

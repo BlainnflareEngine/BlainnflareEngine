@@ -12,6 +12,12 @@ namespace Blainn
 class AIController
 {
 public:
+    struct DesiredDirectionRequest
+    {
+        float stoppingDistance = 0.0f;
+        float offset = 0.5f;
+    };
+
     AIController() = default;
 
     void Init(BTMap trees, eastl::unique_ptr<UtilitySelector> utility, eastl::unique_ptr<Blackboard> blackboard);
@@ -29,7 +35,8 @@ public:
     void StopMoving();
     void StartMoving();
     bool IsMoving() const;
-    bool GetDesiredDirection(Vec3 &outDirection, float stoppingDistance, float offset = 0.5f);
+    bool GetDesiredDirection(Vec3 &outDirection);
+    bool GetDesiredDirection(Vec3 &outDirection, const DesiredDirectionRequest &request);
     void RotateControlledPawn(const Vec3 &LookTo);
     void RotateControlledPawnLerp(const Vec3 &LookTo);
 

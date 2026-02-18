@@ -19,8 +19,22 @@ using namespace Blainn;
 #ifdef BLAINN_REGISTER_LUA_TYPES
 
 // Listener handle storage for Lua -> Input event listeners
-static inline std::unordered_map<uint64_t, std::function<void()>> s_inputListenerRemovers;
 static inline std::atomic<uint64_t> s_inputNextListenerId{1};
+
+namespace
+{
+using InputListenerRemoverMap = std::unordered_map<uint64_t, std::function<void()>>;
+
+InputListenerRemoverMap &GetInputListenerRemovers()
+{
+    static InputListenerRemoverMap *s_inputListenerRemovers = nullptr;
+    if (s_inputListenerRemovers == nullptr)
+    {
+        s_inputListenerRemovers = new InputListenerRemoverMap();
+    }
+    return *s_inputListenerRemovers;
+}
+}
 
 void Blainn::RegisterInputTypes(sol::state &luaState)
 {
@@ -351,35 +365,37 @@ void Blainn::RegisterInputTypes(sol::state &luaState)
                                                 }
                                             });
         // store remover lambda capturing handle
-        s_inputListenerRemovers[id] = [eventType, handle]() { Blainn::Input::RemoveEventListener(eventType, handle); };
+        GetInputListenerRemovers()[id] = [eventType, handle]() { Blainn::Input::RemoveEventListener(eventType, handle); };
         return id;
     };
 
     inputTable.set_function("AddEventListener", add_listener_func);
 
     inputTable.set_function("RemoveEventListener",
-                            [](int eventTypeInt, uint64_t id)
-                            {
-                                auto it = s_inputListenerRemovers.find(id);
-                                if (it == s_inputListenerRemovers.end()) return;
-                                // call stored remover
-                                it->second();
-                                s_inputListenerRemovers.erase(it);
-                            });
+        [](InputEventType eventType, uint64_t id)
+        {
+            (void)eventType;
+            auto &listenerRemovers = GetInputListenerRemovers();
+            auto it = listenerRemovers.find(id);
+            if (it == listenerRemovers.end()) return;
+            // call stored remover
+            it->second();
+            listenerRemovers.erase(it);
+        });
 
 
-    inputTable.set_function("IsKeyPressed",     &Input::IsKeyPressed);
-    inputTable.set_function("IsKeyHeld",        &Input::IsKeyHeld);
-    inputTable.set_function("IsKeyDown",        &Input::IsKeyDown);
-    inputTable.set_function("IsKeyReleased",    &Input::IsKeyReleased);
+    inputTable.set_function("IsKeyPressed",  &Input::IsKeyPressed);
+    inputTable.set_function("IsKeyHeld",     &Input::IsKeyHeld);
+    inputTable.set_function("IsKeyDown",     &Input::IsKeyDown);
+    inputTable.set_function("IsKeyReleased", &Input::IsKeyReleased);
 
-    inputTable.set_function("IsMouseButtonPressed",     &Input::IsMouseButtonPressed);
-    inputTable.set_function("IsMouseButtonHeld",        &Input::IsMouseButtonHeld);
-    inputTable.set_function("IsMouseButtonDown",        &Input::IsMouseButtonDown);
-    inputTable.set_function("IsMouseButtonReleased",    &Input::IsMouseButtonReleased);
+    inputTable.set_function("IsMouseButtonPressed",  &Input::IsMouseButtonPressed);
+    inputTable.set_function("IsMouseButtonHeld",     &Input::IsMouseButtonHeld);
+    inputTable.set_function("IsMouseButtonDown",     &Input::IsMouseButtonDown);
+    inputTable.set_function("IsMouseButtonReleased", &Input::IsMouseButtonReleased);
 
-    inputTable.set_function("GetMousePositionX",      &Input::GetMousePositionX);
-    inputTable.set_function("GetMousePositionY",      &Input::GetMousePositionY);
+    inputTable.set_function("GetMousePositionX", &Input::GetMousePositionX);
+    inputTable.set_function("GetMousePositionY", &Input::GetMousePositionY);
 
     luaState["Input"] = inputTable;
 }

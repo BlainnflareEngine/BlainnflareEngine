@@ -4,25 +4,27 @@
 
 #include "ComponentRegistry.h"
 
+#pragma warning(push)
+#pragma warning(disable : 4100)
 #include <VGJS.h>
+#pragma warning(pop)
 
-#include <semaphore>
 #include <windowsx.h>
 
 #include "Input/InputSubsystem.h"
 #include "Input/KeyboardEvents.h"
-#include "aliases.h"
 #include "Input/MouseEvents.h"
 #include "Navigation/NavigationSubsystem.h"
 #include "Render/UI/UIRenderer.h"
+#include "aliases.h"
 #include "scene/Scene.h"
+#include "subsystems/AISubsystem.h"
 #include "subsystems/AssetManager.h"
 #include "subsystems/Log.h"
+#include "subsystems/PerceptionSubsystem.h"
 #include "subsystems/PhysicsSubsystem.h"
 #include "subsystems/RenderSubsystem.h"
 #include "subsystems/ScriptingSubsystem.h"
-#include "subsystems/AISubsystem.h"
-#include "subsystems/PerceptionSubsystem.h"
 #include "tools/Profiler.h"
 
 using namespace Blainn;
@@ -53,7 +55,7 @@ void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)
 
     InitAISubsystem();
 
-#if !defined(BLAINN_INCLUDE_EDITOR)
+#ifndef BLAINN_INCLUDE_EDITOR
     if (!AssetManager::SceneExists(s_config.GetDefaultSceneName()))
         AssetManager::CreateScene(s_config.GetDefaultSceneName());
 
@@ -88,9 +90,8 @@ void Engine::InitAISubsystem()
             if (entity1.HasComponent<StimulusComponent>() && entity2.HasComponent<PerceptionComponent>())
             {
                 Vec3 pos1 = sceneManager.GetWorldSpaceTransform(entity1).GetTranslation();
-                Vec3 pos2 = sceneManager.GetWorldSpaceTransform(entity2).GetTranslation();
                 bool touch = entity2.GetComponent<PerceptionComponent>().enableTouch;
-                if (touch == true)
+                if (touch)
                 {
                     tag1 = entity1.GetComponent<StimulusComponent>().tag;
                     PerceptionSubsystem::GetInstance().RegisterStimulus(entity1.GetUUID(), StimulusType::Touch, pos1,
@@ -99,10 +100,9 @@ void Engine::InitAISubsystem()
             }
             if (entity2.HasComponent<StimulusComponent>() && entity1.HasComponent<PerceptionComponent>())
             {
-                Vec3 pos1 = sceneManager.GetWorldSpaceTransform(entity1).GetTranslation();
                 Vec3 pos2 = sceneManager.GetWorldSpaceTransform(entity2).GetTranslation();
                 bool touch = entity1.GetComponent<PerceptionComponent>().enableTouch;
-                if (touch == true)
+                if (touch)
                 {
                     tag2 = entity2.GetComponent<StimulusComponent>().tag;
                     PerceptionSubsystem::GetInstance().RegisterStimulus(entity2.GetUUID(), StimulusType::Touch, pos2,
@@ -219,7 +219,6 @@ void Engine::EscapePlayMode()
 
     s_isPlayMode = false;
     AssetManager::GetInstance().ResetTextures();
-    Log::SetNotFoundMainCameraLogged(false);
 }
 
 
@@ -262,9 +261,9 @@ void Engine::InitScenePlayMode()
 
     for (auto &[id, scene] : s_sceneManager.GetAdditiveScenes())
     {
-        for (auto [entity, id, aiComp] : scene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
+        for (auto [entity, entityId, aiComp] : scene->GetAllEntitiesWith<IDComponent, AIControllerComponent>().each())
         {
-            Entity ent = scene->GetEntityWithUUID(id.ID);
+            Entity ent = scene->GetEntityWithUUID(entityId.ID);
             AISubsystem::GetInstance().CreateAIController(ent);
         }
 
@@ -311,7 +310,7 @@ HWND Engine::CreateBlainnWindow(UINT width, UINT height, const std::string &winT
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInst;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wc.lpszClassName = winClassTitle.c_str();
     // wc.hIcon = (HICON)icon;
 
@@ -430,7 +429,7 @@ LRESULT CALLBACK Engine::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
     {
         UINT width = LOWORD(lParam);
         UINT height = HIWORD(lParam);
-        RenderSubsystem::GetInstance().OnResize(width, height);
+        RenderSubsystem::GetInstance().OnResize(RenderSubsystem::ResizeParams{width, height});
         return 0;
     }
 

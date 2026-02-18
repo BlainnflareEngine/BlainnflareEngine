@@ -19,8 +19,8 @@ protected:
     void UpdatePath();
     void UpdateMaterial();
 
-    void SetNewPath(const QString &oldPath, const QString &newPath);
-    void SetNewMaterial(const QString &oldPath, const QString &newPath);
+    void SetNewPath(const QString &newPath);
+    void SetNewMaterial(const QString &newPath);
     void SetEnabled(bool enabled);
     void SetIsWalkable(bool enabled);
 

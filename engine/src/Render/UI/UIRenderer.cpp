@@ -16,7 +16,7 @@
 
 using namespace Blainn;
 
-void UIRenderer::Initialize(int width, int height)
+void UIRenderer::Initialize(const Dimensions &dimensions)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -24,11 +24,11 @@ void UIRenderer::Initialize(int width, int height)
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    m_width = width;
-    m_height = height;
+    m_width = dimensions.width;
+    m_height = dimensions.height;
 
-    io.DisplaySize.x = static_cast<float>(width);
-    io.DisplaySize.y = static_cast<float>(height);
+    io.DisplaySize.x = static_cast<float>(dimensions.width);
+    io.DisplaySize.y = static_cast<float>(dimensions.height);
 
     ImGui_ImplDX12_InitInfo initInfo{};
     initInfo.Device = Device::GetInstance().GetDevice2().Get();
@@ -51,7 +51,11 @@ void UIRenderer::Initialize(int width, int height)
         *out_gpu_handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(srvHeap->GetGPUDescriptorHandleForHeapStart(), descriptorAllocIndex, descriptorSize);
         descriptorAllocIndex++;
     };
-    initInfo.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle){};
+    initInfo.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle)
+    {
+        (void)cpu_handle;
+        (void)gpu_handle;
+    };
     ImGui_ImplDX12_Init(&initInfo);
 
     SetupInput();
@@ -78,12 +82,13 @@ void UIRenderer::Destroy()
     ImGui::DestroyContext();
 }
 
-void UIRenderer::Resize(int width, int height)
+void UIRenderer::Resize(const Dimensions &dimensions)
 {
     ImGuiIO& io = ImGui::GetIO();
-    m_width = width; m_height = height;
-    io.DisplaySize.x = static_cast<float>(width);
-    io.DisplaySize.y = static_cast<float>(height);
+    m_width = dimensions.width;
+    m_height = dimensions.height;
+    io.DisplaySize.x = static_cast<float>(dimensions.width);
+    io.DisplaySize.y = static_cast<float>(dimensions.height);
 }
 
 void UIRenderer::StartImGuiFrame()
@@ -410,9 +415,9 @@ constexpr int UIRenderer::KeyToImGuiKey(KeyCode key)
         case KeyCode::NoName:     case KeyCode::PA1:      case KeyCode::OEMClear:
             return ImGuiKey_None;
 
-        default:
-            return ImGuiKey_None;
     }
+
+    return ImGuiKey_None;
 }
 
 void UIRenderer::RenderDebugUI()

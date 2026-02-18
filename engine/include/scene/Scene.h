@@ -1,6 +1,5 @@
 #pragma once
 
-// TODO: to pch
 #include <concurrentqueue.h>
 #include <entt/entt.hpp>
 #include <eventpp/eventqueue.h>
@@ -18,7 +17,7 @@
 
 namespace Blainn
 {
-class MeshComponent;
+struct MeshComponent;
 class SceneManager;
 class AssetManager;
 
@@ -27,18 +26,22 @@ using EntityMap = eastl::unordered_map<uuid, Entity>;
 class Scene
 {
 public:
-    Scene(const eastl::string_view &name = "UntitledScene", uuid uid = Rand::getRandomUUID(),
-          bool isEditorScene = false) noexcept;
+    Scene(const eastl::string_view &name = "UntitledScene",
+        uuid uid = Rand::getRandomUUID(),
+        bool isEditorScene = false);
+
     Scene(const YAML::Node &config);
     ~Scene();
 
     void StartPlayMode()
     {
         m_bPlayMode = true;
+        m_notFoundMainCameraLogged = false;
     }
     void EndPlayMode()
     {
         m_bPlayMode = false;
+        m_notFoundMainCameraLogged = false;
     }
 
     // I'm not sure we need to copy or move scenes so if needed add these functions
@@ -148,6 +151,7 @@ private:
         s_sceneEventQueue;
 
     bool m_bPlayMode{false};
+    bool m_notFoundMainCameraLogged{false};
 
     eastl::shared_ptr<Camera> m_editorCam;
 

@@ -20,14 +20,14 @@ void Log::Init()
 
 
     std::vector<spdlog::sink_ptr> sinks{
+        std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/BLAINN.log", true)
 #ifdef BLAINN_HAS_CONSOLE
-        //std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/BLAINN.log", true),
-        std::make_shared<spdlog::sinks::stdout_color_sink_mt>()
+        , std::make_shared<spdlog::sinks::stdout_color_sink_mt>()
 #endif
     };
-#ifdef BLAINN_HAS_CONSOLE
-    //sinks[0]->set_pattern("%^[%Y-%m-%d %H:%M:%S.%e] %v%$");
     sinks[0]->set_pattern("%^[%Y-%m-%d %H:%M:%S.%e] %v%$");
+#ifdef BLAINN_HAS_CONSOLE
+    sinks[1]->set_pattern("%^[%Y-%m-%d %H:%M:%S.%e] %v%$");
 #endif
 
     s_Logger = std::make_shared<spdlog::logger>("BLAINN", sinks.begin(), sinks.end());
@@ -55,19 +55,5 @@ void Log::RemoveSink(const std::shared_ptr<spdlog::sinks::base_sink<std::mutex>>
     auto &sinks = s_Logger->sinks();
     const auto &sinkit = std::find(sinks.begin(), sinks.end(), sink);
     if (sinkit != sinks.end()) s_Logger->sinks().erase(sinkit);
-}
-
-void Log::TryLogNotFoundMainCamera()
-{
-    if (!s_notFoundMainCameraLogged)
-    {
-        BF_ERROR("Could not find main camera, please, select an active camera!");
-        s_notFoundMainCameraLogged = true;
-    }
-}
-
-void Log::SetNotFoundMainCameraLogged(bool logged)
-{
-    s_notFoundMainCameraLogged = logged;
 }
 } // namespace Blainn

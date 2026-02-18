@@ -4,8 +4,8 @@
 
 #include "subsystems/PrefabSubsystem.h"
 
-#include "Engine.h"
 #include "components/PrefabComponent.h"
+#include "Engine.h"
 
 namespace Blainn
 {
@@ -32,6 +32,11 @@ void PrefabSubsystem::UpdatePrefabRefs(const Path &relativePath)
 Entity PrefabSubsystem::CreateEntityFromPrefab(const Path &relativePath, const Scene &scene, const Vec3 &position,
                                                const Quat &rotation, const Vec3 &scale)
 {
+    (void)relativePath;
+    (void)scene;
+    (void)position;
+    (void)rotation;
+    (void)scale;
     assert(false && "Not implemented");
     return {};
 }

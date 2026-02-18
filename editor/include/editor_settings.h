@@ -37,6 +37,6 @@ private:
     path_input_field *m_defaultSceneInput = nullptr;
 
 private slots:
-    void OnDefaultScenePathChanged(const QString &oldPath, const QString &newPath);
+    void OnDefaultScenePathChanged(const QString &newPath);
 };
 } // namespace editor

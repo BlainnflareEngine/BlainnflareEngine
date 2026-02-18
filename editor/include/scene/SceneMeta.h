@@ -6,7 +6,9 @@
 #include "aliases.h"
 
 
+#include <EASTL/vector.h>
 #include <QString>
+#include <yaml-cpp/yaml.h>
 
 
 namespace Blainn

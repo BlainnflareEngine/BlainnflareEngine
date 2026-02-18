@@ -118,7 +118,7 @@ template <typename T> void FreeListVector<T>::erase(size_t index)
     if (index < m_data.size())
     {
         m_data[index].~T();
-        m_freeList.push_back(index);
+        m_freeList.push_back(static_cast<unsigned int>(index));
     }
 }
 
@@ -137,7 +137,7 @@ template <typename T> bool FreeListVector<T>::is_occupied(size_t index)
 {
     if (index >= m_data.size()) return false;
 
-    return eastl::find(m_freeList.begin(), m_freeList.end(), index) == m_freeList.end();
+    return eastl::find(m_freeList.begin(), m_freeList.end(), static_cast<unsigned int>(index)) == m_freeList.end();
 }
 
 

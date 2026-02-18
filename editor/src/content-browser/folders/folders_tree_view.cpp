@@ -77,9 +77,9 @@ void folders_tree_view::dropEvent(QDropEvent *event)
         QString srcPath = url.toLocalFile();
         QString contentDir = QString::fromStdString(Blainn::Engine::GetContentDirectory().string());
 
-        if (!WasInFolderBefore(srcPath, contentDir))
+        if (!WasInFolderBefore({srcPath, contentDir}))
         {
-            ImportAsset(srcPath, targetPath, url);
+            ImportAsset({srcPath, targetPath, url});
         }
         else
         {

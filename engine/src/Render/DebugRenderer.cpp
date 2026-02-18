@@ -3,7 +3,10 @@
 // Copyright (c) 2026 Blainnflare. All rights reserved.
 //
 
+#include "pch.h"
 #include "Render/DebugRenderer.h"
+
+#include <cmath>
 
 #include "VertexTypes.h"
 #include "helpers.h"
@@ -36,22 +39,24 @@ void DebugRenderer::BeginDebugRenderPass(ID3D12GraphicsCommandList2 *commandList
 
     m_commandList->OMSetRenderTargets(1, &rtvDescriptor, TRUE, &dsvDescriptor);
     m_commandList->SetGraphicsRootSignature(m_rootSignature->Get());
-    m_commandList->SetPipelineState(m_debugPipelineState.Get());
 
     m_currentFrame++;
 }
 
 void DebugRenderer::EndDebugRenderPass()
 {
-    BLAINN_PROFILE_SCOPE(EndDebugRenderPass);
+    BLAINN_PROFILE_SCOPE_DYNAMIC("EndDebugRenderPass");
 
-    if (m_lineListVertices.empty()) return;
+    if (m_lineListVertices.empty() && m_triangleListVertices.empty()) return;
 
     auto currentFrameBuffer = m_debugRequests[m_currentFrame % 4];
-    UINT vertexBufferSize = m_lineListVertices.size() * sizeof(VertexPositionColor);
+    const UINT lineVertexCount = static_cast<UINT>(m_lineListVertices.size());
+    const UINT triangleVertexCount = static_cast<UINT>(m_triangleListVertices.size());
+    const UINT totalVertexBufferSize = static_cast<UINT>(
+        (m_lineListVertices.size() + m_triangleListVertices.size()) * sizeof(VertexPositionColor));
 
-    if (currentFrameBuffer == nullptr || currentFrameBuffer.Get()->GetDesc().Width < vertexBufferSize)
-        currentFrameBuffer = CreateBuffer(m_currentFrame % 4, vertexBufferSize);
+    if (currentFrameBuffer == nullptr || currentFrameBuffer.Get()->GetDesc().Width < totalVertexBufferSize)
+        currentFrameBuffer = CreateBuffer({m_currentFrame % 4, totalVertexBufferSize});
     if (currentFrameBuffer == nullptr)
         return;
 
@@ -59,22 +64,42 @@ void DebugRenderer::EndDebugRenderPass()
     UINT8 *pVertexDataBegin;
     CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
     ThrowIfFailed(currentFrameBuffer->Map(0, &readRange, reinterpret_cast<void **>(&pVertexDataBegin)));
-    memcpy(pVertexDataBegin, m_lineListVertices.data(), vertexBufferSize);
+    if (!m_lineListVertices.empty())
+    {
+        memcpy(pVertexDataBegin, m_lineListVertices.data(), m_lineListVertices.size() * sizeof(VertexPositionColor));
+    }
+    if (!m_triangleListVertices.empty())
+    {
+        memcpy(pVertexDataBegin + m_lineListVertices.size() * sizeof(VertexPositionColor), m_triangleListVertices.data(),
+               m_triangleListVertices.size() * sizeof(VertexPositionColor));
+    }
     currentFrameBuffer->Unmap(0, nullptr);
 
     D3D12_VERTEX_BUFFER_VIEW vbView = {};
     vbView.BufferLocation = currentFrameBuffer->GetGPUVirtualAddress();
     vbView.StrideInBytes = sizeof(VertexPositionColor);
-    vbView.SizeInBytes = vertexBufferSize;
-
-    m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+    vbView.SizeInBytes = totalVertexBufferSize;
 
     m_commandList->IASetVertexBuffers(0, 1, &vbView);
-    m_commandList->DrawInstanced(m_lineListVertices.size(), 1, 0, 0);
+    if (lineVertexCount > 0u)
+    {
+        m_commandList->SetPipelineState(m_debugLinePipelineState.Get());
+        m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+        m_commandList->DrawInstanced(lineVertexCount, 1, 0, 0);
+    }
+    if (triangleVertexCount > 0u)
+    {
+        m_commandList->SetPipelineState(m_debugTrianglePipelineState.Get());
+        m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        m_commandList->DrawInstanced(triangleVertexCount, 1, lineVertexCount, 0);
+    }
 
     size_t prevSize = m_lineListVertices.size();
+    size_t prevTriangleSize = m_triangleListVertices.size();
     m_lineListVertices.clear();
+    m_triangleListVertices.clear();
     m_lineListVertices.reserve(prevSize);
+    m_triangleListVertices.reserve(prevTriangleSize);
 
     m_bIsRenderPassOngoing = false;
 }
@@ -94,26 +119,42 @@ void Blainn::DebugRenderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, J
 {
     if (!m_bIsDebugEnabled)
         return;
-    Color col = {inColor.r / 255.f, inColor.g / 255.f, inColor.b / 255.f, inColor.a / 255.f};
+    Color col = {static_cast<float>(inColor.r) / 255.0f, static_cast<float>(inColor.g) / 255.0f,
+                 static_cast<float>(inColor.b) / 255.0f, static_cast<float>(inColor.a) / 255.0f};
     Vec3 from = {inFrom.GetX(), inFrom.GetY(), inFrom.GetZ()};
     Vec3 to = {inTo.GetX(), inTo.GetY(), inTo.GetZ()};
-    DrawLine(from, to, col);
+    DrawLine({from, to, col});
 }
 
-void Blainn::DebugRenderer::DrawLine(Vec3 inFrom, Vec3 inTo, Color color)
+void Blainn::DebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3,
+                                         JPH::ColorArg inColor, ECastShadow inCastShadow)
+{
+    (void)inCastShadow;
+    if (!m_bIsDebugEnabled)
+        return;
+
+    const Color col = {static_cast<float>(inColor.r) / 255.0f, static_cast<float>(inColor.g) / 255.0f,
+                       static_cast<float>(inColor.b) / 255.0f, static_cast<float>(inColor.a) / 255.0f};
+    const Vec3 V1 = {inV1.GetX(), inV1.GetY(), inV1.GetZ()};
+    const Vec3 V2 = {inV2.GetX(), inV2.GetY(), inV2.GetZ()};
+    const Vec3 V3 = {inV3.GetX(), inV3.GetY(), inV3.GetZ()};
+    DrawTriangle(V1, V2, V3, col);
+}
+
+void Blainn::DebugRenderer::DrawLine(const LineSegment &lineSegment)
 {
     BLAINN_PROFILE_SCOPE(DrawLine);
     if (!m_bIsDebugEnabled)
         return;
-    m_lineListVertices.push_back({inFrom, color});
-    m_lineListVertices.push_back({inTo, color});
+    m_lineListVertices.push_back({lineSegment.from, lineSegment.color});
+    m_lineListVertices.push_back({lineSegment.to, lineSegment.color});
 }
 
 void DebugRenderer::DrawArrow(Vec3 inFrom, Vec3 inTo, Color color, float size)
 {
     if (!m_bIsDebugEnabled)
         return;
-    DrawLine(inFrom, inTo, color);
+    DrawLine({inFrom, inTo, color});
 
     if (size > 0.0f)
     {
@@ -123,23 +164,9 @@ void DebugRenderer::DrawArrow(Vec3 inFrom, Vec3 inTo, Color color, float size)
         if (len != 0.0f) dir = dir * (size / len);
         else dir = Vec3(size, 0, 0);
         Vec3 perp = size * GetNormalizedPerpendicular(dir);
-        DrawLine(inTo - dir + perp, inTo, color);
-        DrawLine(inTo - dir - perp, inTo, color);
+        DrawLine({inTo - dir + perp, inTo, color});
+        DrawLine({inTo - dir - perp, inTo, color});
     }
-}
-
-void DebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor,
-                                 ECastShadow inCastShadow)
-{
-    if (!m_bIsDebugEnabled)
-        return;
-    // DebugRendererSimple::DrawTriangle(inV1, inV2, inV3, inColor, inCastShadow);
-    const Color col = {inColor.r / 255.f, inColor.g / 255.f, inColor.b / 255.f, inColor.a / 255.f};
-    const Vec3 V1 = {inV1.GetX(), inV1.GetY(), inV1.GetZ()};
-    const Vec3 V2 = {inV2.GetX(), inV2.GetY(), inV2.GetZ()};
-    const Vec3 V3 = {inV3.GetX(), inV3.GetY(), inV3.GetZ()};
-
-    DrawTriangle(V1, V2, V3, col);
 }
 
 void DebugRenderer::DrawTriangle(Vec3 inV1, Vec3 inV2, Vec3 inV3, Color inColor)
@@ -147,15 +174,9 @@ void DebugRenderer::DrawTriangle(Vec3 inV1, Vec3 inV2, Vec3 inV3, Color inColor)
     BLAINN_PROFILE_SCOPE(DrawTriangle);
     if (!m_bIsDebugEnabled)
         return;
-    VertexPositionColor lineVertices[] = {
-        {inV1, inColor}, {inV2, inColor},
-        {inV2, inColor}, {inV3, inColor},
-        {inV3, inColor}, {inV1, inColor}
-    };
-    m_lineListVertices.insert(m_lineListVertices.end(),
-        eastl::begin(lineVertices),
-        eastl::end(lineVertices)
-        );
+    m_triangleListVertices.push_back({inV1, inColor});
+    m_triangleListVertices.push_back({inV2, inColor});
+    m_triangleListVertices.push_back({inV3, inColor});
 }
 
 void DebugRenderer::DrawWireBox(Vec3 min, Vec3 max, Color color)
@@ -166,11 +187,11 @@ void DebugRenderer::DrawWireBox(Vec3 min, Vec3 max, Color color)
     JPH::Vec3 vmax = {max.x, max.y, max.z};
     JPH::AABox box = {vmin, vmax};
     JPH::Color col;
-    col.r = floor(color.R() * 255);
-    col.g = floor(color.G() * 255);
-    col.b = floor(color.B() * 255);
-    col.a = floor(color.A() * 255);
-    Super::DrawWireBox(box, col);
+    col.r = static_cast<JPH::uint8>(floor(color.R() * 255.0f));
+    col.g = static_cast<JPH::uint8>(floor(color.G() * 255.0f));
+    col.b = static_cast<JPH::uint8>(floor(color.B() * 255.0f));
+    col.a = static_cast<JPH::uint8>(floor(color.A() * 255.0f));
+    Super::DrawBox(box, col, ECastShadow::Off, EDrawMode::Wireframe);
 }
 
 void DebugRenderer::DrawWireBox(Mat4 matrix, Vec3 min, Vec3 max, Color color)
@@ -181,10 +202,10 @@ void DebugRenderer::DrawWireBox(Mat4 matrix, Vec3 min, Vec3 max, Color color)
     JPH::Vec3 vmax = {max.x, max.y, max.z};
     JPH::AABox box = {vmin, vmax};
     JPH::Color col;
-    col.r = floor(color.R() * 255);
-    col.g = floor(color.G() * 255);
-    col.b = floor(color.B() * 255);
-    col.a = floor(color.A() * 255);
+    col.r = static_cast<JPH::uint8>(floor(color.R() * 255.0f));
+    col.g = static_cast<JPH::uint8>(floor(color.G() * 255.0f));
+    col.b = static_cast<JPH::uint8>(floor(color.B() * 255.0f));
+    col.a = static_cast<JPH::uint8>(floor(color.A() * 255.0f));
 
     JPH::Vec4 row1 = {matrix._11, matrix._12, matrix._13, matrix._14};
     JPH::Vec4 row2 = {matrix._21, matrix._22, matrix._23, matrix._24};
@@ -193,7 +214,7 @@ void DebugRenderer::DrawWireBox(Mat4 matrix, Vec3 min, Vec3 max, Color color)
 
     JPH::Mat44 jphMat{row1, row2, row3, row4};
 
-    Super::DrawWireBox(jphMat, box, col);
+    Super::DrawBox(jphMat, box, col, ECastShadow::Off, EDrawMode::Wireframe);
 }
 
 void DebugRenderer::DrawWireSphere(Vec3 center, float radius, Color color)
@@ -203,12 +224,12 @@ void DebugRenderer::DrawWireSphere(Vec3 center, float radius, Color color)
     JPH::Vec3 V1 = {center.x, center.y, center.z};
 
     JPH::Color col;
-    col.r = floor(color.R() * 255);
-    col.g = floor(color.G() * 255);
-    col.b = floor(color.B() * 255);
-    col.a = floor(color.A() * 255);
+    col.r = static_cast<JPH::uint8>(floor(color.R() * 255.0f));
+    col.g = static_cast<JPH::uint8>(floor(color.G() * 255.0f));
+    col.b = static_cast<JPH::uint8>(floor(color.B() * 255.0f));
+    col.a = static_cast<JPH::uint8>(floor(color.A() * 255.0f));
 
-    Super::DrawWireSphere(V1, radius, col);
+    Super::DrawSphere(V1, radius, col, ECastShadow::Off, EDrawMode::Wireframe);
 }
 
 void DebugRenderer::DrawWireUnitSphere(Mat4 matrix, Color color)
@@ -216,10 +237,10 @@ void DebugRenderer::DrawWireUnitSphere(Mat4 matrix, Color color)
     if (!m_bIsDebugEnabled)
         return;
     JPH::Color col;
-    col.r = floor(color.R() * 255);
-    col.g = floor(color.G() * 255);
-    col.b = floor(color.B() * 255);
-    col.a = floor(color.A() * 255);
+    col.r = static_cast<JPH::uint8>(floor(color.R() * 255.0f));
+    col.g = static_cast<JPH::uint8>(floor(color.G() * 255.0f));
+    col.b = static_cast<JPH::uint8>(floor(color.B() * 255.0f));
+    col.a = static_cast<JPH::uint8>(floor(color.A() * 255.0f));
 
     JPH::Vec4 row1 = {matrix._11, matrix._12, matrix._13, matrix._14};
     JPH::Vec4 row2 = {matrix._21, matrix._22, matrix._23, matrix._24};
@@ -228,47 +249,47 @@ void DebugRenderer::DrawWireUnitSphere(Mat4 matrix, Color color)
 
     JPH::Mat44 jphMat{row1, row2, row3, row4};
 
-    Super::DrawWireUnitSphere(jphMat, col);
+    Super::DrawUnitSphere(jphMat, col, ECastShadow::Off, EDrawMode::Wireframe);
 }
 
-void DebugRenderer::DrawCapsule(Mat4 matrix, float halfHeightOfCylinder, float radius, Color color)
+void DebugRenderer::DrawCapsule(const CapsuleDrawRequest &request)
 {
     if (!m_bIsDebugEnabled)
         return;
     JPH::Color col;
-    col.r = floor(color.R() * 255);
-    col.g = floor(color.G() * 255);
-    col.b = floor(color.B() * 255);
-    col.a = floor(color.A() * 255);
+    col.r = static_cast<JPH::uint8>(std::floor(request.color.R() * 255.0f));
+    col.g = static_cast<JPH::uint8>(std::floor(request.color.G() * 255.0f));
+    col.b = static_cast<JPH::uint8>(std::floor(request.color.B() * 255.0f));
+    col.a = static_cast<JPH::uint8>(std::floor(request.color.A() * 255.0f));
 
-    JPH::Vec4 row1 = {matrix._11, matrix._12, matrix._13, matrix._14};
-    JPH::Vec4 row2 = {matrix._21, matrix._22, matrix._23, matrix._24};
-    JPH::Vec4 row3 = {matrix._31, matrix._32, matrix._33, matrix._34};
-    JPH::Vec4 row4 = {matrix._41, matrix._42, matrix._43, matrix._44};
+    JPH::Vec4 row1 = {request.matrix._11, request.matrix._12, request.matrix._13, request.matrix._14};
+    JPH::Vec4 row2 = {request.matrix._21, request.matrix._22, request.matrix._23, request.matrix._24};
+    JPH::Vec4 row3 = {request.matrix._31, request.matrix._32, request.matrix._33, request.matrix._34};
+    JPH::Vec4 row4 = {request.matrix._41, request.matrix._42, request.matrix._43, request.matrix._44};
 
     JPH::Mat44 jphMat{row1, row2, row3, row4};
 
-    Super::DrawCapsule(jphMat, halfHeightOfCylinder, radius, col);
+    Super::DrawCapsule(jphMat, request.halfHeightOfCylinder, request.radius, col);
 }
 
-void DebugRenderer::DrawCylinder(Mat4 matrix, float halfHeight, float radius, Color color)
+void DebugRenderer::DrawCylinder(const CylinderDrawRequest &request)
 {
     if (!m_bIsDebugEnabled)
         return;
     JPH::Color col;
-    col.r = floor(color.R() * 255);
-    col.g = floor(color.G() * 255);
-    col.b = floor(color.B() * 255);
-    col.a = floor(color.A() * 255);
+    col.r = static_cast<JPH::uint8>(std::floor(request.color.R() * 255.0f));
+    col.g = static_cast<JPH::uint8>(std::floor(request.color.G() * 255.0f));
+    col.b = static_cast<JPH::uint8>(std::floor(request.color.B() * 255.0f));
+    col.a = static_cast<JPH::uint8>(std::floor(request.color.A() * 255.0f));
 
-    JPH::Vec4 row1 = {matrix._11, matrix._12, matrix._13, matrix._14};
-    JPH::Vec4 row2 = {matrix._21, matrix._22, matrix._23, matrix._24};
-    JPH::Vec4 row3 = {matrix._31, matrix._32, matrix._33, matrix._34};
-    JPH::Vec4 row4 = {matrix._41, matrix._42, matrix._43, matrix._44};
+    JPH::Vec4 row1 = {request.matrix._11, request.matrix._12, request.matrix._13, request.matrix._14};
+    JPH::Vec4 row2 = {request.matrix._21, request.matrix._22, request.matrix._23, request.matrix._24};
+    JPH::Vec4 row3 = {request.matrix._31, request.matrix._32, request.matrix._33, request.matrix._34};
+    JPH::Vec4 row4 = {request.matrix._41, request.matrix._42, request.matrix._43, request.matrix._44};
 
     JPH::Mat44 jphMat{row1, row2, row3, row4};
 
-    Super::DrawCylinder(jphMat, halfHeight, radius, col);
+    Super::DrawCylinder(jphMat, request.halfHeight, request.radius, col);
 }
 
 void DebugRenderer::DrawLineList(const eastl::vector<VertexPositionColor>::iterator &first,
@@ -300,12 +321,13 @@ void Blainn::DebugRenderer::CompileShaders()
 
 void Blainn::DebugRenderer::CreatePSO()
 {
-    D3D12_GRAPHICS_PIPELINE_STATE_DESC debugPSODesc = {};
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC debugPSODesc;
+    ZeroMemory(&debugPSODesc, sizeof(debugPSODesc));
     debugPSODesc.pRootSignature = m_rootSignature->Get();
     debugPSODesc.VS = D3D12_SHADER_BYTECODE(m_vertexShader->GetBufferPointer(), m_vertexShader->GetBufferSize());
     debugPSODesc.PS = D3D12_SHADER_BYTECODE(m_pixelShader->GetBufferPointer(), m_pixelShader->GetBufferSize());
 
-    D3D12_RENDER_TARGET_BLEND_DESC RTBlendDesc = {};
+    D3D12_RENDER_TARGET_BLEND_DESC RTBlendDesc;
     ZeroMemory(&RTBlendDesc, sizeof(D3D12_RENDER_TARGET_BLEND_DESC));
     RTBlendDesc.BlendEnable = TRUE;
     RTBlendDesc.LogicOpEnable = FALSE;
@@ -338,15 +360,19 @@ void Blainn::DebugRenderer::CreatePSO()
     debugPSODesc.DSVFormat = DepthStencilFormat;
     debugPSODesc.SampleDesc = {1u, 0u};
 
-    ThrowIfFailed(m_device.CreateGraphicsPipelineState(debugPSODesc, m_debugPipelineState));
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(debugPSODesc, m_debugLinePipelineState));
+
+    debugPSODesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    debugPSODesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+    ThrowIfFailed(m_device.CreateGraphicsPipelineState(debugPSODesc, m_debugTrianglePipelineState));
 }
 
-ComPtr<ID3D12Resource> DebugRenderer::CreateBuffer(size_t index, size_t size)
+ComPtr<ID3D12Resource> DebugRenderer::CreateBuffer(const BufferCreateRequest &request)
 {
     Microsoft::WRL::ComPtr<ID3D12Resource> lineVertexBuffer;
 
     const auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-    const auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(size);
+    const auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(request.size);
     if (auto hr = m_device.GetDevice2()->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resDesc,
                                                                  D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
                                                                  IID_PPV_ARGS(lineVertexBuffer.GetAddressOf()));
@@ -355,7 +381,7 @@ ComPtr<ID3D12Resource> DebugRenderer::CreateBuffer(size_t index, size_t size)
         BF_ERROR("Could not create vertex buffer for debug rendering!");
         return nullptr;
     }
-    m_debugRequests[index] = lineVertexBuffer;
+    m_debugRequests[request.index] = lineVertexBuffer;
     lineVertexBuffer->SetName(L"Debug Vertex Buffer");
     return lineVertexBuffer;
 }
