@@ -170,7 +170,7 @@ bool BTBuilder::CalculateBT(sol::table node, BTNodePtr &outNode)
 {
     if (HasError())
     {
-        BF_ERROR("BTBuilder::CalculateBT(): BTBuilder has errors")
+        BF_ERROR("BTBuilder::CalculateBT(): BTBuilder has errors");
         return false;
     }
 
@@ -183,7 +183,7 @@ bool BTBuilder::CalculateBT(sol::table node, BTNodePtr &outNode)
     BTType type;
     if (!ReadLuaBTType(node, type))
     {
-        BF_ERROR("BTBuilder::CalculateBT(): ReadLuaBTType didn't return type")
+        BF_ERROR("BTBuilder::CalculateBT(): ReadLuaBTType didn't return type");
         Reset();
         return false;
     }
@@ -207,7 +207,7 @@ bool BTBuilder::CalculateBT(sol::table node, BTNodePtr &outNode)
         sol::table children;
         if (!ReadLuaChildrenTable(node, children))
         {
-            BF_ERROR("BTBuilder::CalculateBT(): ReadLuaChildrenTable didn't return children")
+            BF_ERROR("BTBuilder::CalculateBT(): ReadLuaChildrenTable didn't return children");
             Reset();
             return false;
         }

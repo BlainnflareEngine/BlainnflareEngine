@@ -12,42 +12,84 @@
 
 #if defined(_DEBUG) || defined(BLAINN_HAS_CONSOLE)
 #define BF_TRACE(...)                                                                                                  \
-    if (spdlog::get(BLAINN_DEFAULT_LOGGER_NAME) != nullptr)                                                            \
+    do                                                                                                                 \
     {                                                                                                                  \
-        spdlog::get(BLAINN_DEFAULT_LOGGER_NAME)->trace(__VA_ARGS__);                                                   \
-    }
+        auto bf_logger = spdlog::get(BLAINN_DEFAULT_LOGGER_NAME);                                                     \
+        if (bf_logger != nullptr)                                                                                      \
+        {                                                                                                              \
+            bf_logger->trace(__VA_ARGS__);                                                                             \
+        }                                                                                                              \
+    } while (0)
 #define BF_DEBUG(...)                                                                                                  \
-    if (spdlog::get(BLAINN_DEFAULT_LOGGER_NAME) != nullptr)                                                            \
+    do                                                                                                                 \
     {                                                                                                                  \
-        spdlog::get(BLAINN_DEFAULT_LOGGER_NAME)->debug(__VA_ARGS__);                                                   \
-    }
+        auto bf_logger = spdlog::get(BLAINN_DEFAULT_LOGGER_NAME);                                                     \
+        if (bf_logger != nullptr)                                                                                      \
+        {                                                                                                              \
+            bf_logger->debug(__VA_ARGS__);                                                                             \
+        }                                                                                                              \
+    } while (0)
 #define BF_INFO(...)                                                                                                   \
-    if (spdlog::get(BLAINN_DEFAULT_LOGGER_NAME) != nullptr)                                                            \
+    do                                                                                                                 \
     {                                                                                                                  \
-        spdlog::get(BLAINN_DEFAULT_LOGGER_NAME)->info(__VA_ARGS__);                                                    \
-    }
+        auto bf_logger = spdlog::get(BLAINN_DEFAULT_LOGGER_NAME);                                                     \
+        if (bf_logger != nullptr)                                                                                      \
+        {                                                                                                              \
+            bf_logger->info(__VA_ARGS__);                                                                              \
+        }                                                                                                              \
+    } while (0)
 #define BF_WARN(...)                                                                                                   \
-    if (spdlog::get(BLAINN_DEFAULT_LOGGER_NAME) != nullptr)                                                            \
+    do                                                                                                                 \
     {                                                                                                                  \
-        spdlog::get(BLAINN_DEFAULT_LOGGER_NAME)->warn(__VA_ARGS__);                                                    \
-    }
+        auto bf_logger = spdlog::get(BLAINN_DEFAULT_LOGGER_NAME);                                                     \
+        if (bf_logger != nullptr)                                                                                      \
+        {                                                                                                              \
+            bf_logger->warn(__VA_ARGS__);                                                                              \
+        }                                                                                                              \
+    } while (0)
 #define BF_ERROR(...)                                                                                                  \
-    if (spdlog::get(BLAINN_DEFAULT_LOGGER_NAME) != nullptr)                                                            \
+    do                                                                                                                 \
     {                                                                                                                  \
-        spdlog::get(BLAINN_DEFAULT_LOGGER_NAME)->error(__VA_ARGS__);                                                   \
-    }
+        auto bf_logger = spdlog::get(BLAINN_DEFAULT_LOGGER_NAME);                                                     \
+        if (bf_logger != nullptr)                                                                                      \
+        {                                                                                                              \
+            bf_logger->error(__VA_ARGS__);                                                                             \
+        }                                                                                                              \
+    } while (0)
 #define BF_FATAL(...)                                                                                                  \
-    if (spdlog::get(BLAINN_DEFAULT_LOGGER_NAME) != nullptr)                                                            \
+    do                                                                                                                 \
     {                                                                                                                  \
-        spdlog::get(BLAINN_DEFAULT_LOGGER_NAME)->critical(__VA_ARGS__);                                                \
-    }
+        auto bf_logger = spdlog::get(BLAINN_DEFAULT_LOGGER_NAME);                                                     \
+        if (bf_logger != nullptr)                                                                                      \
+        {                                                                                                              \
+            bf_logger->critical(__VA_ARGS__);                                                                          \
+        }                                                                                                              \
+    } while (0)
 #else
-#define BF_TRACE(...) ;
-#define BF_DEBUG(...) ;
-#define BF_INFO(...) ;
-#define BF_WARN(...) ;
-#define BF_ERROR(...) ;
-#define BF_FATAL(...) ;
+#define BF_TRACE(...)                                                                                                  \
+    do                                                                                                                 \
+    {                                                                                                                  \
+    } while (0)
+#define BF_DEBUG(...)                                                                                                  \
+    do                                                                                                                 \
+    {                                                                                                                  \
+    } while (0)
+#define BF_INFO(...)                                                                                                   \
+    do                                                                                                                 \
+    {                                                                                                                  \
+    } while (0)
+#define BF_WARN(...)                                                                                                   \
+    do                                                                                                                 \
+    {                                                                                                                  \
+    } while (0)
+#define BF_ERROR(...)                                                                                                  \
+    do                                                                                                                 \
+    {                                                                                                                  \
+    } while (0)
+#define BF_FATAL(...)                                                                                                  \
+    do                                                                                                                 \
+    {                                                                                                                  \
+    } while (0)
 #endif
 
 namespace Blainn

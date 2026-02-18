@@ -207,7 +207,7 @@ Blainn::DecoratorNode::DecoratorNode(BTNodePtr c) : child(eastl::move(c))
 {
     if (!child)
     {
-        BF_ERROR("DecoratorNode: child is null")
+        BF_ERROR("DecoratorNode: child is null");
     }
 }
 

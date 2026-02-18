@@ -126,13 +126,13 @@ bool AIController::MoveTo(const Vec3 &target)
 {
     if (!m_controlledEntity.IsValid())
     {
-        BF_WARN("AIController: Controller is not possessing any entity.")
+        BF_WARN("AIController: Controller is not possessing any entity.");
         return false;
     }
 
     if (!NavigationSubsystem::IsNavMeshLoaded())
     {
-        BF_WARN("AIController: No loaded navigation mesh.")
+        BF_WARN("AIController: No loaded navigation mesh.");
         return false;
     }
 

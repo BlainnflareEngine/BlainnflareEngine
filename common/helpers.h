@@ -6,6 +6,8 @@
 #pragma once
 
 #include "aliases.h"
+#include <cassert>
+#include <cstdlib>
 #include <cmath>
 #include <cstdint>
 
@@ -32,6 +34,26 @@
     x &operator=(const x &) = delete;                                                                                  \
     x(x &&) = delete;                                                                                                  \
     x &operator=(x &&) = delete;
+
+
+#if defined(DEBUG) || defined(_DEBUG) || defined(BLAINN_ENABLE_ASSERTION)
+    #define BF_ASSERT(expr, ...)                                                 \
+        do                                                                       \
+        {                                                                        \
+            const bool bf_assert_ok = static_cast<bool>(expr);                   \
+            if (!bf_assert_ok)                                                   \
+            {                                                                    \
+                BF_FATAL(__VA_ARGS__);                                           \
+                assert(bf_assert_ok && "BF_ASSERT failed");                      \
+                std::abort();                                                    \
+            }                                                                    \
+        } while (0)
+
+    #define BF_ASSERT_EXPR(expr) BF_ASSERT((expr), "Debug assertion failed: {}\n", #expr)
+#else
+    #define BF_ASSERT(expr, ...) do {(void)sizeof(expr);} while (0)
+    #define BF_ASSERT_EXPR(expr)          do {(void)sizeof(expr);} while (0)
+#endif
 
 
 template <typename T, typename CastToType = uint32_t> T inline SetBit(T flags, T bit)

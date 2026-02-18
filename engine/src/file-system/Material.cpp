@@ -44,41 +44,41 @@ void Blainn::Material::SetTexture(const eastl::shared_ptr<TextureHandle> &textur
     switch (type)
     {
     case TextureType::NONE:
-        BF_WARN("Trying to set none texture in " + m_path.string())
+        BF_WARN("Trying to set none texture in " + m_path.string());
         break;
 
     case TextureType::ALBEDO:
-        BF_INFO("Trying to set albedo texture in " + m_path.string())
+        BF_INFO("Trying to set albedo texture in " + m_path.string());
         m_albedoTexture = textureHandle;
         break;
 
     case TextureType::NORMAL:
-        BF_INFO("Trying to set normal texture in " + m_path.string())
+        BF_INFO("Trying to set normal texture in " + m_path.string());
         m_normalTexture = textureHandle;
         break;
 
     case TextureType::METALLIC:
-        BF_INFO("Trying to set metallic texture in " + m_path.string())
+        BF_INFO("Trying to set metallic texture in " + m_path.string());
         m_metallicTexture = textureHandle;
         break;
 
     case TextureType::ROUGHNESS:
-        BF_INFO("Trying to set roughness texture in " + m_path.string())
+        BF_INFO("Trying to set roughness texture in " + m_path.string());
         m_roughnessTexture = textureHandle;
         break;
 
     case TextureType::AO:
-        BF_INFO("Trying to set AO texture in " + m_path.string())
+        BF_INFO("Trying to set AO texture in " + m_path.string());
         m_aoTexture = textureHandle;
         break;
 
     // Cubemap is not the part of object's material
     //case TextureType::CUBEMAP:
-    //    BF_INFO("Trying to set other texture in " + m_path.string())
+    //    BF_INFO("Trying to set other texture in " + m_path.string());
     //    break;
 
     case TextureType::OTHER:
-        BF_INFO("Trying to set other texture in " + m_path.string())
+        BF_INFO("Trying to set other texture in " + m_path.string());
         break;
 
     default:
