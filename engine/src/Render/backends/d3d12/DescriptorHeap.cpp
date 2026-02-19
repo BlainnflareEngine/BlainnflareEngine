@@ -181,10 +181,11 @@ DescriptorHeapAllocation CPUDescriptorHeap::Allocate(uint32_t _count)
 
 void CPUDescriptorHeap::Free(DescriptorHeapAllocation &&_allocation, uint64_t _cmdQueueMask)
 {
-
+    BF_ASSERT(false, "Not implemented");
 }
 
 void CPUDescriptorHeap::FreeAllocation(DescriptorHeapAllocation &&_allocation)
 {
+    BF_ASSERT(false, "Not implemented");
 }
 
