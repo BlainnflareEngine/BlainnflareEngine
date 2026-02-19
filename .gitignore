@@ -61,6 +61,7 @@ CMakeFiles/
 /CMakeSettings.json
 /CppProperties.json
 /compile_commands.json
+/.clangd
 /imgui.ini
 /out
 

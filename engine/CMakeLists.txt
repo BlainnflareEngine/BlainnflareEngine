@@ -197,6 +197,11 @@ set(ENGINE_SOURCES
         src/subsystems/PrefabSubsystem.cpp
         include/subsystems/PrefabSubsystem.h
         src/tools/Serializer.cpp
+        include/Render/memory/VariableSizeAllocationsManager.h
+        include/Render/memory/VariableSizeGPUAllocationsManager.h
+        include/Render/backends/d3d12/DescriptorHeap.h
+        include/Render/memory/MemoryAllocator.h
+        src/Render/backends/d3d12/DescriptorHeap.cpp
 )
 
 file(GLOB IMGUI_SOURCES

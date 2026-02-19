@@ -27,6 +27,8 @@
 #include "subsystems/ScriptingSubsystem.h"
 #include "tools/Profiler.h"
 
+#include "../include/Render/backends/d3d12/DescriptorHeap.h"
+
 using namespace Blainn;
 
 void Engine::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)

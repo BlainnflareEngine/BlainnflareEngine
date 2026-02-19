@@ -113,12 +113,12 @@ public:
         BF_ASSERT_EXPR(_size + alignmentReserve <= smallestBlockIt->second.Size);
         BF_ASSERT_EXPR(smallestBlockIt->second.Size == smallestBlockIt->first);
 
-        OffsetType _offset = smallestBlockIt->first;
-        BF_ASSERT_EXPR(_offset % m_CurrAlignment == 0);
-        OffsetType alignedOffset = Blainn::AlignUp(_offset, _alignment);
-        OffsetType adjustedSize  = _size + (alignedOffset - _offset);
+        OffsetType offset = smallestBlockIt->first;
+        BF_ASSERT_EXPR(offset % m_CurrAlignment == 0);
+        OffsetType alignedOffset = Blainn::AlignUp(offset, _alignment);
+        OffsetType adjustedSize  = _size + (alignedOffset - offset);
         BF_ASSERT_EXPR(adjustedSize <= _size + alignmentReserve);
-        OffsetType newOffset = _offset + adjustedSize;
+        OffsetType newOffset = offset + adjustedSize;
         OffsetType newSize   = smallestBlockIt->second.Size - adjustedSize;
         BF_ASSERT_EXPR(smallestBlockItIt == smallestBlockIt->second.OrderBySizeIt);
         m_FreeBlocksBySize.erase(smallestBlockItIt);
@@ -141,7 +141,7 @@ public:
             }
         }
 
-        return Allocation{_offset, adjustedSize};
+        return Allocation{offset, adjustedSize};
     } 
 
     void Free(Allocation&& _allocation)
