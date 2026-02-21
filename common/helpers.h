@@ -36,7 +36,7 @@
     x &operator=(x &&) = delete;
 
 
-#if defined(DEBUG) || defined(_DEBUG) || defined(BLAINN_ENABLE_ASSERTION)
+#if defined(DEBUG) || defined(_DEBUG) || defined(BLAINN_ENABLE_ASSERTIONS)
     #define BF_ASSERT(expr, ...)                                                 \
         do                                                                       \
         {                                                                        \
@@ -54,6 +54,10 @@
     #define BF_ASSERT(expr, ...) do {(void)sizeof(expr);} while (0)
     #define BF_ASSERT_EXPR(expr)          do {(void)sizeof(expr);} while (0)
 #endif
+
+// Static assertions stay in Release builds, as they don't have a runtime cost
+#define BF_STATIC_ASSERT(expr, message) static_assert((expr), message)
+#define BF_STATIC_ASSERT_EXPR(expr) static_assert((expr), "Static assertion failed: " #expr)
 
 
 template <typename T, typename CastToType = uint32_t> T inline SetBit(T flags, T bit)

@@ -202,6 +202,7 @@ set(ENGINE_SOURCES
         include/Render/backends/d3d12/DescriptorHeap.h
         include/Render/memory/MemoryAllocator.h
         src/Render/backends/d3d12/DescriptorHeap.cpp
+        include/Render/renderer/IDevice.h
 )
 
 file(GLOB IMGUI_SOURCES

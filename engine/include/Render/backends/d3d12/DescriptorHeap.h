@@ -8,7 +8,6 @@
 
 #include "helpers.h"
 #include "Render/Device.h"
-#include "Render/memory/MemoryAllocator.h"
 #include "Render/memory/VariableSizeAllocationsManager.h"
 
 namespace Blainn
@@ -20,7 +19,7 @@ class IDescriptorAllocator
 {
 public:
     virtual DescriptorHeapAllocation Allocate(uint32_t _count)                                            = 0;
-    virtual void                     Free(DescriptorHeapAllocation&& _allocation, uint64_t _cmdQueueMask) = 0;
+    virtual void                     Free(DescriptorHeapAllocation&& _allocation) = 0;
     virtual uint32_t                 GetDescriptorSize() const                                            = 0;
 
     virtual ~IDescriptorAllocator() = default;
@@ -90,7 +89,7 @@ public:
     ~DescriptorHeapAllocation()
     {
         if(!IsNull() && m_pAllocator)
-            m_pAllocator->Free(std::move(*this), ~uint64_t{0});
+            m_pAllocator->Free(std::move(*this));
 
         BF_ASSERT(IsNull(), "Non-null descriptor is being destroyed");
     }
@@ -168,14 +167,12 @@ inline D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeapAllocation::GetHandle<D3D12_GPU
 class DescriptorHeapAllocationManager
 {
 public:
-    DescriptorHeapAllocationManager(IMemoryAllocator&                 _allocator,
-                                    Device&                           _device,
+    DescriptorHeapAllocationManager(Device&                           _device,
                                     IDescriptorAllocator&             _parentAllocator,
                                     size_t                            _thisManagerId,
                                     const D3D12_DESCRIPTOR_HEAP_DESC& _heapDesc);
 
-    DescriptorHeapAllocationManager(IMemoryAllocator&       _allocator,
-                                    Device&                 _device,
+    DescriptorHeapAllocationManager(Device&                 _device,
                                     IDescriptorAllocator&   _parentAllocator,
                                     size_t                  _thisManagerId,
                                     ID3D12DescriptorHeap*   _pD3D12DescriptorHeap,
@@ -243,8 +240,7 @@ private:
 class CPUDescriptorHeap final : public IDescriptorAllocator
 {
 public:
-    CPUDescriptorHeap(IMemoryAllocator&           _allocator,
-                      Device&                     _device,
+    CPUDescriptorHeap(Device&                     _device,
                       uint32_t                    _numDescriptorsInHeap,
                       D3D12_DESCRIPTOR_HEAP_TYPE  _type,
                       D3D12_DESCRIPTOR_HEAP_FLAGS _flags);
@@ -257,14 +253,15 @@ public:
     ~CPUDescriptorHeap();
 
     virtual DescriptorHeapAllocation Allocate(uint32_t _count) override;
-    virtual void                     Free(DescriptorHeapAllocation &&_allocation, uint64_t _cmdQueueMask) override;
+    virtual void                     Free(DescriptorHeapAllocation &&_allocation) override;
     virtual uint32_t                 GetDescriptorSize() const override { return m_DescriptorSize; }
 
 private:
     void FreeAllocation(DescriptorHeapAllocation&& _allocation);
 
 private:
-    IMemoryAllocator& m_MemAllocator;
+    // Diligent uses custom allocators, i don't think we need that yet.
+    // IMemoryAllocator& m_MemAllocator;
     Device&           m_Device;
 
     std::mutex                                     m_HeapPoolMutex;
@@ -281,8 +278,7 @@ private:
 class GPUDescriptorHeap final : public IDescriptorAllocator
 {
 public:
-    GPUDescriptorHeap(IMemoryAllocator&           _allocator,
-                      Device&                     _device,
+    GPUDescriptorHeap(Device&                     _device,
                       uint32_t                    _numDescriptorsInHeap,
                       D3D12_DESCRIPTOR_HEAP_TYPE  _type,
                       D3D12_DESCRIPTOR_HEAP_FLAGS _flags);
@@ -300,7 +296,7 @@ public:
     }
 
     virtual uint32_t                 GetDescriptorSize() const override { return m_DescriptorSize; }
-    virtual void                     Free(DescriptorHeapAllocation &&_allocation, uint64_t _cmdQueueMask) override;
+    virtual void                     Free(DescriptorHeapAllocation &&_allocation) override;
 
     const D3D12_DESCRIPTOR_HEAP_DESC& GetHeapDesc()             const { return m_HeapDesc; }
     uint32_t                          GetMaxStaticDescriptors() const { return m_HeapAllocationManager.GetMaxDescriptors(); }
@@ -313,6 +309,7 @@ private:
 
     const uint32_t m_DescriptorSize;
 
+    std::mutex                      m_AllocationMutex;
     DescriptorHeapAllocationManager m_HeapAllocationManager;
 };
 } // namespace Blainn

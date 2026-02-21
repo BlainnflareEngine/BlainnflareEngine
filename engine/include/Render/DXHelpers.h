@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 #include <wrl/client.h>
+#include <d3d12.h>
 #include <DirectXColors.h>
 
 #include "FreyaCoreDefines.h"
@@ -44,6 +45,25 @@ inline void ThrowIfFailed(HRESULT hr)
     if (FAILED(hr))
     {
         throw HrException(hr);
+    }
+}
+
+inline const char *DescriptorHeapTypeToString(D3D12_DESCRIPTOR_HEAP_TYPE type)
+{
+    switch (type)
+    {
+    case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV:
+        return "D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV";
+    case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER:
+        return "D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER";
+    case D3D12_DESCRIPTOR_HEAP_TYPE_RTV:
+        return "D3D12_DESCRIPTOR_HEAP_TYPE_RTV";
+    case D3D12_DESCRIPTOR_HEAP_TYPE_DSV:
+        return "D3D12_DESCRIPTOR_HEAP_TYPE_DSV";
+    case D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES:
+        return "D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES";
+    default:
+        return "ERROR_UNKNOWN_DESCRIPTOR_HEAP_TYPE";
     }
 }
 
