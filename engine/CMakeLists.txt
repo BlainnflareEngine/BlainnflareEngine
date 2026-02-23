@@ -208,6 +208,10 @@ set(ENGINE_SOURCES
         include/Render/renderer/ITexture.h
         include/Render/renderer/IDeviceObject.h
         include/Render/renderer/ITextureView.h
+        include/Render/renderer/IBufferView.h
+        include/Render/renderer/IBuffer.h
+        include/Render/renderer/IShader.h
+        include/Render/memory/IDataBlob.h
 )
 
 file(GLOB IMGUI_SOURCES

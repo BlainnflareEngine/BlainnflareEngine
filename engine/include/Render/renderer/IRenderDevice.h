@@ -7,8 +7,11 @@
 
 #include <cstdint>
 
+#include "IBuffer.h"
+#include "IShader.h"
 #include "ITexture.h"
 #include "Render/GraphicsTypes.h"
+#include "Render/memory/IDataBlob.h"
 
 namespace Blainn
 {
@@ -54,19 +57,21 @@ struct IRenderDevice
                                const TextureData* _pData,
                                      ITexture**   _ppTexture) = 0;
 
-    /// Creates a new sampler object.
-    ///
-    /// \param [in] _samplerDesc - Sampler description.
-    /// \param [out] _ppSampler  - Address where the sampler interface pointer will be written.
-    virtual void CreateSampler(const SamplerDesc& _samplerDesc,
-                                     ISampler**   _ppSampler) = 0;
+    // TODO
+    // /// Creates a new sampler object.
+    // ///
+    // /// \param [in] _samplerDesc - Sampler description.
+    // /// \param [out] _ppSampler  - Address where the sampler interface pointer will be written.
+    // virtual void CreateSampler(const SamplerDesc& _samplerDesc,
+    //                                 ISampler**   _ppSampler) = 0;
 
-    /// Creates a new resource mapping.
-    ///
-    /// \param [in] _resMappingCI - Resource mapping create info.
-    /// \param [out] _ppMapping   - Address where the mapping interface pointer will be written.
-    virtual void CreateResourceMapping(const ResourceMappingCI& _resMappingCI,
-                                             IResourceMapping** _ppMapping) = 0;
+    // TODO
+    // /// Creates a new resource mapping.
+    // ///
+    // /// \param [in] _resMappingCI - Resource mapping create info.
+    // /// \param [out] _ppMapping   - Address where the mapping interface pointer will be written.
+    // virtual void CreateResourceMapping(const ResourceMappingCI& _resMappingCI,
+    //                                         IResourceMapping** _ppMapping) = 0;
 
     /// Creates a new graphics pipeline state object.
     ///
@@ -82,19 +87,21 @@ struct IRenderDevice
     virtual void CreateComputePipelineState(const ComputePipelineStateCI& _psoCI,
                                                   IPipelineState**        _ppPipelineState) = 0;
 
-    /// Creates a new ray tracing pipeline state object.
-    ///
-    /// \param [in] _psoCI            - Ray tracing pipeline state create info.
-    /// \param [out] _ppPipelineState - Address where the pipeline state interface pointer will be written.
-    virtual void CreateRayTracingPipelineState(const RayTracingPipelineStateCI& _psoCI,
-                                                     IPipelineState**           _ppPipelineState) = 0;
+    // TODO
+    // /// Creates a new ray tracing pipeline state object.
+    // ///
+    // /// \param [in] _psoCI            - Ray tracing pipeline state create info.
+    // /// \param [out] _ppPipelineState - Address where the pipeline state interface pointer will be written.
+    // virtual void CreateRayTracingPipelineState(const RayTracingPipelineStateCI& _psoCI,
+    //                                                  IPipelineState**           _ppPipelineState) = 0;
 
-    /// Creates a new tile pipeline state object.
-    ///
-    /// \param [in] _psoCI            - Tile pipeline state create info.
-    /// \param [out] _ppPipelineState - Address where the pipeline state interface pointer will be written.
-    virtual void CreateTilePipelineState(const TilePipelineStateCI& _psoCI,
-                                               IPipelineState**     _ppPipelineState) = 0;
+    // TODO
+    // /// Creates a new tile pipeline state object.
+    // ///
+    // /// \param [in] _psoCI            - Tile pipeline state create info.
+    // /// \param [out] _ppPipelineState - Address where the pipeline state interface pointer will be written.
+    // virtual void CreateTilePipelineState(const TilePipelineStateCI& _psoCI,
+    //                                            IPipelineState**     _ppPipelineState) = 0;
 
     /// Creates a new fence object.
     ///
@@ -103,77 +110,86 @@ struct IRenderDevice
     virtual void CreateFence(const FenceDesc& _desc,
                                    IFence**   _ppFence) = 0;
 
-    /// Creates a new query object.
-    ///
-    /// \param [in] _desc    - Query description.
-    /// \param [out] _ppQuery - Address where the query interface pointer will be written.
-    virtual void CreateQuery(const QueryDesc& _desc,
-                                   IQuery**   _ppQuery) = 0;
+    // TODO
+    // /// Creates a new query object.
+    // ///
+    // /// \param [in] _desc    - Query description.
+    // /// \param [out] _ppQuery - Address where the query interface pointer will be written.
+    // virtual void CreateQuery(const QueryDesc& _desc,
+    //                                IQuery**   _ppQuery) = 0;
 
-    /// Creates a render pass object.
-    ///
-    /// \param [in] _desc         - Render pass description.
-    /// \param [out] _ppRenderPass - Address where the render pass interface pointer will be written.
-    virtual void CreateRenderPass(const RenderPassDesc& _desc,
-                                        IRenderPass**   _ppRenderPass) = 0;
+    // TODO
+    // /// Creates a render pass object.
+    // ///
+    // /// \param [in] _desc         - Render pass description.
+    // /// \param [out] _ppRenderPass - Address where the render pass interface pointer will be written.
+    // virtual void CreateRenderPass(const RenderPassDesc& _desc,
+    //                                     IRenderPass**   _ppRenderPass) = 0;
 
-    /// Creates a framebuffer object.
-    ///
-    /// \param [in] _desc           - Framebuffer description.
-    /// \param [out] _ppFramebuffer - Address where the framebuffer interface pointer will be written.
-    virtual void CreateFramebuffer(const FramebufferDesc& _desc,
-                                         IFramebuffer**   _ppFramebuffer) = 0;
+    // TODO
+    // /// Creates a framebuffer object.
+    // ///
+    // /// \param [in] _desc           - Framebuffer description.
+    // /// \param [out] _ppFramebuffer - Address where the framebuffer interface pointer will be written.
+    // virtual void CreateFramebuffer(const FramebufferDesc& _desc,
+    //                                      IFramebuffer**   _ppFramebuffer) = 0;
 
-    /// Creates a bottom-level acceleration structure object (BLAS).
-    ///
-    /// \param [in] _desc   - BLAS description.
-    /// \param [out] _ppBLAS - Address where the BLAS interface pointer will be written.
-    virtual void CreateBLAS(const BottomLevelASDesc& _desc,
-                                  IBottomLevelAS**   _ppBLAS) = 0;
+    // TODO
+    // /// Creates a bottom-level acceleration structure object (BLAS).
+    // ///
+    // /// \param [in] _desc   - BLAS description.
+    // /// \param [out] _ppBLAS - Address where the BLAS interface pointer will be written.
+    // virtual void CreateBLAS(const BottomLevelASDesc& _desc,
+    //                               IBottomLevelAS**   _ppBLAS) = 0;
 
-    /// Creates a top-level acceleration structure object (TLAS).
-    ///
-    /// \param [in] _desc   - TLAS description.
-    /// \param [out] _ppTLAS - Address where the TLAS interface pointer will be written.
-    virtual void CreateTLAS(const TopLevelASDesc& _desc,
-                                  ITopLevelAS**   _ppTLAS) = 0;
+    // TODO
+    // /// Creates a top-level acceleration structure object (TLAS).
+    // ///
+    // /// \param [in] _desc   - TLAS description.
+    // /// \param [out] _ppTLAS - Address where the TLAS interface pointer will be written.
+    // virtual void CreateTLAS(const TopLevelASDesc& _desc,
+    //                               ITopLevelAS**   _ppTLAS) = 0;
 
-    /// Creates a shader binding table object (SBT).
-    ///
-    /// \param [in] _desc   - SBT description.
-    /// \param [out] _ppSBT - Address where the SBT interface pointer will be written.
-    virtual void CreateSBT(const ShaderBindingTableDesc& _desc,
-                                 IShaderBindingTable**   _ppSBT) = 0;
+    // TODO
+    // /// Creates a shader binding table object (SBT).
+    // ///
+    // /// \param [in] _desc   - SBT description.
+    // /// \param [out] _ppSBT - Address where the SBT interface pointer will be written.
+    // virtual void CreateSBT(const ShaderBindingTableDesc& _desc,
+    //                              IShaderBindingTable**   _ppSBT) = 0;
 
-    /// Creates a pipeline resource signature object.
-    ///
-    /// \param [in] _desc        - Resource signature description.
-    /// \param [out] _ppSignature - Address where the signature interface pointer will be written.
-    virtual void CreatePipelineResourceSignature(const PipelineResourceSignatureDesc& _desc,
-                                                       IPipelineResourceSignature**   _ppSignature) = 0;
+    // TODO
+    // /// Creates a pipeline resource signature object.
+    // ///
+    // /// \param [in] _desc        - Resource signature description.
+    // /// \param [out] _ppSignature - Address where the signature interface pointer will be written.
+    // virtual void CreatePipelineResourceSignature(const PipelineResourceSignatureDesc& _desc,
+    //                                                    IPipelineResourceSignature**   _ppSignature) = 0;
 
     /// Creates a device memory object.
     ///
     /// \param [in] _createInfo - Device memory create info.
     /// \param [out] _ppMemory  - Address where the device memory interface pointer will be written.
-    virtual void CreateDeviceMemory(const DeviceMemoryCreateInfo& _createInfo,
-                                          IDeviceMemory**         _ppMemory) = 0;
+    // virtual void CreateDeviceMemory(const DeviceMemoryCreateInfo& _createInfo,
+    //                                       IDeviceMemory**         _ppMemory) = 0;
 
+    // TODO
     /// Creates a pipeline state cache object.
     ///
     /// \param [in] _createInfo - Pipeline state cache create info.
     /// \param [out] _ppPSOCache - Address where the cache interface pointer will be written.
     ///
     /// On backends without PSO cache support, this may silently do nothing.
-    virtual void CreatePipelineStateCache(const PipelineStateCacheCreateInfo& _createInfo,
-                                                IPipelineStateCache**         _ppPSOCache) = 0;
+    // virtual void CreatePipelineStateCache(const PipelineStateCacheCreateInfo& _createInfo,
+    //                                             IPipelineStateCache**         _ppPSOCache) = 0;
 
+    // TODO
     /// Creates a deferred context.
     ///
     /// \param [out] _ppContext - Address where the deferred context interface pointer will be written.
     ///
     /// \remarks Deferred contexts are not supported on OpenGL and WebGPU backends.
-    virtual void CreateDeferredContext(IDeviceContext** _ppContext) = 0;
+    // virtual void CreateDeferredContext(IDeviceContext** _ppContext) = 0;
 
     /// Returns device information.
     virtual const RenderDeviceInfo& GetDeviceInfo() const = 0;
@@ -212,10 +228,11 @@ struct IRenderDevice
     /// Returned pointer is borrowed and must not be released by the caller.
     virtual IEngineFactory* GetEngineFactory() const = 0;
 
+    // TODO
     /// Returns the shader compilation thread pool.
     ///
     /// Returned pointer is borrowed and must not be released by the caller.
-    virtual IThreadPool* GetShaderCompilationThreadPool() const = 0;
+    // virtual IThreadPool* GetShaderCompilationThreadPool() const = 0;
 
     /// Overloaded alias for CreateGraphicsPipelineState().
     void CreatePipelineState(const GraphicsPipelineStateCI& _ci, IPipelineState** _ppPipelineState)
@@ -229,16 +246,17 @@ struct IRenderDevice
         CreateComputePipelineState(_ci, _ppPipelineState);
     }
 
-    /// Overloaded alias for CreateRayTracingPipelineState().
-    void CreatePipelineState(const RayTracingPipelineStateCI& _ci, IPipelineState** _ppPipelineState)
-    {
-        CreateRayTracingPipelineState(_ci, _ppPipelineState);
-    }
-
-    /// Overloaded alias for CreateTilePipelineState().
-    void CreatePipelineState(const TilePipelineStateCI& _ci, IPipelineState** _ppPipelineState)
-    {
-        CreateTilePipelineState(_ci, _ppPipelineState);
-    }
+    // TODO
+    // /// Overloaded alias for CreateRayTracingPipelineState().
+    // void CreatePipelineState(const RayTracingPipelineStateCI& _ci, IPipelineState** _ppPipelineState)
+    // {
+    //     CreateRayTracingPipelineState(_ci, _ppPipelineState);
+    // }
+    //
+    // /// Overloaded alias for CreateTilePipelineState().
+    // void CreatePipelineState(const TilePipelineStateCI& _ci, IPipelineState** _ppPipelineState)
+    // {
+    //     CreateTilePipelineState(_ci, _ppPipelineState);
+    // }
 };
 }

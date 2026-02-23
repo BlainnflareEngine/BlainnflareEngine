@@ -7,6 +7,7 @@
 
 #include "aliases.h"
 #include <cassert>
+#include <cstring>
 #include <cstdlib>
 #include <cmath>
 #include <cstdint>
@@ -127,4 +128,17 @@ inline int ConvertDXColorToQColor(float color)
 inline float ConvertQColorToDXColor(int color)
 {
     return static_cast<float>(color) / 255.0f;
+}
+
+inline bool SafeStrEqual(const char* str1, const char* str2)
+{
+    if (str1 == str2)
+    {
+        return true;
+    }
+    if (str1 == nullptr || str2 == nullptr)
+    {
+        return false;
+    }
+    return std::strcmp(str1, str2) == 0;
 }
