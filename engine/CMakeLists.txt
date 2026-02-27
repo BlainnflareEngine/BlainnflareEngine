@@ -212,6 +212,14 @@ set(ENGINE_SOURCES
         include/Render/renderer/IBuffer.h
         include/Render/renderer/IShader.h
         include/Render/memory/IDataBlob.h
+        include/Render/renderer/PipelineState.h
+        include/Render/renderer/BlendState.h
+        include/Render/renderer/RasterizerState.h
+        include/Render/renderer/DepthStencilState.h
+        include/Render/renderer/InputLayout.h
+        include/Render/renderer/IShaderResourceBinding.h
+        include/Render/renderer/IShaderResourceVariable.h
+        include/Render/renderer/IResourceMapping.h
 )
 
 file(GLOB IMGUI_SOURCES
