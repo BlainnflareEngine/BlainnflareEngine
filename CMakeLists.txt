@@ -49,8 +49,7 @@ project(${PROJECT_NAME}
 
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    add_compile_options(/EHsc /arch:AVX2)
-    add_compile_options(/MP)
+    add_compile_options(/MP /EHsc /arch:AVX2)
 endif()
 
 # Put executable outputs at the build directory root for all configurations.
@@ -145,7 +144,9 @@ target_link_libraries(pch INTERFACE
 target_include_directories(pch INTERFACE
         "${ENGINE_DIR}/include/subsystems"
         "${ENGINE_DIR}/include/tools"
-        "${ENGINE_DIR}/src/subsystems"
+        "${ENGINE_DIR}/src/subsystems")
+
+target_include_directories(pch SYSTEM INTERFACE
         "${ENTT_DIR}/single_include")
 
 target_precompile_headers(pch INTERFACE common/pch.h)
@@ -162,14 +163,25 @@ else()
             EDITOR)
 endif()
 
-set(BLAINN_COMMON_INCLUDES
+set(BLAINN_COMMON_PROJECT_INCLUDES
         "${ENGINE_DIR}"
+        "${CMAKE_SOURCE_DIR}/common"
+)
+
+if(NOT BLAINN_EXCLUDE_EDITOR)
+    list(APPEND BLAINN_COMMON_PROJECT_INCLUDES "${EDITOR_DIR}")
+endif()
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+        ${BLAINN_COMMON_PROJECT_INCLUDES}
+)
+
+set(BLAINN_COMMON_THIRD_PARTY_INCLUDES
         "${CMAKE_SOURCE_DIR}/libs"
         "${LIBS_DIR}"
         "${JobSystem_DIR}/include"
         "${TracyClient_DIR}/public"
         "${spdlog_DIR}/include"
-        "${CMAKE_SOURCE_DIR}/common"
         "${Entt_DIR}/single_include"
         $<TARGET_PROPERTY:assimp::assimp,INTERFACE_INCLUDE_DIRECTORIES>
         "${LIBS_DIR}/eventpp/include"
@@ -177,12 +189,8 @@ set(BLAINN_COMMON_INCLUDES
         "${IMGUIZMO_DIR}"
 )
 
-if(NOT BLAINN_EXCLUDE_EDITOR)
-    list(APPEND BLAINN_COMMON_INCLUDES "${EDITOR_DIR}")
-endif()
-
-target_include_directories(${PROJECT_NAME} PUBLIC
-        ${BLAINN_COMMON_INCLUDES}
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
+        ${BLAINN_COMMON_THIRD_PARTY_INCLUDES}
 )
 
 
