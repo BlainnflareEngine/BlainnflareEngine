@@ -1,7 +1,4 @@
 #pragma once
-#include <array>
-#include <d3d12.h>
-#include <DirectXTK12/Src/d3dx12.h>
 
 #include "Render/DXHelpers.h"
 

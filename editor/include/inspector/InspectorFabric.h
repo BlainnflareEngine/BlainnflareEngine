@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "aliases.h"
 #include "entity_inspector_content.h"
 
 

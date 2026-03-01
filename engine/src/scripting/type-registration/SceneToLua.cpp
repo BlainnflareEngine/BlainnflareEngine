@@ -19,22 +19,8 @@ using namespace Blainn;
 #ifdef BLAINN_REGISTER_LUA_TYPES
 
 // Listener handle storage for Lua -> Scene event listeners
+inline static std::unordered_map<uint64_t, std::function<void()>> s_sceneListenerRemovers;
 inline static std::atomic<uint64_t> s_sceneNextListenerId{1};
-
-namespace
-{
-using SceneListenerRemoverMap = std::unordered_map<uint64_t, std::function<void()>>;
-
-SceneListenerRemoverMap &GetSceneListenerRemovers()
-{
-    static SceneListenerRemoverMap *s_sceneListenerRemovers = nullptr;
-    if (s_sceneListenerRemovers == nullptr)
-    {
-        s_sceneListenerRemovers = new SceneListenerRemoverMap();
-    }
-    return *s_sceneListenerRemovers;
-}
-}
 
 void Blainn::RegisterSceneTypes(sol::state &luaState)
 {
@@ -86,22 +72,12 @@ void Blainn::RegisterSceneTypes(sol::state &luaState)
         [](Scene &scene, Entity parent, const std::string &name, bool onSceneChanged)
         { return scene.CreateChildEntity(parent, eastl::string(name.c_str()), onSceneChanged); });
 
-    SceneType.set_function("CreateEntities",
-        [](Scene &scene, const std::string &yamlFilePath, bool onSceneChanged)
+    SceneType.set_function(
+        "CreateEntityWithID",
+        [](Scene &scene, const std::string &idStr, const std::string &name, bool shouldSort, bool onSceneChanged)
         {
-            try
-            {
-                YAML::Node root = YAML::LoadFile(yamlFilePath);
-                if (root && root.IsSequence())
-                {
-                    scene.CreateEntities(root, onSceneChanged);
-                }
-            }
-            catch (const YAML::Exception &e)
-            {
-                (void)e;
-                BF_ERROR("CreateEntities YAML error: {}", e.what());
-            }
+            uuid id = uuid(idStr);
+            return scene.CreateEntityWithID(id, eastl::string(name.c_str()), shouldSort, onSceneChanged);
         });
 
     SceneType.set_function("CreateEntities",

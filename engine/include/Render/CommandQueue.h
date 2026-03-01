@@ -1,7 +1,4 @@
 #pragma once
-#include <EASTL/queue.h>
-#include <d3d12.h>
-#include <mutex>
 
 #include "Render/DXHelpers.h"
 

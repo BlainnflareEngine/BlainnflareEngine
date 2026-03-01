@@ -32,7 +32,7 @@
 using namespace Blainn;
 
 
-Scene::Scene(const eastl::string_view &name, uuid uid, bool isEditorScene)
+Scene::Scene(const eastl::string_view &name, uuid uid, bool isEditorScene) noexcept
     : m_SceneID(uid)
     , m_Name(name)
     , m_IsEditorScene(isEditorScene)
@@ -57,27 +57,14 @@ Scene::Scene(const YAML::Node &config)
 
 Scene::~Scene()
 {
-    try
-    {
-        eastl::function<void()> fn;
+    eastl::function<void()> fn;
 
-        for (auto entity : m_EntityIdMap)
-        {
-            SubmitToDestroyEntity(entity.second, true);
-        }
+    for (auto entity : m_EntityIdMap)
+    {
+        SubmitToDestroyEntity(entity.second, true);
+    }
 
-        ProcessEvents();
-    }
-    catch (const std::exception &exception)
-    {
-        OutputDebugStringA("Scene::~Scene caught exception: ");
-        OutputDebugStringA(exception.what());
-        OutputDebugStringA("\n");
-    }
-    catch (...)
-    {
-        OutputDebugStringA("Scene::~Scene caught unknown exception.\n");
-    }
+    ProcessEvents();
 }
 
 

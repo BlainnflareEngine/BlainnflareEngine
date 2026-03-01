@@ -4,8 +4,6 @@
 #include "aliases.h"
 
 #include "physics/PhysicsEvents.h"
-#include <EASTL/shared_ptr.h>
-#include <sol/sol.hpp>
 
 namespace Blainn
 {

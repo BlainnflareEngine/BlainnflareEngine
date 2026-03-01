@@ -118,9 +118,8 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
                 {
                     layers.push_back(o.as<ObjectLayer>());
                 }
-                catch (const std::exception &ex)
+                catch (...)
                 {
-                    BF_WARN("Failed to convert Lua layer to ObjectLayer: {}", ex.what());
                 }
             }
         }
@@ -177,8 +176,9 @@ void Blainn::RegisterEntityTypes(sol::state &luaState)
                 t["hitPoint"] = rayCastResult.hitPoint;
                 return sol::object(t);
             },
-            // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-            [&luaState, table_to_layers, table_to_entity_queue](Entity &e, const Vec3 &origin, const Vec3 &dir, sol::table ignoredLayersTbl, sol::table ignoredEntityIdsTbl)
+            [&luaState, table_to_layers, table_to_entity_queue](Entity &e, const Vec3 &origin, const Vec3 &dir,
+                                                                sol::table ignoredLayersTbl,
+                                                                sol::table ignoredEntityIdsTbl)
             {
                 //eastl::shared_ptr<Scene> scene = Engine::GetActiveScene();
                 eastl::queue<uuid> entities = {e.GetUUID()};

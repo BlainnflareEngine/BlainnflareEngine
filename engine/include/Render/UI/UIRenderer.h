@@ -13,19 +13,13 @@ namespace Blainn
 class UIRenderer
 {
 public:
-    struct Dimensions
-    {
-        int width;
-        int height;
-    };
-
     UIRenderer() = default;
     ~UIRenderer() = default;
 
-    void Initialize(const Dimensions &dimensions);
+    void Initialize(int width, int height);
     void Destroy();
 
-    void Resize(const Dimensions &dimensions);
+    void Resize(int width, int height);
 
     void StartImGuiFrame();
     void RenderUI(ID3D12GraphicsCommandList2* pCommandList);

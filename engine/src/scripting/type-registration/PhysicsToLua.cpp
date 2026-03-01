@@ -13,6 +13,9 @@
 #include "physics/Layers.h"
 #include "subsystems/PhysicsSubsystem.h"
 
+#include <atomic>
+#include <unordered_map>
+
 using namespace Blainn;
 
 #ifdef BLAINN_REGISTER_LUA_TYPES
@@ -139,9 +142,8 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
                 {
                     layers.push_back(o.as<ObjectLayer>());
                 }
-                catch (const std::exception &ex)
+                catch (...)
                 {
-                    BF_WARN("Failed to convert Lua layer to ObjectLayer: {}", ex.what());
                 }
             }
         }
@@ -199,8 +201,8 @@ void Blainn::RegisterPhysicsTypes(sol::state &luaState)
                 return sol::object(t);
             },
             // origin, dir, ignoredLayers, ignoredEntityIds (Vec3 origin/dir)
-            // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
-            [&luaState, table_to_layers, table_to_entity_queue](const Vec3 &origin, const Vec3 &dir, sol::table ignoredLayersTbl, sol::table ignoredEntityIdsTbl)
+            [&luaState, table_to_layers, table_to_entity_queue](
+                const Vec3 &origin, const Vec3 &dir, sol::table ignoredLayersTbl, sol::table ignoredEntityIdsTbl)
             {
                 auto entities = table_to_entity_queue(ignoredEntityIdsTbl);
                 auto layers = table_to_layers(ignoredLayersTbl);

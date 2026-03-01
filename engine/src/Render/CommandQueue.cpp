@@ -1,5 +1,6 @@
+#pragma once
+
 #include "Render/CommandQueue.h"
-#include "tools/Profiler.h"
 
 Blainn::CommandQueue::CommandQueue(const ComPtr<ID3D12Device2>& device, D3D12_COMMAND_LIST_TYPE type)
     : m_fenceValue(0)
@@ -78,16 +79,20 @@ ComPtr<ID3D12CommandAllocator> Blainn::CommandQueue::CreateCommandAllocator()
 ComPtr<ID3D12CommandAllocator> Blainn::CommandQueue::GetCommandAllocator()
 {
     std::lock_guard<std::mutex> lock(m_commandAllocatorMutex);
+    ComPtr<ID3D12CommandAllocator> commandAllocator;
+
     if (!m_commandAllocatorQueue.empty())
     {
-        ComPtr<ID3D12CommandAllocator> commandAllocator = m_commandAllocatorQueue.front();
+        commandAllocator = m_commandAllocatorQueue.front();
         m_commandAllocatorQueue.pop();
-        ThrowIfFailed(commandAllocator->Reset());
-        return commandAllocator;
+    }
+    else
+    {
+        commandAllocator = CreateCommandAllocator();
     }
 
-    ComPtr<ID3D12CommandAllocator> commandAllocator = CreateCommandAllocator();
     ThrowIfFailed(commandAllocator->Reset());
+
     return commandAllocator;
 }
 

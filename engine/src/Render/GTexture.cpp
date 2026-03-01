@@ -3,7 +3,6 @@
 // Copyright (c) 2026 Blainnflare. All rights reserved.
 //
 
-#include "pch.h"
 #include "Render/GTexture.h"
 
 #include "Render/Device.h"
@@ -26,7 +25,7 @@ GTexture::~GTexture()
 {
 }
 
-void GTexture::Resize(const ResizeRequest &request)
+void GTexture::Resize(UINT width, UINT height, UINT depthOrArraySize)
 {
     if (!m_d3d12Resource)
     {
