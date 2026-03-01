@@ -60,15 +60,12 @@ void Blainn::RegisterMat4Type(sol::state &luaState)
     Mat4Type[sol::meta_function::unary_minus] = [](const Mat4& m) { return -m; };
 
     Mat4Type[sol::meta_function::addition] =
-        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         [](const Mat4& a, const Mat4& b) { return a + b; };
 
     Mat4Type[sol::meta_function::subtraction] =
-        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         [](const Mat4& a, const Mat4& b) { return a - b; };
 
     Mat4Type[sol::meta_function::multiplication] = sol::overload(
-        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         [](const Mat4& a, const Mat4& b) { return a * b; },
         [](const Mat4& m, float s) { return m * s; },
         [](float s, const Mat4& m) { return s * m; }
@@ -76,7 +73,6 @@ void Blainn::RegisterMat4Type(sol::state &luaState)
 
     Mat4Type[sol::meta_function::division] = sol::overload(
         [](const Mat4& m, float s) { return m / s; },
-        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         [](const Mat4& a, const Mat4& b) { return a / b; }
     );
 

@@ -1,11 +1,9 @@
 #pragma once
 #include <cstdint>
-#include <cstring>
 #include <string>
 #include <string_view>
 #include <random>
 #include <limits>
-#include <EASTL/functional.h>
 
 namespace Blainn {
 

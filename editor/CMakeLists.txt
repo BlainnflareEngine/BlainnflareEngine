@@ -194,6 +194,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         "${PROJECT_SOURCE_DIR}/ui/inspector"
         "${PROJECT_SOURCE_DIR}/ui/scene"
         "${CMAKE_SOURCE_DIR}/common"
+)
+
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
         "${CMAKE_SOURCE_DIR}/libs/"
         "${Entt_DIR}/single_include"
         "${CMAKE_SOURCE_DIR}/libs/eventpp/include"
@@ -209,6 +212,5 @@ target_link_libraries(EDITOR
         qlementine
         Jolt
 )
-
 
 

@@ -5,7 +5,9 @@
 #pragma once
 #include "AISubsystem.h"
 #include "aliases.h"
-#include "pch.h"
+
+#include <Jolt/Jolt.h>
+#include <Jolt/Geometry/AABox.h>
 
 #include "components/ScriptingComponent.h"
 #include "components/CameraComponent.h"
@@ -406,7 +408,7 @@ inline CameraComponent GetCamera(const YAML::Node &node)
     }
 
     if (camNode["Priority"]) camera.CameraPriority = camNode["Priority"].as<int32_t>(0);
-    camera.camera.Reset(Camera::ProjectionParams{75.f, 16.f / 9.f, 0.01f, 1000.0f});
+    camera.camera.Reset(75.f, 16.f / 9.f, 0.01f, 1000.0f);
 
     if (auto &settings = camNode["CameraSettings"])
     {

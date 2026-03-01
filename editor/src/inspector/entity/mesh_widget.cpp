@@ -10,6 +10,7 @@
 #include "input-widgets/bool_input_field.h"
 #include "input-widgets/path_input_field.h"
 #include "scene/EntityTemplates.h"
+#include "spdlog/fmt/bundled/std.h"
 
 #include <QLayout>
 
@@ -44,10 +45,8 @@ mesh_widget::mesh_widget(const Blainn::Entity &entity, QWidget *parent)
 
     connect(m_enabled, &bool_input_field::toggled, this, &mesh_widget::SetEnabled);
     connect(m_isWalkable, &bool_input_field::toggled, this, &mesh_widget::SetIsWalkable);
-    connect(m_path_input, &path_input_field::PathChanged, this,
-            [this](const QString &, const QString &newPath) { SetNewPath(newPath); });
-    connect(m_material_input, &path_input_field::PathChanged, this,
-            [this](const QString &, const QString &newPath) { SetNewMaterial(newPath); });
+    connect(m_path_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewPath);
+    connect(m_material_input, &path_input_field::PathChanged, this, &mesh_widget::SetNewMaterial);
 }
 
 
@@ -76,7 +75,7 @@ void mesh_widget::UpdateMaterial()
 }
 
 
-void mesh_widget::SetNewPath(const QString &newPath)
+void mesh_widget::SetNewPath(const QString &oldPath, const QString &newPath)
 {
     if (newPath.isEmpty()) return;
 
@@ -93,7 +92,7 @@ void mesh_widget::SetNewPath(const QString &newPath)
 }
 
 
-void mesh_widget::SetNewMaterial(const QString &newPath)
+void mesh_widget::SetNewMaterial(const QString &oldPath, const QString &newPath)
 {
     if (newPath.isEmpty()) return;
 

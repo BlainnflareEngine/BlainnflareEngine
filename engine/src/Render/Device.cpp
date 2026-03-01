@@ -1,7 +1,5 @@
 #pragma once
 
-#include <dxgi1_6.h>
-
 #include "Render/Device.h"
 #include "Render/CommandQueue.h"
 #include "Render/SwapChain.h"

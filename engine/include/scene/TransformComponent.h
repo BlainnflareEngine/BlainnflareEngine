@@ -5,7 +5,6 @@
 
 #pragma once
 #include "aliases.h"
-#include "tools/Profiler.h"
 
 namespace Blainn
 {

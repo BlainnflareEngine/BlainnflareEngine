@@ -42,12 +42,6 @@ protected slots:
     void OnRotationConstraintsChanged(const BoolVector3 &value);
 
 private:
-    struct ShapeDimensions
-    {
-        float radius = 0.0f;
-        float halfHeight = 0.0f;
-    };
-
     bool_input_field *m_isTrigger = nullptr;
 
     float_input_field *m_gravityFactor = nullptr;
@@ -65,8 +59,8 @@ private:
 
     void ShowSphereSettings(float radius);
     void ShowBoxSettings(const Blainn::Vec3 &extents);
-    void ShowCylinderSettings(const ShapeDimensions &dimensions);
-    void ShowCapsuleSettings(const ShapeDimensions &dimensions);
+    void ShowCylinderSettings(float radius, float halfHeight);
+    void ShowCapsuleSettings(float radius, float halfHeight);
     void ClearSettings();
 
     void LoadValues();

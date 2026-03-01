@@ -4,7 +4,6 @@
 
 #pragma once
 #include <d3d12.h>
-#include <DirectXTK12/Src/d3dx12.h>
 #include <wrl/client.h>
 
 #include "FileSystemObject.h"

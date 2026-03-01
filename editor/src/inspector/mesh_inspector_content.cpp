@@ -8,12 +8,10 @@
 
 #include "FileSystemUtils.h"
 #include "LabelsUtils.h"
-#include "Log.h"
 #include "ui_mesh_inspector_content.h"
 
 #include <QDir>
 #include <qfileinfo.h>
-#include <yaml-cpp/yaml.h>
 
 namespace editor
 {

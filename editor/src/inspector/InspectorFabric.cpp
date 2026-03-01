@@ -5,8 +5,6 @@
 #include "InspectorFabric.h"
 
 #include "FileSystemUtils.h"
-#include "Log.h"
-#include "Profiler.h"
 #include "material_inspector_content.h"
 #include "mesh_inspector_content.h"
 

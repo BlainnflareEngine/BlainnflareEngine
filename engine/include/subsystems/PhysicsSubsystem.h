@@ -1,5 +1,13 @@
 #pragma once
 
+#include <Jolt/Jolt.h>
+#include <Jolt/Core/Factory.h>
+#include <Jolt/Core/JobSystemSingleThreaded.h>
+#include <Jolt/Core/TempAllocator.h>
+#include <Jolt/Physics/Body/BodyFilter.h>
+#include <Jolt/Physics/Body/BodyID.h>
+#include <Jolt/Physics/PhysicsSystem.h>
+
 #include "components/PhysicsComponent.h"
 #include "physics/BodyGetter.h"
 #include "physics/BodyUpdater.h"

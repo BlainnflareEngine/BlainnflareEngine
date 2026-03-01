@@ -18,9 +18,9 @@ EditorCamera::~EditorCamera()
     m_inputEvents.clear();
 }
 
-void EditorCamera::Reset(const ProjectionParams &params)
+void EditorCamera::Reset(float fovAngleY, float aspectRatio, float nearZ, float farZ)
 {
-    Camera::Reset(params);
+    Camera::Reset(fovAngleY, aspectRatio, nearZ, farZ);
 
     if (!m_bIsCameraActionsBinded)
     {
@@ -73,7 +73,7 @@ void EditorCamera::Reset(const ProjectionParams &params)
                                                                  static_cast<const MouseMovedEvent *>(event.get());
                                                              if (Input::IsMouseButtonHeld(MouseButton::Right))
                                                              {
-                                                                 AdjustRotation(RotationDelta{mouseEvent->GetX(), mouseEvent->GetY()});
+                                                                 AdjustRotation(mouseEvent->GetX(), mouseEvent->GetY());
                                                              }
                                                          }),
                                  InputEventType::MouseDelta});
@@ -125,10 +125,10 @@ void EditorCamera::Move(const KeyCode key)
     m_isDirty = true;
 }
 
-void EditorCamera::AdjustRotation(const RotationDelta &rotationDelta)
+void EditorCamera::AdjustRotation(float x, float y)
 {
-    AdjustYaw(0.001f * rotationDelta.x * m_deltaTime);
-    AdjustPitch(0.001f * rotationDelta.y * m_deltaTime);
+    AdjustYaw(0.001f * x * m_deltaTime);
+    AdjustPitch(0.001f * y * m_deltaTime);
 }
 
 

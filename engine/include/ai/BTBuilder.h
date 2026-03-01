@@ -18,12 +18,6 @@ enum class BTType : int
 class BTBuilder
 {
 public:
-    struct LuaActionFunctions
-    {
-        sol::function fn{};
-        sol::function onReset{};
-    };
-
     BTBuilder& AddSequence();
     BTBuilder& AddSelector();
     BTBuilder& AddAction(sol::function fn, sol::function onRes);
@@ -33,7 +27,7 @@ public:
 
     bool ReadLuaBTType(sol::table node, BTType& outType);
     bool ReadLuaChildrenTable(sol::table node, sol::table& out);
-    bool ReadLuaActionFn(sol::table node, LuaActionFunctions& outActionFns);
+    bool ReadLuaActionFn(sol::table node, sol::function& outFn, sol::function& outOnReset);
     bool ReadLuaConditionFn(sol::table node, sol::function &outFn);
 
     bool CalculateBT(sol::table node, BTNodePtr &outNode);

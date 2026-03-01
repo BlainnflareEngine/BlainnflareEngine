@@ -3,8 +3,6 @@
 #include "aliases.h"
 
 #include "scripting/LuaScript.h"
-#include <EASTL/string.h>
-#include <EASTL/unordered_map.h>
 
 namespace Blainn
 {
