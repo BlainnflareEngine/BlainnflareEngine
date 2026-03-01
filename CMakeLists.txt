@@ -12,6 +12,9 @@ set(RECASTNAVIGATION_EXAMPLES OFF CACHE BOOL "Disable examples" FORCE)
 set(RECASTNAVIGATION_TESTS OFF CACHE BOOL "Disable tests" FORCE)
 set(RECASTNAVIGATION_STATIC ON CACHE BOOL "Build as static lib" FORCE)
 
+set(RC_DISABLE_ASSERTS ON CACHE BOOL "Disable raycast assertions" FORCE)
+add_compile_definitions("RC_DISABLE_ASSERTS")
+
 # Allow VS to have the filters
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
