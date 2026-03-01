@@ -591,7 +591,7 @@ struct ShaderResourceDesc
     /// Shader resource name
     const char* Name = nullptr;
 
-    /// Shader resource type, see Diligent::SHADER_RESOURCE_TYPE.
+    /// Shader resource type, see SHADER_RESOURCE_TYPE.
     SHADER_RESOURCE_TYPE Type = SHADER_RESOURCE_TYPE_UNKNOWN;
 
     /// Array size. For non-array resource this value is 1.
@@ -879,7 +879,7 @@ struct IShader : public IDeviceObject
     virtual void GetResourceDesc(uint32_t            _index,
                                  ShaderResourceDesc& _resourceDesc) const = 0;
 
-    /// For a constant buffer resource, returns the buffer description. See Diligent::ShaderCodeBufferDesc.
+    /// For a constant buffer resource, returns the buffer description. See ShaderCodeBufferDesc.
 
     /// \param [in] _index - Resource index, same as used by GetResourceDesc.
     ///

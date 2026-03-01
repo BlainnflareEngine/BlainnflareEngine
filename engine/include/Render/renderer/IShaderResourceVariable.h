@@ -17,13 +17,13 @@ enum SHADER_RESOURCE_VARIABLE_TYPE : uint8_t
     SHADER_RESOURCE_VARIABLE_TYPE_STATIC = 0,
 
     /// Shader resource bound to the variable is specific to the shader resource binding
-    /// instance (see Diligent::IShaderResourceBinding). It must be set *once* through
-    /// Diligent::IShaderResourceBinding interface. It cannot be set through Diligent::IPipelineState
+    /// instance (see IShaderResourceBinding). It must be set *once* through
+    /// IShaderResourceBinding interface. It cannot be set through IPipelineState
     /// interface and cannot be changed once bound.
     SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE,
 
     /// Shader variable binding is dynamic. It can be set multiple times for every instance of shader resource
-    /// binding (see Diligent::IShaderResourceBinding). It cannot be set through Diligent::IPipelineState interface.
+    /// binding (see IShaderResourceBinding). It cannot be set through IPipelineState interface.
     SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC,
 
     /// Total number of shader variable types
@@ -51,14 +51,14 @@ enum SHADER_RESOURCE_VARIABLE_TYPE_FLAGS : uint32_t
 
     /// All variable type flags
     SHADER_RESOURCE_VARIABLE_TYPE_FLAG_ALL =
-        SHADER_RESOURCE_VARIABLE_TYPE_FLAG_STATIC |
+        SHADER_RESOURCE_VARIABLE_TYPE_FLAG_STATIC  |
         SHADER_RESOURCE_VARIABLE_TYPE_FLAG_MUTABLE |
         SHADER_RESOURCE_VARIABLE_TYPE_FLAG_DYNAMIC
 };
 DEFINE_FLAG_ENUM_OPERATORS(SHADER_RESOURCE_VARIABLE_TYPE_FLAGS);
 
 
-enum BIND_SHADER_RESOURCE_FLAGS : uint32_t
+enum BIND_SHADER_RESOURCES_FLAGS : uint32_t
 {
     /// Indicates that static shader variable bindings are to be updated.
     BIND_SHADER_RESOURCES_UPDATE_STATIC = SHADER_RESOURCE_VARIABLE_TYPE_FLAG_STATIC,
@@ -90,10 +90,10 @@ enum BIND_SHADER_RESOURCE_FLAGS : uint32_t
     ///       BIND_SHADER_RESOURCES_UPDATE_DYNAMIC flags.
     BIND_SHADER_RESOURCES_VERIFY_ALL_RESOLVED = 0x10,
 
-    /// Allow overwriting static and mutable variables, see Diligent::SET_SHADER_RESOURCE_FLAG_ALLOW_OVERWRITE.
+    /// Allow overwriting static and mutable variables, see SET_SHADER_RESOURCE_FLAG_ALLOW_OVERWRITE.
     BIND_SHADER_RESOURCES_ALLOW_OVERWRITE = 0x20
 };
-DEFINE_FLAG_ENUM_OPERATORS(BIND_SHADER_RESOURCE_FLAGS);
+DEFINE_FLAG_ENUM_OPERATORS(BIND_SHADER_RESOURCES_FLAGS);
 
 
 enum SET_SHADER_RESOURCE_FLAGS : uint32_t
@@ -136,7 +136,7 @@ struct IShaderResourceVariable
     /// \param [in] _ppObjects    - a pointer to the array of objects.
     /// \param [in] _firstElement - first array element to set.
     /// \param [in] _numElements  - the number of objects in ppObjects array.
-    /// \param [in] _flags        - flags, see Diligent::SET_SHADER_RESOURCE_FLAGS.
+    /// \param [in] _flags        - flags, see SET_SHADER_RESOURCE_FLAGS.
     ///
     /// The method performs run-time correctness checks.
     /// For instance, shader resource view cannot
@@ -154,7 +154,7 @@ struct IShaderResourceVariable
     /// \param [in] _offset     - offset, in bytes, to the start of the buffer range to bind.
     /// \param [in] _size       - size, in bytes, of the buffer range to bind.
     /// \param [in] _arrayIndex - for array variables, index of the array element.
-    /// \param [in] _flags      - flags, see Diligent::SET_SHADER_RESOURCE_FLAGS.
+    /// \param [in] _flags      - flags, see SET_SHADER_RESOURCE_FLAGS.
     ///
     /// This method is only allowed for constant buffers. If dynamic offset is further set
     /// by SetBufferOffset() method, it is added to the base offset set by this method.
@@ -162,7 +162,7 @@ struct IShaderResourceVariable
     /// The method resets dynamic offset previously set for this variable to zero.
     ///
     /// \warning The Offset must be an integer multiple of ConstantBufferOffsetAlignment member
-    ///          specified by the device limits (see Diligent::DeviceLimits).
+    ///          specified by the device limits (see DeviceLimits).
     virtual void SetBufferRange(IDeviceObject*            _pObject    ,
                                 uint64_t                  _offset     ,
                                 uint64_t                  _size       ,
@@ -177,14 +177,14 @@ struct IShaderResourceVariable
     /// \param [in] _arrayIndex - for array variables, index of the array element.
     ///
     /// This method is only allowed for constant or structured buffer variables that
-    /// were not created with Diligent::SHADER_VARIABLE_FLAG_NO_DYNAMIC_BUFFERS or
-    /// Diligent::PIPELINE_RESOURCE_FLAG_NO_DYNAMIC_BUFFERS flags. The method is also not
+    /// were not created with SHADER_VARIABLE_FLAG_NO_DYNAMIC_BUFFERS or
+    /// PIPELINE_RESOURCE_FLAG_NO_DYNAMIC_BUFFERS flags. The method is also not
     /// allowed for static resource variables.
     ///
     /// \note   The Offset must be an integer multiple of ConstantBufferOffsetAlignment member
     ///         when setting the offset for a constant buffer, or StructuredBufferOffsetAlignment when
     ///         setting the offset for a structured buffer, as specified by device limits
-    ///         (see Diligent::DeviceLimits).
+    ///         (see DeviceLimits).
     ///
     /// For constant buffers, the offset is added to the offset that was previously set
     /// by SetBufferRange() method (if any). For structured buffers, the offset is added
@@ -192,14 +192,14 @@ struct IShaderResourceVariable
     ///
     /// Changing the buffer offset does not require committing the SRB.
     /// From the engine point of view, buffers with dynamic offsets are treated similar to dynamic
-    /// buffers, and thus affected by Diligent::DRAW_FLAG_DYNAMIC_RESOURCE_BUFFERS_INTACT flag.
+    /// buffers, and thus affected by DRAW_FLAG_DYNAMIC_RESOURCE_BUFFERS_INTACT flag.
     virtual void SetBufferOffset(uint32_t _offset,
                                  uint32_t _arrayIndex = 0) = 0;
 
     /// For inline constant variables, sets the constant values
 
-    /// Inline constant variables are defined using Diligent::SHADER_RESOURCE_VARIABLE_FLAG_INLINE_CONSTANTS
-    /// or Diligent::PIPELINE_RESOURCE_FLAG_INLINE_CONSTANTS flags.
+    /// Inline constant variables are defined using SHADER_RESOURCE_VARIABLE_FLAG_INLINE_CONSTANTS
+    /// or PIPELINE_RESOURCE_FLAG_INLINE_CONSTANTS flags.
     ///
     /// \param [in] _pConstants    - pointer to the array of 32-bit constant values.
     /// \param [in] _firstConstant - index of the first 32-bit constant to set.
@@ -212,7 +212,7 @@ struct IShaderResourceVariable
     /// Returns the shader resource variable type
     virtual SHADER_RESOURCE_VARIABLE_TYPE GetType() const = 0;
 
-    /// Returns shader resource description. See Diligent::ShaderResourceDesc.
+    /// Returns shader resource description. See ShaderResourceDesc.
     virtual void GetResourceIndex(ShaderResourceDesc& _resourceDesc) const = 0;
 
     /// Returns the variable index that can be used to access the variable.

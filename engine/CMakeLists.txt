@@ -220,6 +220,9 @@ set(ENGINE_SOURCES
         include/Render/renderer/IShaderResourceBinding.h
         include/Render/renderer/IShaderResourceVariable.h
         include/Render/renderer/IResourceMapping.h
+        include/Render/renderer/ISampler.h
+        include/Render/renderer/IPipelineResourceSignature.h
+        include/Render/renderer/IPipelineStateCache.h
 )
 
 file(GLOB IMGUI_SOURCES

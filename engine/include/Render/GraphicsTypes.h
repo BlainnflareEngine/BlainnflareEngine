@@ -204,12 +204,12 @@ enum USAGE : std::uint8_t
     /// that can be read and written by GPU and can also be directly accessed by CPU.
     ///
     /// An application should check if unified memory is available on the device by querying
-    /// the adapter info (see Diligent::IRenderDevice::GetAdapterInfo().Memory and Diligent::AdapterMemoryInfo).
+    /// the adapter info (see IRenderDevice::GetAdapterInfo().Memory and AdapterMemoryInfo).
     /// If there is no unified memory, an application should choose another usage type (typically, USAGE_DEFAULT).
     ///
     /// Unified resources must use at least one of CPU_ACCESS_WRITE or CPU_ACCESS_READ flags.
     /// An application should check supported unified memory CPU access types by querying the device caps.
-    /// (see Diligent::AdapterMemoryInfo::UnifiedMemoryCPUAccess).
+    /// (see AdapterMemoryInfo::UnifiedMemoryCPUAccess).
     USAGE_UNIFIED,
 
     /// A resource that can be partially committed to physical memory.
@@ -1469,14 +1469,14 @@ struct SwapChainDesc
     /// The swap chain height. Default value is 0
     std::uint32_t Height                       = 0;
 
-    /// Back buffer format. Default value is Diligent::TEX_FORMAT_RGBA8_UNORM_SRGB
+    /// Back buffer format. Default value is TEX_FORMAT_RGBA8_UNORM_SRGB
     TEXTURE_FORMAT ColorBufferFormat    = TEX_FORMAT_RGBA8_UNORM_SRGB;
 
-    /// Depth buffer format. Default value is Diligent::TEX_FORMAT_D32_FLOAT.
-    /// Use Diligent::TEX_FORMAT_UNKNOWN to create the swap chain without depth buffer.
+    /// Depth buffer format. Default value is TEX_FORMAT_D32_FLOAT.
+    /// Use TEX_FORMAT_UNKNOWN to create the swap chain without depth buffer.
     TEXTURE_FORMAT DepthBufferFormat    = TEX_FORMAT_D32_FLOAT;
 
-    /// Swap chain usage flags. Default value is Diligent::SWAP_CHAIN_USAGE_RENDER_TARGET
+    /// Swap chain usage flags. Default value is SWAP_CHAIN_USAGE_RENDER_TARGET
     SWAP_CHAIN_USAGE_FLAGS Usage        = SWAP_CHAIN_USAGE_RENDER_TARGET;
 
     /// The transform, relative to the presentation engine's natural orientation,
@@ -1564,24 +1564,24 @@ enum QUERY_TYPE
     QUERY_TYPE_UNDEFINED = 0,
 
     /// Gets the number of samples that passed the depth and stencil tests in between IDeviceContext::BeginQuery
-    /// and IDeviceContext::EndQuery. IQuery::GetData fills a Diligent::QueryDataOcclusion struct.
+    /// and IDeviceContext::EndQuery. IQuery::GetData fills a QueryDataOcclusion struct.
     QUERY_TYPE_OCCLUSION,
 
     /// Acts like QUERY_TYPE_OCCLUSION except that it returns simply a binary true/false result: false indicates that no samples
     /// passed depth and stencil testing, true indicates that at least one sample passed depth and stencil testing.
-    /// IQuery::GetData fills a Diligent::QueryDataBinaryOcclusion struct.
+    /// IQuery::GetData fills a QueryDataBinaryOcclusion struct.
     QUERY_TYPE_BINARY_OCCLUSION,
 
     /// Gets the GPU timestamp corresponding to IDeviceContext::EndQuery call. For this query
-    /// type IDeviceContext::BeginQuery is disabled. IQuery::GetData fills a Diligent::QueryDataTimestamp struct.
+    /// type IDeviceContext::BeginQuery is disabled. IQuery::GetData fills a QueryDataTimestamp struct.
     QUERY_TYPE_TIMESTAMP,
 
     /// Gets pipeline statistics, such as the number of pixel shader invocations in between IDeviceContext::BeginQuery
-    /// and IDeviceContext::EndQuery. IQuery::GetData fills a Diligent::QueryDataPipelineStatistics struct.
+    /// and IDeviceContext::EndQuery. IQuery::GetData fills a QueryDataPipelineStatistics struct.
     QUERY_TYPE_PIPELINE_STATISTICS,
 
     /// Gets the number of high-frequency counter ticks between IDeviceContext::BeginQuery and
-    /// IDeviceContext::EndQuery calls. IQuery::GetData fills a Diligent::QueryDataDuration struct.
+    /// IDeviceContext::EndQuery calls. IQuery::GetData fills a QueryDataDuration struct.
     QUERY_TYPE_DURATION,
 
     /// The number of query types in the enum
@@ -1672,25 +1672,25 @@ struct DeviceFeatures
     DEVICE_FEATURE_STATE MeshShaders                   = DEVICE_FEATURE_STATE_DISABLED;
 
     /// Indicates if device supports ray tracing.
-    /// See Diligent::RayTracingProperties for more information.
+    /// See RayTracingProperties for more information.
     DEVICE_FEATURE_STATE RayTracing                    = DEVICE_FEATURE_STATE_DISABLED;
 
     /// Indicates if device supports bindless resources
     DEVICE_FEATURE_STATE BindlessResources             = DEVICE_FEATURE_STATE_DISABLED;
 
-    /// Indicates if device supports occlusion queries (see Diligent::QUERY_TYPE_OCCLUSION).
+    /// Indicates if device supports occlusion queries (see QUERY_TYPE_OCCLUSION).
     DEVICE_FEATURE_STATE OcclusionQueries              = DEVICE_FEATURE_STATE_DISABLED;
 
-    /// Indicates if device supports binary occlusion queries (see Diligent::QUERY_TYPE_BINARY_OCCLUSION).
+    /// Indicates if device supports binary occlusion queries (see QUERY_TYPE_BINARY_OCCLUSION).
     DEVICE_FEATURE_STATE BinaryOcclusionQueries        = DEVICE_FEATURE_STATE_DISABLED;
 
-    /// Indicates if device supports timestamp queries (see Diligent::QUERY_TYPE_TIMESTAMP).
+    /// Indicates if device supports timestamp queries (see QUERY_TYPE_TIMESTAMP).
     DEVICE_FEATURE_STATE TimestampQueries              = DEVICE_FEATURE_STATE_DISABLED;
 
-    /// Indicates if device supports pipeline statistics queries (see Diligent::QUERY_TYPE_PIPELINE_STATISTICS).
+    /// Indicates if device supports pipeline statistics queries (see QUERY_TYPE_PIPELINE_STATISTICS).
     DEVICE_FEATURE_STATE PipelineStatisticsQueries     = DEVICE_FEATURE_STATE_DISABLED;
 
-    /// Indicates if device supports duration queries (see Diligent::QUERY_TYPE_DURATION).
+    /// Indicates if device supports duration queries (see QUERY_TYPE_DURATION).
     DEVICE_FEATURE_STATE DurationQueries               = DEVICE_FEATURE_STATE_DISABLED;
 
     /// Indicates if device supports depth bias clamping
@@ -2283,7 +2283,7 @@ struct RayTracingProperties
     /// The minimum alignment for instance buffer offset in BuildTLASAttribs::InstanceBufferOffset.
     std::uint32_t InstanceBufferAlignment  = 0;
 
-    /// Ray tracing capability flags, see Diligent::RAY_TRACING_CAP_FLAGS.
+    /// Ray tracing capability flags, see RAY_TRACING_CAP_FLAGS.
     RAY_TRACING_CAP_FLAGS CapFlags  = RAY_TRACING_CAP_FLAG_NONE;
 
     /// Comparison operator tests if two structures are equivalent
@@ -2462,7 +2462,7 @@ typedef struct RenderDeviceShaderVersionInfo RenderDeviceShaderVersionInfo;
 /// Render device information
 struct RenderDeviceInfo
 {
-    /// Device type. See Diligent::RENDER_DEVICE_TYPE.
+    /// Device type. See RENDER_DEVICE_TYPE.
     enum RENDER_DEVICE_TYPE Type = RENDER_DEVICE_TYPE_UNDEFINED;
 
     /// Major revision of the graphics API supported by the graphics adapter.
@@ -2472,7 +2472,7 @@ struct RenderDeviceInfo
     /// the maximum supported Direct3D feature level of the graphics adapter is 10.0.
     Version APIVersion = {};
 
-    /// Enabled device features. See Diligent::DeviceFeatures.
+    /// Enabled device features. See DeviceFeatures.
 
     /// For optional features requested during the initialization, the
     /// struct will indicate the actual feature state (enabled or disabled).
@@ -2484,7 +2484,7 @@ struct RenderDeviceInfo
     /// Normalized device coordinates
     NDCAttribs NDC = {};
 
-    /// Maximum supported version for each shader language, see Diligent::RenderDeviceShaderVersionInfo.
+    /// Maximum supported version for each shader language, see RenderDeviceShaderVersionInfo.
     RenderDeviceShaderVersionInfo MaxShaderVersion = {};
 
     constexpr bool IsGLDevice() const
@@ -2643,8 +2643,8 @@ struct AdapterMemoryInfo
 
     /// Indicates if device supports color and depth attachments in on-chip memory.
 
-    /// If supported, it will be combination of the following flags: Diligent::BIND_RENDER_TARGET,
-    /// Diligent::BIND_DEPTH_STENCIL, Diligent::BIND_INPUT_ATTACHMENT.
+    /// If supported, it will be combination of the following flags: BIND_RENDER_TARGET,
+    /// BIND_DEPTH_STENCIL, BIND_INPUT_ATTACHMENT.
     BIND_FLAGS MemorylessTextureBindFlags = BIND_NONE;
 
     /// Comparison operator tests if two structures are equivalent
@@ -2717,7 +2717,7 @@ enum SHADING_RATE_FORMAT : std::uint8_t
     /// Variable rate shading is not supported.
     SHADING_RATE_FORMAT_UNKNOWN = 0,
 
-    /// Single-channel 8-bit surface that contains Diligent::SHADING_RATE values.
+    /// Single-channel 8-bit surface that contains SHADING_RATE values.
     /// Only 2D and 2D array textures with R8_UNORM format are allowed.
     ///
     /// \remarks  Vulkan backend uses VK_KHR_fragment_shading_rate extension
@@ -2884,9 +2884,9 @@ enum SHADING_RATE_CAP_FLAGS : std::uint16_t
     SHADING_RATE_CAP_FLAG_NON_SUBSAMPLED_RENDER_TARGET          = 1u << 11,
 
     /// Indicates that render targets that are used in texture-based VRS rendering
-    /// must be created with Diligent::MISC_TEXTURE_FLAG_SUBSAMPLED flag.
+    /// must be created with MISC_TEXTURE_FLAG_SUBSAMPLED flag.
     /// Intermediate targets must be scaled to the final resolution in a separate pass.
-    /// Intermediate targets can only be sampled with an immutable sampler created with Diligent::SAMPLER_FLAG_SUBSAMPLED flag.
+    /// Intermediate targets can only be sampled with an immutable sampler created with SAMPLER_FLAG_SUBSAMPLED flag.
     /// If supported, rendering to the subsampled render targets may be more optimal.
     ///
     /// \note  Both NON_SUBSAMPLED and SUBSAMPLED modes may be supported by a device.
@@ -2926,16 +2926,16 @@ struct ShadingRateProperties
     /// The number of valid elements in ShadingRates array.
     std::uint8_t                  NumShadingRates = 0;
 
-    /// Shading rate capability flags, see Diligent::SHADING_RATE_CAP_FLAGS.
+    /// Shading rate capability flags, see SHADING_RATE_CAP_FLAGS.
     SHADING_RATE_CAP_FLAGS CapFlags       = SHADING_RATE_CAP_FLAG_NONE;
 
-    /// Combination of all supported shading rate combiners (see Diligent::SHADING_RATE_COMBINER).
+    /// Combination of all supported shading rate combiners (see SHADING_RATE_COMBINER).
     SHADING_RATE_COMBINER  Combiners      = SHADING_RATE_COMBINER_PASSTHROUGH;
 
-    /// Indicates which shading rate texture format is used by this device (see Diligent::SHADING_RATE_FORMAT).
+    /// Indicates which shading rate texture format is used by this device (see SHADING_RATE_FORMAT).
     SHADING_RATE_FORMAT    Format         = SHADING_RATE_FORMAT_UNKNOWN;
 
-    /// Shading rate texture access type (see Diligent::SHADING_RATE_TEXTURE_ACCESS).
+    /// Shading rate texture access type (see SHADING_RATE_TEXTURE_ACCESS).
     SHADING_RATE_TEXTURE_ACCESS ShadingRateTextureAccess = SHADING_RATE_TEXTURE_ACCESS_UNKNOWN;
 
     /// Indicates which bind flags are allowed for shading rate texture.
@@ -3007,7 +3007,7 @@ DEFINE_FLAG_ENUM_OPERATORS(DRAW_COMMAND_CAP_FLAGS);
 /// Draw command properties
 struct DrawCommandProperties
 {
-    /// Draw command capability flags, see Diligent::DRAW_COMMAND_CAP_FLAGS.
+    /// Draw command capability flags, see DRAW_COMMAND_CAP_FLAGS.
     DRAW_COMMAND_CAP_FLAGS CapFlags             = DRAW_COMMAND_CAP_FLAG_NONE;
 
     /// Maximum supported index value for index buffer.
@@ -3164,7 +3164,7 @@ struct SparseResourceProperties
     /// The total amount of address space, in bytes, available for a single resource.
     std::uint64_t ResourceSpaceSize = 0;
 
-    /// Sparse resource capability flags, see Diligent::SPARSE_RESOURCE_CAP_FLAGS.
+    /// Sparse resource capability flags, see SPARSE_RESOURCE_CAP_FLAGS.
     SPARSE_RESOURCE_CAP_FLAGS CapFlags = SPARSE_RESOURCE_CAP_FLAG_NONE;
 
     /// Size of the standard sparse memory block in bytes.
@@ -3206,7 +3206,7 @@ typedef struct SparseResourceProperties SparseResourceProperties;
 /// Command queue properties
 struct CommandQueueInfo
 {
-    /// Indicates which type of commands are supported by this queue, see Diligent::COMMAND_QUEUE_TYPE.
+    /// Indicates which type of commands are supported by this queue, see COMMAND_QUEUE_TYPE.
     COMMAND_QUEUE_TYPE QueueType           = COMMAND_QUEUE_TYPE_UNKNOWN;
 
     /// The maximum number of immediate contexts that may be created for this queue.
@@ -3244,10 +3244,10 @@ struct GraphicsAdapterInfo
     /// A string that contains the adapter description.
     char Description[128]   = {};
 
-    /// Adapter type, see Diligent::ADAPTER_TYPE.
+    /// Adapter type, see ADAPTER_TYPE.
     ADAPTER_TYPE   Type     = ADAPTER_TYPE_UNKNOWN;
 
-    /// Adapter vendor, see Diligent::ADAPTER_VENDOR.
+    /// Adapter vendor, see ADAPTER_VENDOR.
     ADAPTER_VENDOR Vendor   = ADAPTER_VENDOR_UNKNOWN;
 
     /// The PCI ID of the hardware vendor (if available).
@@ -3259,40 +3259,40 @@ struct GraphicsAdapterInfo
     /// Number of video outputs this adapter has (if available).
     std::uint32_t NumOutputs       = 0;
 
-    /// Device memory information, see Diligent::AdapterMemoryInfo.
+    /// Device memory information, see AdapterMemoryInfo.
     AdapterMemoryInfo Memory;
 
-    /// Ray tracing properties, see Diligent::RayTracingProperties.
+    /// Ray tracing properties, see RayTracingProperties.
     RayTracingProperties RayTracing;
 
-    /// Wave operation properties, see Diligent::WaveOpProperties.
+    /// Wave operation properties, see WaveOpProperties.
     WaveOpProperties WaveOp;
 
-    /// Buffer properties, see Diligent::BufferProperties.
+    /// Buffer properties, see BufferProperties.
     BufferProperties Buffer;
 
-    /// Texture properties, see Diligent::TextureProperties.
+    /// Texture properties, see TextureProperties.
     TextureProperties Texture;
 
-    /// Sampler properties, see Diligent::SamplerProperties.
+    /// Sampler properties, see SamplerProperties.
     SamplerProperties Sampler;
 
-    /// Mesh shader properties, see Diligent::MeshShaderProperties.
+    /// Mesh shader properties, see MeshShaderProperties.
     MeshShaderProperties MeshShader;
 
-    /// Shading rate properties, see Diligent::ShadingRateProperties.
+    /// Shading rate properties, see ShadingRateProperties.
     ShadingRateProperties ShadingRate;
 
-    /// Compute shader properties, see Diligent::ComputeShaderProperties.
+    /// Compute shader properties, see ComputeShaderProperties.
     ComputeShaderProperties ComputeShader;
 
-    /// Draw command properties, see Diligent::DrawCommandProperties.
+    /// Draw command properties, see DrawCommandProperties.
     DrawCommandProperties DrawCommand;
 
-    /// Sparse resource properties, see Diligent::SparseResourceProperties.
+    /// Sparse resource properties, see SparseResourceProperties.
     SparseResourceProperties SparseResources;
 
-    /// Supported device features, see Diligent::DeviceFeatures.
+    /// Supported device features, see DeviceFeatures.
 
     /// The feature state indicates:
     ///   - Disabled - the feature is not supported by device.
@@ -3300,7 +3300,7 @@ struct GraphicsAdapterInfo
     ///   - Optional - the feature is supported and can be enabled or disabled.
     DeviceFeatures Features;
 
-    /// An array of NumQueues command queues supported by this device. See Diligent::CommandQueueInfo.
+    /// An array of NumQueues command queues supported by this device. See CommandQueueInfo.
     CommandQueueInfo  Queues[BLAINN_MAX_ADAPTER_QUEUES]  = {};
 
     /// The number of queues in Queues array.
@@ -3359,7 +3359,7 @@ struct ImmediateContextCreateInfo
     /// for this queue.
     std::uint8_t          QueueId      = DEFAULT_QUEUE_ID;
 
-    /// Priority of the software queue created by the context, see Diligent::QUEUE_PRIORITY.
+    /// Priority of the software queue created by the context, see QUEUE_PRIORITY.
 
     /// * Direct3D12 backend: each context may use a unique queue priority.
     /// * Vulkan backend:     all contexts with the same QueueId must use the same priority.
@@ -3408,7 +3408,7 @@ struct EngineCreateInfo
     Version                  GraphicsAPIVersion     = {};
 
     /// A pointer to the array of NumImmediateContexts structs describing immediate
-    /// device contexts to create. See Diligent::ImmediateContextCreateInfo.
+    /// device contexts to create. See ImmediateContextCreateInfo.
 
     /// Every immediate device contexts encompasses a command queue of a specific type.
     /// It may record commands directly or execute command lists recorded by deferred contexts.
@@ -3460,7 +3460,7 @@ struct EngineCreateInfo
     /// in release builds.
     bool                EnableValidation            = false;
 
-    /// Validation options, see Diligent::VALIDATION_FLAGS.
+    /// Validation options, see VALIDATION_FLAGS.
     VALIDATION_FLAGS    ValidationFlags             = VALIDATION_FLAGS::VALIDATION_FLAG_NONE;
 
     /// An optional thread pool for asynchronous shader and pipeline state compilation.
@@ -3490,7 +3490,7 @@ struct EngineCreateInfo
     std::uint32_t Padding = 0;
 
     /// An optional pointer to the OpenXR attributes, must be set if OpenXR is used.
-    /// See Diligent::OpenXRAttribs.
+    /// See OpenXRAttribs.
     const OpenXRAttribs *pXRAttribs = nullptr;
 
     EngineCreateInfo() noexcept
@@ -3500,7 +3500,7 @@ struct EngineCreateInfo
 #endif
     }
 
-    /// Sets the validation options corresponding to the specified level, see Diligent::VALIDATION_LEVEL.
+    /// Sets the validation options corresponding to the specified level, see VALIDATION_LEVEL.
     void SetValidationLevel(VALIDATION_LEVEL Level)
     {
         EnableValidation = (Level > VALIDATION_LEVEL::VALIDATION_LEVEL_DISABLED);
@@ -3618,7 +3618,7 @@ enum D3D11_VALIDATION_FLAGS : std::uint32_t
     /// Verify that all committed context resources are relevant,
     /// i.e. they are consistent with the committed resource cache.
     /// This is very expensive and should only be used for engine debugging.
-    /// This option is enabled in validation level 2 (see Diligent::VALIDATION_LEVEL).
+    /// This option is enabled in validation level 2 (see VALIDATION_LEVEL).
     ///
     /// \remarks  This flag only has effect in Debug/Development builds.
     ///           This type of validation is never performed in Release builds.
@@ -3630,7 +3630,7 @@ DEFINE_FLAG_ENUM_OPERATORS(D3D11_VALIDATION_FLAGS)
 /// Attributes specific to D3D11 engine
 struct EngineD3D11CreateInfo : public EngineCreateInfo
 {
-    /// Direct3D11-specific validation options, see Diligent::D3D11_VALIDATION_FLAGS.
+    /// Direct3D11-specific validation options, see D3D11_VALIDATION_FLAGS.
     D3D11_VALIDATION_FLAGS D3D11ValidationFlags = D3D11_VALIDATION_FLAG_NONE;
 
     EngineD3D11CreateInfo() noexcept :
@@ -3645,7 +3645,7 @@ struct EngineD3D11CreateInfo : public EngineCreateInfo
 #endif
     }
 
-    /// Sets the validation options corresponding to the specified level, see Diligent::VALIDATION_LEVEL.
+    /// Sets the validation options corresponding to the specified level, see VALIDATION_LEVEL.
     void SetValidationLevel(VALIDATION_LEVEL Level)
     {
         EngineCreateInfo::SetValidationLevel(Level);
@@ -3680,7 +3680,7 @@ enum D3D12_VALIDATION_FLAGS : std::uint32_t
     /// Enable validation on the GPU timeline.
     /// See https://docs.microsoft.com/en-us/windows/win32/direct3d12/using-d3d12-debug-layer-gpu-based-validation
     /// This flag only has effect if validation is enabled (EngineCreateInfo.EnableValidation is true).
-    /// This option is enabled in validation level 2 (see Diligent::VALIDATION_LEVEL).
+    /// This option is enabled in validation level 2 (see VALIDATION_LEVEL).
     ///
     /// \note Enabling this option may slow things down a lot.
     D3D12_VALIDATION_FLAG_ENABLE_GPU_BASED_VALIDATION       = 0x04
@@ -3692,7 +3692,7 @@ struct EngineD3D12CreateInfo : public EngineCreateInfo
 {
     /// Name of the D3D12 DLL to load. Ignored on UWP.
     const char* D3D12DllName       = "d3d12.dll";
-    /// Direct3D12-specific validation options, see Diligent::D3D12_VALIDATION_FLAGS.
+    /// Direct3D12-specific validation options, see D3D12_VALIDATION_FLAGS.
     D3D12_VALIDATION_FLAGS D3D12ValidationFlags = D3D12_VALIDATION_FLAG_BREAK_ON_CORRUPTION;
 
     /// Size of the CPU descriptor heap allocations for different heap types.
@@ -3816,7 +3816,7 @@ struct EngineD3D12CreateInfo : public EngineCreateInfo
 #endif
     }
 
-    /// Sets the validation options corresponding to the specified level, see Diligent::VALIDATION_LEVEL.
+    /// Sets the validation options corresponding to the specified level, see VALIDATION_LEVEL.
     void SetValidationLevel(VALIDATION_LEVEL Level)
     {
         EngineCreateInfo::SetValidationLevel(Level);
@@ -3936,7 +3936,7 @@ typedef struct DeviceFeaturesVk DeviceFeaturesVk;
 struct EngineVkCreateInfo : public EngineCreateInfo
 {
 
-    /// Vulkan-specific device features, see Diligent::DeviceFeaturesVk.
+    /// Vulkan-specific device features, see DeviceFeaturesVk.
     DeviceFeaturesVk   FeaturesVk;
 
     /// The number of Vulkan instance layers in ppInstanceLayerNames array.
@@ -4301,7 +4301,7 @@ struct TextureFormatAttribs
     /// will be "TEX_FORMAT_RGBA8_UNORM")
     const char* Name             = "TEX_FORMAT_UNKNOWN";
 
-    /// Texture format, see Diligent::TEXTURE_FORMAT for a list of supported texture formats
+    /// Texture format, see TEXTURE_FORMAT for a list of supported texture formats
     TEXTURE_FORMAT Format        = TEX_FORMAT_UNKNOWN;
 
     /// Size of one component in bytes (for instance, for TEX_FORMAT_RGBA8_UNORM format, this will be 1)
@@ -4311,7 +4311,7 @@ struct TextureFormatAttribs
     /// Number of components
     std::uint8_t NumComponents          = 0;
 
-    /// Component type, see Diligent::COMPONENT_TYPE for details.
+    /// Component type, see COMPONENT_TYPE for details.
     COMPONENT_TYPE ComponentType = COMPONENT_TYPE_UNDEFINED;
 
     /// bool flag indicating if the format is a typeless format
@@ -4423,7 +4423,7 @@ struct TextureFormatInfoExt : public TextureFormatInfo
     BIND_FLAGS BindFlags    = BIND_NONE;
 
     /// A bitmask specifying all the supported resource dimensions for this texture format,
-    /// see Diligent::RESOURCE_DIMENSION_SUPPORT.
+    /// see RESOURCE_DIMENSION_SUPPORT.
 
     /// For every supported resource dimension in RESOURCE_DIMENSION enum,
     /// the corresponding bit in the mask will be set to 1.
@@ -4481,7 +4481,7 @@ struct SparseTextureFormatInfo
     /// SPARSE_RESOURCE_CAP_FLAG_STANDARD_3D_TILE_SHAPE.
     std::uint32_t     TileSize[3] = {};
 
-    /// Sparse texture flags, see Diligent::SPARSE_TEXTURE_FLAGS.
+    /// Sparse texture flags, see SPARSE_TEXTURE_FLAGS.
     SPARSE_TEXTURE_FLAGS Flags = SPARSE_TEXTURE_FLAG_NONE;
 };
 typedef struct SparseTextureFormatInfo SparseTextureFormatInfo;

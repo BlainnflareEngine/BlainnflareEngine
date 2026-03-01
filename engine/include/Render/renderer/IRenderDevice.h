@@ -12,6 +12,7 @@
 #include "ITexture.h"
 #include "Render/GraphicsTypes.h"
 #include "Render/memory/IDataBlob.h"
+#include "PipelineState.h"
 
 namespace Blainn
 {
@@ -57,35 +58,34 @@ struct IRenderDevice
                                const TextureData* _pData,
                                      ITexture**   _ppTexture) = 0;
 
-    // TODO
-    // /// Creates a new sampler object.
-    // ///
-    // /// \param [in] _samplerDesc - Sampler description.
-    // /// \param [out] _ppSampler  - Address where the sampler interface pointer will be written.
-    // virtual void CreateSampler(const SamplerDesc& _samplerDesc,
-    //                                 ISampler**   _ppSampler) = 0;
+    /// Creates a new sampler object.
+    ///
+    /// \param [in] _samplerDesc - Sampler description.
+    /// \param [out] _ppSampler  - Address where the sampler interface pointer will be written.
+    virtual void CreateSampler(const SamplerDesc& _samplerDesc,
+                                     ISampler**   _ppSampler) = 0;
 
     // TODO
-    // /// Creates a new resource mapping.
-    // ///
-    // /// \param [in] _resMappingCI - Resource mapping create info.
-    // /// \param [out] _ppMapping   - Address where the mapping interface pointer will be written.
-    // virtual void CreateResourceMapping(const ResourceMappingCI& _resMappingCI,
-    //                                         IResourceMapping** _ppMapping) = 0;
+    /// Creates a new resource mapping.
+    ///
+    /// \param [in] _resMappingCI - Resource mapping create info.
+    /// \param [out] _ppMapping   - Address where the mapping interface pointer will be written.
+    virtual void CreateResourceMapping(const ResourceMappingCreateInfo& _resMappingCI,
+                                             IResourceMapping**         _ppMapping) = 0;
 
     /// Creates a new graphics pipeline state object.
     ///
     /// \param [in] _psoCI             - Graphics pipeline state create info.
     /// \param [out] _ppPipelineState  - Address where the pipeline state interface pointer will be written.
-    virtual void CreateGraphicsPipelineState(const GraphicsPipelineStateCI& _psoCI,
-                                                   IPipelineState**         _ppPipelineState) = 0;
+    virtual void CreateGraphicsPipelineState(const GraphicsPipelineStateCreateInfo& _psoCI,
+                                                   IPipelineState**                 _ppPipelineState) = 0;
 
     /// Creates a new compute pipeline state object.
     ///
     /// \param [in] _psoCI            - Compute pipeline state create info.
     /// \param [out] _ppPipelineState - Address where the pipeline state interface pointer will be written.
-    virtual void CreateComputePipelineState(const ComputePipelineStateCI& _psoCI,
-                                                  IPipelineState**        _ppPipelineState) = 0;
+    virtual void CreateComputePipelineState(const ComputePipelineStateCreateInfo& _psoCI,
+                                                  IPipelineState**                _ppPipelineState) = 0;
 
     // TODO
     // /// Creates a new ray tracing pipeline state object.
@@ -158,13 +158,12 @@ struct IRenderDevice
     // virtual void CreateSBT(const ShaderBindingTableDesc& _desc,
     //                              IShaderBindingTable**   _ppSBT) = 0;
 
-    // TODO
-    // /// Creates a pipeline resource signature object.
-    // ///
-    // /// \param [in] _desc        - Resource signature description.
-    // /// \param [out] _ppSignature - Address where the signature interface pointer will be written.
-    // virtual void CreatePipelineResourceSignature(const PipelineResourceSignatureDesc& _desc,
-    //                                                    IPipelineResourceSignature**   _ppSignature) = 0;
+    /// Creates a pipeline resource signature object.
+    ///
+    /// \param [in] _desc        - Resource signature description.
+    /// \param [out] _ppSignature - Address where the signature interface pointer will be written.
+    virtual void CreatePipelineResourceSignature(const PipelineResourceSignatureDesc& _desc,
+                                                       IPipelineResourceSignature**   _ppSignature) = 0;
 
     /// Creates a device memory object.
     ///
@@ -180,8 +179,8 @@ struct IRenderDevice
     /// \param [out] _ppPSOCache - Address where the cache interface pointer will be written.
     ///
     /// On backends without PSO cache support, this may silently do nothing.
-    // virtual void CreatePipelineStateCache(const PipelineStateCacheCreateInfo& _createInfo,
-    //                                             IPipelineStateCache**         _ppPSOCache) = 0;
+    virtual void CreatePipelineStateCache(const PipelineStateCacheCreateInfo& _createInfo,
+                                                IPipelineStateCache**         _ppPSOCache) = 0;
 
     // TODO
     /// Creates a deferred context.

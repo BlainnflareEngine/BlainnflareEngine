@@ -161,7 +161,7 @@ struct IBuffer : public IDeviceObject
 
     /// Creates a new buffer view
 
-    /// \param [in] _viewDesc - View description. See Diligent::BufferViewDesc for details.
+    /// \param [in] _viewDesc - View description. See BufferViewDesc for details.
     /// \param [out] _ppView - Address of the memory location where the pointer to the view interface will be written to.
     ///
     /// \remarks To create a view addressing the entire buffer, set only BufferViewDesc::ViewType member
@@ -171,7 +171,7 @@ struct IBuffer : public IDeviceObject
     virtual void CreateView(const BufferViewDesc& _viewDesc,
                                   IBufferView**   _ppView) = 0;
 
-    /// \param [in] _viewType - Type of the requested view. See Diligent::BUFFER_VIEW_TYPE.
+    /// \param [in] _viewType - Type of the requested view. See BUFFER_VIEW_TYPE.
     /// \return Pointer to the interface
     ///
     /// \remarks Default views are only created for structured and raw buffers. As for formatted buffers
@@ -200,7 +200,7 @@ struct IBuffer : public IDeviceObject
     /// Returns the internal buffer state
     virtual RESOURCE_STATE GetState() const = 0;
 
-    /// Returns the buffer memory properties, see Diligent::MEMORY_PROPERTIES.
+    /// Returns the buffer memory properties, see MEMORY_PROPERTIES.
 
     /// The memory properties are only relevant for persistently mapped buffers.
     /// In particular, if the memory is not coherent, an application must call

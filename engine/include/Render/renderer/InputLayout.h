@@ -58,7 +58,7 @@ struct LayoutElement
     /// Number of components in the element. Allowed values are 1, 2, 3, and 4.
     uint32_t NumComponents     = 0;
 
-    /// Type of the element components, see Diligent::VALUE_TYPE for details.
+    /// Type of the element components, see VALUE_TYPE for details.
     VALUE_TYPE ValueType     = Blainn::VT_FLOAT32;
 
     /// Indicates if the value should be normalized.
@@ -85,7 +85,7 @@ struct LayoutElement
     /// they all must specify the same stride or use LAYOUT_ELEMENT_AUTO_STRIDE value.
     uint32_t Stride            = LAYOUT_ELEMENT_AUTO_STRIDE;
 
-    /// Frequency of the input data, see Diligent::INPUT_ELEMENT_FREQUENCY for details.
+    /// Frequency of the input data, see INPUT_ELEMENT_FREQUENCY for details.
     INPUT_ELEMENT_FREQUENCY Frequency = INPUT_ELEMENT_FREQUENCY_PER_VERTEX;
 
     /// The number of instances to draw using the same per-instance data before advancing
