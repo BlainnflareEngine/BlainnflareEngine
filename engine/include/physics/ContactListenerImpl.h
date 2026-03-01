@@ -1,5 +1,14 @@
 #pragma once
 
+#include <Jolt/Jolt.h>
+#include <Jolt/Core/Mutex.h>
+#include <Jolt/Core/UnorderedMap.h>
+#include <Jolt/Physics/Collision/CollideShape.h>
+#include <Jolt/Physics/Collision/ContactListener.h>
+#include <Jolt/Physics/StateRecorder.h>
+
+#include "aliases.h"
+
 namespace Blainn
 {
 

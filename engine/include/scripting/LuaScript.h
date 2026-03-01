@@ -3,6 +3,9 @@
 #include "helpers.h"
 #include "aliases.h"
 
+#include "lua.hpp"
+#include "sol/sol.hpp"
+
 #include "physics/PhysicsEvents.h"
 
 namespace Blainn

@@ -19,6 +19,12 @@
 #include "Render/DebugRenderer.h"
 #include "PhysicsSubsystem.h"
 
+#include "Jolt/Jolt.h"
+#include "Jolt/RegisterTypes.h"
+#include <Jolt/Physics/Body/BodyFilter.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+
 using namespace Blainn;
 
 void PhysicsSubsystem::Init(Timeline<eastl::chrono::milliseconds> &globalTimeline)

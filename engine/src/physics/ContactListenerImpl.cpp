@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "physics/ContactListenerImpl.h"
+#include <Jolt/Core/QuickSort.h>
 
 #include "subsystems/PhysicsSubsystem.h"
 
@@ -127,7 +128,7 @@ void ContactListenerImpl::SaveState(JPH::StateRecorder &inStream) const
     JPH::Array<JPH::SubShapeIDPair> keys;
     for (const StateMap::value_type &kv : mState)
         keys.push_back(kv.first);
-    QuickSort(keys.begin(), keys.end());
+    JPH::QuickSort(keys.begin(), keys.end());
 
     // Write key value pairs
     for (const JPH::SubShapeIDPair &k : keys)

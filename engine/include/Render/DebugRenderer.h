@@ -4,6 +4,9 @@
 //
 #pragma once
 
+#include <Jolt/Jolt.h>
+#include <Jolt/Renderer/DebugRendererSimple.h>
+
 #include "aliases.h"
 #include "Device.h"
 #include "Shader.h"

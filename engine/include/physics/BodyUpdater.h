@@ -1,5 +1,10 @@
 #pragma once
 
+#include <Jolt/Jolt.h>
+#include <Jolt/Physics/Body/BodyID.h>
+#include <Jolt/Physics/Body/BodyInterface.h>
+#include <Jolt/Physics/Body/BodyLockInterface.h>
+
 #include "aliases.h"
 #include "helpers.h"
 

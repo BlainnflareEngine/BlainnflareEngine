@@ -1,5 +1,11 @@
 #pragma once
 
+#include <Jolt/Jolt.h>
+#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
+#include <Jolt/Physics/Collision/ObjectLayer.h>
+
+#include "aliases.h"
+
 namespace Blainn
 {
 /// Layer that objects can be in, determines which other objects it can collide with

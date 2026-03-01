@@ -5,7 +5,9 @@
 #pragma once
 #include "AISubsystem.h"
 #include "aliases.h"
-#include "pch.h"
+
+#include <Jolt/Jolt.h>
+#include <Jolt/Geometry/AABox.h>
 
 #include "components/ScriptingComponent.h"
 #include "components/CameraComponent.h"

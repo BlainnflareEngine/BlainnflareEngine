@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Jolt/Jolt.h>
 #include <Jolt/Geometry/AABox.h>
 #include "helpers.h"
 #include <Recast.h>
