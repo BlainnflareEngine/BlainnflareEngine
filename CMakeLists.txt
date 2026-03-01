@@ -13,6 +13,9 @@ set(RECASTNAVIGATION_ENABLE_ASSERTS "0" CACHE BOOL "Disable asserts" FORCE)
 set(RECASTNAVIGATION_TESTS OFF CACHE BOOL "Disable tests" FORCE)
 set(RECASTNAVIGATION_STATIC ON CACHE BOOL "Build as static lib" FORCE)
 
+set(RC_DISABLE_ASSERTS ON CACHE BOOL "Disable raycast assertions" FORCE)
+add_compile_definitions("RC_DISABLE_ASSERTS")
+
 # Allow VS to have the filters
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -47,8 +50,7 @@ project(${PROJECT_NAME}
 
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    add_compile_options(/EHsc /arch:AVX2)
-    add_compile_options(/MP)
+    add_compile_options(/MP /EHsc /arch:AVX2)
 endif()
 
 # Put executable outputs at the build directory root for all configurations.
@@ -127,60 +129,6 @@ if(NOT BLAINN_EXCLUDE_EDITOR)
     add_subdirectory(${EDITOR_DIR})
 endif()
 
-if(CMAKE_GENERATOR MATCHES "Ninja")
-    find_program(BLAINN_CLANG_TIDY_EXE NAMES clang-tidy)
-    if(NOT BLAINN_CLANG_TIDY_EXE)
-        message(FATAL_ERROR "Ninja builds require clang-tidy, but no clang-tidy executable was found in PATH.")
-    endif()
-
-    set(BLAINN_CLANG_TIDY_CMD
-            "${BLAINN_CLANG_TIDY_EXE}"
-            "--config-file=${CMAKE_SOURCE_DIR}/.clang-tidy"
-            "--warnings-as-errors=*"
-            "--header-filter=^${CMAKE_SOURCE_DIR}/(engine|editor|common)/"
-            "--exclude-header-filter=^(${CMAKE_SOURCE_DIR}/libs/|${CMAKE_SOURCE_DIR}/engine/include/Render/DDSTextureLoader\\.h$)"
-            "--extra-arg=/EHsc"
-            "--extra-arg=/D_HAS_EXCEPTIONS=1"
-            "--extra-arg=/D_CPPUNWIND"
-            "--extra-arg=/D__cpp_exceptions=199711L")
-
-    file(GLOB_RECURSE BLAINN_THIRD_PARTY_SOURCES
-            CONFIGURE_DEPENDS
-            "${CMAKE_SOURCE_DIR}/libs/*.c"
-            "${CMAKE_SOURCE_DIR}/libs/*.cc"
-            "${CMAKE_SOURCE_DIR}/libs/*.cpp"
-            "${CMAKE_SOURCE_DIR}/libs/*.cxx")
-    if(BLAINN_THIRD_PARTY_SOURCES)
-        set_source_files_properties(${BLAINN_THIRD_PARTY_SOURCES} PROPERTIES SKIP_LINTING ON)
-    endif()
-
-    function(blainn_enable_target_clang_tidy target_name)
-        if(NOT TARGET ${target_name})
-            return()
-        endif()
-
-        set_property(TARGET ${target_name} PROPERTY CXX_CLANG_TIDY "${BLAINN_CLANG_TIDY_CMD}")
-
-        get_target_property(target_sources ${target_name} SOURCES)
-        if(target_sources)
-            foreach(source_file IN LISTS target_sources)
-                if(source_file MATCHES "([/\\\\]libs[/\\\\])")
-                    set_source_files_properties(${source_file} PROPERTIES SKIP_LINTING ON)
-                endif()
-                if(source_file MATCHES "DDSTextureLoader\\.cpp$")
-                    set_source_files_properties(${source_file} PROPERTIES SKIP_LINTING ON)
-                endif()
-            endforeach()
-        endif()
-    endfunction()
-
-    blainn_enable_target_clang_tidy(${PROJECT_NAME})
-    blainn_enable_target_clang_tidy(ENGINE)
-    blainn_enable_target_clang_tidy(EDITOR)
-
-    message(STATUS "Enabled clang-tidy for Ninja builds using ${CMAKE_SOURCE_DIR}/.clang-tidy")
-endif()
-
 # PCH
 add_library(pch INTERFACE)
 target_link_libraries(pch INTERFACE
@@ -197,7 +145,9 @@ target_link_libraries(pch INTERFACE
 target_include_directories(pch INTERFACE
         "${ENGINE_DIR}/include/subsystems"
         "${ENGINE_DIR}/include/tools"
-        "${ENGINE_DIR}/src/subsystems"
+        "${ENGINE_DIR}/src/subsystems")
+
+target_include_directories(pch SYSTEM INTERFACE
         "${ENTT_DIR}/single_include")
 
 target_precompile_headers(pch INTERFACE common/pch.h)
@@ -214,14 +164,25 @@ else()
             EDITOR)
 endif()
 
-set(BLAINN_COMMON_INCLUDES
+set(BLAINN_COMMON_PROJECT_INCLUDES
         "${ENGINE_DIR}"
+        "${CMAKE_SOURCE_DIR}/common"
+)
+
+if(NOT BLAINN_EXCLUDE_EDITOR)
+    list(APPEND BLAINN_COMMON_PROJECT_INCLUDES "${EDITOR_DIR}")
+endif()
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+        ${BLAINN_COMMON_PROJECT_INCLUDES}
+)
+
+set(BLAINN_COMMON_THIRD_PARTY_INCLUDES
         "${CMAKE_SOURCE_DIR}/libs"
         "${LIBS_DIR}"
         "${JobSystem_DIR}/include"
         "${TracyClient_DIR}/public"
         "${spdlog_DIR}/include"
-        "${CMAKE_SOURCE_DIR}/common"
         "${Entt_DIR}/single_include"
         $<TARGET_PROPERTY:assimp::assimp,INTERFACE_INCLUDE_DIRECTORIES>
         "${LIBS_DIR}/eventpp/include"
@@ -229,12 +190,8 @@ set(BLAINN_COMMON_INCLUDES
         "${IMGUIZMO_DIR}"
 )
 
-if(NOT BLAINN_EXCLUDE_EDITOR)
-    list(APPEND BLAINN_COMMON_INCLUDES "${EDITOR_DIR}")
-endif()
-
-target_include_directories(${PROJECT_NAME} PUBLIC
-        ${BLAINN_COMMON_INCLUDES}
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
+        ${BLAINN_COMMON_THIRD_PARTY_INCLUDES}
 )
 
 

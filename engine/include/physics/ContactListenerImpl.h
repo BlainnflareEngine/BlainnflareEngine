@@ -1,8 +1,13 @@
 #pragma once
-#include <EASTL/utility.h>
+
+#include <Jolt/Jolt.h>
 #include <Jolt/Core/Mutex.h>
 #include <Jolt/Core/UnorderedMap.h>
+#include <Jolt/Physics/Collision/CollideShape.h>
 #include <Jolt/Physics/Collision/ContactListener.h>
+#include <Jolt/Physics/StateRecorder.h>
+
+#include "aliases.h"
 
 namespace Blainn
 {
@@ -29,7 +34,7 @@ public:
     // void					DrawState();
 
     // Ability to defer to the next contact listener after this one handles the callback
-    void SetNextListener(JPH::ContactListener *inListener)
+    void SetNextListener(ContactListener *inListener)
     {
         mNext = inListener;
     }
@@ -41,7 +46,7 @@ private:
     JPH::Mutex mStateMutex;
     StateMap mState;
 
-    JPH::ContactListener *mNext = nullptr;
+    ContactListener *mNext = nullptr;
 };
 
 } // namespace Blainn

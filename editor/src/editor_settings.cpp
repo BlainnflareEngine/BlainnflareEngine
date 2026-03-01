@@ -36,8 +36,7 @@ editor_settings::editor_settings(const SettingsData &data, QWidget *parent)
         settingsLayout->addWidget(m_defaultSceneInput);
     }
 
-    connect(m_defaultSceneInput, &path_input_field::PathChanged, this,
-            [this](const QString &, const QString &newPath) { OnDefaultScenePathChanged(newPath); });
+    connect(m_defaultSceneInput, &path_input_field::PathChanged, this, &editor_settings::OnDefaultScenePathChanged);
 
     // ui->SettingsArea->layout()->addWidget(ui->ContentFolderPath);
 }
@@ -49,7 +48,7 @@ editor_settings::~editor_settings()
 }
 
 
-void editor_settings::OnDefaultScenePathChanged(const QString &newPath)
+void editor_settings::OnDefaultScenePathChanged(const QString &oldPath, const QString &newPath)
 {
     Blainn::Engine::GetConfig().SetDefaultScene(ToEASTLString(newPath));
     Blainn::Engine::GetConfig().SaveConfig();

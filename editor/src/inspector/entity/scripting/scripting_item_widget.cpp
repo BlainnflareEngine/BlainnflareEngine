@@ -6,7 +6,6 @@
 
 #include "input-widgets/bool_input_field.h"
 #include "input-widgets/path_input_field.h"
-#include "Profiler.h"
 
 #include <QVBoxLayout>
 

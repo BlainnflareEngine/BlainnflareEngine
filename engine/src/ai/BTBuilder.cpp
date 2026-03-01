@@ -115,7 +115,7 @@ bool BTBuilder::ReadLuaChildrenTable(sol::table node, sol::table &out)
     return true;
 }
 
-bool BTBuilder::ReadLuaActionFn(sol::table node, LuaActionFunctions &outActionFns)
+bool BTBuilder::ReadLuaActionFn(sol::table node, sol::function &outFn, sol::function &outOnReset)
 {
     sol::object f = node["fn"];
     sol::object onReset = node["onReset"];
@@ -142,8 +142,8 @@ bool BTBuilder::ReadLuaActionFn(sol::table node, LuaActionFunctions &outActionFn
         return false;
     }
 
-    outActionFns.fn = f.as<sol::function>();
-    outActionFns.onReset = onReset.as<sol::function>();
+    outFn = f.as<sol::function>();
+    outOnReset = onReset.as<sol::function>();
     return true;
 }
 
@@ -245,14 +245,15 @@ bool BTBuilder::CalculateBT(sol::table node, BTNodePtr &outNode)
     }
     case BTType::Action:
     {
-        LuaActionFunctions actionFns;
-        if (!ReadLuaActionFn(node, actionFns))
+        sol::function fn;
+        sol::function onReset;
+        if (!ReadLuaActionFn(node, fn, onReset))
         {
             BF_ERROR("BTBuilder::CalculateBT(): ReadLuaActionFn didn't return function");
             Reset();
             return false;
         }
-        outNode = eastl::make_unique<ActionNode>(eastl::move(actionFns.fn), eastl::move(actionFns.onReset));
+        outNode = eastl::make_unique<ActionNode>(eastl::move(fn), eastl::move(onReset));
         return true;
     }
     case BTType::Negate:

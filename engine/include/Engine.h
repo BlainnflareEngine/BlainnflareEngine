@@ -1,6 +1,9 @@
 #pragma once
 
 #include "EngineConfig.h"
+
+
+#include <Windows.h>
 #include "Render/Device.h"
 #include "Scene/Scene.h"
 #include "tools/Timeline.h"
@@ -8,12 +11,6 @@
 
 #include "SelectionManager.h"
 #include "scene/SceneManager.h"
-
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-
-#include <Windows.h>
 
 namespace vgjs
 {

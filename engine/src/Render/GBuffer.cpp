@@ -1,10 +1,10 @@
 
 #include "Render/GBuffer.h"
 
-GBuffer::GBuffer(ID3D12Device *device, const Extent &extent)
+GBuffer::GBuffer(ID3D12Device *device, UINT width, UINT height)
     : m_device(device)
-    , m_width(extent.width)
-    , m_height(extent.height)
+    , m_width(width)
+    , m_height(height)
 {
     CreateResources();
 }
@@ -59,11 +59,12 @@ CD3DX12_CPU_DESCRIPTOR_HANDLE GBuffer::GetDsv(unsigned layer) const
     return m_buffer[layer].m_hCpuRtvDsv;
 }
 
-void GBuffer::SetDescriptors(const LayerDescriptors &descriptors)
+void GBuffer::SetDescriptors(CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuSrv, CD3DX12_GPU_DESCRIPTOR_HANDLE hGpuSrv,
+                             CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuRtvDsv, unsigned layer)
 {
-    m_buffer[descriptors.layer].m_hCpuSrv = descriptors.cpuSrv;
-    m_buffer[descriptors.layer].m_hGpuSrv = descriptors.gpuSrv;
-    m_buffer[descriptors.layer].m_hCpuRtvDsv = descriptors.cpuRtvDsv;
+    m_buffer[layer].m_hCpuSrv = hCpuSrv;
+    m_buffer[layer].m_hGpuSrv = hGpuSrv;
+    m_buffer[layer].m_hCpuRtvDsv = hCpuRtvDsv;
 }
 
 void GBuffer::CreateDescriptors()

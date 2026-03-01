@@ -6,9 +6,6 @@
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Renderer/DebugRendererSimple.h>
-#include <EASTL/array.h>
-#include <EASTL/vector.h>
-#include <string_view>
 
 #include "aliases.h"
 #include "Device.h"
@@ -23,29 +20,6 @@ namespace Blainn
     {
         using Super = JPH::DebugRendererSimple;
     public:
-        struct LineSegment
-        {
-            Vec3 from{};
-            Vec3 to{};
-            Color color{};
-        };
-
-        struct CapsuleDrawRequest
-        {
-            Mat4 matrix{};
-            float halfHeightOfCylinder = 0.0f;
-            float radius = 0.0f;
-            Color color{};
-        };
-
-        struct CylinderDrawRequest
-        {
-            Mat4 matrix{};
-            float halfHeight = 0.0f;
-            float radius = 0.0f;
-            Color color{};
-        };
-
         DebugRenderer(Device& device);
         virtual ~DebugRenderer();
 
@@ -56,11 +30,10 @@ namespace Blainn
         void SetViewProjMatrix(const Mat4& viewProjMat);
 
         virtual void DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override;
-        virtual void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor,
-                                  ECastShadow inCastShadow) override;
-        void DrawLine(const LineSegment &lineSegment);
+        void DrawLine(Vec3 inFrom, Vec3 inTo, Color color);
         void DrawArrow(Vec3 inFrom, Vec3 inTo, Color color, float size);
 
+        virtual void DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow) override;
         void DrawTriangle(Vec3 inV1, Vec3 inV2, Vec3 inV3, Color inColor);
 
         void DrawWireBox(Vec3 min, Vec3 max, Color color);
@@ -69,9 +42,9 @@ namespace Blainn
         void DrawWireSphere(Vec3 center, float radius, Color color);
         void DrawWireUnitSphere(Mat4 matrix, Color color);
 
-        void DrawCapsule(const CapsuleDrawRequest &request);
+        void DrawCapsule(Mat4 matrix, float halfHeightOfCylinder, float radius, Color color);
 
-        void DrawCylinder(const CylinderDrawRequest &request);
+        void DrawCylinder(Mat4 matrix, float halfHeight, float radius, Color color);
 
         void DrawLineList(const eastl::vector<VertexPositionColor>::iterator& first, const eastl::vector<VertexPositionColor>::iterator& last);
 
@@ -81,19 +54,13 @@ namespace Blainn
 
         bool IsDebugEnabled() const {return m_bIsDebugEnabled;}
         void SetDebugEnabled(bool value) {m_bIsDebugEnabled = value;}
-        void ClearDebugList() {m_lineListVertices.clear(); m_triangleListVertices.clear();}
+        void ClearDebugList() {m_lineListVertices.clear();}
 
     private:
         void CreateRootSignature();
         void CompileShaders();
         void CreatePSO();
-
-        struct BufferCreateRequest
-        {
-            size_t index = 0u;
-            size_t size = 0u;
-        };
-        ComPtr<ID3D12Resource> CreateBuffer(const BufferCreateRequest &request);
+        ComPtr<ID3D12Resource> CreateBuffer(size_t index, size_t size);
 
     private:
         DXGI_FORMAT BackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -107,14 +74,12 @@ namespace Blainn
         eastl::shared_ptr<RootSignature> m_rootSignature;
         ComPtr<ID3DBlob> m_vertexShader;
         ComPtr<ID3DBlob> m_pixelShader;
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_debugLinePipelineState;
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_debugTrianglePipelineState;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_debugPipelineState;
 
         ID3D12GraphicsCommandList2* m_commandList;
         Mat4 m_viewProj;
 
         eastl::vector<VertexPositionColor> m_lineListVertices;
-        eastl::vector<VertexPositionColor> m_triangleListVertices;
 
         uint64_t m_currentFrame = 0;
         eastl::array<ComPtr<ID3D12Resource>, 4> m_debugRequests;

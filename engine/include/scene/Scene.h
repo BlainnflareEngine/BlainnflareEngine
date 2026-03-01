@@ -1,5 +1,6 @@
 #pragma once
 
+// TODO: to pch
 #include <concurrentqueue.h>
 #include <entt/entt.hpp>
 #include <eventpp/eventqueue.h>
@@ -26,10 +27,8 @@ using EntityMap = eastl::unordered_map<uuid, Entity>;
 class Scene
 {
 public:
-    Scene(const eastl::string_view &name = "UntitledScene",
-        uuid uid = Rand::getRandomUUID(),
-        bool isEditorScene = false);
-
+    Scene(const eastl::string_view &name = "UntitledScene", uuid uid = Rand::getRandomUUID(),
+          bool isEditorScene = false) noexcept;
     Scene(const YAML::Node &config);
     ~Scene();
 

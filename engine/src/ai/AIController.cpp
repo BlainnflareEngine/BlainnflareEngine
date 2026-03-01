@@ -176,13 +176,8 @@ bool AIController::IsMoving() const
     return m_isMoving;
 }
 
-bool AIController::GetDesiredDirection(Vec3 &outDirection)
-{
-    return GetDesiredDirection(outDirection, DesiredDirectionRequest{});
-}
 
-
-bool AIController::GetDesiredDirection(Vec3 &outDirection, const DesiredDirectionRequest &request)
+bool AIController::GetDesiredDirection(Vec3 &outDirection, float stoppingDistance, float offset)
 {
     if (!m_isMoving || m_currentPath.empty() || m_pathIndex >= m_currentPath.size())
     {
@@ -198,12 +193,12 @@ bool AIController::GetDesiredDirection(Vec3 &outDirection, const DesiredDirectio
     Vec3 adjustedTarget = targetPoint;
     if (m_pathIndex != 0)
     {
-        adjustedTarget.y += request.offset;
+        adjustedTarget.y += offset;
     }
 
     float distance = (adjustedTarget - agentPos).Length();
 
-    if (distance <= request.stoppingDistance)
+    if (distance <= stoppingDistance)
     {
         m_pathIndex++;
         if (m_pathIndex >= m_currentPath.size())
@@ -216,7 +211,7 @@ bool AIController::GetDesiredDirection(Vec3 &outDirection, const DesiredDirectio
         adjustedTarget = targetPoint;
         if (m_pathIndex < m_currentPath.size() - 1)
         {
-            adjustedTarget.y += request.offset;
+            adjustedTarget.y += offset;
         }
     }
 

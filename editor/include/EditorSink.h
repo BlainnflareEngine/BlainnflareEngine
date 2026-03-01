@@ -18,6 +18,9 @@ struct LogMessage
     std::string message;
 };
 
+
+Q_DECLARE_METATYPE(LogMessage)
+
 template <typename Mutex> class EditorSink : public spdlog::sinks::base_sink<Mutex>
 {
 public:
@@ -44,5 +47,3 @@ private:
 };
 
 } // namespace editor
-
-Q_DECLARE_METATYPE(editor::LogMessage)

@@ -3,7 +3,6 @@
 //
 
 #pragma once
-#include "aliases.h"
 #include "inspector_content_base.h"
 #include <QLabel>
 #include <QVBoxLayout>

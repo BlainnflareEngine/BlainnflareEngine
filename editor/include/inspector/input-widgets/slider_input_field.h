@@ -16,19 +16,13 @@ class slider_input_field : public QWidget
     Q_OBJECT
 
 public:
-    struct Range
-    {
-        float min = 0.0f;
-        float max = 100.0f;
-    };
-
-    explicit slider_input_field(const QString &name, float value = 0.0f, QWidget *parent = nullptr,
-                                bool immediate = true, QColor nameColor = QColor());
+    explicit slider_input_field(const QString &name, float value = 0, float min = 0, float max = 100,
+                                QWidget *parent = nullptr, bool immediate = true, QColor nameColor = QColor());
 
     void SetValue(float value);
     float GetValue() const;
 
-    void SetRange(const Range &range);
+    void SetRange(float min, float max);
     void SetMinValue(float min);
     void SetMaxValue(float max);
 

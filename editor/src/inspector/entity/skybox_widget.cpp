@@ -15,8 +15,7 @@ skybox_widget::skybox_widget(const Blainn::Entity &entity, QWidget *parent)
     layout()->addWidget(m_texture_input);
 
     UpdatePath();
-    connect(m_texture_input, &path_input_field::PathChanged, this,
-            [this](const QString &, const QString &newPath) { OnSetNewPath(newPath); });
+    connect(m_texture_input, &path_input_field::PathChanged, this, &skybox_widget::OnSetNewPath);
 }
 
 void skybox_widget::DeleteComponent()
@@ -43,7 +42,7 @@ void skybox_widget::paintEvent(QPaintEvent *event)
     component_widget_base::paintEvent(event);
 }
 
-void skybox_widget::OnSetNewPath(const QString &newPath)
+void skybox_widget::OnSetNewPath(const QString & oldPath, const QString & newPath)
 {
     if (newPath.isEmpty()) return;
 
@@ -59,4 +58,5 @@ void skybox_widget::OnSetNewPath(const QString &newPath)
 }
 
 } // namespace editor
+
 

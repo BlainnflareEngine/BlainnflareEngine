@@ -3,8 +3,6 @@
 //
 
 #pragma once
-#include "EASTL/shared_ptr.h"
-#include "EASTL/string.h"
 #include "Entity.h"
 
 

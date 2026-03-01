@@ -1,10 +1,15 @@
 #pragma once
 
+#include <Jolt/Jolt.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Collision/Shape/CylinderShape.h>
+
 #include "aliases.h"
 
 #include "physics/PhysicsCreationSettings.h"
-#include <EASTL/optional.h>
-#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 
 namespace Blainn
 {

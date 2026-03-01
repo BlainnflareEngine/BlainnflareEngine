@@ -5,8 +5,6 @@
 
 #include "Render/RenderTarget.h"
 
-#include <algorithm>
-
 #include "Render/GTexture.h"
 
 using namespace Blainn;
@@ -35,13 +33,13 @@ eastl::shared_ptr<GTexture> RenderTarget::GetTexture(AttachmentPoint::Enum attac
     return m_Textures[attachmentPoint];
 }
 
-void RenderTarget::Resize(const ResizeRequest &request)
+void RenderTarget::Resize(UINT width, UINT height)
 {
-    m_width = request.width;
-    m_height = request.height;
+    m_width = width;
+    m_height = height;
     for (auto& texture : m_Textures)
         if (texture)
-            texture->Resize({m_width, m_height, 1u});
+            texture->Resize(m_width, m_height);
 }
 
 UINT RenderTarget::GetWidth() const
@@ -72,10 +70,10 @@ D3D12_VIEWPORT RenderTarget::GetViewport(DirectX::XMFLOAT2 scale, DirectX::XMFLO
     }
 
     D3D12_VIEWPORT viewport = {
-        (static_cast<float>(width) * bias.x),     // TopLeftX
-        (static_cast<float>(height) * bias.y),    // TopLeftY
-        (static_cast<float>(width) * scale.x),    // Width
-        (static_cast<float>(height) * scale.y),   // Height
+        ( width * bias.x ),    // TopLeftX
+        ( height * bias.y ),   // TopLeftY
+        ( width * scale.x ),   // Width
+        ( height * scale.y ),  // Height
         minDepth,              // MinDepth
         maxDepth               // MaxDepth
     };

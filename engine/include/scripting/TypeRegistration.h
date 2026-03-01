@@ -1,9 +1,6 @@
 #pragma once
 
-namespace sol
-{
-class state;
-}
+#include "sol/sol.hpp"
 
 namespace Blainn
 {
