@@ -179,7 +179,7 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index/*, bool IsCu
         auto srvCpuStart = device.GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
         auto cbvSrvUavDescriptorSize = device.GetDescriptorHandleIncrementSize();
 
-        localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, texturePlacementOffset, cbvSrvUavDescriptorSize);
+        localHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(srvCpuStart, static_cast<INT>(texturePlacementOffset), cbvSrvUavDescriptorSize);
         device.CreateShaderResourceView(m_resource.Get(), &srvDesc, localHandle);
 
         m_bIsInitialized = true;
@@ -247,8 +247,8 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index/*, bool IsCu
                 const Image *img = mipChain.GetImage(mip, face, 0);
                 D3D12_SUBRESOURCE_DATA s = {};
                 s.pData = img->pixels;
-                s.RowPitch = img->rowPitch;
-                s.SlicePitch = img->slicePitch;
+                s.RowPitch = static_cast<LONG_PTR>(img->rowPitch);
+                s.SlicePitch = static_cast<LONG_PTR>(img->slicePitch);
                 subresources.push_back(s);
             }
         }

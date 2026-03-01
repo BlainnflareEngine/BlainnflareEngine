@@ -58,7 +58,8 @@ ai_controller_widget::ai_controller_widget(const Blainn::Entity &entity, QWidget
     layout()->addWidget(m_faceDirection);
     layout()->addWidget(m_rotationSpeed);
 
-    connect(m_path_input, &path_input_field::PathChanged, this, &ai_controller_widget::OnPathChanged);
+    connect(m_path_input, &path_input_field::PathChanged, this,
+            [this](const QString &, const QString &path) { OnPathChanged(path); });
     connect(m_movementSpeed, &float_input_field::EditingFinished, this, &ai_controller_widget::OnMovementSpeedChanged);
     connect(m_stoppingDistance, &float_input_field::EditingFinished, this,
             &ai_controller_widget::OnStoppingDistanceChanged);
@@ -100,7 +101,7 @@ void ai_controller_widget::OnUpdate()
 }
 
 
-void ai_controller_widget::OnPathChanged(const QString &old, const QString &path)
+void ai_controller_widget::OnPathChanged(const QString &path)
 {
     if (!m_entity.IsValid()) return;
 

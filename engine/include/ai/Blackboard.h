@@ -1,7 +1,10 @@
 #pragma once
+#include "aliases.h"
+#include "subsystems/Log.h"
 #include "EASTL/string.h"
 #include "EASTL/unordered_map.h"
 #include "EASTL/shared_ptr.h"
+#include <string>
 #include <variant>
 
 #ifdef BLAINN_REGISTER_LUA_TYPES

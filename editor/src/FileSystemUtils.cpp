@@ -8,6 +8,7 @@
 #include "../include/dialog/import_model_dialog.h"
 #include "ContentFilterProxyModel.h"
 #include "IconProvider.h"
+#include "Log.h"
 
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -120,7 +121,7 @@ void OpenFolderWithProxy(const QString &path, QAbstractItemView &itemView, const
     QModelIndex viewIndex = proxyModel.mapFromSource(sourceIndex);
     if (!viewIndex.isValid()) return;
 
-    ApplyViewSettings(itemView, viewIndex, viewIndex);
+    ApplyViewSettings(itemView, {viewIndex, viewIndex});
 }
 
 
@@ -131,23 +132,23 @@ void OpenFolderWithoutProxy(const QString &path, QAbstractItemView &itemView, QF
 
     fileModel.setRootPath(path);
 
-    ApplyViewSettings(itemView, sourceIndex, sourceIndex);
+    ApplyViewSettings(itemView, {sourceIndex, sourceIndex});
 }
 
 
-void ApplyViewSettings(QAbstractItemView &itemView, const QModelIndex &rootIndex, const QModelIndex &currentIndex)
+void ApplyViewSettings(QAbstractItemView &itemView, const ViewSettings &viewSettings)
 {
     if (auto treeView = qobject_cast<QTreeView *>(&itemView))
     {
-        treeView->setCurrentIndex(currentIndex);
-        treeView->expand(currentIndex);
-        treeView->scrollTo(currentIndex);
+        treeView->setCurrentIndex(viewSettings.currentIndex);
+        treeView->expand(viewSettings.currentIndex);
+        treeView->scrollTo(viewSettings.currentIndex);
     }
     else if (auto listView = qobject_cast<QListView *>(&itemView))
     {
-        listView->setRootIndex(rootIndex);
-        listView->setCurrentIndex(currentIndex);
-        listView->scrollTo(currentIndex);
+        listView->setRootIndex(viewSettings.rootIndex);
+        listView->setCurrentIndex(viewSettings.currentIndex);
+        listView->scrollTo(viewSettings.currentIndex);
     }
 }
 
@@ -271,10 +272,10 @@ bool MoveRecursively(const QString &targetPath, const QString &srcPath)
 }
 
 
-bool WasInFolderBefore(const QString &filePath, const QString &contentFolderPath)
+bool WasInFolderBefore(const FolderMembershipQuery &query)
 {
-    QDir projectDir(contentFolderPath);
-    QString absFilePath = QFileInfo(filePath).absoluteFilePath();
+    QDir projectDir(query.contentFolderPath);
+    QString absFilePath = QFileInfo(query.filePath).absoluteFilePath();
 
     QString canonProjectDir = projectDir.canonicalPath();
     QString canonFilePath = QFileInfo(absFilePath).canonicalFilePath();
@@ -324,31 +325,32 @@ QString ToQString(const eastl::string &str)
 /**
  * This is depricated func, you should use SelectFileAsync instead
  */
-void SelectFile(QLabel &label, const QString &filter, const QString &relativeDir)
+void SelectFile(QLabel &label, const FileSelectionRequest &request)
 {
     QString fileName = QFileDialog::getOpenFileName(
-        nullptr, "Select Texture File", label.text().isEmpty() ? "." : QFileInfo(label.text()).absolutePath(), filter);
+        nullptr, "Select Texture File", label.text().isEmpty() ? "." : QFileInfo(label.text()).absolutePath(),
+        request.filter);
 
-    if (!fileName.isEmpty() && relativeDir.isEmpty())
+    if (!fileName.isEmpty() && request.relativeDir.isEmpty())
     {
         label.setText(fileName);
     }
     else if (!fileName.isEmpty())
     {
-        QDir dir(relativeDir);
+        QDir dir(request.relativeDir);
         label.setText(dir.relativeFilePath(fileName));
     }
 }
 
 
-void SelectFileAsync(QWidget *parent, const QString &title, const QString &initialDir, const QString &nameFilter,
+void SelectFileAsync(QWidget *parent, const AsyncFileSelectionRequest &request,
                      std::function<void(const QString &selectedFile)> onAccepted)
 {
     QFileDialog *dialog = new QFileDialog(parent);
-    dialog->setWindowTitle(title);
+    dialog->setWindowTitle(request.title);
     dialog->setFileMode(QFileDialog::ExistingFile);
-    dialog->setNameFilter(nameFilter);
-    dialog->setDirectory(initialDir);
+    dialog->setNameFilter(request.nameFilter);
+    dialog->setDirectory(request.initialDir);
     dialog->setOption(QFileDialog::DontUseNativeDialog, true);
     dialog->setIconProvider(new IconProvider());
 
@@ -367,23 +369,23 @@ void SelectFileAsync(QWidget *parent, const QString &title, const QString &initi
 }
 
 
-void SetValueYAML(const std::string &path, const std::string &name, const std::string &value)
+void SetValueYAML(const YamlWriteRequest &request)
 {
-    YAML::Node node = YAML::LoadFile(path);
+    YAML::Node node = YAML::LoadFile(request.path);
 
     if (!node) return;
 
-    node[name] = value;
-    std::ofstream fout(path);
+    node[request.name] = request.value;
+    std::ofstream fout(request.path);
     fout << node;
 }
 
 
-void ImportAsset(const QString &src, const QString &dest, const QUrl &url)
+void ImportAsset(const AssetImportRequest &request)
 {
     ImportAssetInfo info;
-    info.originalPath = src;
-    info.destinationPath = dest + QDir::separator() + url.fileName();
+    info.originalPath = request.src;
+    info.destinationPath = request.dest + QDir::separator() + request.url.fileName();
     import_asset_dialog *dialog = GetImportAssetDialog(info);
 
     if (!dialog)

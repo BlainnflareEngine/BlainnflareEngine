@@ -94,7 +94,15 @@ private:
     void UpdateStimuliAge(float dt);
     void UpdateLOD();
 
-    bool CheckLineOfSight(uuid ignoreEntityID, uuid desiredEntityID, const Vec3 &from, const Vec3 &to);
+    struct LineOfSightRequest
+    {
+        uuid ignoreEntityID{};
+        uuid desiredEntityID{};
+        Vec3 from{};
+        Vec3 to{};
+    };
+
+    bool CheckLineOfSight(const LineOfSightRequest &request);
     bool IsInFieldOfView(const Vec3 &observerPos, const Quat &observerRotation, const Vec3 &targetPos, float fovAngle);
 
     bool ShouldUpdatePerception(PerceptionComponent &perception, float dt);

@@ -3,6 +3,9 @@
 //
 
 #pragma once
+#include <EASTL/shared_ptr.h>
+#include <EASTL/unordered_map.h>
+
 #include "file-system/Texture.h"
 #include "VertexTypes.h"
 

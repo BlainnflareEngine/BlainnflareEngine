@@ -99,12 +99,12 @@ namespace Blainn
     //                                           TRUE); // Wait for 1 second (should never have to wait that long...)
     //}
 
-    void SwapChain::Reset(UINT width, UINT height)
+    void SwapChain::Reset(const Extent &extent)
     {
-        if (m_width != width || m_height != height)
+        if (m_width != extent.width || m_height != extent.height)
         {
-            m_width = std::max(1u, width);
-            m_height = std::max(1u, height);
+            m_width = std::max(1u, extent.width);
+            m_height = std::max(1u, extent.height);
 
             for (UINT i = 0; i < SwapChainFrameCount; ++i)
             {

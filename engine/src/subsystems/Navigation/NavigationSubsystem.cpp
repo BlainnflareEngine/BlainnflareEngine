@@ -12,6 +12,7 @@
 #include "scene/TransformComponent.h"
 #include "file-system/Model.h"
 #include <fstream>
+#include <limits>
 #include <AABBHelpers.h>
 
 
@@ -62,7 +63,8 @@ void NavigationSubsystem::Update(float deltaTime)
 
             // TODO: this now is always in !local space!, need to convert to world space, otherwise movement will be not
             // correct for child objects
-            if (controller.GetDesiredDirection(moveDir, controllerComp.StoppingDistance, controllerComp.GroundOffset))
+            if (controller.GetDesiredDirection(
+                    moveDir, {controllerComp.StoppingDistance, controllerComp.GroundOffset}))
             {
                 transform.SetTranslation(transform.GetTranslation()
                                          + moveDir * deltaTime * controllerComp.MovementSpeed);
@@ -91,12 +93,24 @@ bool NavigationSubsystem::LoadNavMesh(const Path &relativePath)
     }
 
     file.seekg(0, std::ios::end);
-    size_t size = file.tellg();
+    const std::streamoff fileSize = file.tellg();
     file.seekg(0, std::ios::beg);
 
-    if (size == 0)
+    if (fileSize <= 0)
     {
         BF_ERROR("NavMesh file is empty");
+        return false;
+    }
+    if (fileSize > static_cast<std::streamoff>(std::numeric_limits<std::streamsize>::max()))
+    {
+        BF_ERROR("NavMesh file is too large to load");
+        return false;
+    }
+    const size_t size = static_cast<size_t>(fileSize);
+    const std::streamsize readSize = static_cast<std::streamsize>(fileSize);
+    if (size > static_cast<size_t>(std::numeric_limits<int>::max()))
+    {
+        BF_ERROR("NavMesh file is too large for Detour init");
         return false;
     }
 
@@ -107,7 +121,7 @@ bool NavigationSubsystem::LoadNavMesh(const Path &relativePath)
         return false;
     }
 
-    if (!file.read(reinterpret_cast<char *>(data), size))
+    if (!file.read(reinterpret_cast<char *>(data), readSize))
     {
         dtFree(data);
         BF_ERROR("Failed to read navmesh file");
@@ -172,7 +186,11 @@ bool NavigationSubsystem::BakeNavMesh(Scene &scene, Entity navVolumeEntity, cons
     settings.agentMaxClimb = volume.AgentMaxClimb;
     settings.agentMaxSlope = volume.AgentMaxSlope;
 
-    auto result = NavmeshBuilder::BuildNavMesh(geometry, worldBounds, settings);
+    NavMeshBuildRequest request;
+    request.meshes = &geometry;
+    request.bounds = &worldBounds;
+    request.settings = settings;
+    auto result = NavmeshBuilder::BuildNavMesh(request);
     if (!result.success || !result.navData || result.navDataSize <= 0)
     {
         BF_ERROR("NavMesh build failed: {}", result.errorMsg.empty() ? "Unknown error" : result.errorMsg.c_str());
@@ -351,7 +369,8 @@ void NavigationSubsystem::BuildDebugNavMesh()
             eastl::vector<Vec3> verts;
             for (int k = 0; k < poly->vertCount; ++k)
             {
-                const float *v = &tile->verts[poly->verts[k] * 3];
+                const ptrdiff_t vertexOffset = static_cast<ptrdiff_t>(poly->verts[k]) * 3;
+                const float *v = &tile->verts[vertexOffset];
                 verts.emplace_back(v[0], v[1], v[2]);
             }
 

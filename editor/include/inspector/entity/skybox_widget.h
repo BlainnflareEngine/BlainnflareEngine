@@ -19,6 +19,6 @@ private:
     void UpdatePath();
     void paintEvent(QPaintEvent *event) override;
 
-    void OnSetNewPath(const QString &oldPath, const QString &newPath);
+    void OnSetNewPath(const QString &newPath);
 };
 }

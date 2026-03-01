@@ -8,13 +8,21 @@ namespace Blainn
 class Camera
 {
 public:
+    struct ProjectionParams
+    {
+        float fovAngleYDegrees = 75.0f;
+        float aspectRatio = 16.0f / 9.0f;
+        float nearZ = 0.1f;
+        float farZ = 1000.0f;
+    };
+
     Camera();
     Camera(const Camera &other) = default;
     Camera &operator=(const Camera &other) = default;
     virtual ~Camera() = default;
 
     virtual void Update(float deltaTime);
-    virtual void Reset(float fovAngleY, float aspectRatio, float nearZ, float farZ);
+    virtual void Reset(const ProjectionParams &params);
     void SetAspectRatio(float aspectRatio);
 
     XMMATRIX GetViewMatrix() const;

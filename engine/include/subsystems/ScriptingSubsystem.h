@@ -4,6 +4,7 @@
 
 #include "components/ScriptingComponent.h"
 #include "scene/Entity.h"
+#include <EASTL/optional.h>
 
 namespace sol
 {

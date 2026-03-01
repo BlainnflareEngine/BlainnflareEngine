@@ -70,7 +70,7 @@ entity_inspector_content::entity_inspector_content(const Blainn::uuid &id, QWidg
     // TODO: tag changed signal
     // connect(m_data.node, &EntityNode::OnTagChanged, this, &entity_inspector_content::SetTag);
 
-    for (const auto &[typeId, factory] : g_widgetRegistry)
+    for (const auto &[typeId, factory] : GetWidgetRegistry())
     {
         BLAINN_PROFILE_FUNC(typeId);
 

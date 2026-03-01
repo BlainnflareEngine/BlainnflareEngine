@@ -22,19 +22,24 @@ void Blainn::RegisterVector4Type(sol::state &luaState)
             Vec4(float, float, float, float)
         >(),
         // Operators
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         sol::meta_function::addition, [](const Vec4& a, const Vec4& b) { return a + b; },
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         sol::meta_function::subtraction, [](const Vec4& a, const Vec4& b) { return a - b; },
         sol::meta_function::multiplication, sol::overload(
+            // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
             [](const Vec4 &a, const Vec4 &b) { return a * b; },
             [](const Vec4 &v, float s) { return v * s; },
             [](float s, const Vec4 &v) { return s * v; }
             ),
         sol::meta_function::division, sol::overload(
+            // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
             [](const Vec4 &a, const Vec4 &b) { return a / b; },
             [](const Vec4 &v, float s) { return v / s; },
             [](float s, const Vec4 &v) { return s / v; }
             ),
         sol::meta_function::unary_minus, [](const Vec4& a) { return -a; },
+        // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
         sol::meta_function::equal_to, [](const Vec4& a, const Vec4& b) { return a == b; }
     );
 
@@ -45,7 +50,9 @@ void Blainn::RegisterVector4Type(sol::state &luaState)
     Vec4Type["w"] = &Vec4::w;
 
     // Call operator for convenience Vec4(x,y,z,w)
-    Vec4Type[sol::meta_function::call] = [](float x, float y, float z, float w) { return Vec4(x, y, z, w); };
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+    Vec4Type[sol::meta_function::call] = [](float x, float y, float z, float w)
+    { return Vec4(x, y, z, w); };
 
     // Instance methods
     Vec4Type.set_function("Length",        &Vec4::Length);

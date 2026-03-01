@@ -113,7 +113,7 @@ void float_input_field::OnEditingFinished()
 {
     if (m_lastValue != m_input->value())
     {
-        m_lastValue = m_input->value();
+        m_lastValue = static_cast<float>(m_input->value());
         emit EditingFinished();
     }
 }
@@ -142,8 +142,8 @@ void float_input_field::mouseMoveEvent(QMouseEvent *event)
         QPoint delta = event->globalPos() - m_lastMousePos;
         m_lastMousePos = event->globalPos();
 
-        float deltaValue = delta.x() * m_input->singleStep();
-        SetValue(m_input->value() + deltaValue);
+        const float deltaValue = static_cast<float>(delta.x()) * static_cast<float>(m_input->singleStep());
+        SetValue(static_cast<float>(m_input->value()) + deltaValue);
 
         emit EditingFinished();
         event->accept();

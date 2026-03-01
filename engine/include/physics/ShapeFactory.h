@@ -3,6 +3,8 @@
 #include "aliases.h"
 
 #include "physics/PhysicsCreationSettings.h"
+#include <EASTL/optional.h>
+#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 
 namespace Blainn
 {

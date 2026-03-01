@@ -34,7 +34,8 @@ protected:
     {
         QWidget::resizeEvent(event);
 
-        Blainn::RenderSubsystem::GetInstance().OnResize(event->size().width(), event->size().height());
+        Blainn::RenderSubsystem::GetInstance().OnResize(
+            {static_cast<UINT>(event->size().width()), static_cast<UINT>(event->size().height())});
     }
 
     void keyPressEvent(QKeyEvent *event) override

@@ -5,6 +5,10 @@
 
 #pragma once
 
+#include "aliases.h"
+#include <cmath>
+#include <cstdint>
+
 #define DEFAULT_COPY_DEFAULT_MOVE(x)                                                                                   \
     x(const x &) = default;                                                                                            \
     x &operator=(const x &) = default;                                                                                 \
@@ -52,14 +56,14 @@ template <typename T, typename CastToType = uint32_t> T inline UpdateBit(T flags
 
 inline Blainn::Vec3 GetNormalizedPerpendicular(const Blainn::Vec3 &vector)
 {
-    if (abs(vector.x) > abs(vector.y))
+    if (std::abs(vector.x) > std::abs(vector.y))
     {
-        float len = sqrt(vector.x * vector.x + vector.z * vector.z);
+        float len = std::sqrt(vector.x * vector.x + vector.z * vector.z);
         return Blainn::Vec3(vector.z, 0.0f, -vector.x) / len;
     }
     else
     {
-        float len = sqrt(vector.y * vector.y + vector.z * vector.z);
+        float len = std::sqrt(vector.y * vector.y + vector.z * vector.z);
         return Blainn::Vec3(0.0f, vector.z, -vector.y) / len;
     }
 }

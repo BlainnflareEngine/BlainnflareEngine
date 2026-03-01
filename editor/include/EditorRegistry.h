@@ -39,13 +39,14 @@ namespace editor
 {
 
 using WidgetFactoryFn = eastl::function<component_widget_base *(Blainn::Entity, QWidget *)>;
-extern eastl::vector<eastl::pair<entt::id_type, WidgetFactoryFn>> g_widgetRegistry;
+eastl::vector<eastl::pair<entt::id_type, WidgetFactoryFn>> &GetWidgetRegistry();
 
 template <typename ComponentType, typename WidgetType> void RegisterComponentWidget()
 {
-    g_widgetRegistry.emplace_back(entt::type_hash<ComponentType>::value(),
-                                  [](Blainn::Entity entity, QWidget *parent) -> component_widget_base *
-                                  { return new WidgetType(entity, parent); });
+    auto &widgetRegistry = GetWidgetRegistry();
+    widgetRegistry.emplace_back(entt::type_hash<ComponentType>::value(),
+                                [](Blainn::Entity entity, QWidget *parent) -> component_widget_base *
+                                { return new WidgetType(entity, parent); });
 }
 
 inline void InitializeEditorWidgets()

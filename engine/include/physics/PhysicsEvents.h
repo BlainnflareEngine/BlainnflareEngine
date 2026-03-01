@@ -1,6 +1,7 @@
 #pragma once
 
 #include <eventpp/callbacklist.h>
+#include <EASTL/shared_ptr.h>
 #include "aliases.h"
 
 namespace Blainn

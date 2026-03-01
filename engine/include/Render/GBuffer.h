@@ -1,5 +1,7 @@
 #pragma once
 
+#include <d3d12.h>
+#include "DirectXTK12/Src/d3dx12.h"
 #include "Render/DXHelpers.h"
 
 struct FGBufferTexture
@@ -13,6 +15,20 @@ struct FGBufferTexture
 class GBuffer final
 {
 public:
+    struct Extent
+    {
+        UINT width = 0u;
+        UINT height = 0u;
+    };
+
+    struct LayerDescriptors
+    {
+        CD3DX12_CPU_DESCRIPTOR_HANDLE cpuSrv;
+        CD3DX12_GPU_DESCRIPTOR_HANDLE gpuSrv;
+        CD3DX12_CPU_DESCRIPTOR_HANDLE cpuRtvDsv;
+        unsigned layer = 0u;
+    };
+
     enum EGBufferLayer : UINT
     {
         DIFFUSE_ALBEDO = 0u,
@@ -25,7 +41,7 @@ public:
     };
 
 public:
-    GBuffer(ID3D12Device *device, UINT width, UINT height);
+    GBuffer(ID3D12Device *device, const Extent &extent);
     GBuffer(const GBuffer &buffer) = delete;
     GBuffer &operator=(const GBuffer &buffer) = delete;
 
@@ -52,8 +68,7 @@ public:
     CD3DX12_CPU_DESCRIPTOR_HANDLE GetRtv(unsigned layer) const;
     CD3DX12_CPU_DESCRIPTOR_HANDLE GetDsv(unsigned layer) const;
 
-    void SetDescriptors(CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuSrv, CD3DX12_GPU_DESCRIPTOR_HANDLE hGpuSrv,
-                        CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuDsvRtv, unsigned layer);
+    void SetDescriptors(const LayerDescriptors &descriptors);
     void CreateDescriptors();
 
 private:

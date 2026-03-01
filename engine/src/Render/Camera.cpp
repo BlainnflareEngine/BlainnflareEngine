@@ -40,12 +40,12 @@ void Blainn::Camera::Update(float deltaTime)
     m_position = GetPosition3f();
 }
 
-void Blainn::Camera::Reset(float fovAngleYDegrees, float aspectRatio, float nearZ, float farZ)
+void Blainn::Camera::Reset(const ProjectionParams &params)
 {
-    m_nearZ = nearZ;
-    m_farZ = farZ;
-    m_fovYRad = (fovAngleYDegrees / 180.0f) * XM_PI;
-    m_aspectRatio = aspectRatio;
+    m_nearZ = params.nearZ;
+    m_farZ = params.farZ;
+    m_fovYRad = (params.fovAngleYDegrees / 180.0f) * XM_PI;
+    m_aspectRatio = params.aspectRatio;
 
     m_nearWindowHeight = 2.0f * tanf(0.5f * m_fovYRad) * m_nearZ;
     m_farWindowHeight = 2.0f * tanf(0.5f * m_fovYRad) * m_farZ;
@@ -164,7 +164,7 @@ void Camera::UpdateCameraFrustumCascadesSplits()
 
     for (int i = 0; i < MaxCascades; i++)
     {
-        float p = (i + 1) / (float)(MaxCascades);
+        float p = static_cast<float>(i + 1) / static_cast<float>(MaxCascades);
         float log = (float)(minZ * pow(ratio, p));
         float uniform = minZ + range * p;
         float d = 0.95f * (log - uniform) + uniform; // 0.95f - idk, just magic value

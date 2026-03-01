@@ -122,7 +122,8 @@ void PerceptionSubsystem::ProcessSightStimuli(float dt)
 
                     if (cache.timeSinceLastCheck >= perception.sightLOSCheckInterval)
                     {
-                        cache.hasLineOfSight = CheckLineOfSight(observerID.ID, sourceID.ID, observerPos, sourcePos);
+                        cache.hasLineOfSight =
+                            CheckLineOfSight({observerID.ID, sourceID.ID, observerPos, sourcePos});
                         cache.timeSinceLastCheck = 0.0f;
                     }
 
@@ -482,21 +483,21 @@ float PerceptionSubsystem::CalculateUpdateInterval(float distanceToCamera)
     else return 1.0f; // Очень далеко 1 секунда
 }
 
-bool PerceptionSubsystem::CheckLineOfSight(uuid ignoreEntityID, uuid desiredEntityID, const Vec3 &from, const Vec3 &to)
+bool PerceptionSubsystem::CheckLineOfSight(const LineOfSightRequest &request)
 {
-    Vec3 direction = to - from;
+    Vec3 direction = request.to - request.from;
     float distance = direction.Length();
 
     if (distance < 0.01f) return true;
 
-    eastl::queue<uuid> ignoreQueue{ignoreEntityID};
-    eastl::optional<RayCastResult> result = PhysicsSubsystem::FilteredCastRay(ignoreQueue, from, direction);
+    eastl::queue<uuid> ignoreQueue{request.ignoreEntityID};
+    eastl::optional<RayCastResult> result = PhysicsSubsystem::FilteredCastRay(ignoreQueue, request.from, direction);
 
     if (!result.has_value()) return true; // Если ничего не попало то есть видимость
 
     // Проверка что попали в цель
     RayCastResult rayCastResult = result.value();
-    return rayCastResult.entityId == desiredEntityID;
+    return rayCastResult.entityId == request.desiredEntityID;
 }
 
 bool PerceptionSubsystem::IsInFieldOfView(const Vec3 &observerPos, const Quat &observerRotation, const Vec3 &targetPos,

@@ -6,5 +6,9 @@
 
 namespace editor
 {
-eastl::vector<eastl::pair<entt::id_type, WidgetFactoryFn>> g_widgetRegistry;
+eastl::vector<eastl::pair<entt::id_type, WidgetFactoryFn>> &GetWidgetRegistry()
+{
+    static eastl::vector<eastl::pair<entt::id_type, WidgetFactoryFn>> widgetRegistry;
+    return widgetRegistry;
+}
 }

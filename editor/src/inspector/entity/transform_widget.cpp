@@ -155,7 +155,7 @@ void transform_widget::BlockSignals(bool block)
 }
 
 
-bool transform_widget::IsValidNumericInput(const QString &currentText, const QString &newText)
+bool transform_widget::IsValidNumericInput(const QString &newText)
 {
     if (newText.isEmpty() || newText == "-" || newText == "-." || newText == ".")
     {

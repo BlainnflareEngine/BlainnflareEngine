@@ -11,11 +11,11 @@
 
 namespace editor
 {
-slider_input_field::slider_input_field(const QString &name, float value, float min, float max, QWidget *parent,
-                                       bool immediate, QColor nameColor)
+slider_input_field::slider_input_field(const QString &name, float value, QWidget *parent, bool immediate,
+                                       QColor nameColor)
     : QWidget(parent)
-    , m_minValue(min)
-    , m_maxValue(max)
+    , m_minValue(0.0f)
+    , m_maxValue(100.0f)
     , m_immediateMode(immediate)
 {
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
@@ -85,10 +85,10 @@ float slider_input_field::GetValue() const
 }
 
 
-void slider_input_field::SetRange(float min, float max)
+void slider_input_field::SetRange(const Range &range)
 {
-    m_minValue = min;
-    m_maxValue = max;
+    m_minValue = range.min;
+    m_maxValue = range.max;
     m_slider->setRange(ValueToSlider(m_minValue), ValueToSlider(m_maxValue));
     SetValue(m_lastValue);
 }
@@ -96,13 +96,13 @@ void slider_input_field::SetRange(float min, float max)
 
 void slider_input_field::SetMinValue(float min)
 {
-    SetRange(min, m_maxValue);
+    SetRange({min, m_maxValue});
 }
 
 
 void slider_input_field::SetMaxValue(float max)
 {
-    SetRange(m_minValue, max);
+    SetRange({m_minValue, max});
 }
 
 

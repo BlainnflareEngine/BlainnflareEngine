@@ -14,6 +14,7 @@
 #include <QMenu>
 #include <QToolBar>
 #include <QWidgetAction>
+#include <cstdio>
 
 namespace editor
 {
@@ -25,9 +26,16 @@ ViewportSettingsContext::ViewportSettingsContext(QToolButton *toolButton, QWidge
 }
 
 
-ViewportSettingsContext::~ViewportSettingsContext()
+ViewportSettingsContext::~ViewportSettingsContext() noexcept
 {
-    SaveValues();
+    try
+    {
+        SaveValues();
+    }
+    catch (...)
+    {
+        std::fputs("Viewport settings save failed in destructor\n", stderr);
+    }
 }
 
 
@@ -257,19 +265,19 @@ void ViewportSettingsContext::UseSnapping(bool value)
 }
 
 
-void ViewportSettingsContext::OnTranslationSnappingChanged(int value)
+void ViewportSettingsContext::OnTranslationSnappingChanged(float value)
 {
     Blainn::RenderSubsystem::GetInstance().GetUIRenderer().GetDebugUIRenderer().TranslationSnapValue = value;
 }
 
 
-void ViewportSettingsContext::OnRotationSnappingChanged(int value)
+void ViewportSettingsContext::OnRotationSnappingChanged(float value)
 {
     Blainn::RenderSubsystem::GetInstance().GetUIRenderer().GetDebugUIRenderer().RotationSnapValue = value;
 }
 
 
-void ViewportSettingsContext::OnScaleSnappingChanged(int value)
+void ViewportSettingsContext::OnScaleSnappingChanged(float value)
 {
     Blainn::RenderSubsystem::GetInstance().GetUIRenderer().GetDebugUIRenderer().ScaleSnapValue = value;
 }

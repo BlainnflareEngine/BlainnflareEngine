@@ -55,9 +55,9 @@ void folder_content_list_view::HandleFileDrop(const QMimeData *mime, const QStri
         QString srcPath = url.toLocalFile();
         QString contentDir = QString::fromStdString(Blainn::Engine::GetContentDirectory().string());
 
-        if (!WasInFolderBefore(srcPath, contentDir))
+        if (!WasInFolderBefore({srcPath, contentDir}))
         {
-            ImportAsset(srcPath, targetPath, url);
+            ImportAsset({srcPath, targetPath, url});
         }
         else
         {
@@ -145,6 +145,7 @@ void folder_content_list_view::dropEvent(QDropEvent *event)
     {
         HandleEntityDrop(event, targetPath);
         event->acceptProposedAction();
+        return;
     }
 
     if (mime->hasUrls())
@@ -159,11 +160,7 @@ void folder_content_list_view::dragEnterEvent(QDragEnterEvent *event)
 {
     qDebug() << event->mimeData()->formats();
 
-    if (event->mimeData()->hasUrls())
-    {
-        event->acceptProposedAction();
-    }
-    else if (event->mimeData()->formats().contains(MIME_ENTITY_UUID))
+    if (event->mimeData()->hasUrls() || event->mimeData()->formats().contains(MIME_ENTITY_UUID))
     {
         event->acceptProposedAction();
     }
@@ -201,12 +198,7 @@ void folder_content_list_view::dragMoveEvent(QDragMoveEvent *event)
     }
 
 
-    if (event->mimeData()->hasUrls())
-    {
-        event->acceptProposedAction();
-        return;
-    }
-    else if (event->mimeData()->formats().contains(MIME_ENTITY_UUID))
+    if (event->mimeData()->hasUrls() || event->mimeData()->formats().contains(MIME_ENTITY_UUID))
     {
         event->acceptProposedAction();
         return;

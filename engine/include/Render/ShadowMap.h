@@ -1,11 +1,28 @@
 #pragma once
 
+#include <d3d12.h>
+#include <cstdint>
+#include "DirectXTK12/Src/d3dx12.h"
 #include "Render/DXHelpers.h"
 
 class ShadowMap
 {
 public:
-    ShadowMap(ID3D12Device *device, UINT width, UINT height, UINT cascadesCount = 0u);
+    struct ShadowMapDesc
+    {
+        UINT width = 0u;
+        UINT height = 0u;
+        UINT cascadesCount = 0u;
+    };
+
+    struct DescriptorHandles
+    {
+        CD3DX12_CPU_DESCRIPTOR_HANDLE cpuSrv;
+        CD3DX12_GPU_DESCRIPTOR_HANDLE gpuSrv;
+        CD3DX12_CPU_DESCRIPTOR_HANDLE cpuDsv;
+    };
+
+    ShadowMap(ID3D12Device *device, const ShadowMapDesc &desc);
     ShadowMap(const ShadowMap &lhs) = delete;
     ShadowMap &operator=(const ShadowMap &lhs) = delete;
 
@@ -41,8 +58,7 @@ public:
         return m_scissorRect;
     }
 
-    void CreateDescriptors(CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuSrv, CD3DX12_GPU_DESCRIPTOR_HANDLE hGpuSrv,
-                           CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuDsv);
+    void CreateDescriptors(const DescriptorHandles &descriptorHandles);
 
     void OnResize(UINT newWidth, UINT newHeight);
 

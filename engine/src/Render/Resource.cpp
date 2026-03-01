@@ -3,6 +3,7 @@
 // Copyright (c) 2026 Blainnflare. All rights reserved.
 //
 
+#include "pch.h"
 #include "Render/Resource.h"
 
 #include "Render/Device.h"

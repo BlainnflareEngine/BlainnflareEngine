@@ -87,7 +87,7 @@ void SceneContextMenu::OpenMenu(const QPoint &globalPos, QTreeWidgetItem *item)
     {
         auto actions = menu->actions();
         QAction *copyIdAction = nullptr;
-        for (int i = actions.size() - 1; i >= 0; --i)
+        for (qsizetype i = actions.size() - 1; i >= 0; --i)
         {
             if (actions[i]->text() == "Copy ID")
             {
@@ -157,7 +157,7 @@ void SceneContextMenu::AddCamera(QTreeWidgetItem *parentItem)
     {
         entity.AddComponent<Blainn::TransformComponent>();
         auto &cam = entity.AddComponent<Blainn::CameraComponent>();
-        cam.camera.Reset(75.0f, 16.0f / 9.0f, 0.1f, 1000.0f);
+        cam.camera.Reset({75.0f, 16.0f / 9.0f, 0.1f, 1000.0f});
     }
 }
 
