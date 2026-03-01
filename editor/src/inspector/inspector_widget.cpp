@@ -5,7 +5,6 @@
 // You may need to build the project (run Qt uic code generator) to get "ui_inspector_widget.h" resolved
 
 #include "inspector_widget.h"
-#include "Profiler.h"
 #include "ui_inspector_widget.h"
 
 #include <qlayout.h>

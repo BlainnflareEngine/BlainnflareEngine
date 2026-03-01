@@ -15,8 +15,7 @@ public:
         float hysteresis = 0.0f;
     };
 
-    UtilitySelector(eastl::vector<UtilityDecision> decisions);
-    UtilitySelector(eastl::vector<UtilityDecision> decisions, Settings settings);
+    UtilitySelector( eastl::vector<UtilityDecision> decisions, Settings settings = {} );
 
     eastl::string Evaluate( UtilityContext& context, Blackboard& blackboard, float deltaTime );
     eastl::string FindDecisionBTName( eastl::string decisionName );

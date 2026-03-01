@@ -4,9 +4,6 @@
 //
 
 #pragma once
-#include <d3d12.h>
-#include <EASTL/string.h>
-#include <EASTL/unique_ptr.h>
 #include "DXHelpers.h"
 
 namespace Blainn

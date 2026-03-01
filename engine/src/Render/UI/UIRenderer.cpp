@@ -16,7 +16,7 @@
 
 using namespace Blainn;
 
-void UIRenderer::Initialize(const Dimensions &dimensions)
+void UIRenderer::Initialize(int width, int height)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -24,11 +24,11 @@ void UIRenderer::Initialize(const Dimensions &dimensions)
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    m_width = dimensions.width;
-    m_height = dimensions.height;
+    m_width = width;
+    m_height = height;
 
-    io.DisplaySize.x = static_cast<float>(dimensions.width);
-    io.DisplaySize.y = static_cast<float>(dimensions.height);
+    io.DisplaySize.x = static_cast<float>(width);
+    io.DisplaySize.y = static_cast<float>(height);
 
     ImGui_ImplDX12_InitInfo initInfo{};
     initInfo.Device = Device::GetInstance().GetDevice2().Get();
@@ -82,13 +82,12 @@ void UIRenderer::Destroy()
     ImGui::DestroyContext();
 }
 
-void UIRenderer::Resize(const Dimensions &dimensions)
+void UIRenderer::Resize(int width, int height)
 {
     ImGuiIO& io = ImGui::GetIO();
-    m_width = dimensions.width;
-    m_height = dimensions.height;
-    io.DisplaySize.x = static_cast<float>(dimensions.width);
-    io.DisplaySize.y = static_cast<float>(dimensions.height);
+    m_width = width; m_height = height;
+    io.DisplaySize.x = static_cast<float>(width);
+    io.DisplaySize.y = static_cast<float>(height);
 }
 
 void UIRenderer::StartImGuiFrame()
@@ -415,9 +414,9 @@ constexpr int UIRenderer::KeyToImGuiKey(KeyCode key)
         case KeyCode::NoName:     case KeyCode::PA1:      case KeyCode::OEMClear:
             return ImGuiKey_None;
 
+        default:
+            return ImGuiKey_None;
     }
-
-    return ImGuiKey_None;
 }
 
 void UIRenderer::RenderDebugUI()

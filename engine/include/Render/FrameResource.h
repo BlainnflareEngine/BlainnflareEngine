@@ -1,6 +1,4 @@
 #pragma once
-#include <EASTL/unique_ptr.h>
-#include <d3d12.h>
 
 #include "UploadBuffer.h"
 
@@ -8,17 +6,9 @@ namespace Blainn
 {
     class Device;
 
-    struct FrameResourceCounts
-    {
-        UINT passCount = 0u;
-        UINT materialCount = 0u;
-        UINT maxNumPointLights = 0u;
-        UINT maxNumSpotLights = 0u;
-    };
-
     struct FrameResource
     {
-        FrameResource(Device& device, const FrameResourceCounts& counts);
+        FrameResource(Device& device, UINT passCount, UINT materialCount, UINT maxNumPointLights, UINT maxNumSpotLights);
         FrameResource(const FrameResource &lhs) = delete;
         FrameResource &operator=(const FrameResource &lhs) = delete;
 

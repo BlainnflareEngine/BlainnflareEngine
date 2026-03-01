@@ -3,7 +3,6 @@
 // Copyright (c) 2026 Blainnflare. All rights reserved.
 //
 
-#include "pch.h"
 #include "Render/GTexture.h"
 
 #include "Render/Device.h"
@@ -26,7 +25,7 @@ GTexture::~GTexture()
 {
 }
 
-void GTexture::Resize(const ResizeRequest &request)
+void GTexture::Resize(UINT width, UINT height, UINT depthOrArraySize)
 {
     if (!m_d3d12Resource)
     {
@@ -36,9 +35,9 @@ void GTexture::Resize(const ResizeRequest &request)
 
     CD3DX12_RESOURCE_DESC resDesc(m_d3d12Resource->GetDesc());
 
-    resDesc.Width = eastl::max(request.width, 1u);
-    resDesc.Height = eastl::max(request.height, 1u);
-    resDesc.DepthOrArraySize = static_cast<UINT16>(request.depthOrArraySize);
+    resDesc.Width =  eastl::max(width, 1u);
+    resDesc.Height = eastl::max(height, 1u);
+    resDesc.DepthOrArraySize = static_cast<UINT16>(depthOrArraySize);
 
     auto d3d12Device = m_Device.GetDevice2();
 

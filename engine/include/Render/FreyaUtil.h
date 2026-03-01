@@ -1,9 +1,4 @@
 #pragma once 
-#include <string>
-#include <wrl/client.h>
-#include <d3d12.h>
-#include <d3dcompiler.h>
-#include "DirectXTK12/Src/d3dx12.h"
 
 #include "Render/DXHelpers.h"
 
@@ -14,25 +9,9 @@ namespace Blainn
     class FreyaUtil
     {
     public:
-        struct DefaultBufferParams
-        {
-            ID3D12Device *device = nullptr;
-            ID3D12GraphicsCommandList *cmdList = nullptr;
-            const void *initData = nullptr;
-            UINT64 byteSize = 0u;
-            ComPtr<ID3D12Resource> *uploadBuffer = nullptr;
-        };
-
-        struct GPUVirtualAddressParams
-        {
-            D3D12_GPU_VIRTUAL_ADDRESS baseAddress = 0u;
-            UINT byteStride = 0u;
-            UINT index = 0u;
-        };
-
-        static ComPtr<ID3D12Resource> CreateDefaultBuffer(const DefaultBufferParams &params);
+        static ComPtr<ID3D12Resource> CreateDefaultBuffer(ID3D12Device* device, ID3D12GraphicsCommandList* cmdList, const void* initData, UINT64 byteSize, ComPtr<ID3D12Resource>& uploadBuffer);
         
-        static D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress(const GPUVirtualAddressParams &params);
+        static D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS address, UINT byteStride, UINT index = 0u);
 
         static UINT CalcConstantBufferByteSize(const UINT byteSize);
         
