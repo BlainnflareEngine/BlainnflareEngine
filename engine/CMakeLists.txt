@@ -223,6 +223,8 @@ set(ENGINE_SOURCES
         include/Render/renderer/ISampler.h
         include/Render/renderer/IPipelineResourceSignature.h
         include/Render/renderer/IPipelineStateCache.h
+        include/Render/renderer/IFence.h
+        src/Render/IEngineFactory.h
 )
 
 file(GLOB IMGUI_SOURCES

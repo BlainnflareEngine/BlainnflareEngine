@@ -8,6 +8,7 @@
 #include <cstdint>
 
 #include "IBuffer.h"
+#include "IFence.h"
 #include "IShader.h"
 #include "ITexture.h"
 #include "Render/GraphicsTypes.h"
@@ -225,7 +226,7 @@ struct IRenderDevice
     /// Returns the engine factory that created this device.
     ///
     /// Returned pointer is borrowed and must not be released by the caller.
-    virtual IEngineFactory* GetEngineFactory() const = 0;
+    virtual struct IEngineFactory* GetEngineFactory() const = 0;
 
     // TODO
     /// Returns the shader compilation thread pool.
@@ -234,13 +235,13 @@ struct IRenderDevice
     // virtual IThreadPool* GetShaderCompilationThreadPool() const = 0;
 
     /// Overloaded alias for CreateGraphicsPipelineState().
-    void CreatePipelineState(const GraphicsPipelineStateCI& _ci, IPipelineState** _ppPipelineState)
+    void CreatePipelineState(const GraphicsPipelineStateCreateInfo& _ci, IPipelineState** _ppPipelineState)
     {
         CreateGraphicsPipelineState(_ci, _ppPipelineState);
     }
 
     /// Overloaded alias for CreateComputePipelineState().
-    void CreatePipelineState(const ComputePipelineStateCI& _ci, IPipelineState** _ppPipelineState)
+    void CreatePipelineState(const ComputePipelineStateCreateInfo&  _ci, IPipelineState** _ppPipelineState)
     {
         CreateComputePipelineState(_ci, _ppPipelineState);
     }
