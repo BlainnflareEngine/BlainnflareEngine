@@ -4,6 +4,14 @@ using namespace DirectX;
 
 namespace Blainn
 {
+	namespace RenderCommon
+	{
+		constexpr uint32_t kNumFrameResources = 3u;
+		constexpr uint32_t kSwapChainBufferCount = 2u;
+		constexpr DXGI_FORMAT kBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+		constexpr DXGI_FORMAT kDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	} // namespace RenderCommon
+
 	enum class EPassType : uint8_t
 	{
 		// ComputePass
@@ -103,21 +111,19 @@ namespace Blainn
 		CascadesShadows Cascades;
 
 		XMFLOAT3 EyePosW = { 0.0f, 0.0f, 0.0f };
-		float pad1 = 0.0f;
+		float DeltaTime = 0.0f;
 		
 		XMFLOAT2 RenderTargetSize = { 0.0f, 0.0f };
 		XMFLOAT2 InvRenderTargetSize = { 0.0f, 0.0f };
-
-		float NearZ = 0.0f;
-		float FarZ = 0.0f;
-		float DeltaTime = 0.0f;
-		float TotalTime = 0.0f;
 
 		XMFLOAT4 Ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		/*XMFLOAT4 FogColor = { 0.7f, 0.7f, 0.7f, 1.0f };
 		float FogStart = 8.0f;
 		float FogRange = 18.0f;*/
+		float NearZ = 0.0f;
+		float FarZ = 0.0f;
+        float pad[2];
 
 		DirectionalLightData DirLight;
 	};

@@ -50,16 +50,13 @@ cbuffer cbPerPass : register(b1)
     float4x4 gInvViewProj;
     CascadesShadows gCascadeData;
     float3 gEyePos;
-    float gPassPad0;
+    float gDeltaTime;
     float2 gRTSize;
     float2 gInvRTSize;
+    float4 gAmbient;
     float gNearZ;
     float gFarZ;
-    float gDeltaTime;
-    float gTotalTime;
-    
-    float4 gAmbient;
-    
+    float2 pad;
     //float4 gFogColor;
     //float gFogStart;
     //float gFogRange;
