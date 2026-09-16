@@ -3,43 +3,38 @@
 //
 
 #include "pch.h"
-
 #include "file-system/Material.h"
 #include "file-system/TextureType.h"
 #include "handles/Handle.h"
 
+using namespace Blainn;
 
-Blainn::Material::Material(const Path &path, const eastl::string &shader)
+Material::Material(const Path &path, const eastl::string &shader)
     : FileSystemObject(path)
     , m_shader(shader)
 {
 }
 
-
-Blainn::Material::~Material()
+Material::~Material()
 {
 }
 
-
-void Blainn::Material::Move()
+void Material::Move()
 {
     FileSystemObject::Move();
 }
 
-
-void Blainn::Material::Delete()
+void Material::Delete()
 {
     FileSystemObject::Delete();
 }
 
-
-void Blainn::Material::Copy()
+void Material::Copy()
 {
     FileSystemObject::Copy();
 }
 
-
-void Blainn::Material::SetTexture(const eastl::shared_ptr<TextureHandle> &textureHandle, TextureType type)
+void Material::SetTexture(const eastl::shared_ptr<TextureHandle> &textureHandle, TextureType type)
 {
     switch (type)
     {
@@ -87,8 +82,7 @@ void Blainn::Material::SetTexture(const eastl::shared_ptr<TextureHandle> &textur
     }
 }
 
-
-Blainn::TextureHandle &Blainn::Material::GetTextureHandle(TextureType type)
+TextureHandle &Material::GetTextureHandle(TextureType type)
 {
     switch (type)
     {
@@ -126,32 +120,27 @@ Blainn::TextureHandle &Blainn::Material::GetTextureHandle(TextureType type)
     }
 }
 
-
-void Blainn::Material::SetAlbedoColor(const Color &color)
+void Material::SetAlbedoColor(const Color &color)
 {
     m_albedoColor = color;
 }
 
-
-void Blainn::Material::SetNormalScale(float scale)
+void Material::SetNormalScale(float scale)
 {
     m_normalScale = scale;
 }
 
-
-void Blainn::Material::SetRoughnessScale(float roughness)
+void Material::SetRoughnessScale(float roughness)
 {
     m_roughnessScale = roughness;
 }
 
-
-void Blainn::Material::SetMetallicScale(float metallic)
+void Material::SetMetallicScale(float metallic)
 {
     m_metallicScale = metallic;
 }
 
-
-bool Blainn::Material::AreTexturesLoaded()
+bool Material::AreTexturesLoaded()
 {
     if (m_bAreTexturesLoaded)
         return true;
@@ -187,19 +176,18 @@ bool Blainn::Material::AreTexturesLoaded()
     return result;
 }
 
-void Blainn::Material::SetShader(const eastl::string &shader)
+void Material::SetShader(const eastl::string &shader)
 {
     m_shader = shader;
 }
 
 
-const eastl::string &Blainn::Material::GetShader() const
+const eastl::string &Material::GetShader() const
 {
     return m_shader;
 }
 
-
-BOOL Blainn::Material::HasTexture(const TextureType type) const
+BOOL Material::HasTexture(const TextureType type) const
 {
     switch (type)
     {

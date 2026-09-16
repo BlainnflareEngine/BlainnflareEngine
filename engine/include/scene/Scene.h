@@ -27,8 +27,7 @@ using EntityMap = eastl::unordered_map<uuid, Entity>;
 class Scene
 {
 public:
-    Scene(const eastl::string_view &name = "UntitledScene", uuid uid = Rand::getRandomUUID(),
-          bool isEditorScene = false) noexcept;
+    Scene(const eastl::string_view &name = "UntitledScene", uuid uid = Rand::getRandomUUID(), bool isEditorScene = false) noexcept;
     Scene(const YAML::Node &config);
     ~Scene();
 
@@ -65,19 +64,14 @@ public:
 
     eastl::string GetName() const;
 
-    using EventHandle =
-        eventpp::internal_::CallbackListBase<void(const eastl::shared_ptr<SceneEvent> &), SceneEventPolicy>::Handle;
-    static EventHandle AddEventListener(const SceneEventType eventType,
-                                        eastl::function<void(const SceneEventPointer &)> listener);
+    using EventHandle = eventpp::internal_::CallbackListBase<void(const eastl::shared_ptr<SceneEvent> &), SceneEventPolicy>::Handle;
+    static EventHandle AddEventListener(const SceneEventType eventType, eastl::function<void(const SceneEventPointer &)> listener);
     static void RemoveEventListener(const SceneEventType eventType, const EventHandle &handle);
 
     Entity CreateEntity(const eastl::string &name = "", bool onSceneChanged = false, bool createdByEditor = false);
-    Entity CreateChildEntity(Entity parent, const eastl::string &name = "", bool onSceneChanged = false,
-                             bool createdByEditor = false);
-    Entity CreateEntityWithID(const uuid &id, const eastl::string &name = "", bool shouldSort = true,
-                              bool onSceneChanged = false, bool createdByEditor = false);
-    Entity CreateChildEntityWithID(Entity parent, const uuid &id, const eastl::string &name = "",
-                                   bool shouldSort = true, bool onSceneChanged = false, bool createdByEditor = false);
+    Entity CreateChildEntity(Entity parent, const eastl::string &name = "", bool onSceneChanged = false, bool createdByEditor = false);
+    Entity CreateEntityWithID(const uuid &id, const eastl::string &name = "", bool shouldSort = true, bool onSceneChanged = false, bool createdByEditor = false);
+    Entity CreateChildEntityWithID(Entity parent, const uuid &id, const eastl::string &name = "", bool shouldSort = true, bool onSceneChanged = false, bool createdByEditor = false);
     void CreateEntities(const YAML::Node &entitiesNode, bool onSceneChanged = false, bool createdByEditor = false);
     Entity CreatePrefabEntity(const YAML::Node &prefabNode);
 
@@ -116,10 +110,8 @@ public:
     }
 
 private:
-    void DestroyEntityInternal(Entity entity, bool sceneChanged = false, bool excludeChildren = false,
-                               bool first = true);
-    void DestroyEntityInternal(const uuid &entityID, bool sceneChanged = false, bool excludeChildren = false,
-                               bool first = true);
+    void DestroyEntityInternal(Entity entity, bool sceneChanged = false, bool excludeChildren = false, bool first = true);
+    void DestroyEntityInternal(const uuid &entityID, bool sceneChanged = false, bool excludeChildren = false, bool first = true);
 
     void SortEntities();
 
@@ -146,8 +138,7 @@ private:
 
     moodycamel::ConcurrentQueue<eastl::function<void()>> m_postUpdateQueue;
 
-    inline static eventpp::EventQueue<SceneEventType, void(const SceneEventPointer &), SceneEventPolicy>
-        s_sceneEventQueue;
+    inline static eventpp::EventQueue<SceneEventType, void(const SceneEventPointer &), SceneEventPolicy> s_sceneEventQueue;
 
     bool m_bPlayMode{false};
     bool m_notFoundMainCameraLogged{false};

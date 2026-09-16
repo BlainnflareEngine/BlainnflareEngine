@@ -86,20 +86,20 @@ Texture::Texture(const Path &path, TextureType type, uint32_t index/*, bool IsCu
         auto& device = Device::GetInstance();
         auto comDevice = device.GetDevice2();
 
-        ScratchImage image;
         ScratchImage mipChain;
-
-        if (FAILED(LoadFromWICFile((Engine::GetContentDirectory() / m_path).wstring().c_str(), WIC_FLAGS_FORCE_RGB, nullptr, image)))
         {
-            BF_ERROR("Failed to load texture: {}", (char*)m_path.u8string().c_str());
-            return;
-        }
+            ScratchImage image;
+            if (FAILED(LoadFromWICFile((Engine::GetContentDirectory() / m_path).wstring().c_str(), WIC_FLAGS_FORCE_RGB, nullptr, image)))
+            {
+                BF_ERROR("Failed to load texture: {}", (char*)m_path.u8string().c_str());
+                return;
+            }
 
-        if (FAILED(GenerateMipMaps(*image.GetImages(), TEX_FILTER_BOX, 0, mipChain)))
-        {
-            BF_ERROR("Failed to generate mip map: {}", (char*)m_path.u8string().c_str());
+            if (FAILED(GenerateMipMaps(*image.GetImages(), TEX_FILTER_BOX, 0, mipChain)))
+            {
+                BF_ERROR("Failed to generate mip map: {}", (char*)m_path.u8string().c_str());
+            }
         }
-
         // create resource
         const auto &chainBase = *mipChain.GetImages();
 

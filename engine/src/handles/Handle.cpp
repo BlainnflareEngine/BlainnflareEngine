@@ -8,95 +8,83 @@
 #include "random.h"
 #include "file-system/Material.h"
 
+using namespace Blainn;
 
-Blainn::Handle::Handle(const unsigned int index, AssetManager &manager)
+Handle::Handle(const unsigned int index, AssetManager &manager)
     : id(Rand::getRandomUUID())
     , m_index(index)
     , m_manager(manager)
 {
 }
 
-
-Blainn::Handle::~Handle()
+Handle::~Handle()
 {
 }
 
-
-unsigned int Blainn::Handle::GetIndex() const
+unsigned int Handle::GetIndex() const
 {
     return m_index;
 }
 
-
-Blainn::TextureHandle::TextureHandle(const unsigned int index, AssetManager &manager)
+TextureHandle::TextureHandle(const unsigned int index, AssetManager &manager)
     : Handle(index, manager)
 {
     manager.IncreaseTextureRefCount(index);
 }
 
-
-Blainn::TextureHandle::~TextureHandle()
+TextureHandle::~TextureHandle()
 {
     m_manager.DecreaseTextureRefCount(m_index);
 }
 
-
-Blainn::Texture &Blainn::TextureHandle::GetTexture() const
+Blainn::Texture &TextureHandle::GetTexture() const
 {
-    if (AssetManager::GetInstance().GetTextureByIndex(m_index).IsLoaded())
-        return AssetManager::GetInstance().GetTextureByIndex(m_index);
-    return AssetManager::GetInstance().GetTextureByIndex(0);
+    auto& texture = AssetManager::GetInstance().GetTextureByIndex(m_index);
+    return texture.IsLoaded() ? texture : AssetManager::GetInstance().GetTextureByIndex(0);
 }
 
-unsigned int Blainn::TextureHandle::GetIndex() const
+unsigned int TextureHandle::GetIndex() const
 {
-    if (AssetManager::GetInstance().GetTextureByIndex(m_index).IsLoaded())
-        return m_index;
-    return 0;
+    return AssetManager::GetInstance().GetTextureByIndex(m_index).IsLoaded() ? m_index : 0; 
 }
 
-
-Blainn::MaterialHandle::MaterialHandle(const unsigned int index, AssetManager &manager)
+MaterialHandle::MaterialHandle(const unsigned int index, AssetManager &manager)
     : Handle(index, manager)
 {
     manager.IncreaseMaterialRefCount(index);
 }
 
-
-Blainn::MaterialHandle::~MaterialHandle()
+MaterialHandle::~MaterialHandle()
 {
     m_manager.DecreaseMaterialRefCount(m_index);
 }
 
-
-Blainn::Material &Blainn::MaterialHandle::GetMaterial() const
+Material &MaterialHandle::GetMaterial() const
 {
     if (AssetManager::GetInstance().GetMaterialByIndex(m_index).AreTexturesLoaded())
         return AssetManager::GetInstance().GetMaterialByIndex(m_index);
     return AssetManager::GetInstance().GetMaterialByIndex(0);
 }
 
-unsigned int Blainn::MaterialHandle::GetIndex() const
+unsigned int MaterialHandle::GetIndex() const
 {
     if (AssetManager::GetInstance().GetMaterialByIndex(m_index).AreTexturesLoaded())
         return m_index;
     return 0;
 }
 
-
-Blainn::MeshHandle::MeshHandle(const unsigned int index, AssetManager &manager)
+MeshHandle::MeshHandle(const unsigned int index, AssetManager &manager)
     : Handle(index, manager)
 {
     manager.IncreaseMeshRefCount(index);
 }
 
-Blainn::MeshHandle::~MeshHandle()
+MeshHandle::~MeshHandle()
 {
     m_manager.DecreaseMeshRefCount(m_index);
 }
 
-
-Blainn::Model &Blainn::MeshHandle::GetMesh() const
+Model &MeshHandle::GetMesh() const
 {
     return AssetManager::GetInstance().GetMeshByIndex(m_index);
 }

@@ -51,8 +51,13 @@ eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, cons
     Model model = Model(relativePath);
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(absolutePath.string(),
-                                             aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace
-                                                 | aiProcess_FindInvalidData | aiProcess_FixInfacingNormals | aiProcess_FlipUVs | aiProcess_ConvertToLeftHanded);
+        aiProcess_Triangulate |
+        aiProcess_GenNormals |
+        aiProcess_CalcTangentSpace |
+        aiProcess_FindInvalidData |
+        aiProcess_FixInfacingNormals | 
+        aiProcess_FlipUVs | 
+        aiProcess_ConvertToLeftHanded);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -62,8 +67,8 @@ eastl::shared_ptr<Model> AssetLoader::ImportModel(const Path &relativePath, cons
 
     ProcessNode(relativePath, *scene->mRootNode, *scene, Mat4::Identity, model);
 
-    // to merge together all meshes of the model
-    model.CreateBufferResources();
+    // TODO: should be incapsulated inside model while constructing it
+    model.CreateBufferResources(); // to merge together all meshes of the model
     model.CreateGPUBuffers();
 
     return eastl::make_shared<Model>(model);
@@ -171,11 +176,7 @@ Vec2 AssetLoader::GetTextCoords(const aiMesh &mesh, const unsigned int meshIndex
 eastl::shared_ptr<Texture> AssetLoader::LoadTexture(const Path &path, const TextureType type, uint32_t index)
 {
     assert(path.is_relative());
-    auto texture = eastl::make_shared<Texture>(path, type, index);
-    // causes runtime exception, Idk why
-    //Device::GetInstance().Flush();
-    //texture->DisposeUploaders();
-    return texture;
+    return eastl::make_shared<Texture>(path, type, index);
 }
 
 void Blainn::AssetLoader::ResetTextureOffsetsTable()

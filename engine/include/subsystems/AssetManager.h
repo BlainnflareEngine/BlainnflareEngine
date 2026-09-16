@@ -63,8 +63,8 @@ public:
     bool HasTexture(const Path &path);
     eastl::shared_ptr<TextureHandle> GetTexture(const Path &path);
     eastl::shared_ptr<TextureHandle> LoadTexture(const Path &relativePath, const TextureType type);
-    Texture &GetTextureByIndex(unsigned int index);
-    Texture &GetTextureByHandle(const TextureHandle &handle);
+    Texture &GetTextureByIndex(unsigned int index) const;
+    Texture &GetTextureByHandle(const TextureHandle &handle) const;
     Path GetTexturePath(const TextureHandle &handle);
 
     bool HasMaterial(const Path &relativePath);

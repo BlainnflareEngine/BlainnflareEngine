@@ -31,7 +31,6 @@ public:
     void SetMeshes(const eastl::vector<MeshData<>> &meshes);
 
 public:
-    void CreateBufferResources();
     uint32_t GetVerticesCount() const
     {
         return static_cast<uint32_t>(totalVertexCount);
@@ -41,8 +40,6 @@ public:
         return static_cast<uint32_t>(totalIndexCount);
     }
 
-    void CreateGPUBuffers();
-    void DisposeUploaders();
 
     // TO DO: proper way: texture transoform matrix for every MeshData object
     const Mat4 &GetTextureTransform() const
@@ -57,6 +54,10 @@ public:
     bool IsLoaded();
 
 private:
+    void CreateGPUBuffers();
+    void CreateBufferResources();
+    void DisposeUploaders();
+    
     template <typename TVertex, typename TIndex = uint32_t>
     void CreateGPUBuffers(ID3D12GraphicsCommandList2 *pCommandList, const eastl::vector<TVertex> &vertices,
                           const eastl::vector<TIndex> &indices = eastl::vector<TIndex>(0))

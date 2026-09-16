@@ -3,12 +3,9 @@
 //
 
 #include "file-system/FileSystemObject.h"
-
 #include "Engine.h"
 
-namespace Blainn
-{
-
+using namespace Blainn;
 
 FileSystemObject::FileSystemObject(const Path &relativePath)
     : m_path(relativePath)
@@ -16,30 +13,23 @@ FileSystemObject::FileSystemObject(const Path &relativePath)
     assert(m_path.is_relative());
 }
 
-
 FileSystemObject::~FileSystemObject()
 {
 }
-
 
 void FileSystemObject::Move()
 {
 }
 
-
 void FileSystemObject::Delete()
 {
 }
-
 
 void FileSystemObject::Copy()
 {
 }
 
-
 std::filesystem::path FileSystemObject::GetPath() const
 {
     return m_path;
 }
-
-} // namespace Blainn

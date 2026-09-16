@@ -75,29 +75,21 @@ void AssetManager::LoadPrebuiltMeshes()
 #pragma region Box
     model = Model{};
     model.SetMeshes({PrebuiltEngineMeshes::CreateBox(1.f, 1.f, 1.f)});
-    model.CreateBufferResources();
-    model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
 #pragma endregion Box
 #pragma region Sphere
     model = Model{};
     model.SetMeshes({PrebuiltEngineMeshes::CreateSphere(1.0f, 16u, 16u)});
-    model.CreateBufferResources();
-    model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
 #pragma endregion Sphere
 #pragma region Cone
     model = Model{};
     model.SetMeshes({PrebuiltEngineMeshes::CreateCylinder(1, 0, 1, 16)});
-    model.CreateBufferResources();
-    model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
 #pragma endregion Cone
 #pragma region Grid
     model = Model{};
     model.SetMeshes({PrebuiltEngineMeshes::CreateGrid(50.0f, 50.0f, 20u, 20u)});
-    model.CreateBufferResources();
-    model.CreateGPUBuffers();
     m_meshes.emplace(eastl::make_shared<Model>(model));
 #pragma endregion Grid
 }
@@ -301,13 +293,13 @@ void AssetManager::CreateScene(const Path &relativePath)
 }
 
 
-Texture &AssetManager::GetTextureByIndex(unsigned int index)
+Texture &AssetManager::GetTextureByIndex(unsigned int index) const
 {
     return *m_textures[index];
 }
 
 
-Texture &AssetManager::GetTextureByHandle(const TextureHandle &handle)
+Texture &AssetManager::GetTextureByHandle(const TextureHandle &handle) const
 {
     assert(false);
     unsigned int index = handle.GetIndex();

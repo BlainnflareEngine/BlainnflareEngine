@@ -16,9 +16,7 @@ struct MeshComponent
         : MeshComponent()
     {
         MeshHandle = meshHandle;
-
-        if (material) MaterialHandle = material;
-        else MaterialHandle = AssetManager::GetInstance().GetDefaultMaterialHandle();
+        MaterialHandle = material ? material : AssetManager::GetInstance().GetDefaultMaterialHandle();
     }
 
     MeshComponent(eastl::shared_ptr<MeshHandle> &&meshHandle, eastl::shared_ptr<MaterialHandle> &&material)
@@ -36,11 +34,10 @@ struct MeshComponent
         , Enabled(other.Enabled)
     {
         auto &device = Device::GetInstance();
-        ObjectCB = eastl::make_unique<UploadBuffer<ObjectConstants>>(device.GetDevice2().Get(),
-                                                                     1u /*amount of meshes in model*/, TRUE);
+        ObjectCB = eastl::make_unique<UploadBuffer<ObjectConstants>>(device.GetDevice2().Get(), 1u /*amount of meshes in model*/, TRUE);
     }
 
-    void UpdateMeshCB(ObjectConstants &objectCBData);
+    void UpdateMeshCB(const ObjectConstants &objectCBData);
 
     eastl::shared_ptr<MeshHandle> MeshHandle;
     eastl::shared_ptr<MaterialHandle> MaterialHandle;
