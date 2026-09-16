@@ -1,7 +1,9 @@
 #include "Render/FrameResource.h"
 #include "Render/Device.h"
 
-Blainn::FrameResource::FrameResource(Device &device, UINT passCount, UINT materialCount, UINT maxNumPointLights, UINT maxNumSpotLights)
+using namespace Blainn;
+
+FrameResource::FrameResource(Device &device, UINT passCount, UINT materialCount, UINT maxNumPointLights, UINT maxNumSpotLights)
 {
     ThrowIfFailed(device.CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator));
 
@@ -11,6 +13,6 @@ Blainn::FrameResource::FrameResource(Device &device, UINT passCount, UINT materi
     SpotLightSB = eastl::make_unique<UploadBuffer<SpotLightInstanceData>>(device.GetDevice2().Get(), maxNumSpotLights, FALSE);    // Structured buffer
 }
 
-Blainn::FrameResource::~FrameResource()
+FrameResource::~FrameResource()
 {
 }

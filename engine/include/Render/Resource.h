@@ -8,7 +8,6 @@
 
 namespace Blainn
 {
-
 class Device;
 
 class Resource

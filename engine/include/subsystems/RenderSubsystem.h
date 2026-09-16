@@ -1,28 +1,25 @@
 #pragma once
 
-#include "Render/Device.h"
-#include "Render/SwapChain.h"
-
 #include "handles/Handle.h"
 #include "scene/Entity.h"
 #include "Render/Camera.h"
-#include "Render/GBuffer.h"
-#include "Render/CascadeShadowMap.h"
-#include "Render/RootSignature.h"
 #include "Render/Shader.h"
 #include "Render/PipelineStateObject.h"
 #include "Render/RenderTarget.h"
 
 namespace Blainn
 {
-const int gNumFrameResources = 3;
-
-class DebugRenderer;
-class Device;
 struct FrameResource;
+
+class Device;
+class SwapChain;
 class RootSignature;
-class SelectionManager;
+class GBuffer;
+class ShadowMap;
+class DebugRenderer;
 class UIRenderer;
+
+class SelectionManager;
 
 class RenderSubsystem
 {
@@ -50,30 +47,10 @@ public:
     void DestroySkyboxComponent(Entity entity);
 
 public:
-    void ToggleVSync()
-    {
-        if (!m_swapChain) return;
-        m_swapChain->ToggleVSync();
-    }
-
-    void SetVSyncEnabled(bool value)
-    {
-        if (!m_swapChain) return;
-        m_swapChain->SetVSyncEnabled(value);
-    }
-
-    bool GetVSyncEnabled() const
-    {
-        if (!m_swapChain) return false;
-
-        return m_swapChain->GetVSync();
-    }
-
-    void ToggleFullscreen()
-    {
-        if (!m_swapChain) return;
-        m_swapChain->ToggleFullscreen();
-    }
+    void ToggleVSync();
+    void SetVSyncEnabled(bool value);
+    bool GetVSyncEnabled() const;
+    void ToggleFullscreen();
 
     void SetEnableDebug(bool newValue);
 
@@ -127,9 +104,7 @@ private:
     void InitializeImGui();
 
 #pragma region BoilerplateD3D12
-    VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter,
-                            bool requestHighPerformanceAdapter = false);
-    VOID SetCustomWindowText(LPCWSTR text) const;
+    VOID GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter = false);
 
     VOID CreateSwapChain();
     VOID CreateDescriptorHeaps();
@@ -156,8 +131,10 @@ private:
     void UpdateShadowTransform(float deltaTime);
 
     void UpdateShadowPassCB(float deltaTime);
-    void UpdateGeometryPassCB(float deltaTime);
-    void UpdateDeferredPassCB(float deltaTime);
+    void UpdateCommonRenderingData(float deltaTime);
+    void UpdateGeometryPassCB(/*float deltaTime*/);
+    void UpdateDeferredPassCB(/*float deltaTime*/);
+    // Maybe we'll need this later but for now all the forward render data is alrealy in the const buffer
     void UpdateForwardPassCB(float deltaTime);
 
 private:
@@ -200,6 +177,9 @@ private:
 
     static eastl::array<XMVECTOR, 8> GetFrustumCornersWorldSpace(const XMMATRIX &view, const XMMATRIX &projection);
 
+    D3D12_CPU_DESCRIPTOR_HANDLE GetRTV() const;
+    D3D12_CPU_DESCRIPTOR_HANDLE GetDSV() const;
+
 private:
     UINT m_dxgiFactoryFlags = 0u;
 
@@ -209,13 +189,9 @@ private:
 
     HWND m_hWND;
 
-    static inline bool m_isInitialized = false;
-    bool m_areGraphicsFeaturesLoaded = false;
-    bool m_useWarpDevice = false;
-
-    static inline const uint32_t SwapChainFrameCount = 2u;
-    static inline const DXGI_FORMAT BackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-    static inline const DXGI_FORMAT DepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    static inline bool m_bIsInitialized = false;
+    bool m_bAreGraphicsFeaturesLoaded = false;
+    bool m_bUseWarpDevice = false;
 
     bool m_appPaused = false;       // is the application paused ?
     bool m_minimized = false;       // is the application minimized ?
@@ -232,7 +208,6 @@ private:
 private:
     // Pipeline objects.
     eastl::shared_ptr<SwapChain> m_swapChain;
-    Device &m_device = Device::GetInstance();
 
     ComPtr<ID3D12Resource> m_depthStencilBuffer;
 
@@ -245,10 +220,10 @@ private:
     eastl::unique_ptr<Blainn::UIRenderer> m_UIRenderer;
 
     RenderTarget m_uuidRenderTarget;
+    eastl::unique_ptr<SelectionManager> m_selectionManager = nullptr;
 
     PassConstants m_shadowPassCBData;
-    PassConstants m_geometryPassCBData;
-    PassConstants m_deferredPassCBData;
+    PassConstants m_mainPassCBData;
     MaterialData m_perMaterialSBData;
 
     UINT m_pointLightsCount = 0u;
@@ -289,23 +264,10 @@ private:
 
     // TODO
     eastl::unique_ptr<struct MeshComponent> skyBox = nullptr;
-    Microsoft::WRL::ComPtr<ID3D12Resource> skyBoxResource = nullptr;
-    Microsoft::WRL::ComPtr<ID3D12Resource> skyBoxUploadHeap = nullptr;
-
-    eastl::unique_ptr<SelectionManager> m_selectionManager = nullptr;
+    ComPtr<ID3D12Resource> skyBoxResource = nullptr;
+    ComPtr<ID3D12Resource> skyBoxUploadHeap = nullptr;
 
 private:
-    D3D12_CPU_DESCRIPTOR_HANDLE GetRTV()
-    {
-        return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_rtvHeap->GetCPUDescriptorHandleForHeapStart(),
-                                             m_swapChain->GetBackBufferIndex(), m_rtvDescriptorSize);
-    }
-
-    D3D12_CPU_DESCRIPTOR_HANDLE GetDSV()
-    {
-        return m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
-    }
-
     // Probably not the best idea, but it is what it is ;=
     friend class UIRenderer;
 };

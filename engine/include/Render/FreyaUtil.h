@@ -2,10 +2,10 @@
 
 #include "Render/DXHelpers.h"
 
-using Microsoft::WRL::ComPtr;
-
 namespace Blainn
 {
+    using Microsoft::WRL::ComPtr;
+    
     class FreyaUtil
     {
     public:

@@ -2,7 +2,9 @@
 
 #include "Render/CommandQueue.h"
 
-Blainn::CommandQueue::CommandQueue(const ComPtr<ID3D12Device2>& device, D3D12_COMMAND_LIST_TYPE type)
+using namespace Blainn;
+
+CommandQueue::CommandQueue(const ComPtr<ID3D12Device2>& device, D3D12_COMMAND_LIST_TYPE type)
     : m_fenceValue(0)
     , m_commandListType(type)
     , m_device(device)
@@ -28,19 +30,19 @@ Blainn::CommandQueue::CommandQueue(const ComPtr<ID3D12Device2>& device, D3D12_CO
     ThrowIfFailed(defaultCommandList->Close());
 }
 
-Blainn::CommandQueue::~CommandQueue()
+CommandQueue::~CommandQueue()
 {
     CloseHandle(m_fenceEvent);
 }
 
-UINT64 Blainn::CommandQueue::Signal()
+UINT64 CommandQueue::Signal()
 {
     ++m_fenceValue;
     ThrowIfFailed(m_commandQueue->Signal(m_fence.Get(), m_fenceValue));
     return m_fenceValue;
 }
 
-bool Blainn::CommandQueue::IsFenceComplete(UINT64 fenceValue)
+bool CommandQueue::IsFenceComplete(UINT64 fenceValue)
 {
     /*
      * GetCompletedValue()
@@ -49,7 +51,7 @@ bool Blainn::CommandQueue::IsFenceComplete(UINT64 fenceValue)
     return fenceValue <= m_fence->GetCompletedValue();
 }
 
-void Blainn::CommandQueue::WaitForFenceValue(UINT64 fenceValue)
+void CommandQueue::WaitForFenceValue(UINT64 fenceValue)
 {
     if (!IsFenceComplete(fenceValue))
     {
@@ -62,12 +64,12 @@ void Blainn::CommandQueue::WaitForFenceValue(UINT64 fenceValue)
     }
 }
 
-void Blainn::CommandQueue::Flush()
+void CommandQueue::Flush()
 {
     WaitForFenceValue(Signal());
 }
 
-ComPtr<ID3D12CommandAllocator> Blainn::CommandQueue::CreateCommandAllocator()
+ComPtr<ID3D12CommandAllocator> CommandQueue::CreateCommandAllocator()
 {
     ComPtr<ID3D12CommandAllocator> commandAllocator;
     ThrowIfFailed(m_device->CreateCommandAllocator(m_commandListType, IID_PPV_ARGS(&commandAllocator)));
@@ -76,7 +78,7 @@ ComPtr<ID3D12CommandAllocator> Blainn::CommandQueue::CreateCommandAllocator()
 }
 
 
-ComPtr<ID3D12CommandAllocator> Blainn::CommandQueue::GetCommandAllocator()
+ComPtr<ID3D12CommandAllocator> CommandQueue::GetCommandAllocator()
 {
     std::lock_guard<std::mutex> lock(m_commandAllocatorMutex);
     ComPtr<ID3D12CommandAllocator> commandAllocator;
@@ -96,7 +98,7 @@ ComPtr<ID3D12CommandAllocator> Blainn::CommandQueue::GetCommandAllocator()
     return commandAllocator;
 }
 
-ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::CreateCommandList(ID3D12CommandAllocator* pCommandAllocator)
+ComPtr<ID3D12GraphicsCommandList2> CommandQueue::CreateCommandList(ID3D12CommandAllocator* pCommandAllocator)
 {
     ComPtr<ID3D12GraphicsCommandList2> commandList;
     ThrowIfFailed(m_device->CreateCommandList(0u, m_commandListType, pCommandAllocator, nullptr, IID_PPV_ARGS(&commandList)));
@@ -104,7 +106,7 @@ ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::CreateCommandList(ID3D1
     return commandList;
 }
 
-ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::GetCommandList(ID3D12CommandAllocator *pCommandAllocator)
+ComPtr<ID3D12GraphicsCommandList2> CommandQueue::GetCommandList(ID3D12CommandAllocator *pCommandAllocator)
 {
     std::lock_guard<std::mutex> lock(m_commandListMutex);
     ComPtr<ID3D12GraphicsCommandList2> commandList;
@@ -126,18 +128,18 @@ ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::GetCommandList(ID3D12Co
     return commandList;
 }
 
-ComPtr<ID3D12CommandAllocator> Blainn::CommandQueue::GetDefaultCommandAllocator()
+ComPtr<ID3D12CommandAllocator> CommandQueue::GetDefaultCommandAllocator()
 {
     return defaultCommandAllocator;
 }
 
-ComPtr<ID3D12GraphicsCommandList2> Blainn::CommandQueue::GetDefaultCommandList()
+ComPtr<ID3D12GraphicsCommandList2> CommandQueue::GetDefaultCommandList()
 {
     return defaultCommandList;
 }
 
 // Execute a command list.
-void Blainn::CommandQueue::ExecuteCommandList(ComPtr<ID3D12GraphicsCommandList2> commandList)
+void CommandQueue::ExecuteCommandList(ComPtr<ID3D12GraphicsCommandList2> commandList)
 {
     BLAINN_PROFILE_FUNC();
     {
@@ -155,7 +157,7 @@ void Blainn::CommandQueue::ExecuteCommandList(ComPtr<ID3D12GraphicsCommandList2>
     }
 }
 
-ComPtr<ID3D12CommandQueue> Blainn::CommandQueue::GetCommandQueue() const
+ComPtr<ID3D12CommandQueue> CommandQueue::GetCommandQueue() const
 {
     return m_commandQueue;
 }

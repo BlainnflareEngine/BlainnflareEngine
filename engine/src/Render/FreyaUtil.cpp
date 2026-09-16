@@ -1,6 +1,8 @@
 #include "Render/FreyaUtil.h"
 
-ComPtr<ID3D12Resource> Blainn::FreyaUtil::CreateDefaultBuffer(ID3D12Device* device, ID3D12GraphicsCommandList* cmdList, const void* initData, UINT64 byteSize, ComPtr<ID3D12Resource>& uploadBuffer)
+using namespace Blainn;
+
+ComPtr<ID3D12Resource> FreyaUtil::CreateDefaultBuffer(ID3D12Device* device, ID3D12GraphicsCommandList* cmdList, const void* initData, UINT64 byteSize, ComPtr<ID3D12Resource>& uploadBuffer)
 {
     ComPtr<ID3D12Resource> defaultBuffer;
 
@@ -53,12 +55,12 @@ ComPtr<ID3D12Resource> Blainn::FreyaUtil::CreateDefaultBuffer(ID3D12Device* devi
     return defaultBuffer;
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS Blainn::FreyaUtil::GetGPUVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS address, UINT byteStride, UINT index)
+D3D12_GPU_VIRTUAL_ADDRESS FreyaUtil::GetGPUVirtualAddress(D3D12_GPU_VIRTUAL_ADDRESS address, UINT byteStride, UINT index)
 {
     return address + (UINT64)(byteStride * index);
 }
 
-ComPtr<ID3DBlob> Blainn::FreyaUtil::CompileShader(const std::wstring& fileName, const D3D_SHADER_MACRO* defines, const std::string& entrypoint, const std::string& target)
+ComPtr<ID3DBlob> FreyaUtil::CompileShader(const std::wstring& fileName, const D3D_SHADER_MACRO* defines, const std::string& entrypoint, const std::string& target)
 {
 #if defined(_DEBUG) | defined(DEBUG)
     // Enable better shader debugging with the graphics debugging tools.
@@ -83,7 +85,7 @@ ComPtr<ID3DBlob> Blainn::FreyaUtil::CompileShader(const std::wstring& fileName, 
     return byteCode;
 }
 
-UINT Blainn::FreyaUtil::CalcConstantBufferByteSize(const UINT byteSize)
+UINT FreyaUtil::CalcConstantBufferByteSize(const UINT byteSize)
 {
     return (byteSize + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
 }

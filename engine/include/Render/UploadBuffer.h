@@ -2,9 +2,9 @@
 
 #include "Render/FreyaUtil.h"
 
-using namespace Microsoft::WRL;
-
-namespace Blainn{
+namespace Blainn
+{
+    using namespace Microsoft::WRL;
 
     template<typename T>
     class UploadBuffer

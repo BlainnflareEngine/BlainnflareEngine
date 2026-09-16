@@ -7,11 +7,9 @@
 
 namespace Blainn
 {
-    SwapChain::SwapChain(HWND hWnd, DXGI_FORMAT backBufferFormat)
-        : m_hWnd(hWnd)
-        , m_width(0u)
+    SwapChain::SwapChain(HWND hWnd)
+        : m_width(0u)
         , m_height(0u)
-        , m_backBufferFormat(backBufferFormat)
         , m_bIsVSync(true)
         , m_bIsTearingSupported(false)
         , m_bIsFullscreen(false)
@@ -46,11 +44,11 @@ namespace Blainn
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
         swapChainDesc.Width = m_width;
         swapChainDesc.Height = m_height;
-        swapChainDesc.Format = backBufferFormat; // Back buffer format
+        swapChainDesc.Format = RenderCommon::kBackBufferFormat; // Back buffer format
         swapChainDesc.Stereo = FALSE;                                          
         swapChainDesc.SampleDesc = {1u, 0u}; // No MSAA
         swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        swapChainDesc.BufferCount = SwapChainFrameCount;
+        swapChainDesc.BufferCount = RenderCommon::kSwapChainBufferCount;
         swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
         swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
@@ -106,14 +104,14 @@ namespace Blainn
             m_width = std::max(1u, width);
             m_height = std::max(1u, height);
 
-            for (UINT i = 0; i < SwapChainFrameCount; ++i)
+            for (UINT i = 0; i < RenderCommon::kSwapChainBufferCount; ++i)
             {
                 m_renderTargets[i].Reset();
             }
 
             DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
             ThrowIfFailed(m_dxgiSwapChain->GetDesc(&swapChainDesc));
-            ThrowIfFailed(m_dxgiSwapChain->ResizeBuffers(SwapChainFrameCount, m_width, m_height, swapChainDesc.BufferDesc.Format, swapChainDesc.Flags));
+            ThrowIfFailed(m_dxgiSwapChain->ResizeBuffers(RenderCommon::kSwapChainBufferCount, m_width, m_height, swapChainDesc.BufferDesc.Format, swapChainDesc.Flags));
             
             m_currBackBuffer = m_dxgiSwapChain->GetCurrentBackBufferIndex();
             ResetRenderTargets();
@@ -127,8 +125,8 @@ namespace Blainn
 
     VOID SwapChain::Present()
     {
-        UINT syncInterval = m_bIsVSync ? 1u : 0u;
-        UINT presentFlags = m_bIsTearingSupported && !m_bIsFullscreen && !m_bIsVSync ? DXGI_PRESENT_ALLOW_TEARING : 0u;
+        const UINT syncInterval = m_bIsVSync ? 1u : 0u;
+        const UINT presentFlags = m_bIsTearingSupported && !m_bIsFullscreen && !m_bIsVSync ? DXGI_PRESENT_ALLOW_TEARING : 0u;
 
         ThrowIfFailed(m_dxgiSwapChain->Present(syncInterval, presentFlags));
         m_currBackBuffer = m_dxgiSwapChain->GetCurrentBackBufferIndex();
@@ -141,7 +139,7 @@ namespace Blainn
 
         CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(rtvHeap->GetCPUDescriptorHandleForHeapStart());
 
-        for (UINT i = 0; i < SwapChainFrameCount; ++i)
+        for (UINT i = 0; i < RenderCommon::kSwapChainBufferCount; ++i)
         {
             ThrowIfFailed(m_dxgiSwapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])));
             Device::GetInstance().CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHeapHandle);

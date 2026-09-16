@@ -1,5 +1,7 @@
 #include "Render/CascadeShadowMap.h"
 
+using namespace Blainn;
+
 CascadeShadowMap::CascadeShadowMap(ID3D12Device *device, UINT width, UINT height, UINT cascadesCount)
     : ShadowMap(device, width, height, cascadesCount)
 {

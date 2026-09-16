@@ -6,8 +6,6 @@ struct ID3D12Device2;
 struct IDXGIFactory4;
 struct IDXGIAdapter1;
 
-using namespace Microsoft::WRL;
-
 namespace Blainn
 {
     class SwapChain;
@@ -33,7 +31,7 @@ namespace Blainn
 
         eastl::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE commandListType = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
         
-        eastl::shared_ptr<SwapChain> CreateSwapChain(HWND window, DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R10G10B10A2_UNORM);
+        eastl::shared_ptr<SwapChain> CreateSwapChain(HWND window);
         HRESULT CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE commandListType, ComPtr<ID3D12CommandAllocator>&  commandAllocator);
         
         HRESULT CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors,

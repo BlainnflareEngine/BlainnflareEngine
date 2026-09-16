@@ -2,73 +2,76 @@
 
 #include "Render/DXHelpers.h"
 
-class ShadowMap
+namespace Blainn
 {
-public:
-    ShadowMap(ID3D12Device *device, UINT width, UINT height, UINT cascadesCount = 0u);
-    ShadowMap(const ShadowMap &lhs) = delete;
-    ShadowMap &operator=(const ShadowMap &lhs) = delete;
-
-    virtual ~ShadowMap() noexcept;
-
-public:
-    FORCEINLINE UINT GetWidth() const
+    class ShadowMap
     {
-        return m_mapWidth;
-    }
-    FORCEINLINE UINT GetHeight() const
-    {
-        return m_mapHeight;
-    }
+    public:
+        ShadowMap(ID3D12Device *device, UINT width, UINT height, UINT cascadesCount = 0u);
+        ShadowMap(const ShadowMap &lhs) = delete;
+        ShadowMap &operator=(const ShadowMap &lhs) = delete;
 
-    ID3D12Resource *Get();
+        virtual ~ShadowMap() noexcept;
 
-    FORCEINLINE CD3DX12_GPU_DESCRIPTOR_HANDLE GetSrv() const
-    {
-        return m_hGpuSrv;
-    }
-    FORCEINLINE CD3DX12_CPU_DESCRIPTOR_HANDLE GetDsv() const
-    {
-        return m_hCpuDsv;
-    }
+    public:
+        FORCEINLINE UINT GetWidth() const
+        {
+            return m_mapWidth;
+        }
+        FORCEINLINE UINT GetHeight() const
+        {
+            return m_mapHeight;
+        }
 
-    FORCEINLINE D3D12_VIEWPORT GetViewport() const
-    {
-        return m_viewport;
-    }
-    FORCEINLINE D3D12_RECT GetScissorRect() const
-    {
-        return m_scissorRect;
-    }
+        ID3D12Resource *Get();
 
-    void CreateDescriptors(CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuSrv, CD3DX12_GPU_DESCRIPTOR_HANDLE hGpuSrv,
-                           CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuDsv);
+        FORCEINLINE CD3DX12_GPU_DESCRIPTOR_HANDLE GetSrv() const
+        {
+            return m_hGpuSrv;
+        }
+        FORCEINLINE CD3DX12_CPU_DESCRIPTOR_HANDLE GetDsv() const
+        {
+            return m_hCpuDsv;
+        }
 
-    void OnResize(UINT newWidth, UINT newHeight);
+        FORCEINLINE D3D12_VIEWPORT GetViewport() const
+        {
+            return m_viewport;
+        }
+        FORCEINLINE D3D12_RECT GetScissorRect() const
+        {
+            return m_scissorRect;
+        }
 
-protected:
-    virtual void CreateDescriptors();
+        void CreateDescriptors(CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuSrv, CD3DX12_GPU_DESCRIPTOR_HANDLE hGpuSrv,
+                               CD3DX12_CPU_DESCRIPTOR_HANDLE hCpuDsv);
 
-private:
-    void CreateResource();
+        void OnResize(UINT newWidth, UINT newHeight);
 
-protected:
-    ID3D12Device *m_device = nullptr;
+    protected:
+        virtual void CreateDescriptors();
 
-    D3D12_VIEWPORT m_viewport;
-    D3D12_RECT m_scissorRect;
+    private:
+        void CreateResource();
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE m_hCpuSrv;
-    CD3DX12_GPU_DESCRIPTOR_HANDLE m_hGpuSrv;
-    CD3DX12_CPU_DESCRIPTOR_HANDLE m_hCpuDsv;
+    protected:
+        ID3D12Device *m_device = nullptr;
 
-    DXGI_FORMAT m_format = DXGI_FORMAT_R24G8_TYPELESS;
+        D3D12_VIEWPORT m_viewport;
+        D3D12_RECT m_scissorRect;
 
-    UINT m_mapWidth = 0u;
-    UINT m_mapHeight = 0u;
+        CD3DX12_CPU_DESCRIPTOR_HANDLE m_hCpuSrv;
+        CD3DX12_GPU_DESCRIPTOR_HANDLE m_hGpuSrv;
+        CD3DX12_CPU_DESCRIPTOR_HANDLE m_hCpuDsv;
 
-    UINT m_cascadesCount = 0u;
+        DXGI_FORMAT m_format = DXGI_FORMAT_R24G8_TYPELESS;
 
-    // actual gpu resource
-    ComPtr<ID3D12Resource> m_shadowMap = nullptr;
-};
+        UINT m_mapWidth = 0u;
+        UINT m_mapHeight = 0u;
+
+        UINT m_cascadesCount = 0u;
+
+        // actual gpu resource
+        ComPtr<ID3D12Resource> m_shadowMap = nullptr;
+    };
+}

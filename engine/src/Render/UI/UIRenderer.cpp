@@ -13,6 +13,7 @@
 #include "Input/KeyboardEvents.h"
 #include "Input/MouseEvents.h"
 #include "Render/CommandQueue.h"
+#include "Render/FreyaCoreTypes.h"
 
 using namespace Blainn;
 
@@ -33,9 +34,9 @@ void UIRenderer::Initialize(int width, int height)
     ImGui_ImplDX12_InitInfo initInfo{};
     initInfo.Device = Device::GetInstance().GetDevice2().Get();
     initInfo.CommandQueue = Device::GetInstance().GetCommandQueue()->GetCommandQueue().Get();
-    initInfo.NumFramesInFlight = RenderSubsystem::SwapChainFrameCount;
-    initInfo.RTVFormat = RenderSubsystem::BackBufferFormat;
-    initInfo.DSVFormat = RenderSubsystem::DepthStencilFormat;
+    initInfo.NumFramesInFlight = RenderCommon::kSwapChainBufferCount;
+    initInfo.RTVFormat = RenderCommon::kBackBufferFormat;
+    initInfo.DSVFormat = RenderCommon::kDepthStencilFormat;
     initInfo.SrvDescriptorHeap = Device::GetInstance().GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).Get();
     initInfo.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_handle)
     {

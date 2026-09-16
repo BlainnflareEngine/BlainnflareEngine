@@ -10,53 +10,52 @@
 
 namespace Blainn
 {
-class UIRenderer
-{
-public:
-    UIRenderer() = default;
-    ~UIRenderer() = default;
-
-    void Initialize(int width, int height);
-    void Destroy();
-
-    void Resize(int width, int height);
-
-    void StartImGuiFrame();
-    void RenderUI(ID3D12GraphicsCommandList2* pCommandList);
-
-    DebugUIRenderer &GetDebugUIRenderer()
+    class UIRenderer
     {
-        return m_debugUIRenderer;
-    }
+    public:
+        UIRenderer() = default;
+        ~UIRenderer() = default;
 
-    bool IsUIHovered() const {return m_isUIHovered;}
+        void Initialize(int width, int height);
+        void Destroy();
 
-public:
-    bool ShouldRenderDebugUI = true;
+        void Resize(int width, int height);
 
-private:
+        void StartImGuiFrame();
+        void RenderUI(ID3D12GraphicsCommandList2* pCommandList);
 
-    void RenderDebugUI();
+        DebugUIRenderer &GetDebugUIRenderer()
+        {
+            return m_debugUIRenderer;
+        }
 
-    void SetupInput();
-    static constexpr int KeyToImGuiKey(KeyCode key);
+        bool IsUIHovered() const {return m_isUIHovered;}
 
-private:
-    DebugUIRenderer m_debugUIRenderer;
-    int m_width, m_height;
+    public:
+        bool ShouldRenderDebugUI = true;
 
-    bool m_ImGuiFrameStarted = false;
-    bool m_isUIHovered = false;
+    private:
 
-    Input::EventHandle h_mouseMoved;
-    Input::EventHandle h_mbPressed;
-    Input::EventHandle h_mbHeld;
-    Input::EventHandle h_mbReleased;
-    Input::EventHandle h_mouseScrolled;
+        void RenderDebugUI();
 
-    Input::EventHandle h_keyPressed;
-    Input::EventHandle h_keyHeld;
-    Input::EventHandle h_keyReleased;
-};
+        void SetupInput();
+        static constexpr int KeyToImGuiKey(KeyCode key);
 
+    private:
+        DebugUIRenderer m_debugUIRenderer;
+        int m_width, m_height;
+
+        bool m_ImGuiFrameStarted = false;
+        bool m_isUIHovered = false;
+
+        Input::EventHandle h_mouseMoved;
+        Input::EventHandle h_mbPressed;
+        Input::EventHandle h_mbHeld;
+        Input::EventHandle h_mbReleased;
+        Input::EventHandle h_mouseScrolled;
+
+        Input::EventHandle h_keyPressed;
+        Input::EventHandle h_keyHeld;
+        Input::EventHandle h_keyReleased;
+    };
 }

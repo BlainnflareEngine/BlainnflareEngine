@@ -10,15 +10,13 @@ namespace Blainn
     class SwapChain
     {
     public:
-        SwapChain(HWND hWnd, DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R10G10B10A2_UNORM);
+        SwapChain(HWND hWnd);
         virtual ~SwapChain();
 
     private:
         void ResetRenderTargets();
 
     public:
-        static const UINT SwapChainFrameCount = 2u;
-
         bool IsFullscreen() const { return m_bIsFullscreen; }
         void SetFullscreen(bool fullscreen);
         void ToggleFullscreen() { SetFullscreen(!m_bIsFullscreen); }
@@ -36,18 +34,14 @@ namespace Blainn
         VOID Present();
         ID3D12Resource* GetBackBuffer() const;
         UINT GetBackBufferIndex() const { return m_currBackBuffer; }
-        DXGI_FORMAT GetBackBufferFormat() const { return m_backBufferFormat; }
 
-        Microsoft::WRL::ComPtr<IDXGISwapChain3> GetSwapChain() const { return m_dxgiSwapChain; }
+        ComPtr<IDXGISwapChain3> GetSwapChain() const { return m_dxgiSwapChain; }
 
     private:
-        Microsoft::WRL::ComPtr<IDXGISwapChain3> m_dxgiSwapChain;
+        ComPtr<IDXGISwapChain3> m_dxgiSwapChain;
 
-        ComPtr<ID3D12Resource> m_renderTargets[SwapChainFrameCount];
+        ComPtr<ID3D12Resource> m_renderTargets[RenderCommon::kSwapChainBufferCount];
         UINT m_currBackBuffer = 0u;
-        DXGI_FORMAT m_backBufferFormat;
-
-        HWND m_hWnd;
 
         uint32_t m_width;
         uint32_t m_height;

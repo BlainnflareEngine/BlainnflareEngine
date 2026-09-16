@@ -4,13 +4,15 @@
 #include "Render/CommandQueue.h"
 #include "Render/SwapChain.h"
 
-Blainn::Device& Blainn::Device::GetInstance()
+using namespace Blainn;
+
+Device& Device::GetInstance()
 {
     static Device device;
     return device;
 }
 
-void Blainn::Device::Init(bool useWarpDevice)
+void Device::Init(bool useWarpDevice)
 {
     m_useWarpDevice = useWarpDevice;
     
@@ -34,7 +36,7 @@ void Blainn::Device::Init(bool useWarpDevice)
     m_isInitialized = true;
 }
 
-void Blainn::Device::CreateCommandQueues()
+void Device::CreateCommandQueues()
 {
     // If we have multiple command queues, we can write a resource only from one queue at the same time.
     // Before it can be accessed by another queue, it must transition to read or common state.
@@ -45,12 +47,12 @@ void Blainn::Device::CreateCommandQueues()
     m_computeCommandQueue = eastl::make_shared<CommandQueue>(m_device, D3D12_COMMAND_LIST_TYPE_COMPUTE);
 }
 
-void Blainn::Device::Destroy()
+void Device::Destroy()
 {
     Flush();
 }
 
-ComPtr<ID3D12DescriptorHeap> Blainn::Device::GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type /*= D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV*/) const
+ComPtr<ID3D12DescriptorHeap> Device::GetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE type /*= D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV*/) const
 {
     switch (type)
     {
@@ -66,7 +68,7 @@ ComPtr<ID3D12DescriptorHeap> Blainn::Device::GetDescriptorHeap(D3D12_DESCRIPTOR_
     }
 }
 
-VOID Blainn::Device::CreateDebugLayer()
+VOID Device::CreateDebugLayer()
 {
     ComPtr<ID3D12Debug> debugController;
     if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
@@ -82,14 +84,14 @@ VOID Blainn::Device::CreateDebugLayer()
     }
 }
 
-VOID Blainn::Device::Flush()
+VOID Device::Flush()
 {
     m_directCommandQueue->Flush();
     m_copyCommandQueue->Flush();
     m_computeCommandQueue->Flush();
 }
 
-eastl::shared_ptr<Blainn::CommandQueue> Blainn::Device::GetCommandQueue(D3D12_COMMAND_LIST_TYPE commandListType) const
+eastl::shared_ptr<CommandQueue> Device::GetCommandQueue(D3D12_COMMAND_LIST_TYPE commandListType) const
 {
     switch (commandListType)
     {
@@ -110,7 +112,7 @@ eastl::shared_ptr<Blainn::CommandQueue> Blainn::Device::GetCommandQueue(D3D12_CO
 
 // Helper function for acquiring the first available hardware adapter that supports Direct3D 12.
 // If no such adapter can be found, *ppAdapter will be set to nullptr.
-_Use_decl_annotations_ VOID Blainn::Device::GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter)
+_Use_decl_annotations_ VOID Device::GetHardwareAdapter(IDXGIFactory1 *pFactory, IDXGIAdapter1 **ppAdapter, bool requestHighPerformanceAdapter)
 {
     *ppAdapter = nullptr;
     ComPtr<IDXGIAdapter1> adapter;
@@ -169,19 +171,17 @@ _Use_decl_annotations_ VOID Blainn::Device::GetHardwareAdapter(IDXGIFactory1 *pF
     *ppAdapter = adapter.Detach();
 }
 
-eastl::shared_ptr<Blainn::SwapChain> Blainn::Device::CreateSwapChain(HWND window, DXGI_FORMAT backBufferFormat)
+eastl::shared_ptr<SwapChain> Device::CreateSwapChain(HWND window)
 {
-    eastl::shared_ptr<SwapChain> swapChain = eastl::make_shared<SwapChain>(window, backBufferFormat);
-
-    return swapChain;
+    return eastl::make_shared<SwapChain>(window);
 }
 
-HRESULT Blainn::Device::CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE commandListType, ComPtr<ID3D12CommandAllocator>& commandAllocator)
+HRESULT Device::CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE commandListType, ComPtr<ID3D12CommandAllocator>& commandAllocator)
 {
     return m_device->CreateCommandAllocator(commandListType, IID_PPV_ARGS(commandAllocator.GetAddressOf()));
 }
 
-HRESULT Blainn::Device::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors,
+HRESULT Device::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors,
                                              ComPtr<ID3D12DescriptorHeap> &descriptorHeap,
                                              D3D12_DESCRIPTOR_HEAP_FLAGS flags/* = D3D12_DESCRIPTOR_HEAP_FLAG_NONE*/, UINT nodeMask/*= 0u*/)
 {
@@ -193,7 +193,7 @@ HRESULT Blainn::Device::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType
     return m_device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(descriptorHeap.GetAddressOf()));
 }
 
-HRESULT Blainn::Device::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors,
+HRESULT Device::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors,
                                              D3D12_DESCRIPTOR_HEAP_FLAGS flags /* = D3D12_DESCRIPTOR_HEAP_FLAG_NONE*/, UINT nodeMask /*= 0u*/)
 {
     D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
@@ -233,7 +233,7 @@ HRESULT Blainn::Device::CreateDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE heapType
     }
 }
 
-UINT Blainn::Device::GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType) const
+UINT Device::GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType) const
 {
     switch (heapType)
     {
@@ -249,13 +249,12 @@ UINT Blainn::Device::GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE
     }
 }
 
-HRESULT Blainn::Device::CreateGraphicsPipelineState(const D3D12_GRAPHICS_PIPELINE_STATE_DESC &psoDesc,
-                                                    ComPtr<ID3D12PipelineState> &pipelineState)
+HRESULT Device::CreateGraphicsPipelineState(const D3D12_GRAPHICS_PIPELINE_STATE_DESC &psoDesc, ComPtr<ID3D12PipelineState> &pipelineState)
 {
     return m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pipelineState));
 }
 
-VOID Blainn::Device::CreateDepthStencilView(ID3D12Resource *pResource, const DXGI_FORMAT format , CD3DX12_CPU_DESCRIPTOR_HANDLE destDescriptor)
+VOID Device::CreateDepthStencilView(ID3D12Resource *pResource, const DXGI_FORMAT format , CD3DX12_CPU_DESCRIPTOR_HANDLE destDescriptor)
 {
     D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
     dsvDesc.Format = format;
@@ -265,30 +264,27 @@ VOID Blainn::Device::CreateDepthStencilView(ID3D12Resource *pResource, const DXG
     m_device->CreateDepthStencilView(pResource, &dsvDesc, destDescriptor);
 }
 
-VOID Blainn::Device::CreateRenderTargetView(ID3D12Resource *pResource, const D3D12_RENDER_TARGET_VIEW_DESC* rtvDesc,
-                                            CD3DX12_CPU_DESCRIPTOR_HANDLE destDescriptor)
+VOID Device::CreateRenderTargetView(ID3D12Resource *pResource, const D3D12_RENDER_TARGET_VIEW_DESC* rtvDesc, CD3DX12_CPU_DESCRIPTOR_HANDLE destDescriptor)
 {
     m_device->CreateRenderTargetView(pResource, rtvDesc, destDescriptor);
 }
 
-VOID Blainn::Device::CreateShaderResourceView(ID3D12Resource *pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC *srvDesc,
-                                              CD3DX12_CPU_DESCRIPTOR_HANDLE destDescriptor)
+VOID Device::CreateShaderResourceView(ID3D12Resource *pResource, const D3D12_SHADER_RESOURCE_VIEW_DESC *srvDesc, CD3DX12_CPU_DESCRIPTOR_HANDLE destDescriptor)
 {
     m_device->CreateShaderResourceView(pResource, srvDesc, destDescriptor);
 }
 
-HRESULT Blainn::Device::CreateRootSignature(UINT nodeMask, const void* pBlobRootSignature, SIZE_T blobLengthBytes, ComPtr<ID3D12RootSignature>& rootSignature)
+HRESULT Device::CreateRootSignature(UINT nodeMask, const void* pBlobRootSignature, SIZE_T blobLengthBytes, ComPtr<ID3D12RootSignature>& rootSignature)
 {
     return m_device->CreateRootSignature(nodeMask, pBlobRootSignature, blobLengthBytes, IID_PPV_ARGS(rootSignature.GetAddressOf()));
 }
 
-HRESULT Blainn::Device::CreateCommittedResource(const D3D12_HEAP_TYPE heapType, D3D12_HEAP_FLAGS heapFlags,
+HRESULT Device::CreateCommittedResource(const D3D12_HEAP_TYPE heapType, D3D12_HEAP_FLAGS heapFlags,
                                                const D3D12_RESOURCE_DESC& resourceDesc,
                                                D3D12_RESOURCE_STATES initialResourceState,
                                                const D3D12_CLEAR_VALUE &optClearValue, ComPtr<ID3D12Resource> &resource)
 {
     auto heapProp = CD3DX12_HEAP_PROPERTIES(heapType);
 
-    return m_device->CreateCommittedResource(&heapProp, heapFlags, &resourceDesc, initialResourceState, &optClearValue,
-                                             IID_PPV_ARGS(resource.GetAddressOf()));
+    return m_device->CreateCommittedResource(&heapProp, heapFlags, &resourceDesc, initialResourceState, &optClearValue, IID_PPV_ARGS(resource.GetAddressOf()));
 }
