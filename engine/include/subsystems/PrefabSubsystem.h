@@ -26,7 +26,5 @@ public:
     static bool HasPrefabOverrides(Entity entity);
     static void ApplyPrefabOverrides(Entity entity);
     static void RevertPrefabOverrides(Entity entity);
-    static eastl::any GetOriginalPrefabValue(Entity entity, entt::id_type componentType,
-                                             const eastl::string &fieldPath);
 };
 } // namespace Blainn

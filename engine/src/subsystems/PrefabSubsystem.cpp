@@ -73,7 +73,7 @@ bool PrefabSubsystem::HasPrefabOverrides(Entity entity)
     auto component = entity.TryGetComponent<PrefabComponent>();
     if (!component) return false;
 
-    return component->Overrides.empty();
+    return !component->Overrides.empty();
 }
 
 
@@ -98,12 +98,5 @@ void PrefabSubsystem::RevertPrefabOverrides(Entity entity)
 
     prefabComp.Overrides.clear();
     BF_DEBUG("All prefab overrides reverted for entity");
-}
-
-
-eastl::any PrefabSubsystem::GetOriginalPrefabValue(Entity entity, entt::id_type componentType,
-                                                   const eastl::string &fieldPath)
-{
-    return eastl::any();
 }
 } // namespace Blainn
